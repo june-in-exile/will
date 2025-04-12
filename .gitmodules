@@ -4,3 +4,6 @@
 [submodule "foundry"]
 	path = foundry
 	url = https://github.com/june-in-exile/testament-foundry.git
+[submodule "backend"]
+	path = backend
+	url = https://github.com/june-in-exile/testament-backend.git
