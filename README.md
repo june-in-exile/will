@@ -6,3 +6,4 @@ Check the foundry's README.md for the detailed instructions.
 
 ## TODO list
 - [ ] Write the circom circuit for ZKP.
+- [ ] Fix the IPFS problem.
