@@ -6,4 +6,3 @@ Check the foundry's README.md for the detailed instructions.
 
 ## TODO list
 - [ ] Write the circom circuit for ZKP.
-- [ ] Scale the testament functions to multiple beneficiaries.
