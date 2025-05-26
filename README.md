@@ -10,5 +10,4 @@ Check the foundry's README.md for the detailed instructions.
     - [ ] contain "nonce", "deadline", and "signature" fields that can pass the permit2 verification if go with the other fields in the json files.
   - [ ] ZKP2 to prove that some json file can be encrypted into the given cyphertext with the given iv.
   - [ ] ZKP3 to prove that the former two json files are the same.
-- [ ] pinInHelia fails
-  - Helia vs. IPFS Desktop
+- [ ] pinata
