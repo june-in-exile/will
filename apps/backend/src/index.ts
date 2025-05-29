@@ -1,9 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 // 使用相對路徑引用，避免 path mapping 問題
-import { formatAddress } from '../../../shared/utils/index.js';
-import { NETWORKS } from '../../../shared/constants/index.js';
-import type { Testament } from '../../../shared/types/index.js';
+import type { Testament } from '@shared/types/index.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -15,8 +13,6 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok',
     message: 'Testament backend is running',
-    networks: NETWORKS,
-    testAddress: formatAddress('0x1234567890123456789012345678901234567890')
   });
 });
 
