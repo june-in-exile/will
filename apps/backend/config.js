@@ -4,12 +4,8 @@ import { config } from 'dotenv';
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
-// Load environment variables from multiple sources
-config({ path: resolve(modulePath, '.env') });
-config({
-  path: resolve(modulePath, '../foundry/.env'),
-  override: false
-});
+// Load environment variables
+config({ path: resolve(modulePath, '../../.env') });
 
 /**
  * Unified Configuration for Testament Application
@@ -226,9 +222,11 @@ export const IPFS_CONFIG = {
 export const PATHS_CONFIG = {
   // Base paths
   base: {
-    module: modulePath,
-    root: resolve(modulePath, '..'),
-    foundry: resolve(modulePath, '../foundry')
+    root: resolve(modulePath, '../..'),
+    backend: modulePath,
+    frontend: resolve(modulePath, '../frontend'),
+    circuits: resolve(modulePath, '../../circuits'),
+    contracts: resolve(modulePath, '../../contracts')
   },
 
   // Testament files
@@ -242,15 +240,12 @@ export const PATHS_CONFIG = {
   },
 
   // Environment files
-  env: {
-    backend: resolve(modulePath, '.env'),
-    foundry: resolve(modulePath, '../foundry/.env')
-  },
+  env: resolve(modulePath, '../../.env'),
 
   // Contract artifacts
   contracts: {
-    outDir: resolve(modulePath, '../foundry/out'),
-    testamentFactory: resolve(modulePath, '../foundry/out/TestamentFactory.sol/TestamentFactory.json')
+    outDir: resolve(modulePath, '../../contracts/out'),
+    testamentFactory: resolve(modulePath, '../../contracts/out/TestamentFactory.sol/TestamentFactory.json')
   },
 
   // Crypto keys
