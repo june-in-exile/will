@@ -13,5 +13,8 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --project tsconfig.typecheck.json",
     "clean": "rm -rf dist node_modules"
+  },
+  "devDependencies": {
+    "tsconfig-paths": "^4.2.0"
   }
 }

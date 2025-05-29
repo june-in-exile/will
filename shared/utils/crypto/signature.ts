@@ -1,12 +1,15 @@
-import { SIGNATURE_CONFIG } from '../../config.js';
-import { ethers } from 'ethers';
-import { keccak256 } from './hash.js';
+import { SIGNATURE_CONFIG } from '../../config';
+import { ethers, Wallet } from 'ethers';
+import { keccak256 } from './hash';
 import chalk from 'chalk';
+import type { SignatureConfig, SignatureValidationResult } from '../../types';
+
+// Type definitions
 
 /**
  * Validate message input
  */
-function validateMessage(message) {
+function validateMessage(message: string): boolean {
     if (typeof message !== 'string') {
         throw new Error('Message must be a string');
     }
@@ -25,7 +28,7 @@ function validateMessage(message) {
 /**
  * Validate private key format
  */
-function validatePrivateKey(privateKey) {
+function validatePrivateKey(privateKey: string): string {
     if (typeof privateKey !== 'string') {
         throw new Error('Private key must be a string');
     }
@@ -54,7 +57,7 @@ function validatePrivateKey(privateKey) {
 /**
  * Validate Ethereum address format
  */
-function validateEthereumAddress(address) {
+function validateEthereumAddress(address: string): string {
     if (typeof address !== 'string') {
         throw new Error('Address must be a string');
     }
@@ -69,7 +72,7 @@ function validateEthereumAddress(address) {
 /**
  * Validate signature format
  */
-function validateSignature(signature) {
+function validateSignature(signature: string): boolean {
     if (typeof signature !== 'string') {
         throw new Error('Signature must be a string');
     }
@@ -94,7 +97,7 @@ function validateSignature(signature) {
 /**
  * Create wallet instance with validation
  */
-function createWalletInstance(privateKey) {
+function createWalletInstance(privateKey: string): Wallet {
     try {
         // Add 0x prefix if not present
         const formattedKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
@@ -110,14 +113,15 @@ function createWalletInstance(privateKey) {
         return wallet;
 
     } catch (error) {
-        throw new Error(`Failed to create wallet: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create wallet: ${errorMessage}`);
     }
 }
 
 /**
  * Hash message using keccak256 with validation
  */
-function hashMessage(message) {
+function hashMessage(message: string): string {
     try {
         const hash = keccak256(message);
 
@@ -132,14 +136,15 @@ function hashMessage(message) {
         return hash;
 
     } catch (error) {
-        throw new Error(`Message hashing failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Message hashing failed: ${errorMessage}`);
     }
 }
 
 /**
  * Sign message with retry mechanism
  */
-async function performSigning(wallet, hashBytes, retryCount = 0) {
+async function performSigning(wallet: Wallet, hashBytes: Uint8Array, retryCount: number = 0): Promise<string> {
     try {
         const signature = await wallet.signMessage(hashBytes);
 
@@ -149,7 +154,8 @@ async function performSigning(wallet, hashBytes, retryCount = 0) {
         return signature;
 
     } catch (error) {
-        console.error(chalk.red(`❌ Signing attempt ${retryCount + 1} failed:`), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`❌ Signing attempt ${retryCount + 1} failed:`), errorMessage);
 
         // Retry logic for transient failures
         if (retryCount < SIGNATURE_CONFIG.maxRetries) {
@@ -161,14 +167,14 @@ async function performSigning(wallet, hashBytes, retryCount = 0) {
             return performSigning(wallet, hashBytes, retryCount + 1);
         }
 
-        throw new Error(`Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${error.message}`);
+        throw new Error(`Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${errorMessage}`);
     }
 }
 
 /**
  * Sign string message with comprehensive validation
  */
-export async function signString(message, privateKey) {
+export async function signString(message: string, privateKey: string): Promise<string> {
     try {
         // Validate inputs
         validateMessage(message);
@@ -200,15 +206,16 @@ export async function signString(message, privateKey) {
         return signature;
 
     } catch (error) {
-        console.error(chalk.red('Error in signString:'), error.message);
-        throw new Error(`String signing failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red('Error in signString:'), errorMessage);
+        throw new Error(`String signing failed: ${errorMessage}`);
     }
 }
 
 /**
  * Verify signature with comprehensive validation
  */
-export async function verify(message, signature, expectedSigner) {
+export async function verify(message: string, signature: string, expectedSigner: string): Promise<boolean> {
     try {
         // Validate inputs
         validateMessage(message);
@@ -241,15 +248,16 @@ export async function verify(message, signature, expectedSigner) {
         return isValid;
 
     } catch (error) {
-        console.error(chalk.red('Error in verify:'), error.message);
-        throw new Error(`Signature verification failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red('Error in verify:'), errorMessage);
+        throw new Error(`Signature verification failed: ${errorMessage}`);
     }
 }
 
 /**
  * Utility function to recover signer address from signature
  */
-export async function recoverSigner(message, signature) {
+export async function recoverSigner(message: string, signature: string): Promise<string> {
     try {
         // Validate inputs
         validateMessage(message);
@@ -270,14 +278,15 @@ export async function recoverSigner(message, signature) {
         return recoveredAddress;
 
     } catch (error) {
-        throw new Error(`Signer recovery failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Signer recovery failed: ${errorMessage}`);
     }
 }
 
 /**
  * Utility function to validate signature without knowing the signer
  */
-export async function isValidSignature(message, signature) {
+export async function isValidSignature(message: string, signature: string): Promise<SignatureValidationResult> {
     try {
         validateMessage(message);
         validateSignature(signature);
@@ -291,9 +300,10 @@ export async function isValidSignature(message, signature) {
         };
 
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return {
             valid: false,
-            error: error.message
+            error: errorMessage
         };
     }
 }
@@ -301,7 +311,7 @@ export async function isValidSignature(message, signature) {
 /**
  * Utility function to get signature configuration
  */
-export function getSignatureConfig() {
+export function getSignatureConfig(): SignatureConfig {
     return {
         maxMessageLength: SIGNATURE_CONFIG.maxMessageLength,
         privateKeyLength: SIGNATURE_CONFIG.privateKeyLength,

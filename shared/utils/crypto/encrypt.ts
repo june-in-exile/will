@@ -1,19 +1,31 @@
-import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config.js';
+import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config';
 import { randomBytes, createCipheriv } from 'crypto';
+import type { Cipher } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { config } from 'dotenv';
-import { updateEnvVariable } from '../others/updateEnvVariable.js';
+import { updateEnvVariable } from '../env/updateEnvVariable';
 import chalk from 'chalk';
+import type { 
+    SupportedAlgorithm, 
+    AuthenticatedCipher, 
+    EncryptionResult, 
+    EncryptionConfig 
+} from '../../types';
 
 // Load environment configuration
-config({ path: PATHS_CONFIG.env.backend });
+config({ path: PATHS_CONFIG.env });
 
 /**
  * Validate encryption parameters
  */
-function validateEncryptionParams(plaintext, key, iv, algorithm) {
+function validateEncryptionParams(
+    plaintext: string,
+    key: Buffer,
+    iv: Buffer,
+    algorithm: string
+): void {
     // Validate algorithm
-    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm)) {
         throw new Error(`Unsupported encryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(', ')}`);
     }
 
@@ -26,7 +38,7 @@ function validateEncryptionParams(plaintext, key, iv, algorithm) {
         throw new Error('Plaintext cannot be empty');
     }
 
-    const plaintextBytes = Buffer.byteLength(plaintext, CRYPTO_CONFIG.inputEncoding);
+    const plaintextBytes = Buffer.byteLength(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding);
     if (plaintextBytes > CRYPTO_CONFIG.maxPlaintextSize) {
         throw new Error(`Plaintext too large: ${plaintextBytes} bytes (max: ${CRYPTO_CONFIG.maxPlaintextSize} bytes)`);
     }
@@ -53,7 +65,7 @@ function validateEncryptionParams(plaintext, key, iv, algorithm) {
 /**
  * Generate cryptographically secure random bytes
  */
-function generateSecureRandomBytes(size, purpose) {
+function generateSecureRandomBytes(size: number, purpose: string): Buffer {
     try {
         if (!Number.isInteger(size) || size <= 0 || size > 1024) {
             throw new Error(`Invalid size for ${purpose}: must be a positive integer <= 1024`);
@@ -71,14 +83,15 @@ function generateSecureRandomBytes(size, purpose) {
         return bytes;
 
     } catch (error) {
-        throw new Error(`Failed to generate secure random bytes for ${purpose}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to generate secure random bytes for ${purpose}: ${errorMessage}`);
     }
 }
 
 /**
  * Validate and create key file securely
  */
-function createSecureKeyFile(keyPath, keyBuffer) {
+function createSecureKeyFile(keyPath: string, keyBuffer: Buffer): string {
     try {
         const keyBase64 = keyBuffer.toString('base64');
 
@@ -97,14 +110,15 @@ function createSecureKeyFile(keyPath, keyBuffer) {
         return keyBase64;
 
     } catch (error) {
-        throw new Error(`Failed to create key file: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create key file: ${errorMessage}`);
     }
 }
 
 /**
  * Validate existing key file
  */
-function validateExistingKey(keyPath, expectedSize) {
+function validateExistingKey(keyPath: string, expectedSize: number): string {
     try {
         const keyContent = readFileSync(keyPath, 'utf8').trim();
 
@@ -113,7 +127,7 @@ function validateExistingKey(keyPath, expectedSize) {
         }
 
         // Validate base64 format
-        let keyBuffer;
+        let keyBuffer: Buffer;
         try {
             keyBuffer = Buffer.from(keyContent, 'base64');
         } catch (error) {
@@ -135,24 +149,30 @@ function validateExistingKey(keyPath, expectedSize) {
         return keyContent;
 
     } catch (error) {
-        throw new Error(`Failed to validate existing key: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to validate existing key: ${errorMessage}`);
     }
 }
 
 /**
  * Generic encryption function with comprehensive validation
  */
-function performEncryption(algorithm, plaintext, key, iv) {
+function performEncryption(
+    algorithm: SupportedAlgorithm,
+    plaintext: string,
+    key: Buffer,
+    iv: Buffer
+): EncryptionResult {
     try {
         // Validate all parameters
         validateEncryptionParams(plaintext, key, iv, algorithm);
 
         // Create cipher
-        const cipher = createCipheriv(algorithm, key, iv);
+        const cipher = createCipheriv(algorithm, key, iv) as AuthenticatedCipher;
 
         // Perform encryption
-        const chunks = [];
-        chunks.push(cipher.update(plaintext, CRYPTO_CONFIG.inputEncoding));
+        const chunks: Buffer[] = [];
+        chunks.push(cipher.update(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding));
         chunks.push(cipher.final());
 
         const ciphertext = Buffer.concat(chunks);
@@ -170,14 +190,15 @@ function performEncryption(algorithm, plaintext, key, iv) {
         return { ciphertext, authTag };
 
     } catch (error) {
-        throw new Error(`Encryption failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Encryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * Get or generate encryption key with validation
  */
-export function getEncryptionKey(size = CRYPTO_CONFIG.keySize) {
+export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): string {
     try {
         // Validate size parameter
         if (size !== CRYPTO_CONFIG.keySize) {
@@ -194,23 +215,24 @@ export function getEncryptionKey(size = CRYPTO_CONFIG.keySize) {
         }
 
     } catch (error) {
-        throw new Error(`Failed to get encryption key: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to get encryption key: ${errorMessage}`);
     }
 }
 
 /**
  * Get or generate initialization vector with validation
  */
-export function getInitializationVector(size = CRYPTO_CONFIG.ivSize) {
+export function getInitializationVector(size: number = CRYPTO_CONFIG.ivSize): string {
     try {
         // Validate size parameter
         if (size !== CRYPTO_CONFIG.ivSize) {
             throw new Error(`Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${size} bytes`);
         }
 
-        let ivBase64;
+        let ivBase64: string;
 
-        if (process.env.IV && process.env.IV != 'YOUR_INITIALIZATION_VECTOR') {
+        if (process.env.IV && process.env.IV !== 'YOUR_INITIALIZATION_VECTOR') {
             console.log(chalk.blue('Using IV from environment variable'));
             ivBase64 = process.env.IV;
 
@@ -221,7 +243,8 @@ export function getInitializationVector(size = CRYPTO_CONFIG.ivSize) {
                     throw new Error(`Invalid IV size in environment: expected ${size} bytes, got ${ivBuffer.length} bytes`);
                 }
             } catch (error) {
-                throw new Error(`Invalid IV in environment variable: ${error.message}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Invalid IV in environment variable: ${errorMessage}`);
             }
         } else {
             console.log(chalk.blue('Generating new initialization vector...'));
@@ -233,61 +256,73 @@ export function getInitializationVector(size = CRYPTO_CONFIG.ivSize) {
                 updateEnvVariable('IV', ivBase64);
                 console.log(chalk.green('✅ IV saved to environment variable'));
             } catch (error) {
-                console.warn(chalk.yellow('⚠️ Failed to update environment variable with IV:', error.message));
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                console.warn(chalk.yellow('⚠️ Failed to update environment variable with IV:', errorMessage));
             }
         }
 
         return ivBase64;
 
     } catch (error) {
-        throw new Error(`Failed to get initialization vector: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to get initialization vector: ${errorMessage}`);
     }
 }
 
 /**
  * AES-256-GCM encryption with enhanced validation
  */
-export function aes256gcmEncrypt(plaintext, key, iv) {
+export function aes256gcmEncrypt(
+    plaintext: string,
+    key: Buffer,
+    iv: Buffer
+): EncryptionResult {
     try {
         return performEncryption('aes-256-gcm', plaintext, key, iv);
     } catch (error) {
-        throw new Error(`AES-256-GCM encryption failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`AES-256-GCM encryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * ChaCha20-Poly1305 encryption with enhanced validation
  */
-export function chacha20Encrypt(plaintext, key, iv) {
+export function chacha20Encrypt(
+    plaintext: string,
+    key: Buffer,
+    iv: Buffer
+): EncryptionResult {
     try {
         return performEncryption('chacha20-poly1305', plaintext, key, iv);
     } catch (error) {
-        throw new Error(`ChaCha20-Poly1305 encryption failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`ChaCha20-Poly1305 encryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * Utility function to get supported algorithms
  */
-export function getSupportedEncryptionAlgorithms() {
-    return [...CRYPTO_CONFIG.supportedAlgorithms];
+export function getSupportedEncryptionAlgorithms(): SupportedAlgorithm[] {
+    return [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[];
 }
 
 /**
  * Utility function to validate if algorithm is supported
  */
-export function isEncryptionAlgorithmSupported(algorithm) {
-    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm);
+export function isEncryptionAlgorithmSupported(algorithm: string): algorithm is SupportedAlgorithm {
+    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm);
 }
 
 /**
  * Utility function to get encryption configuration
  */
-export function getEncryptionConfig() {
+export function getEncryptionConfig(): EncryptionConfig {
     return {
         keySize: CRYPTO_CONFIG.keySize,
         ivSize: CRYPTO_CONFIG.ivSize,
-        supportedAlgorithms: [...CRYPTO_CONFIG.supportedAlgorithms],
+        supportedAlgorithms: [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[],
         maxPlaintextSize: CRYPTO_CONFIG.maxPlaintextSize
     };
 }

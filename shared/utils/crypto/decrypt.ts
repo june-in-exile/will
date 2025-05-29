@@ -1,12 +1,16 @@
-import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config.js';
+import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config';
 import { createDecipheriv } from 'crypto';
+import type { Decipher } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import chalk from 'chalk';
+import type { SupportedAlgorithm, AuthenticatedDecipher } from '../../types';
+
+// Type definitions
 
 /**
  * Validate key file existence and format
  */
-function validateKeyFile(keyPath) {
+function validateKeyFile(keyPath: string): string {
     if (!existsSync(keyPath)) {
         throw new Error(`Encryption key file not found: ${keyPath}`);
     }
@@ -27,19 +31,26 @@ function validateKeyFile(keyPath) {
         return keyContent;
 
     } catch (error) {
-        if (error.message.includes('Invalid key size')) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (errorMessage.includes('Invalid key size')) {
             throw error;
         }
-        throw new Error(`Failed to read or validate key file: ${error.message}`);
+        throw new Error(`Failed to read or validate key file: ${errorMessage}`);
     }
 }
 
 /**
  * Validate decryption parameters
  */
-function validateDecryptionParams(ciphertext, key, iv, authTag, algorithm) {
+function validateDecryptionParams(
+    ciphertext: Buffer,
+    key: Buffer,
+    iv: Buffer,
+    authTag: Buffer,
+    algorithm: string
+): void {
     // Validate algorithm
-    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm)) {
         throw new Error(`Unsupported decryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(', ')}`);
     }
 
@@ -89,19 +100,25 @@ function validateDecryptionParams(ciphertext, key, iv, authTag, algorithm) {
 /**
  * Generic decryption function with comprehensive validation
  */
-function performDecryption(algorithm, ciphertext, key, iv, authTag) {
+function performDecryption(
+    algorithm: SupportedAlgorithm,
+    ciphertext: Buffer,
+    key: Buffer,
+    iv: Buffer,
+    authTag: Buffer
+): string {
     try {
         // Validate all parameters
         validateDecryptionParams(ciphertext, key, iv, authTag, algorithm);
 
         // Create decipher
-        const decipher = createDecipheriv(algorithm, key, iv);
+        const decipher = createDecipheriv(algorithm, key, iv) as AuthenticatedDecipher;
 
         // Set auth tag for authenticated encryption
         decipher.setAuthTag(authTag);
 
         // Perform decryption
-        const chunks = [];
+        const chunks: Buffer[] = [];
         chunks.push(decipher.update(ciphertext));
         chunks.push(decipher.final());
 
@@ -114,29 +131,32 @@ function performDecryption(algorithm, ciphertext, key, iv, authTag) {
 
         // Convert to string with error handling
         try {
-            return plaintext.toString(CRYPTO_CONFIG.outputEncoding);
+            return plaintext.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
         } catch (encodingError) {
-            throw new Error(`Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${encodingError.message}`);
+            const errorMessage = encodingError instanceof Error ? encodingError.message : 'Unknown encoding error';
+            throw new Error(`Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`);
         }
 
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        
         // Enhanced error messages for common decryption failures
-        if (error.message.includes('Unsupported state') || error.message.includes('auth')) {
-            throw new Error(`Authentication failed - invalid auth tag or corrupted data: ${error.message}`);
+        if (errorMessage.includes('Unsupported state') || errorMessage.includes('auth')) {
+            throw new Error(`Authentication failed - invalid auth tag or corrupted data: ${errorMessage}`);
         }
 
-        if (error.message.includes('Invalid key length') || error.message.includes('Invalid IV length')) {
-            throw new Error(`Crypto parameter error: ${error.message}`);
+        if (errorMessage.includes('Invalid key length') || errorMessage.includes('Invalid IV length')) {
+            throw new Error(`Crypto parameter error: ${errorMessage}`);
         }
 
-        throw new Error(`Decryption failed: ${error.message}`);
+        throw new Error(`Decryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * Get decryption key with validation
  */
-export function getDecryptionKey() {
+export function getDecryptionKey(): string {
     try {
         const key = validateKeyFile(PATHS_CONFIG.crypto.keyFile);
 
@@ -152,7 +172,8 @@ export function getDecryptionKey() {
         return key;
 
     } catch (error) {
-        if (error.message.includes('not found')) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (errorMessage.includes('not found')) {
             throw new Error('NO_ENCRYPTION_KEY');
         }
         throw error;
@@ -162,35 +183,47 @@ export function getDecryptionKey() {
 /**
  * AES-256-GCM decryption with enhanced validation
  */
-export function aes256gcmDecrypt(ciphertext, key, iv, authTag) {
+export function aes256gcmDecrypt(
+    ciphertext: Buffer,
+    key: Buffer,
+    iv: Buffer,
+    authTag: Buffer
+): string {
     try {
         return performDecryption('aes-256-gcm', ciphertext, key, iv, authTag);
     } catch (error) {
-        throw new Error(`AES-256-GCM decryption failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`AES-256-GCM decryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * ChaCha20-Poly1305 decryption with enhanced validation
  */
-export function chacha20Decrypt(ciphertext, key, iv, authTag) {
+export function chacha20Decrypt(
+    ciphertext: Buffer,
+    key: Buffer,
+    iv: Buffer,
+    authTag: Buffer
+): string {
     try {
         return performDecryption('chacha20-poly1305', ciphertext, key, iv, authTag);
     } catch (error) {
-        throw new Error(`ChaCha20-Poly1305 decryption failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`ChaCha20-Poly1305 decryption failed: ${errorMessage}`);
     }
 }
 
 /**
  * Utility function to get supported algorithms
  */
-export function getSupportedDecryptionAlgorithms() {
-    return [...CRYPTO_CONFIG.supportedAlgorithms];
+export function getSupportedDecryptionAlgorithms(): SupportedAlgorithm[] {
+    return [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[];
 }
 
 /**
  * Utility function to validate if algorithm is supported
  */
-export function isDecryptionAlgorithmSupported(algorithm) {
-    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm);
+export function isDecryptionAlgorithmSupported(algorithm: string): algorithm is SupportedAlgorithm {
+    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm);
 }

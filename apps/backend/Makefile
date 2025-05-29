@@ -4,7 +4,7 @@ all: approve-permit predict-address generate-signature encrypt-testament upload-
 
 init:
 	@echo "Resetting environment variables..."
-	@node utils/others/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
+	@node ../../shared/utils/env/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
 	
 	@echo "Removing generated files..."
 	-rm -f testament/3_addressed*.json

@@ -182,68 +182,6 @@ ALGORITHM=<aes-256-gcm|chacha20>
 
 The other fileds would be automatically updated during the execution.
 
-### TypeScript Path Mapping
-
-The project uses path mapping for shared module references:
-
-```typescript
-// Frontend (supports Vite alias)
-import { formatAddress } from '@shared/utils';
-import { NETWORKS } from '@shared/constants';
-import type { Testament } from '@shared/types';
-
-// Backend (uses relative paths)
-import { formatAddress } from '../../../shared/utils/index.js';
-import { NETWORKS } from '../../../shared/constants/index.js';
-```
-
-## 📚 Shared Modules
-
-The `shared/` directory contains code shared across all modules:
-
-### Type Definitions (`shared/types/`)
-
-```typescript
-export interface Testament {
-  id: string;
-  owner: string;
-  beneficiaries: string[];
-  content: string;
-  encrypted: boolean;
-  timestamp: number;
-}
-
-export interface Permit2Signature {
-  nonce: string;
-  deadline: string;
-  signature: string;
-}
-```
-
-### Constants (`shared/constants/`)
-
-```typescript
-export const NETWORKS = {
-  ETHEREUM: 1,
-  SEPOLIA: 11155111,
-  POLYGON: 137,
-} as const;
-
-export const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
-```
-
-### Utility Functions (`shared/utils/`)
-
-```typescript
-export function formatAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-export function validatePermit2Format(data: any): boolean {
-  return data.nonce && data.deadline && data.signature;
-}
-```
-
 ## 🏗️ System Architecture
 
 ### Frontend (React + Vite)

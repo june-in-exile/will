@@ -1,18 +1,27 @@
-import { HASH_CONFIG } from '../../config.js';
+import { HASH_CONFIG } from '../../config';
 import { ethers } from 'ethers';
 import chalk from 'chalk';
+import type { 
+    SupportedEncoding, 
+    HashableInput, 
+    ByteInput, 
+    HashConfig, 
+    HashValidationResult 
+} from '../../types';
+
+// Type definitions
 
 /**
  * Validate input message
  */
-function validateInput(input) {
+function validateInput(input: HashableInput): string {
     // Check for null/undefined
     if (input === null || input === undefined) {
         throw new Error('Input cannot be null or undefined');
     }
 
     // Convert to string if not already
-    let message;
+    let message: string;
     if (typeof input === 'string') {
         message = input;
     } else if (typeof input === 'number' || typeof input === 'boolean') {
@@ -21,7 +30,8 @@ function validateInput(input) {
         try {
             message = JSON.stringify(input);
         } catch (error) {
-            throw new Error(`Cannot serialize object to string: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Cannot serialize object to string: ${errorMessage}`);
         }
     } else {
         throw new Error(`Unsupported input type: ${typeof input}`);
@@ -43,15 +53,15 @@ function validateInput(input) {
 /**
  * Validate UTF-8 encoding
  */
-function validateEncoding(message, encoding = 'utf8') {
+function validateEncoding(message: string, encoding: string = 'utf8'): Buffer {
     try {
-        if (!HASH_CONFIG.supportedEncodings.includes(encoding.toLowerCase())) {
+        if (!HASH_CONFIG.supportedEncodings.includes(encoding.toLowerCase() as SupportedEncoding)) {
             throw new Error(`Unsupported encoding: ${encoding}. Supported: ${HASH_CONFIG.supportedEncodings.join(', ')}`);
         }
 
         // Test encoding/decoding cycle for validation
-        const buffer = Buffer.from(message, encoding);
-        const decoded = buffer.toString(encoding);
+        const buffer = Buffer.from(message, encoding as BufferEncoding);
+        const decoded = buffer.toString(encoding as BufferEncoding);
 
         // For UTF-8, check if decode matches original (detect invalid sequences)
         if (encoding.toLowerCase().includes('utf') && decoded !== message) {
@@ -61,14 +71,15 @@ function validateEncoding(message, encoding = 'utf8') {
         return buffer;
 
     } catch (error) {
-        throw new Error(`Encoding validation failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Encoding validation failed: ${errorMessage}`);
     }
 }
 
 /**
  * Validate hash output
  */
-function validateHashOutput(hash) {
+function validateHashOutput(hash: string): boolean {
     if (!hash || typeof hash !== 'string') {
         throw new Error('Hash function returned invalid result');
     }
@@ -87,7 +98,7 @@ function validateHashOutput(hash) {
 /**
  * Hash raw bytes directly
  */
-export function keccak256Bytes(bytes) {
+export function keccak256Bytes(bytes: ByteInput): string {
     try {
         // Validate input
         if (!bytes) {
@@ -95,7 +106,7 @@ export function keccak256Bytes(bytes) {
         }
 
         // Convert various byte formats to Uint8Array
-        let byteArray;
+        let byteArray: Uint8Array;
         if (bytes instanceof Uint8Array) {
             byteArray = bytes;
         } else if (bytes instanceof ArrayBuffer) {
@@ -138,14 +149,15 @@ export function keccak256Bytes(bytes) {
         return hash;
 
     } catch (error) {
-        throw new Error(`Keccak256 bytes hashing failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Keccak256 bytes hashing failed: ${errorMessage}`);
     }
 }
 
 /**
  * Main Keccak256 hash function with comprehensive validation and encoding support
  */
-export function keccak256(input, encoding = 'utf8') {
+export function keccak256(input: HashableInput, encoding: string = 'utf8'): string {
     try {
         // Validate and normalize input
         const message = validateInput(input);
@@ -157,11 +169,12 @@ export function keccak256(input, encoding = 'utf8') {
         const messageBytes = new Uint8Array(messageBuffer);
 
         // Perform hashing
-        let hash;
+        let hash: string;
         try {
             hash = ethers.keccak256(messageBytes);
         } catch (error) {
-            throw new Error(`Keccak256 hashing failed: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Keccak256 hashing failed: ${errorMessage}`);
         }
 
         // Validate output
@@ -184,14 +197,15 @@ export function keccak256(input, encoding = 'utf8') {
         return hash;
 
     } catch (error) {
-        throw new Error(`Keccak256 hash generation failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Keccak256 hash generation failed: ${errorMessage}`);
     }
 }
 
 /**
  * Hash multiple inputs and return combined hash
  */
-export function keccak256Multi(...inputs) {
+export function keccak256Multi(...inputs: (HashableInput | string)[]): string {
     try {
         if (inputs.length === 0) {
             throw new Error('At least one input is required');
@@ -199,10 +213,10 @@ export function keccak256Multi(...inputs) {
 
         // Check if last argument is encoding string
         let encoding = 'utf8';
-        let actualInputs = inputs;
+        let actualInputs: (HashableInput | string)[] = inputs;
 
         const lastArg = inputs[inputs.length - 1];
-        if (typeof lastArg === 'string' && HASH_CONFIG.supportedEncodings.includes(lastArg.toLowerCase())) {
+        if (typeof lastArg === 'string' && HASH_CONFIG.supportedEncodings.includes(lastArg.toLowerCase() as SupportedEncoding)) {
             encoding = lastArg;
             actualInputs = inputs.slice(0, -1);
 
@@ -214,9 +228,10 @@ export function keccak256Multi(...inputs) {
         // Validate all inputs and convert to messages
         const messages = actualInputs.map((input, index) => {
             try {
-                return validateInput(input);
+                return validateInput(input as HashableInput);
             } catch (error) {
-                throw new Error(`Invalid input at index ${index}: ${error.message}`);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                throw new Error(`Invalid input at index ${index}: ${errorMessage}`);
             }
         });
 
@@ -227,14 +242,15 @@ export function keccak256Multi(...inputs) {
         return keccak256(combinedMessage, encoding);
 
     } catch (error) {
-        throw new Error(`Multi-input keccak256 failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Multi-input keccak256 failed: ${errorMessage}`);
     }
 }
 
 /**
  * Verify if a string is a valid keccak256 hash
  */
-export function isValidKeccak256Hash(hash) {
+export function isValidKeccak256Hash(hash: unknown): hash is string {
     try {
         if (typeof hash !== 'string') {
             return false;
@@ -250,7 +266,7 @@ export function isValidKeccak256Hash(hash) {
 /**
  * Compare two hashes securely (constant-time comparison)
  */
-export function compareHashes(hash1, hash2) {
+export function compareHashes(hash1: string, hash2: string): boolean {
     try {
         // Validate both hashes
         if (!isValidKeccak256Hash(hash1) || !isValidKeccak256Hash(hash2)) {
@@ -274,17 +290,18 @@ export function compareHashes(hash1, hash2) {
         return result === 0;
 
     } catch (error) {
-        throw new Error(`Hash comparison failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Hash comparison failed: ${errorMessage}`);
     }
 }
 
 /**
  * Get hash configuration
  */
-export function getHashConfig() {
+export function getHashConfig(): HashConfig {
     return {
         maxInputSize: HASH_CONFIG.maxInputSize,
-        supportedEncodings: [...HASH_CONFIG.supportedEncodings],
+        supportedEncodings: [...HASH_CONFIG.supportedEncodings] as SupportedEncoding[],
         expectedHashLength: HASH_CONFIG.expectedHashLength,
         enableValidation: HASH_CONFIG.enableValidation
     };
@@ -293,7 +310,7 @@ export function getHashConfig() {
 /**
  * Utility function to hash common data types
  */
-export function hashCommonTypes(data, encoding = 'utf8') {
+export function hashCommonTypes(data: HashableInput, encoding: string = 'utf8'): string {
     try {
         if (typeof data === 'string') {
             return keccak256(data, encoding);
@@ -312,6 +329,7 @@ export function hashCommonTypes(data, encoding = 'utf8') {
         }
 
     } catch (error) {
-        throw new Error(`Common type hashing failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Common type hashing failed: ${errorMessage}`);
     }
 }

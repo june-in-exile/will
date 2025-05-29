@@ -13,15 +13,334 @@ config({ path: resolve(modulePath, '../../.env') });
  */
 
 // ================================
+// TYPE DEFINITIONS
+// ================================
+
+interface EnvironmentSettings {
+  enableStackTrace: boolean;
+  verboseLogging: boolean;
+  enableRetries: boolean;
+}
+
+interface AppConfig {
+  name: string;
+  version: string;
+  environment: string;
+  useAnvil: boolean;
+  development: EnvironmentSettings;
+  production: EnvironmentSettings;
+}
+
+interface NetworkRpcConfig {
+  current: string | undefined;
+  anvil: string | undefined;
+  arbitrumSepolia: string | undefined;
+  useAnvil: boolean;
+}
+
+interface AnvilNetworkConfig {
+  chainId: number;
+  gasPrice: string;
+  blockTime: number;
+}
+
+interface ArbitrumSepoliaNetworkConfig {
+  chainId: number;
+  gasPrice: string;
+  blockTime: number;
+}
+
+interface NetworkConfig {
+  rpc: NetworkRpcConfig;
+  timeout: number;
+  retryAttempts: number;
+  retryDelay: number;
+  gasLimitMultiplier: number;
+  confirmationBlocks: number;
+  network: string;
+  expectedChainIds: number[];
+  maxGasPrice: string;
+  anvil: AnvilNetworkConfig;
+  arbitrumSepolia: ArbitrumSepoliaNetworkConfig;
+}
+
+interface CryptoConfig {
+  supportedAlgorithms: string[];
+  keySize: number;
+  ivSize: number;
+  authTagSize: number;
+  maxPlaintextSize: number;
+  maxCiphertextSize: number;
+  inputEncoding: string;
+  outputEncoding: string;
+  paths: {
+    keyFile: string;
+  };
+  weakKeyDetection: boolean;
+  validateEncodings: boolean;
+}
+
+interface CidValidationConfig {
+  minLength: number;
+  maxLength: number;
+  validPrefixes: string[];
+}
+
+interface SignatureConfig {
+  maxMessageLength: number;
+  privateKeyLength: number;
+  signatureLength: number;
+  maxRetries: number;
+  retryDelay: number;
+  cid: CidValidationConfig;
+  addressFormat: RegExp;
+}
+
+interface HashConfig {
+  maxInputSize: number;
+  supportedEncodings: string[];
+  expectedHashLength: number;
+  hashPattern: RegExp;
+  enableValidation: boolean;
+  enableLogging: boolean;
+}
+
+interface ApprovalConfig {
+  maxRetries: number;
+  retryDelay: number;
+  gasLimitMultiplier: number;
+  confirmationBlocks: number;
+  defaultGasLimit: bigint;
+  batchDelay: number;
+  maxConcurrentApprovals: number;
+  maxTokensPerTransaction: number;
+  tokenAbi: string[];
+}
+
+interface IpfsPinningConfig {
+  pinataJWT: string | undefined;
+  retryAttempts: number;
+  timeout: number;
+  retryDelay: number;
+}
+
+interface IpfsHeliaConfig {
+  cleanupTimeout: number;
+}
+
+interface IpfsConfig {
+  pinning: IpfsPinningConfig;
+  gateways: string[];
+  maxFileSize: number;
+  helia: IpfsHeliaConfig;
+}
+
+interface BasePathsConfig {
+  root: string;
+  backend: string;
+  frontend: string;
+  circuits: string;
+  contracts: string;
+}
+
+interface TestamentPathsConfig {
+  raw: string;
+  formatted: string;
+  addressed: string;
+  signed: string;
+  encrypted: string;
+  decrypted: string;
+}
+
+interface ContractPathsConfig {
+  outDir: string;
+  testamentFactory: string;
+}
+
+interface CryptoPathsConfig {
+  keyDir: string;
+  keyFile: string;
+}
+
+interface PathsConfig {
+  base: BasePathsConfig;
+  testament: TestamentPathsConfig;
+  env: string;
+  contracts: ContractPathsConfig;
+  crypto: CryptoPathsConfig;
+}
+
+interface FileValidationConfig {
+  maxSize: number;
+  allowedExtensions: string[];
+  encoding: string;
+}
+
+interface TestamentValidationConfig {
+  minEstatesRequired: number;
+  maxEstatesAllowed: number;
+  requiredFields: {
+    testament: string[];
+    estate: string[];
+  };
+}
+
+interface EthereumValidationConfig {
+  addressPattern: RegExp;
+  checksumValidation: boolean;
+}
+
+interface AmountValidationConfig {
+  minAmount: string;
+  maxAmount: string;
+}
+
+interface ValidationConfig {
+  files: FileValidationConfig;
+  testament: TestamentValidationConfig;
+  ethereum: EthereumValidationConfig;
+  amounts: AmountValidationConfig;
+}
+
+interface SaltConfig {
+  timestampMultiplier: number;
+  maxSafeInteger: number;
+  validateEntropy: boolean;
+  minEntropyBits: number;
+}
+
+interface ErrorCategoriesConfig {
+  VALIDATION_ERROR: string;
+  NETWORK_ERROR: string;
+  CRYPTO_ERROR: string;
+  FILE_ERROR: string;
+  CONTRACT_ERROR: string;
+}
+
+interface ErrorConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+  categories: ErrorCategoriesConfig;
+  logLevel: string;
+  enableStackTrace: boolean;
+}
+
+interface Permit2SignatureValidationConfig {
+  enableDomainValidation: boolean;
+  enableTypeValidation: boolean;
+  enableValueValidation: boolean;
+}
+
+interface Permit2Config {
+  address: string | undefined;
+  defaultDuration: number;
+  maxNonceValue: number;
+  signatureValidation: Permit2SignatureValidationConfig;
+}
+
+interface ZkGenerationConfig {
+  timeout: number;
+  maxCircuitSize: number;
+  enableOptimizations: boolean;
+}
+
+interface ZkVerificationConfig {
+  timeout: number;
+  enableCache: boolean;
+  strictValidation: boolean;
+}
+
+interface ZkConfig {
+  generation: ZkGenerationConfig;
+  verification: ZkVerificationConfig;
+  supportedCurves: string[];
+  maxConstraints: number;
+}
+
+interface LoggingColorsConfig {
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+  debug: string;
+  highlight: string;
+  accent: string;
+}
+
+interface LoggingLevelsConfig {
+  ERROR: number;
+  WARN: number;
+  INFO: number;
+  DEBUG: number;
+}
+
+interface LoggingConfig {
+  colors: LoggingColorsConfig;
+  levels: LoggingLevelsConfig;
+  truncateSignatures: boolean;
+  signatureDisplayLength: number;
+  timestampFormat: string;
+  verboseMode: boolean;
+}
+
+interface EnvValidationConfig {
+  [key: string]: RegExp;
+}
+
+interface EnvCurrentConfig {
+  USE_ANVIL: boolean;
+  NODE_ENV: string;
+  ANVIL_RPC_URL: string | undefined;
+  ARB_SEPOLIA_RPC_URL: string | undefined;
+}
+
+interface EnvConfig {
+  required: string[];
+  networkRequired: string[];
+  optional: string[];
+  validation: EnvValidationConfig;
+  current: EnvCurrentConfig;
+}
+
+interface RetryConfig {
+  attempts: number;
+  delay: number;
+}
+
+interface EnvironmentInfo {
+  NODE_ENV: string;
+  USE_ANVIL: boolean;
+  network: string;
+  chainId: number[];
+  rpcUrl: string | undefined;
+  configLoaded: boolean;
+}
+
+interface ConfigUtilsInterface {
+  getModuleConfig(moduleName: string): any;
+  validateEnvironment(): boolean;
+  getNetworkConfig(): AnvilNetworkConfig | ArbitrumSepoliaNetworkConfig;
+  isUsingAnvil(): boolean;
+  getMergedConfig(): any;
+  isDevelopment(): boolean;
+  isProduction(): boolean;
+  getTimeout(operation: string): number;
+  getRetryConfig(operation: string): RetryConfig;
+  getEnvironmentInfo(): EnvironmentInfo;
+}
+
+// ================================
 // ENVIRONMENT DETECTION
 // ================================
-const USE_ANVIL = process.env.USE_ANVIL === 'true';
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const USE_ANVIL: boolean = process.env.USE_ANVIL === 'true';
+const NODE_ENV: string = process.env.NODE_ENV || 'development';
 
 // ================================
 // GENERAL APPLICATION CONFIG
 // ================================
-export const APP_CONFIG = {
+export const APP_CONFIG: AppConfig = {
   name: 'Testament Application',
   version: '1.0.0',
   environment: NODE_ENV,
@@ -45,7 +364,7 @@ export const APP_CONFIG = {
 // ================================
 // NETWORK & RPC CONFIG
 // ================================
-export const NETWORK_CONFIG = {
+export const NETWORK_CONFIG: NetworkConfig = {
   // RPC configuration
   rpc: {
     current: USE_ANVIL ? process.env.ANVIL_RPC_URL : process.env.ARB_SEPOLIA_RPC_URL,
@@ -85,7 +404,7 @@ export const NETWORK_CONFIG = {
 // ================================
 // ENCRYPTION & CRYPTO CONFIG
 // ================================
-export const CRYPTO_CONFIG = {
+export const CRYPTO_CONFIG: CryptoConfig = {
   // Supported algorithms
   supportedAlgorithms: ['aes-256-gcm', 'chacha20'],
 
@@ -115,7 +434,7 @@ export const CRYPTO_CONFIG = {
 // ================================
 // SIGNATURE CONFIG
 // ================================
-export const SIGNATURE_CONFIG = {
+export const SIGNATURE_CONFIG: SignatureConfig = {
   // Message constraints
   maxMessageLength: 1024 * 1024, // 1MB
 
@@ -141,7 +460,7 @@ export const SIGNATURE_CONFIG = {
 // ================================
 // HASH CONFIG
 // ================================
-export const HASH_CONFIG = {
+export const HASH_CONFIG: HashConfig = {
   // Input validation
   maxInputSize: 10 * 1024 * 1024, // 10MB max input size
   supportedEncodings: ['utf8', 'utf-8', 'ascii', 'base64', 'hex'],
@@ -155,11 +474,10 @@ export const HASH_CONFIG = {
   enableLogging: process.env.NODE_ENV === 'development'
 };
 
-
 // ================================
 // TOKEN APPROVAL CONFIG
 // ================================
-export const APPROVAL_CONFIG = {
+export const APPROVAL_CONFIG: ApprovalConfig = {
   // Retry settings
   maxRetries: 3,
   retryDelay: 2000,      // 2 seconds
@@ -189,7 +507,7 @@ export const APPROVAL_CONFIG = {
 // ================================
 // IPFS CONFIG
 // ================================
-export const IPFS_CONFIG = {
+export const IPFS_CONFIG: IpfsConfig = {
   // Pinning settings
   pinning: {
     pinataJWT: process.env.PINATA_JWT,
@@ -219,7 +537,7 @@ export const IPFS_CONFIG = {
 // ================================
 // FILE PATHS CONFIG
 // ================================
-export const PATHS_CONFIG = {
+export const PATHS_CONFIG: PathsConfig = {
   // Base paths
   base: {
     root: resolve(modulePath, '../..'),
@@ -258,7 +576,7 @@ export const PATHS_CONFIG = {
 // ================================
 // VALIDATION CONFIG
 // ================================
-export const VALIDATION_CONFIG = {
+export const VALIDATION_CONFIG: ValidationConfig = {
   // File validation
   files: {
     maxSize: 100 * 1024 * 1024, // 100MB
@@ -292,7 +610,7 @@ export const VALIDATION_CONFIG = {
 // ================================
 // SALT GENERATION CONFIG
 // ================================
-export const SALT_CONFIG = {
+export const SALT_CONFIG: SaltConfig = {
   timestampMultiplier: 10000000,
   maxSafeInteger: Number.MAX_SAFE_INTEGER,
 
@@ -304,7 +622,7 @@ export const SALT_CONFIG = {
 // ================================
 // ERROR HANDLING CONFIG
 // ================================
-export const ERROR_CONFIG = {
+export const ERROR_CONFIG: ErrorConfig = {
   // Retry settings
   maxRetries: 3,
   baseDelay: USE_ANVIL ? 500 : 1000,       // Faster for local network
@@ -328,7 +646,7 @@ export const ERROR_CONFIG = {
 // ================================
 // PERMIT2 CONFIG
 // ================================
-export const PERMIT2_CONFIG = {
+export const PERMIT2_CONFIG: Permit2Config = {
   // Contract addresses
   address: process.env.PERMIT2_ADDRESS,
 
@@ -349,7 +667,7 @@ export const PERMIT2_CONFIG = {
 // ================================
 // ZERO KNOWLEDGE PROOF CONFIG
 // ================================
-export const ZK_CONFIG = {
+export const ZK_CONFIG: ZkConfig = {
   // Proof generation
   generation: {
     timeout: USE_ANVIL ? 60000 : 300000,    // 1 min for local, 5 min for testnet
@@ -374,7 +692,7 @@ export const ZK_CONFIG = {
 // ================================
 // LOGGING CONFIG
 // ================================
-export const LOGGING_CONFIG = {
+export const LOGGING_CONFIG: LoggingConfig = {
   // Console colors (chalk)
   colors: {
     success: 'green',
@@ -408,7 +726,7 @@ export const LOGGING_CONFIG = {
 // ================================
 // ENVIRONMENT VARIABLES CONFIG
 // ================================
-export const ENV_CONFIG = {
+export const ENV_CONFIG: EnvConfig = {
   // Required environment variables
   required: [
     'TESTATOR_PRIVATE_KEY',
@@ -458,12 +776,12 @@ export const ENV_CONFIG = {
 // ================================
 // UTILITY FUNCTIONS
 // ================================
-export const CONFIG_UTILS = {
+export const CONFIG_UTILS: ConfigUtilsInterface = {
   /**
    * Get configuration for specific module
    */
-  getModuleConfig(moduleName) {
-    const configs = {
+  getModuleConfig(moduleName: string): any {
+    const configs: { [key: string]: any } = {
       app: APP_CONFIG,
       crypto: CRYPTO_CONFIG,
       signature: SIGNATURE_CONFIG,
@@ -487,7 +805,7 @@ export const CONFIG_UTILS = {
   /**
    * Validate environment variables
    */
-  validateEnvironment() {
+  validateEnvironment(): boolean {
     const allRequired = [...ENV_CONFIG.required, ...ENV_CONFIG.networkRequired];
     const missing = allRequired.filter(key => !process.env[key]);
 
@@ -509,30 +827,23 @@ export const CONFIG_UTILS = {
   /**
    * Get network-specific configuration
    */
-  getNetworkConfig() {
+  getNetworkConfig(): AnvilNetworkConfig | ArbitrumSepoliaNetworkConfig {
     return USE_ANVIL
       ? NETWORK_CONFIG.anvil
       : NETWORK_CONFIG.arbitrumSepolia;
   },
 
   /**
-   * Get current RPC URL
-   */
-  getRpcUrl() {
-    return RPC_URL;
-  },
-
-  /**
    * Check if using Anvil local network
    */
-  isUsingAnvil() {
+  isUsingAnvil(): boolean {
     return USE_ANVIL;
   },
 
   /**
    * Get merged configuration
    */
-  getMergedConfig() {
+  getMergedConfig(): any {
     return {
       app: APP_CONFIG,
       network: NETWORK_CONFIG,
@@ -555,22 +866,22 @@ export const CONFIG_UTILS = {
   /**
    * Check if running in development mode
    */
-  isDevelopment() {
+  isDevelopment(): boolean {
     return NODE_ENV === 'development';
   },
 
   /**
    * Check if running in production mode
    */
-  isProduction() {
+  isProduction(): boolean {
     return NODE_ENV === 'production';
   },
 
   /**
    * Get timeout for specific operation
    */
-  getTimeout(operation) {
-    const timeouts = {
+  getTimeout(operation: string): number {
+    const timeouts: { [key: string]: number } = {
       network: NETWORK_CONFIG.timeout,
       ipfs: IPFS_CONFIG.pinning.timeout,
       zk_generation: ZK_CONFIG.generation.timeout,
@@ -583,8 +894,8 @@ export const CONFIG_UTILS = {
   /**
    * Get retry configuration for specific operation
    */
-  getRetryConfig(operation) {
-    const retryConfigs = {
+  getRetryConfig(operation: string): RetryConfig {
+    const retryConfigs: { [key: string]: RetryConfig } = {
       network: {
         attempts: NETWORK_CONFIG.retryAttempts,
         delay: NETWORK_CONFIG.retryDelay
@@ -612,7 +923,7 @@ export const CONFIG_UTILS = {
   /**
    * Get environment information for debugging
    */
-  getEnvironmentInfo() {
+  getEnvironmentInfo(): EnvironmentInfo {
     return {
       NODE_ENV,
       USE_ANVIL,

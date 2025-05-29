@@ -7,7 +7,7 @@ import chalk from 'chalk';
  * @param {string} key - Environment variable key
  * @param {string} value - Environment variable value
  */
-export function updateEnvVariable(key, value) {
+export function updateEnvVariable(key: string, value: string): void {
   const envPath = PATHS_CONFIG.env;
   try {
     let envContent = readFileSync(envPath, 'utf8');

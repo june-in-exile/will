@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "ES2022",
+      "module": "ESNext",
+      "moduleResolution": "bundler",
+      "allowJs": true,
+      "checkJs": false,
+      "declaration": true,      // generate .d.ts
+      "declarationMap": true,   // generate .d.ts.map
+      "sourceMap": true,        // generate .js.map
+      "outDir": "./dist",
+      "strict": false,
+      "skipLibCheck": true,
+      "allowSyntheticDefaultImports": true,
+    },
+    "include": ["**/*"],
+    "exclude": ["node_modules", "dist"]
+  }
