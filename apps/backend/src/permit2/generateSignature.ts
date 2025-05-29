@@ -1,7 +1,7 @@
 import { PATHS_CONFIG, VALIDATION_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from '@shared/config.js';
 import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { ethers } from 'ethers';
+import { ethers, JsonRpcProvider, Wallet, Network } from 'ethers';
 import { config } from 'dotenv';
 import { createRequire } from 'module';
 import chalk from 'chalk';
@@ -9,16 +9,67 @@ import chalk from 'chalk';
 const require = createRequire(import.meta.url);
 
 // Load environment configuration
-config({ path: PATHS_CONFIG.env.backend });
+config({ path: PATHS_CONFIG.env });
 
 // Load Permit2 SDK
 const permit2SDK = require('@uniswap/permit2-sdk');
 const { SignatureTransfer } = permit2SDK;
 
+// Type definitions
+interface EnvironmentVariables {
+    TESTATOR_PRIVATE_KEY: string;
+    PERMIT2_ADDRESS: string;
+}
+
+interface Estate {
+    token: string;
+    amount: string;
+    beneficiary: string;
+}
+
+interface TestamentData {
+    testator: string;
+    estates: Estate[];
+    testament: string;
+}
+
+interface PermittedToken {
+    token: string;
+    amount: bigint;
+}
+
+interface Permit {
+    permitted: PermittedToken[];
+    spender: string;
+    nonce: number;
+    deadline: number;
+}
+
+interface SignatureInfo {
+    nonce: number;
+    deadline: number;
+    signature: string;
+}
+
+interface SignedTestamentData extends TestamentData {
+    signature: SignatureInfo;
+}
+
+interface ProcessResult {
+    nonce: number;
+    deadline: number;
+    signature: string;
+    estatesCount: number;
+    outputPath: string;
+    signerAddress: string;
+    chainId: string;
+    success: boolean;
+}
+
 /**
  * Validate environment variables
  */
-function validateEnvironment() {
+function validateEnvironment(): EnvironmentVariables {
     const { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS } = process.env;
 
     if (!TESTATOR_PRIVATE_KEY) {
@@ -44,7 +95,7 @@ function validateEnvironment() {
 /**
  * Validate file existence
  */
-function validateFiles() {
+function validateFiles(): void {
     if (!existsSync(PATHS_CONFIG.testament.addressed)) {
         throw new Error(`Addressed testament file does not exist: ${PATHS_CONFIG.testament.addressed}`);
     }
@@ -53,14 +104,14 @@ function validateFiles() {
 /**
  * Create and validate signer
  */
-async function createSigner(privateKey, provider) {
+async function createSigner(privateKey: string, provider: JsonRpcProvider): Promise<Wallet> {
     try {
         console.log(chalk.blue('Initializing signer...'));
         const signer = new ethers.Wallet(privateKey, provider);
 
         // Validate signer can connect
         const address = await signer.getAddress();
-        const balance = await signer.provider.getBalance(address);
+        const balance = await signer.provider!.getBalance(address);
 
         console.log(chalk.green('✅ Signer initialized:'), chalk.white(address));
         console.log(chalk.gray('Balance:'), ethers.formatEther(balance), 'ETH');
@@ -68,14 +119,15 @@ async function createSigner(privateKey, provider) {
         return signer;
 
     } catch (error) {
-        throw new Error(`Failed to create signer: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create signer: ${errorMessage}`);
     }
 }
 
 /**
  * Validate network connection and get chain info
  */
-async function validateNetwork(provider) {
+async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
     try {
         console.log(chalk.blue('Validating network connection...'));
         const network = await provider.getNetwork();
@@ -86,21 +138,22 @@ async function validateNetwork(provider) {
         return network;
 
     } catch (error) {
-        throw new Error(`Failed to connect to network: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to connect to network: ${errorMessage}`);
     }
 }
 
 /**
  * Read and validate testament data
  */
-function readTestamentData() {
+function readTestamentData(): TestamentData {
     try {
         console.log(chalk.blue('Reading addressed testament data...'));
         const testamentContent = readFileSync(PATHS_CONFIG.testament.addressed, 'utf8');
-        const testamentJson = JSON.parse(testamentContent);
+        const testamentJson: TestamentData = JSON.parse(testamentContent);
 
         // Validate required fields
-        const requiredFields = ['testament', 'estates', 'testator'];
+        const requiredFields: (keyof TestamentData)[] = ['testament', 'estates', 'testator'];
         for (const field of requiredFields) {
             if (!testamentJson[field]) {
                 throw new Error(`Missing required field: ${field}`);
@@ -119,7 +172,7 @@ function readTestamentData() {
 
         // Validate each estate
         testamentJson.estates.forEach((estate, index) => {
-            const requiredEstateFields = ['token', 'amount', 'beneficiary'];
+            const requiredEstateFields: (keyof Estate)[] = ['token', 'amount', 'beneficiary'];
             for (const field of requiredEstateFields) {
                 if (!estate[field]) {
                     throw new Error(`Missing required field '${field}' in estate ${index}`);
@@ -159,7 +212,7 @@ function readTestamentData() {
 /**
  * Calculate deadline timestamp
  */
-function calculateDeadline(durationMs = PERMIT2_CONFIG.defaultDuration) {
+function calculateDeadline(durationMs: number = PERMIT2_CONFIG.defaultDuration): number {
     const endTimeMs = Date.now() + durationMs;
     const endTimeSeconds = Math.floor(endTimeMs / 1000);
 
@@ -170,7 +223,7 @@ function calculateDeadline(durationMs = PERMIT2_CONFIG.defaultDuration) {
 /**
  * Generate cryptographically secure nonce
  */
-function generateSecureNonce() {
+function generateSecureNonce(): number {
     // Use crypto.getRandomValues for better randomness than Math.random()
     const randomArray = new Uint32Array(2);
     crypto.getRandomValues(randomArray);
@@ -186,11 +239,11 @@ function generateSecureNonce() {
 /**
  * Create permit structure for signing
  */
-function createPermitStructure(estates, testamentAddress, nonce, deadline) {
+function createPermitStructure(estates: Estate[], testamentAddress: string, nonce: number, deadline: number): Permit {
     try {
         console.log(chalk.blue('Creating permit structure...'));
 
-        const permitted = estates.map((estate, index) => {
+        const permitted: PermittedToken[] = estates.map((estate, index) => {
             console.log(chalk.gray(`Estate ${index}:`), {
                 token: estate.token,
                 amount: estate.amount,
@@ -203,7 +256,7 @@ function createPermitStructure(estates, testamentAddress, nonce, deadline) {
             };
         });
 
-        const permit = {
+        const permit: Permit = {
             permitted,
             spender: testamentAddress,
             nonce,
@@ -217,14 +270,15 @@ function createPermitStructure(estates, testamentAddress, nonce, deadline) {
         return permit;
 
     } catch (error) {
-        throw new Error(`Failed to create permit structure: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create permit structure: ${errorMessage}`);
     }
 }
 
 /**
  * Sign permit using EIP-712
  */
-async function signPermit(permit, permit2Address, chainId, signer) {
+async function signPermit(permit: Permit, permit2Address: string, chainId: bigint, signer: Wallet): Promise<string> {
     try {
         console.log(chalk.blue('Generating EIP-712 signature...'));
 
@@ -241,14 +295,15 @@ async function signPermit(permit, permit2Address, chainId, signer) {
         return signature;
 
     } catch (error) {
-        throw new Error(`Failed to sign permit: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to sign permit: ${errorMessage}`);
     }
 }
 
 /**
  * Save signed testament
  */
-function saveSignedTestament(testamentData, nonce, deadline, signature) {
+function saveSignedTestament(testamentData: TestamentData, nonce: number, deadline: number, signature: string): SignedTestamentData {
     try {
         console.log(chalk.blue('Preparing signed testament...'));
 
@@ -258,13 +313,7 @@ function saveSignedTestament(testamentData, nonce, deadline, signature) {
                 nonce,
                 deadline,
                 signature,
-                signedAt: new Date().toISOString(),
-                signerAddress: testamentData.testator
             },
-            // Keep backward compatibility
-            nonce,
-            deadline,
-            signature: signature
         };
 
         writeFileSync(PATHS_CONFIG.testament.signed, JSON.stringify(signedTestament, null, 4));
@@ -273,18 +322,19 @@ function saveSignedTestament(testamentData, nonce, deadline, signature) {
         return signedTestament;
 
     } catch (error) {
-        throw new Error(`Failed to save signed testament: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to save signed testament: ${errorMessage}`);
     }
 }
 
 /**
  * Update environment variables
  */
-async function updateEnvironmentVariables(nonce, deadline, signature) {
+async function updateEnvironmentVariables(nonce: number, deadline: number, signature: string): Promise<void> {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
-        const updates = [
+        const updates: Array<[string, string]> = [
             ['NONCE', nonce.toString()],
             ['DEADLINE', deadline.toString()],
             ['PERMIT2_SIGNATURE', signature]
@@ -304,14 +354,15 @@ async function updateEnvironmentVariables(nonce, deadline, signature) {
         });
 
     } catch (error) {
-        throw new Error(`Failed to update environment variables: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to update environment variables: ${errorMessage}`);
     }
 }
 
 /**
  * Process testament signing workflow
  */
-async function processTestamentSigning() {
+async function processTestamentSigning(): Promise<ProcessResult> {
     try {
         // Validate prerequisites
         validateFiles();
@@ -349,7 +400,7 @@ async function processTestamentSigning() {
         const signature = await signPermit(permit, PERMIT2_ADDRESS, network.chainId, signer);
 
         // Save signed testament
-        const signedTestament = saveSignedTestament(testamentData, nonce, deadline, signature);
+        saveSignedTestament(testamentData, nonce, deadline, signature);
 
         // Update environment variables
         await updateEnvironmentVariables(nonce, deadline, signature);
@@ -368,7 +419,8 @@ async function processTestamentSigning() {
         };
 
     } catch (error) {
-        console.error(chalk.red('Error during testament signing process:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red('Error during testament signing process:'), errorMessage);
         throw error;
     }
 }
@@ -376,7 +428,7 @@ async function processTestamentSigning() {
 /**
  * Main function
  */
-async function main() {
+async function main(): Promise<void> {
     try {
         console.log(chalk.cyan('=== Testament EIP-712 Signature Generation ===\n'));
 
@@ -389,10 +441,11 @@ async function main() {
         });
 
     } catch (error) {
-        console.error(chalk.red.bold('\n❌ Program execution failed:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
 
         // Log stack trace in development mode
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' && error instanceof Error) {
             console.error(chalk.gray('Stack trace:'), error.stack);
         }
 
@@ -401,7 +454,8 @@ async function main() {
 }
 
 // Execute main function
-main().catch(error => {
-    console.error(chalk.red.bold('Uncaught error:'), error);
+main().catch((error: Error) => {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red.bold('Uncaught error:'), errorMessage);
     process.exit(1);
 });

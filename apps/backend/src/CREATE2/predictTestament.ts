@@ -1,8 +1,8 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from '@shared/config.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { updateEnvVariable } from '@shared/utils/env/resetEnvVariable.js';
+import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
 import crypto from 'crypto';
-import { ethers } from 'ethers';
+import { ethers, JsonRpcProvider, Contract, Network } from 'ethers';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { config } from 'dotenv';
@@ -13,10 +13,44 @@ const modulePath = dirname(fileURLToPath(import.meta.url));
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
+// Type definitions
+interface EnvironmentVariables {
+    TESTAMENT_FACTORY_ADDRESS: string;
+}
+
+interface Estate {
+    beneficiary: string;
+    token: string;
+    amount: string;
+}
+
+interface TestamentData {
+    testator: string;
+    estates: Estate[];
+}
+
+interface AddressedTestament extends TestamentData {
+    testament: string;
+    salt: number;
+    timestamp: string;
+    metadata: {
+        predictedAt: number;
+        estatesCount: number;
+    };
+}
+
+interface ProcessResult {
+    predictedAddress: string;
+    salt: number;
+    estatesCount: number;
+    outputPath: string;
+    success: boolean;
+}
+
 /**
  * Validate environment variables
  */
-function validateEnvironment() {
+function validateEnvironment(): EnvironmentVariables {
     const { TESTAMENT_FACTORY_ADDRESS } = process.env;
 
     if (!TESTAMENT_FACTORY_ADDRESS) {
@@ -33,7 +67,7 @@ function validateEnvironment() {
 /**
  * Validate file existence
  */
-function validateFiles() {
+function validateFiles(): void {
     if (!existsSync(PATHS_CONFIG.testament.formatted)) {
         throw new Error(`Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`);
     }
@@ -42,21 +76,22 @@ function validateFiles() {
 /**
  * Validate RPC connection
  */
-async function validateRpcConnection(provider) {
+async function validateRpcConnection(provider: JsonRpcProvider): Promise<Network> {
     try {
         console.log(chalk.blue('Validating RPC connection...'));
         const network = await provider.getNetwork();
         console.log(chalk.green('✅ Connected to network:'), network.name, `(Chain ID: ${network.chainId})`);
         return network;
     } catch (error) {
-        throw new Error(`Failed to connect to RPC endpoint: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
     }
 }
 
 /**
  * Load contract ABI from artifact
  */
-function getContractAbi(contractName) {
+function getContractAbi(contractName: string): any[] {
     try {
         const artifactPath = resolve(modulePath, `../../../contracts/out/${contractName}.sol/${contractName}.json`);
 
@@ -74,14 +109,15 @@ function getContractAbi(contractName) {
         return artifact.abi;
 
     } catch (error) {
-        throw new Error(`Failed to load ABI for ${contractName}: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to load ABI for ${contractName}: ${errorMessage}`);
     }
 }
 
 /**
  * Generate cryptographically secure salt
  */
-function generateSecureSalt(timestamp = Date.now()) {
+function generateSecureSalt(timestamp: number = Date.now()): number {
     try {
         const randomArray = new Uint32Array(1);
         crypto.getRandomValues(randomArray);
@@ -93,18 +129,19 @@ function generateSecureSalt(timestamp = Date.now()) {
         return salt;
 
     } catch (error) {
-        throw new Error(`Failed to generate salt: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to generate salt: ${errorMessage}`);
     }
 }
 
 /**
  * Read and validate testament data
  */
-function readTestamentData() {
+function readTestamentData(): TestamentData {
     try {
         console.log(chalk.blue('Reading formatted testament data...'));
         const testamentContent = readFileSync(PATHS_CONFIG.testament.formatted, 'utf8');
-        const testamentJson = JSON.parse(testamentContent);
+        const testamentJson: TestamentData = JSON.parse(testamentContent);
 
         // Validate required fields
         if (!testamentJson.testator) {
@@ -121,7 +158,7 @@ function readTestamentData() {
 
         // Validate estate structure
         testamentJson.estates.forEach((estate, index) => {
-            const requiredFields = ['beneficiary', 'token', 'amount'];
+            const requiredFields: (keyof Estate)[] = ['beneficiary', 'token', 'amount'];
             for (const field of requiredFields) {
                 if (!estate[field]) {
                     throw new Error(`Missing required field '${field}' in estate ${index}`);
@@ -152,7 +189,7 @@ function readTestamentData() {
 /**
  * Create contract instance with validation
  */
-async function createContractInstance(factoryAddress, provider) {
+async function createContractInstance(factoryAddress: string, provider: JsonRpcProvider): Promise<Contract> {
     try {
         console.log(chalk.blue('Loading testament factory contract...'));
         const abi = getContractAbi('TestamentFactory');
@@ -168,14 +205,20 @@ async function createContractInstance(factoryAddress, provider) {
         return contract;
 
     } catch (error) {
-        throw new Error(`Failed to create contract instance: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to create contract instance: ${errorMessage}`);
     }
 }
 
 /**
  * Predict testament address
  */
-async function predictTestamentAddress(contract, testator, estates, salt) {
+async function predictTestamentAddress(
+    contract: Contract,
+    testator: string,
+    estates: Estate[],
+    salt: number
+): Promise<string> {
     try {
         console.log(chalk.blue('Predicting testament address...'));
         console.log(chalk.gray('Parameters:'));
@@ -193,18 +236,19 @@ async function predictTestamentAddress(contract, testator, estates, salt) {
         return predictedAddress;
 
     } catch (error) {
-        throw new Error(`Failed to predict testament address: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to predict testament address: ${errorMessage}`);
     }
 }
 
 /**
  * Save addressed testament
  */
-function saveAddressedTestament(testamentData, salt, predictedAddress) {
+function saveAddressedTestament(testamentData: TestamentData, salt: number, predictedAddress: string): AddressedTestament {
     try {
         console.log(chalk.blue('Preparing addressed testament...'));
 
-        const addressedTestament = {
+        const addressedTestament: AddressedTestament = {
             ...testamentData,
             salt: salt,
             testament: predictedAddress,
@@ -221,18 +265,19 @@ function saveAddressedTestament(testamentData, salt, predictedAddress) {
         return addressedTestament;
 
     } catch (error) {
-        throw new Error(`Failed to save addressed testament: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to save addressed testament: ${errorMessage}`);
     }
 }
 
 /**
  * Update environment variables with estate and contract data
  */
-async function updateEnvironmentVariables(estates, salt, predictedAddress) {
+async function updateEnvironmentVariables(estates: Estate[], salt: number, predictedAddress: string): Promise<void> {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
-        const updates = [
+        const updates: Array<[string, string]> = [
             // Testament contract info
             ['SALT', salt.toString()],
             ['TESTAMENT_ADDRESS', predictedAddress]
@@ -260,14 +305,15 @@ async function updateEnvironmentVariables(estates, salt, predictedAddress) {
         });
 
     } catch (error) {
-        throw new Error(`Failed to update environment variables: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to update environment variables: ${errorMessage}`);
     }
 }
 
 /**
  * Process testament addressing workflow
  */
-async function processTestamentAddressing() {
+async function processTestamentAddressing(): Promise<ProcessResult> {
     try {
         // Validate prerequisites
         validateFiles();
@@ -295,7 +341,7 @@ async function processTestamentAddressing() {
         );
 
         // Save addressed testament
-        const addressedTestament = saveAddressedTestament(testamentData, salt, predictedAddress);
+        saveAddressedTestament(testamentData, salt, predictedAddress);
 
         // Update environment variables
         await updateEnvironmentVariables(testamentData.estates, salt, predictedAddress);
@@ -311,7 +357,8 @@ async function processTestamentAddressing() {
         };
 
     } catch (error) {
-        console.error(chalk.red('Error during testament addressing process:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red('Error during testament addressing process:'), errorMessage);
         throw error;
     }
 }
@@ -319,7 +366,7 @@ async function processTestamentAddressing() {
 /**
  * Main function
  */
-async function main() {
+async function main(): Promise<void> {
     try {
         console.log(chalk.cyan('=== Testament Address Prediction & Environment Setup ===\n'));
 
@@ -329,10 +376,11 @@ async function main() {
         console.log(chalk.gray('Results:'), result);
 
     } catch (error) {
-        console.error(chalk.red.bold('\n❌ Program execution failed:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
 
         // Log stack trace in development mode
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' && error instanceof Error) {
             console.error(chalk.gray('Stack trace:'), error.stack);
         }
 
@@ -341,7 +389,8 @@ async function main() {
 }
 
 // Execute main function
-main().catch(error => {
-    console.error(chalk.red.bold('Uncaught error:'), error);
+main().catch((error: Error) => {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red.bold('Uncaught error:'), errorMessage);
     process.exit(1);
 });

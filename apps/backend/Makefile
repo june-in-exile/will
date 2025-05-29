@@ -4,7 +4,7 @@ all: approve-permit predict-address generate-signature encrypt-testament upload-
 
 init:
 	@echo "Resetting environment variables..."
-	@node ../../shared/utils/env/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
+	@ts-node ../../shared/utils/env/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
 	
 	@echo "Removing generated files..."
 	-rm -f testament/3_addressed*.json
@@ -19,25 +19,25 @@ phase1: approve-permit predict-address generate-signature encrypt-testament uplo
 phase2: download-and-decrypt-testament sign-cid
 
 approve-permit:
-	@node permit2/approveTokenPermit2.js
+	@ts-node src/permit2/approveTokenPermit2.js
 
 predict-address:
-	@node create2/predictTestament.js
+	@ts-node src/CREATE2/predictTestament.js
 
 generate-signature:
-	@node permit2/generateSignature.js
+	@ts-node src/permit2/generateSignature.js
 
 encrypt-testament:
-	@node encryption/encryptTestament.js
+	@ts-node src/encryption/encryptTestament.js
 
 upload-testament:
-	@node ipfs/upload.js
+	@ts-node src/ipfs/upload.js
 
 download-and-decrypt-testament:
-	@node ipfs/download.js
+	@ts-node src/ipfs/download.js
 
 download-and-decrypt-testament-test:
-	@node ipfs/download.js --test
+	@ts-node src/ipfs/download.js --test
 
 sign-cid:
-	@node signature/cid.js
+	@ts-node src/signature/cid.js

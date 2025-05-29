@@ -463,7 +463,7 @@ export const SIGNATURE_CONFIG: SignatureConfig = {
 export const HASH_CONFIG: HashConfig = {
   // Input validation
   maxInputSize: 10 * 1024 * 1024, // 10MB max input size
-  supportedEncodings: ['utf8', 'utf-8', 'ascii', 'base64', 'hex'],
+  supportedEncodings: ['utf8', 'ascii', 'base64', 'hex'],
 
   // Output format validation
   expectedHashLength: 66, // 32 bytes + 0x prefix = 66 characters
@@ -540,30 +540,30 @@ export const IPFS_CONFIG: IpfsConfig = {
 export const PATHS_CONFIG: PathsConfig = {
   // Base paths
   base: {
-    root: resolve(modulePath, '../..'),
-    backend: modulePath,
-    frontend: resolve(modulePath, '../frontend'),
-    circuits: resolve(modulePath, '../../circuits'),
-    contracts: resolve(modulePath, '../../contracts')
+    root: resolve(modulePath, '..'),
+    backend: resolve(modulePath, '../apps/backend'),
+    frontend: resolve(modulePath, '../apps/frontend'),
+    circuits: resolve(modulePath, '../circuits'),
+    contracts: resolve(modulePath, '../contracts')
   },
 
   // Testament files
   testament: {
-    raw: resolve(modulePath, 'testament/1_raw.json'),
-    formatted: resolve(modulePath, 'testament/2_formatted.json'),
-    addressed: resolve(modulePath, 'testament/3_addressed.json'),
-    signed: resolve(modulePath, 'testament/4_signed.json'),
-    encrypted: resolve(modulePath, 'testament/5_encrypted.json'),
-    decrypted: resolve(modulePath, 'testament/6_decrypted.json')
+    raw: resolve(modulePath, '../apps/backend/testament/1_raw.json'),
+    formatted: resolve(modulePath, '../apps/backend/testament/2_formatted.json'),
+    addressed: resolve(modulePath, '../apps/backend/testament/3_addressed.json'),
+    signed: resolve(modulePath, '../apps/backend/testament/4_signed.json'),
+    encrypted: resolve(modulePath, '../apps/backend/testament/5_encrypted.json'),
+    decrypted: resolve(modulePath, '../apps/backend/testament/6_decrypted.json')
   },
 
   // Environment files
-  env: resolve(modulePath, '../../.env'),
+  env: resolve(modulePath, '../.env'),
 
   // Contract artifacts
   contracts: {
-    outDir: resolve(modulePath, '../../contracts/out'),
-    testamentFactory: resolve(modulePath, '../../contracts/out/TestamentFactory.sol/TestamentFactory.json')
+    outDir: resolve(modulePath, '../contracts/out'),
+    testamentFactory: resolve(modulePath, '../contracts/out/TestamentFactory.sol/TestamentFactory.json')
   },
 
   // Crypto keys

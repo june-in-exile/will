@@ -1,16 +1,14 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config';
 import { randomBytes, createCipheriv } from 'crypto';
-import type { Cipher } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { config } from 'dotenv';
 import { updateEnvVariable } from '../env/updateEnvVariable';
-import chalk from 'chalk';
 import type { 
-    SupportedAlgorithm, 
     AuthenticatedCipher, 
-    EncryptionResult, 
-    EncryptionConfig 
+    EncryptionResult
 } from '../../types';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '../../constants';
+import chalk from 'chalk';
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
@@ -25,7 +23,7 @@ function validateEncryptionParams(
     algorithm: string
 ): void {
     // Validate algorithm
-    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm)) {
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
         throw new Error(`Unsupported encryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(', ')}`);
     }
 
@@ -158,7 +156,7 @@ function validateExistingKey(keyPath: string, expectedSize: number): string {
  * Generic encryption function with comprehensive validation
  */
 function performEncryption(
-    algorithm: SupportedAlgorithm,
+    algorithm: string,
     plaintext: string,
     key: Buffer,
     iv: Buffer
@@ -278,7 +276,7 @@ export function aes256gcmEncrypt(
     iv: Buffer
 ): EncryptionResult {
     try {
-        return performEncryption('aes-256-gcm', plaintext, key, iv);
+        return performEncryption(AES_256_GCM, plaintext, key, iv);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`AES-256-GCM encryption failed: ${errorMessage}`);
@@ -294,35 +292,9 @@ export function chacha20Encrypt(
     iv: Buffer
 ): EncryptionResult {
     try {
-        return performEncryption('chacha20-poly1305', plaintext, key, iv);
+        return performEncryption(CHACHA20_POLY1305, plaintext, key, iv);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`ChaCha20-Poly1305 encryption failed: ${errorMessage}`);
     }
-}
-
-/**
- * Utility function to get supported algorithms
- */
-export function getSupportedEncryptionAlgorithms(): SupportedAlgorithm[] {
-    return [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[];
-}
-
-/**
- * Utility function to validate if algorithm is supported
- */
-export function isEncryptionAlgorithmSupported(algorithm: string): algorithm is SupportedAlgorithm {
-    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm);
-}
-
-/**
- * Utility function to get encryption configuration
- */
-export function getEncryptionConfig(): EncryptionConfig {
-    return {
-        keySize: CRYPTO_CONFIG.keySize,
-        ivSize: CRYPTO_CONFIG.ivSize,
-        supportedAlgorithms: [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[],
-        maxPlaintextSize: CRYPTO_CONFIG.maxPlaintextSize
-    };
 }

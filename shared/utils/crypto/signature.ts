@@ -1,10 +1,8 @@
 import { SIGNATURE_CONFIG } from '../../config';
 import { ethers, Wallet } from 'ethers';
 import { keccak256 } from './hash';
-import chalk from 'chalk';
 import type { SignatureConfig, SignatureValidationResult } from '../../types';
-
-// Type definitions
+import chalk from 'chalk';
 
 /**
  * Validate message input
@@ -119,29 +117,6 @@ function createWalletInstance(privateKey: string): Wallet {
 }
 
 /**
- * Hash message using keccak256 with validation
- */
-function hashMessage(message: string): string {
-    try {
-        const hash = keccak256(message);
-
-        if (!hash || typeof hash !== 'string') {
-            throw new Error('Hash function returned invalid result');
-        }
-
-        if (!hash.startsWith('0x') || hash.length !== 66) {
-            throw new Error('Hash function returned invalid format');
-        }
-
-        return hash;
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        throw new Error(`Message hashing failed: ${errorMessage}`);
-    }
-}
-
-/**
  * Sign message with retry mechanism
  */
 async function performSigning(wallet: Wallet, hashBytes: Uint8Array, retryCount: number = 0): Promise<string> {
@@ -184,7 +159,7 @@ export async function signString(message: string, privateKey: string): Promise<s
         const wallet = createWalletInstance(cleanPrivateKey);
 
         // Hash the message
-        const hash = hashMessage(message);
+        const hash = keccak256(message);
         const hashBytes = ethers.getBytes(hash);
 
         // Validate hash bytes
@@ -223,7 +198,7 @@ export async function verify(message: string, signature: string, expectedSigner:
         const normalizedExpectedSigner = validateEthereumAddress(expectedSigner);
 
         // Hash the message
-        const hash = hashMessage(message);
+        const hash = keccak256(message);
         const hashBytes = ethers.getBytes(hash);
 
         // Validate hash bytes
@@ -264,7 +239,7 @@ export async function recoverSigner(message: string, signature: string): Promise
         validateSignature(signature);
 
         // Hash the message
-        const hash = hashMessage(message);
+        const hash = keccak256(message);
         const hashBytes = ethers.getBytes(hash);
 
         // Recover address
@@ -306,16 +281,4 @@ export async function isValidSignature(message: string, signature: string): Prom
             error: errorMessage
         };
     }
-}
-
-/**
- * Utility function to get signature configuration
- */
-export function getSignatureConfig(): SignatureConfig {
-    return {
-        maxMessageLength: SIGNATURE_CONFIG.maxMessageLength,
-        privateKeyLength: SIGNATURE_CONFIG.privateKeyLength,
-        signatureLength: SIGNATURE_CONFIG.signatureLength,
-        maxRetries: SIGNATURE_CONFIG.maxRetries
-    };
 }

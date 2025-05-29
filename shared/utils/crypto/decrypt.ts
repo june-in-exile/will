@@ -1,11 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config';
 import { createDecipheriv } from 'crypto';
-import type { Decipher } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
+import type { AuthenticatedDecipher } from '../../types';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '../../constants';
 import chalk from 'chalk';
-import type { SupportedAlgorithm, AuthenticatedDecipher } from '../../types';
-
-// Type definitions
 
 /**
  * Validate key file existence and format
@@ -50,7 +48,7 @@ function validateDecryptionParams(
     algorithm: string
 ): void {
     // Validate algorithm
-    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm)) {
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
         throw new Error(`Unsupported decryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(', ')}`);
     }
 
@@ -101,7 +99,7 @@ function validateDecryptionParams(
  * Generic decryption function with comprehensive validation
  */
 function performDecryption(
-    algorithm: SupportedAlgorithm,
+    algorithm: string,
     ciphertext: Buffer,
     key: Buffer,
     iv: Buffer,
@@ -190,7 +188,7 @@ export function aes256gcmDecrypt(
     authTag: Buffer
 ): string {
     try {
-        return performDecryption('aes-256-gcm', ciphertext, key, iv, authTag);
+        return performDecryption(AES_256_GCM, ciphertext, key, iv, authTag);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`AES-256-GCM decryption failed: ${errorMessage}`);
@@ -207,23 +205,9 @@ export function chacha20Decrypt(
     authTag: Buffer
 ): string {
     try {
-        return performDecryption('chacha20-poly1305', ciphertext, key, iv, authTag);
+        return performDecryption(CHACHA20_POLY1305, ciphertext, key, iv, authTag);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`ChaCha20-Poly1305 decryption failed: ${errorMessage}`);
     }
-}
-
-/**
- * Utility function to get supported algorithms
- */
-export function getSupportedDecryptionAlgorithms(): SupportedAlgorithm[] {
-    return [...CRYPTO_CONFIG.supportedAlgorithms] as SupportedAlgorithm[];
-}
-
-/**
- * Utility function to validate if algorithm is supported
- */
-export function isDecryptionAlgorithmSupported(algorithm: string): algorithm is SupportedAlgorithm {
-    return CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm as SupportedAlgorithm);
 }

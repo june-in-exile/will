@@ -1,9 +1,3 @@
-// Supported encryption/decryption algorithms
-export type SupportedAlgorithm = 'aes-256-gcm' | 'chacha20-poly1305';
-
-// Supported encoding types
-export type SupportedEncoding = 'utf8' | 'ascii' | 'latin1' | 'base64' | 'hex';
-
 // Input types for hashing functions
 export type HashableInput = string | number | boolean | object;
 export type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
@@ -18,13 +12,13 @@ export interface EncryptionResult {
 export interface EncryptionConfig {
     keySize: number;
     ivSize: number;
-    supportedAlgorithms: SupportedAlgorithm[];
+    supportedAlgorithms: string[];
     maxPlaintextSize: number;
 }
 
 export interface HashConfig {
     maxInputSize: number;
-    supportedEncodings: SupportedEncoding[];
+    supportedEncodings: string[];
     expectedHashLength: number;
     enableValidation: boolean;
 }

@@ -41,27 +41,10 @@ function validateEnvironment(): EnvironmentVariables {
 }
 
 /**
- * Validate encrypted data structure
- */
-function validateEncryptedData(data: any): data is EncryptedData {
-    const requiredFields = ['ciphertext', 'iv', 'authTag'];
-
-    for (const field of requiredFields) {
-        if (!data[field]) {
-            throw new Error(`Missing required field: ${field}`);
-        }
-    }
-
-    return true;
-}
-
-/**
  * Decrypt JSON data
  */
 function decryptTestament(encryptedData: EncryptedData): string {
     try {
-        validateEncryptedData(encryptedData);
-
         const { ALGORITHM } = validateEnvironment();
 
         // Convert data format

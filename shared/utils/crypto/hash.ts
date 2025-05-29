@@ -2,14 +2,10 @@ import { HASH_CONFIG } from '../../config';
 import { ethers } from 'ethers';
 import chalk from 'chalk';
 import type { 
-    SupportedEncoding, 
     HashableInput, 
     ByteInput, 
-    HashConfig, 
-    HashValidationResult 
+    HashConfig
 } from '../../types';
-
-// Type definitions
 
 /**
  * Validate input message
@@ -55,7 +51,7 @@ function validateInput(input: HashableInput): string {
  */
 function validateEncoding(message: string, encoding: string = 'utf8'): Buffer {
     try {
-        if (!HASH_CONFIG.supportedEncodings.includes(encoding.toLowerCase() as SupportedEncoding)) {
+        if (!HASH_CONFIG.supportedEncodings.includes(encoding.toLowerCase())) {
             throw new Error(`Unsupported encoding: ${encoding}. Supported: ${HASH_CONFIG.supportedEncodings.join(', ')}`);
         }
 
@@ -216,7 +212,7 @@ export function keccak256Multi(...inputs: (HashableInput | string)[]): string {
         let actualInputs: (HashableInput | string)[] = inputs;
 
         const lastArg = inputs[inputs.length - 1];
-        if (typeof lastArg === 'string' && HASH_CONFIG.supportedEncodings.includes(lastArg.toLowerCase() as SupportedEncoding)) {
+        if (typeof lastArg === 'string' && HASH_CONFIG.supportedEncodings.includes(lastArg.toLowerCase())) {
             encoding = lastArg;
             actualInputs = inputs.slice(0, -1);
 
@@ -293,18 +289,6 @@ export function compareHashes(hash1: string, hash2: string): boolean {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Hash comparison failed: ${errorMessage}`);
     }
-}
-
-/**
- * Get hash configuration
- */
-export function getHashConfig(): HashConfig {
-    return {
-        maxInputSize: HASH_CONFIG.maxInputSize,
-        supportedEncodings: [...HASH_CONFIG.supportedEncodings] as SupportedEncoding[],
-        expectedHashLength: HASH_CONFIG.expectedHashLength,
-        enableValidation: HASH_CONFIG.enableValidation
-    };
 }
 
 /**

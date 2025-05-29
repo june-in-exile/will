@@ -6,12 +6,27 @@ import assert from 'assert';
 import chalk from 'chalk';
 
 // Load environment configuration
-config({ path: PATHS_CONFIG.env.backend });
+config({ path: PATHS_CONFIG.env });
+
+// Type definitions
+interface EnvironmentVariables {
+    CID: string;
+    EXECUTOR_PRIVATE_KEY: string;
+    EXECUTOR: string;
+}
+
+interface ProcessResult {
+    cid: string;
+    signature: string;
+    executor: string;
+    signatureLength: number;
+    success: boolean;
+}
 
 /**
  * Validate environment variables
  */
-function validateEnvironment() {
+function validateEnvironment(): EnvironmentVariables {
     const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = process.env;
 
     if (!CID) {
@@ -32,7 +47,7 @@ function validateEnvironment() {
 /**
  * Validate CID format
  */
-function validateCid(cid) {
+function validateCid(cid: string): boolean {
     try {
         // Basic CID validation
         if (typeof cid !== 'string') {
@@ -58,14 +73,15 @@ function validateCid(cid) {
         return true;
 
     } catch (error) {
-        throw new Error(`Invalid CID format: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Invalid CID format: ${errorMessage}`);
     }
 }
 
 /**
  * Validate private key format
  */
-function validatePrivateKey(privateKey) {
+function validatePrivateKey(privateKey: string): string {
     try {
         // Remove 0x prefix if present
         const cleanKey = privateKey.startsWith('0x') ? privateKey.slice(2) : privateKey;
@@ -84,14 +100,15 @@ function validatePrivateKey(privateKey) {
         return cleanKey;
 
     } catch (error) {
-        throw new Error(`Invalid private key format: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Invalid private key format: ${errorMessage}`);
     }
 }
 
 /**
  * Validate executor address format
  */
-function validateExecutorAddress(address) {
+function validateExecutorAddress(address: string): boolean {
     try {
         // Basic Ethereum address validation
         if (typeof address !== 'string') {
@@ -110,14 +127,15 @@ function validateExecutorAddress(address) {
         return true;
 
     } catch (error) {
-        throw new Error(`Invalid executor address: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Invalid executor address: ${errorMessage}`);
     }
 }
 
 /**
  * Sign CID with retry mechanism
  */
-async function signCidWithRetry(cid, privateKey, retryCount = 0) {
+async function signCidWithRetry(cid: string, privateKey: string, retryCount: number = 0): Promise<string> {
     try {
         console.log(chalk.blue('Generating signature for CID...'));
         console.log(chalk.gray('Attempt:'), retryCount + 1);
@@ -138,7 +156,8 @@ async function signCidWithRetry(cid, privateKey, retryCount = 0) {
         return signature;
 
     } catch (error) {
-        console.error(chalk.red(`❌ Signature generation failed (attempt ${retryCount + 1}):`), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`❌ Signature generation failed (attempt ${retryCount + 1}):`), errorMessage);
 
         // Retry logic
         if (retryCount < SIGNATURE_CONFIG.maxRetries) {
@@ -150,21 +169,21 @@ async function signCidWithRetry(cid, privateKey, retryCount = 0) {
             return signCidWithRetry(cid, privateKey, retryCount + 1);
         }
 
-        throw new Error(`Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${error.message}`);
+        throw new Error(`Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${errorMessage}`);
     }
 }
 
 /**
  * Verify signature with detailed validation
  */
-function verifySignatureWithDetails(cid, signature, executorAddress) {
+async function verifySignatureWithDetails(cid: string, signature: string, executorAddress: string): Promise<boolean> {
     try {
         console.log(chalk.blue('Verifying signature...'));
         console.log(chalk.gray('Message (CID):'), cid);
         console.log(chalk.gray('Signature:'), `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`);
         console.log(chalk.gray('Expected signer:'), executorAddress);
 
-        const isValid = verify(cid, signature, executorAddress);
+        const isValid = await verify(cid, signature, executorAddress);
 
         if (!isValid) {
             throw new Error('Signature verification failed - signature does not match the expected signer');
@@ -176,14 +195,15 @@ function verifySignatureWithDetails(cid, signature, executorAddress) {
         return true;
 
     } catch (error) {
-        throw new Error(`Signature verification failed: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Signature verification failed: ${errorMessage}`);
     }
 }
 
 /**
  * Update environment variable with signature
  */
-async function updateEnvironmentVariable(signature) {
+async function updateEnvironmentVariable(signature: string): Promise<void> {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
@@ -193,14 +213,15 @@ async function updateEnvironmentVariable(signature) {
         console.log(chalk.gray('Updated variable: EXECUTOR_SIGNATURE'));
 
     } catch (error) {
-        throw new Error(`Failed to update environment variable: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to update environment variable: ${errorMessage}`);
     }
 }
 
 /**
  * Process CID signing workflow
  */
-async function processCidSigning() {
+async function processCidSigning(): Promise<ProcessResult> {
     try {
         // Validate environment variables
         const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = validateEnvironment();
@@ -218,7 +239,7 @@ async function processCidSigning() {
         const signature = await signCidWithRetry(CID, cleanPrivateKey);
 
         // Verify signature
-        verifySignatureWithDetails(CID, signature, EXECUTOR);
+        await verifySignatureWithDetails(CID, signature, EXECUTOR);
 
         // Update environment variable
         await updateEnvironmentVariable(signature);
@@ -234,7 +255,8 @@ async function processCidSigning() {
         };
 
     } catch (error) {
-        console.error(chalk.red('Error during CID signing process:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red('Error during CID signing process:'), errorMessage);
         throw error;
     }
 }
@@ -242,7 +264,7 @@ async function processCidSigning() {
 /**
  * Main function
  */
-async function main() {
+async function main(): Promise<void> {
     try {
         console.log(chalk.cyan('=== CID Signature Generation & Verification ===\n'));
 
@@ -257,15 +279,16 @@ async function main() {
         });
 
     } catch (error) {
-        console.error(chalk.red.bold('\n❌ Program execution failed:'), error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
 
         // Use assert for critical validation failures
-        if (error.message.includes('verification failed')) {
+        if (errorMessage.includes('verification failed')) {
             assert(false, chalk.red('Critical: Signature verification failed - this indicates a serious security issue'));
         }
 
         // Log stack trace in development mode
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' && error instanceof Error) {
             console.error(chalk.gray('Stack trace:'), error.stack);
         }
 
@@ -274,7 +297,8 @@ async function main() {
 }
 
 // Execute main function
-main().catch(error => {
-    console.error(chalk.red.bold('Uncaught error:'), error);
+main().catch((error: Error) => {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red.bold('Uncaught error:'), errorMessage);
     process.exit(1);
 });
