@@ -1,11 +1,12 @@
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { config } from 'dotenv';
+import { AES_256_GCM, CHACHA20_POLY1305 } from './constants';
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables
-config({ path: resolve(modulePath, '../../.env') });
+config({ path: resolve(modulePath, '../.env') });
 
 /**
  * Unified Configuration for Testament Application
@@ -406,7 +407,7 @@ export const NETWORK_CONFIG: NetworkConfig = {
 // ================================
 export const CRYPTO_CONFIG: CryptoConfig = {
   // Supported algorithms
-  supportedAlgorithms: ['aes-256-gcm', 'chacha20'],
+  supportedAlgorithms: [AES_256_GCM, CHACHA20_POLY1305],
 
   // Key and IV sizes
   keySize: 32,        // 256 bits
@@ -759,7 +760,7 @@ export const ENV_CONFIG: EnvConfig = {
     TESTAMENT_FACTORY_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
     PERMIT2_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
     CID: /^[a-zA-Z0-9]{46,100}$/,
-    ALGORITHM: /^(aes-256-gcm|chacha20)$/,
+    ALGORITHM: /^(aes-256-gcm|chacha20-poly1305)$/,
     ANVIL_RPC_URL: /^https?:\/\/.+/,
     ARB_SEPOLIA_RPC_URL: /^https?:\/\/.+/
   },

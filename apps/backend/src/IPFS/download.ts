@@ -3,6 +3,7 @@ import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
 import { getDecryptionKey, aes256gcmDecrypt, chacha20Decrypt } from '@shared/utils/crypto/decrypt.js';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants/crypto.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
@@ -57,10 +58,10 @@ function decryptTestament(encryptedData: EncryptedData): string {
 
         let plaintext;
         switch (ALGORITHM) {
-            case 'aes-256-gcm':
+            case AES_256_GCM:
                 plaintext = aes256gcmDecrypt(ciphertext, key, iv, authTag);
                 break;
-            case 'chacha20':
+            case CHACHA20_POLY1305:
                 plaintext = chacha20Decrypt(ciphertext, key, iv, authTag);
                 break;
             default:

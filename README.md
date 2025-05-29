@@ -177,7 +177,7 @@ PINATA_JWT=YOUR_PINATA_JWT_TOKEN
 Choose an encryption algorithm:
 
 ```bash
-ALGORITHM=<aes-256-gcm|chacha20>
+ALGORITHM=<aes-256-gcm|chacha20-poly1305>
 ```
 
 The other fileds would be automatically updated during the execution.

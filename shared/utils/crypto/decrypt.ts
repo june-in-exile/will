@@ -79,7 +79,7 @@ function validateDecryptionParams(
         throw new Error('IV must be a Buffer');
     }
 
-    const expectedIvSize = algorithm === 'aes-256-gcm' ? 12 : 12; // Both use 12 bytes for these algorithms
+    const expectedIvSize = 12; // Both use 12 bytes for these algorithms
     if (iv.length !== expectedIvSize) {
         throw new Error(`Invalid IV size for ${algorithm}: expected ${expectedIvSize} bytes, got ${iv.length} bytes`);
     }

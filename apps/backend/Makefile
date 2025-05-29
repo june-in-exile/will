@@ -19,25 +19,25 @@ phase1: approve-permit predict-address generate-signature encrypt-testament uplo
 phase2: download-and-decrypt-testament sign-cid
 
 approve-permit:
-	@ts-node src/permit2/approveTokenPermit2.js
+	@pnpm exec tsx src/permit2/approveTokenPermit2.js
 
 predict-address:
-	@ts-node src/CREATE2/predictTestament.js
+	@pnpm exec tsx src/CREATE2/predictTestament.js
 
 generate-signature:
-	@ts-node src/permit2/generateSignature.js
+	@pnpm exec tsx src/permit2/generateSignature.js
 
 encrypt-testament:
-	@ts-node src/encryption/encryptTestament.js
+	@pnpm exec tsx src/encryption/encryptTestament.js
 
 upload-testament:
-	@ts-node src/ipfs/upload.js
+	@pnpm exec tsx src/ipfs/upload.js
 
 download-and-decrypt-testament:
-	@ts-node src/ipfs/download.js
+	@pnpm exec tsx src/ipfs/download.js
 
 download-and-decrypt-testament-test:
-	@ts-node src/ipfs/download.js --test
+	@pnpm exec tsx src/ipfs/download.js --test
 
 sign-cid:
-	@ts-node src/signature/cid.js
+	@pnpm exec tsx src/signature/cid.js

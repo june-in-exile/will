@@ -1,6 +1,7 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '@shared/config.js';
 // import { generateProof, verifyProof, makeLocalSnarkJsZkOperator } from '@reclaimprotocol/circom-symmetric-crypto';
 import { getEncryptionKey, getInitializationVector, aes256gcmEncrypt, chacha20Encrypt } from '@shared/utils/crypto/encrypt.js';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants/crypto.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
@@ -101,10 +102,10 @@ function encryptTestament(
     let ciphertext: Buffer, authTag: Buffer;
 
     switch (algorithm) {
-        case 'aes-256-gcm':
+        case AES_256_GCM:
             ({ ciphertext, authTag } = aes256gcmEncrypt(testamentData, key, iv));
             break;
-        case 'chacha20':
+        case CHACHA20_POLY1305:
             ({ ciphertext, authTag } = chacha20Encrypt(testamentData, key, iv));
             break;
         default:
