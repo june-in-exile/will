@@ -1,23 +1,320 @@
 # Web3 Testament System
-A system to handle onchain estates left by the testator.
 
-# How to use
+A blockchain-based testament management system that utilizes Permit2, CREATE2, Zero-Knowledge Proofs (ZKP), and IPFS to handle on-chain estates left by testators.
 
-```bash
-# clone the main repo and all the submodules in one time
-git clone --recursive https://github.com/june-in-exile/testament.git
+## 🏗️ Project Architecture
 
-# or clone first then initialzie the submodules
-git clone https://github.com/june-in-exile/testament.git
-git submodule update --init --recursive
+```
+testament-project/
+├── apps/
+│   ├── frontend/          # React + Vite frontend application
+│   └── backend/           # Node.js + Express backend API
+├── contracts/             # Foundry smart contracts
+├── circuits/              # Circom zero-knowledge circuits
+├── shared/                # Shared code (types, utilities, constants)
+├── scripts/               # Utility scripts
+└── package.json           # Root dependency management
 ```
 
-Then check the [foundry's README.md](./foundry/) for the detailed instructions.
+## 🚀 Quick Start
 
-## TODO list
-- [ ] Write the circom circuit for ZKP.
-  - [ ] ZKP1 to prove that some json file is in the proper format.
-    - [ ] contain "nonce", "deadline", and "signature" fields that can pass the permit2 verification if go with the other fields in the json files.
-  - [ ] ZKP2 to prove that some json file can be encrypted into the given cyphertext with the given iv.
-  - [ ] ZKP3 to prove that the former two json files are the same.
-- [ ] pinata
+### Prerequisites
+
+Ensure you have the following tools installed:
+
+- **Node.js** (v18+)
+- **pnpm** (recommended package manager)
+- **Foundry** (Solidity development toolkit)
+- **Circom** (Zero-knowledge circuit compiler)
+
+```bash
+# Install pnpm
+npm install -g pnpm
+
+# Install Foundry
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+
+# Install Circom (macOS)
+brew install circom
+```
+
+### Installation and Setup
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/june-in-exile/testament.git
+cd testament
+```
+
+2. **Install dependencies**
+```bash
+pnpm install
+```
+
+3. **Build smart contracts**
+```bash
+pnpm build:contracts
+```
+
+4. **Start development environment**
+```bash
+# Start both frontend and backend
+pnpm dev
+
+# Or start separately
+pnpm dev:frontend  # http://localhost:5173
+pnpm dev:backend   # http://localhost:3001
+```
+
+## 📝 Available Commands
+
+### Development Commands
+
+```bash
+# Development mode
+pnpm dev                  # Start both frontend and backend
+pnpm dev:frontend         # Start frontend only (Vite)
+pnpm dev:backend          # Start backend only (Node.js)
+
+# Build
+pnpm build                # Build all modules
+pnpm build:frontend       # Build frontend
+pnpm build:backend        # Build backend
+pnpm build:contracts      # Compile smart contracts
+
+# Code quality
+pnpm typecheck            # TypeScript type checking
+pnpm lint                 # ESLint code checking
+pnpm lint --fix           # Auto-fix ESLint issues
+pnpm format               # Prettier formatting
+
+# Cleanup
+pnpm clean                # Clean all build artifacts
+```
+
+### Dependency Management
+
+```bash
+# Check outdated dependencies
+pnpm deps:check
+
+# Update all dependencies to latest versions
+pnpm deps:update
+
+# Security audit
+pnpm deps:audit
+
+# Clean and reinstall dependencies
+pnpm deps:clean
+```
+
+### Smart Contract Commands
+
+```bash
+cd contracts
+
+# Compile contracts
+forge build
+
+# Run tests
+forge test
+```
+
+For detailed smart contract instructions, Check [./contracts/](./contracts/).
+
+### Zero-Knowledge Circuit Commands
+
+Check [./circuits/](./circuits/).
+
+## 🔐 Zero-Knowledge Proof Implementation
+
+### ZKP Circuit Architecture (TBD)
+
+```
+circuits/
+├── format_verification.circom    # ZKP1: JSON format validation
+├── encryption_proof.circom       # ZKP2: Encryption verification  
+├── consistency_proof.circom      # ZKP3: File consistency proof
+└── main.circom                   # Combined circuit
+```
+
+## 🔧 Project Configuration
+
+### Environment Variables
+
+Copy the `.env.example` file as `.env`:
+
+```bash
+cp .env.example .env 
+```
+
+Fill in the fields:
+
+```bash
+# TBD
+```
+
+### TypeScript Path Mapping
+
+The project uses path mapping for shared module references:
+
+```typescript
+// Frontend (supports Vite alias)
+import { formatAddress } from '@shared/utils';
+import { NETWORKS } from '@shared/constants';
+import type { Testament } from '@shared/types';
+
+// Backend (uses relative paths)
+import { formatAddress } from '../../../shared/utils/index.js';
+import { NETWORKS } from '../../../shared/constants/index.js';
+```
+
+## 📚 Shared Modules
+
+The `shared/` directory contains code shared across all modules:
+
+### Type Definitions (`shared/types/`)
+
+```typescript
+export interface Testament {
+  id: string;
+  owner: string;
+  beneficiaries: string[];
+  content: string;
+  encrypted: boolean;
+  timestamp: number;
+}
+
+export interface Permit2Signature {
+  nonce: string;
+  deadline: string;
+  signature: string;
+}
+```
+
+### Constants (`shared/constants/`)
+
+```typescript
+export const NETWORKS = {
+  ETHEREUM: 1,
+  SEPOLIA: 11155111,
+  POLYGON: 137,
+} as const;
+
+export const PERMIT2_ADDRESS = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
+```
+
+### Utility Functions (`shared/utils/`)
+
+```typescript
+export function formatAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+export function validatePermit2Format(data: any): boolean {
+  return data.nonce && data.deadline && data.signature;
+}
+```
+
+## 🏗️ System Architecture
+
+### Frontend (React + Vite)
+
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: CSS Modules
+- **State Management**: React Hooks
+- **Web3 Integration**: ethers.js + Permit2 SDK
+
+### Backend (Node.js + Express)
+
+- **Runtime**: Node.js (ESM)
+- **Framework**: Express
+- **Language**: TypeScript
+- **Encryption**: Symmetric encryption + Zero-knowledge proofs
+- **Storage**: IPFS + Pinata
+
+### Smart Contracts (Solidity + Foundry)
+
+- **Development Framework**: Foundry
+- **Testing**: Forge
+- **Deployment**: Forge Script
+- **Standards**: ERC-721 (Testament NFT)
+- **Features**: CREATE2, Permit2 integration
+
+### Zero-Knowledge Circuits (Circom)
+
+- **Circuit Language**: Circom
+- **Proving System**: Groth16
+- **Purpose**: Private content verification and format validation
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **TypeScript module resolution errors**
+```bash
+# Clean and reinstall
+pnpm clean
+pnpm install
+```
+
+2. **ESLint parsing errors**
+```bash
+# Check ESLint configuration
+pnpm lint --debug
+```
+
+3. **Smart contract compilation failures**
+```bash
+# Clean Foundry cache
+cd contracts && forge clean && forge build
+```
+
+4. **Deprecated dependency warnings**
+```bash
+# Check and update dependencies
+pnpm deps:check
+pnpm deps:update
+```
+
+### Project Reset
+
+```bash
+# Complete reset
+pnpm deps:clean
+cd contracts && forge clean
+rm -rf circuits/build
+pnpm install
+pnpm build
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 🙏 Acknowledgments
+
+- [Foundry](https://github.com/foundry-rs/foundry) - Smart contract development toolkit
+- [Circom](https://github.com/iden3/circom) - Zero-knowledge circuit compiler
+- [IPFS](https://ipfs.io/) - Decentralized storage
+- [Vite](https://vitejs.dev/) - Fast build tool
+- [Permit2](https://github.com/Uniswap/permit2) - Token approval system
+
+## 🎯 Next Steps
+
+1. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
+   - [ ] **ZKP1**: Prove that a JSON file is in proper format
+     - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files
+   - [ ] **ZKP2**: Prove that a JSON file can be encrypted into given ciphertext with given IV
+   - [ ] **ZKP3**: Prove that the former two JSON files are identical
+2. **Integrate Pinata** for reliable IPFS pinning
+3. **Implement Permit2** token approval flow
+4. **Add comprehensive testing**
+5. **Deploy to testnet**
+6. **Security audit**

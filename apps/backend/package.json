@@ -1,0 +1,17 @@
+{
+  "name": "backend",
+  "private": true,
+  "type": "module",
+  "ts-node": {
+    "esm": true
+  },
+  "scripts": {
+    "dev": "nodemon --exec node --loader ts-node/esm src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --project tsconfig.typecheck.json",
+    "clean": "rm -rf dist node_modules"
+  }
+}

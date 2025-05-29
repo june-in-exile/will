@@ -1,0 +1,19 @@
+{
+  "name": "contracts",
+  "devDependencies": {
+    "husky": "^8.0.0",
+    "lint-staged": "^15.5.2"
+  },
+  "scripts": {
+    "prepare": "husky && husky install",
+    "clean": "forge clean && rm -rf node_modules"
+  },
+  "lint-staged": {
+    "*.sol": [
+      "forge fmt"
+    ],
+    "*.{js,json}": [
+      "prettier --write"
+    ]
+  }
+}
