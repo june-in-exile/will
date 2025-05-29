@@ -8,7 +8,7 @@ import chalk from 'chalk';
 const require = createRequire(import.meta.url);
 
 // Load environment configuration
-config({ path: PATHS_CONFIG.env.backend });
+config({ path: PATHS_CONFIG.env });
 
 // Load Permit2 SDK
 const permit2SDK = require('@uniswap/permit2-sdk');

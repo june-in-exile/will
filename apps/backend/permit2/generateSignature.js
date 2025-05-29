@@ -287,7 +287,7 @@ async function updateEnvironmentVariables(nonce, deadline, signature) {
         const updates = [
             ['NONCE', nonce.toString()],
             ['DEADLINE', deadline.toString()],
-            ['TESTATOR_SIGNATURE', signature]
+            ['PERMIT2_SIGNATURE', signature]
         ];
 
         await Promise.all(
@@ -297,7 +297,7 @@ async function updateEnvironmentVariables(nonce, deadline, signature) {
         console.log(chalk.green('✅ Environment variables updated successfully'));
         console.log(chalk.gray('Updated variables:'));
         updates.forEach(([key, value]) => {
-            const displayValue = key === 'TESTATOR_SIGNATURE'
+            const displayValue = key === 'PERMIT2_SIGNATURE'
                 ? `${value.substring(0, 10)}...${value.substring(value.length - 8)}`
                 : value;
             console.log(chalk.gray(`- ${key}:`), displayValue);

@@ -19,7 +19,7 @@ function main() {
     
     resetEnvVariable('NONCE');
     resetEnvVariable('DEADLINE');
-    resetEnvVariable('TESTATOR_SIGNATURE');
+    resetEnvVariable('PERMIT2_SIGNATURE');
     
     resetEnvVariable('CID');
     resetEnvVariable('CID_HASH');
