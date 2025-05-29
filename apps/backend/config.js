@@ -87,7 +87,7 @@ export const NETWORK_CONFIG = {
 // ================================
 export const CRYPTO_CONFIG = {
   // Supported algorithms
-  supportedAlgorithms: ['aes-256-gcm', 'chacha20-poly1305'],
+  supportedAlgorithms: ['aes-256-gcm', 'chacha20'],
 
   // Key and IV sizes
   keySize: 32,        // 256 bits

@@ -1,14 +1,14 @@
-echo "🔍 檢查過時依賴..."
+echo "🔍 Checking outdated dependencies..."
 pnpm outdated
 
 echo ""
-echo "🛡️ 安全檢查..."
+echo "🛡️ Security check..."
 pnpm audit
 
 echo ""
-echo "📊 依賴樹狀圖（前 10 層）..."
+echo "📊 Dependency tree (top 10 levels)..."
 pnpm list --depth=2
 
 echo ""
-echo "💡 如果要更新所有依賴到最新版本："
+echo "💡 To update all dependencies to latest versions:"
 echo "pnpm update --latest"

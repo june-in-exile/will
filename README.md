@@ -149,11 +149,38 @@ Copy the `.env.example` file as `.env`:
 cp .env.example .env 
 ```
 
-Fill in the fields:
+Choose your network:
 
 ```bash
-# TBD
+USE_ANVIL=<true|false>
 ```
+
+Fill in the fields required to interact with the contracts:
+ 
+```bash
+ARB_SEPOLIA_RPC_URL=https://arb-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
+ARBSCAN_API_KEY=YOUR_ARBSCAN_API_KEY
+
+EXECUTOR=0x_YOUR_EXECUTOR_ADDRESS
+EXECUTOR_PRIVATE_KEY=YOUR_EXECUTOR_PRIVATE_KEY_WITHOUT_0X
+
+TESTATOR=0x_YOUR_TESTATOR_ADDRESS
+TESTATOR_PRIVATE_KEY=YOUR_TESTATOR_PRIVATE_KEY_WITHOUT_0X
+```
+
+Fill in the fields required to interact with IPFS:
+
+```bash
+PINATA_JWT=YOUR_PINATA_JWT_TOKEN
+```
+
+Choose an encryption algorithm:
+
+```bash
+ALGORITHM=<aes-256-gcm|chacha20>
+```
+
+The other fileds would be automatically updated during the execution.
 
 ### TypeScript Path Mapping
 
