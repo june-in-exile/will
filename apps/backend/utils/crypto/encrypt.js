@@ -210,7 +210,7 @@ export function getInitializationVector(size = CRYPTO_CONFIG.ivSize) {
 
         let ivBase64;
 
-        if (process.env.IV) {
+        if (process.env.IV && process.env.IV != 'YOUR_INITIALIZATION_VECTOR') {
             console.log(chalk.blue('Using IV from environment variable'));
             ivBase64 = process.env.IV;
 
