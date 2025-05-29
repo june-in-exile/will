@@ -232,7 +232,7 @@ executed_after:
 signatureTransferToBeneficiaries:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
 		"signatureTransferToBeneficiaries(uint256,uint256,bytes)()" \
-		$(NONCE) $(DEADLINE) $(TESTATOR_SIGNATURE)
+		$(NONCE) $(DEADLINE) $(PERMIT2_SIGNATURE)
 
 # ------------------- Check Balance ----------------------
 
