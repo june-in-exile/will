@@ -93,7 +93,7 @@ async function validateRpcConnection(provider: JsonRpcProvider): Promise<Network
  */
 function getContractAbi(contractName: string): any[] {
     try {
-        const artifactPath = resolve(modulePath, `../../../contracts/out/${contractName}.sol/${contractName}.json`);
+        const artifactPath = resolve(modulePath, `../../../../contracts/out/${contractName}.sol/${contractName}.json`);
 
         if (!existsSync(artifactPath)) {
             throw new Error(`Contract artifact not found: ${artifactPath}`);

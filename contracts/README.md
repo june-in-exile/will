@@ -2,7 +2,7 @@
 
 ## Initialization
 
-### Arbitrun Sepolia
+### Arbitrum Sepolia
    
 1. Set `USE_ANVIL=false` in [`.env`](./env).
 
@@ -20,7 +20,7 @@
     make groth16verify_on_chain
     ```
 
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `TESTATOR_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
+    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_groth16verifier_to_arb_sepolia
@@ -42,7 +42,7 @@
 
 5. Deploy `TestamentFactory.sol`.
    
-   Ensure that the `TESTATOR_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_testamentFactory_to_arb_sepolia
@@ -57,7 +57,7 @@
     > make executor
     > ```
 
-### Forked Arbitrun Sepolia
+### Forked Arbitrum Sepolia
    
 1. Fork the Arbitrum Sepolia network.
 
@@ -83,7 +83,7 @@
     make groth16verify_on_chain
     ```
 
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `TESTATOR_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
+    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_groth16verifier_to_forked_arb_sepolia
@@ -105,7 +105,7 @@
 
 6. Deploy `TestamentFactory.sol`.
    
-   Ensure that the `TESTATOR_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_testamentFactory_to_forked_arb_sepolia

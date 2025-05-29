@@ -19,7 +19,7 @@
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
     "typecheck": "pnpm --filter frontend typecheck && pnpm --filter backend typecheck",
     "setup": "pnpm install && pnpm build:contracts",
-    "deps:check": "./scripts/check-deps.sh",
+    "deps:check": "pnpm outdated",
     "deps:update": "pnpm update --latest",
     "deps:audit": "pnpm audit --fix",
     "deps:clean": "rm -rf node_modules pnpm-lock.yaml && pnpm install"

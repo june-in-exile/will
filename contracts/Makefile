@@ -1,4 +1,4 @@
-include .env
+include ../.env
 
 RED := \033[31m
 GREEN := \033[32m
@@ -42,7 +42,7 @@ deploy_groth16verifier_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@echo "$(YELLOW)Remember to update TESTATOR_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
+	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_ecdsaverifier_to_arb_sepolia:
 	@forge script \
@@ -55,6 +55,7 @@ deploy_ecdsaverifier_to_arb_sepolia:
 	@echo "$(YELLOW)Remember to update EXECUTOR_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory_to_arb_sepolia:
+	@ln -sf ../.env .env
 	@forge script \
     	--broadcast \
 		--verify \
@@ -62,6 +63,7 @@ deploy_testamentFactory_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
+	@rm .env
 	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
@@ -75,7 +77,7 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@echo "$(YELLOW)Remember to update TESTATOR_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
+	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_ecdsaverifier_to_forked_arb_sepolia:
 	@forge script \
@@ -86,17 +88,19 @@ deploy_ecdsaverifier_to_forked_arb_sepolia:
 	@echo "$(YELLOW)Remember to update EXECUTOR_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory_to_forked_arb_sepolia:
+	@ln -sf ../.env .env
 	@forge script \
     	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
+	@rm .env
 	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # ---------------- Call Groth16 Verifier ----------------
 
 groth16verify_on_chain:
-	@cast call $(TESTATOR_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(PERMIT2_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
 		$(PA) $(PB) $(PC) $(PUBSIGNALS)
 	@echo "$(YELLOW)Expect: true$(RESET)"
@@ -116,7 +120,7 @@ ecdsaverify_on_chain:
 testatorVerifier:
 	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"testatorVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(TESTATOR_VERIFIER_ADDRESS)$(RESET)"
+	@echo "$(YELLOW)Expect: $(PERMIT2_VERIFIER_ADDRESS)$(RESET)"
 
 executorVerifier:
 	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
