@@ -1,33 +1,29 @@
-import { updateBackendEnvVariable, updateFoundryEnvVariable } from './updateEnvVariable.js';
+import { updateEnvVariable } from './updateEnvVariable.js';
 
-function resetBackendEnvVariable(key) { 
-    updateBackendEnvVariable(key, '');
-};
-
-function resetFoundryEnvVariable(key) { 
-    updateFoundryEnvVariable(key, '');
+function resetEnvVariable(key) { 
+    updateEnvVariable(key, '');
 };
 
 function main() {
     // resetFoundryEnvVariable('TESTAMENT_FACTORY_ADDRESS');
         
-    resetFoundryEnvVariable('SALT');
-    resetFoundryEnvVariable('TESTAMENT_ADDRESS');
+    resetEnvVariable('SALT');
+    resetEnvVariable('TESTAMENT_ADDRESS');
 
-    resetFoundryEnvVariable('BENEFICIARY0');
-    resetFoundryEnvVariable('TOKEN0');
-    resetFoundryEnvVariable('AMOUNT0');
-    resetFoundryEnvVariable('BENEFICIARY1');
-    resetFoundryEnvVariable('TOKEN1');
-    resetFoundryEnvVariable('AMOUNT1');
+    resetEnvVariable('BENEFICIARY0');
+    resetEnvVariable('TOKEN0');
+    resetEnvVariable('AMOUNT0');
+    resetEnvVariable('BENEFICIARY1');
+    resetEnvVariable('TOKEN1');
+    resetEnvVariable('AMOUNT1');
     
-    resetFoundryEnvVariable('NONCE');
-    resetFoundryEnvVariable('DEADLINE');
-    resetFoundryEnvVariable('TESTATOR_SIGNATURE');
+    resetEnvVariable('NONCE');
+    resetEnvVariable('DEADLINE');
+    resetEnvVariable('TESTATOR_SIGNATURE');
     
-    resetFoundryEnvVariable('CID');
-    resetFoundryEnvVariable('CID_HASH');
-    resetFoundryEnvVariable('EXECUTOR_SIGNATURE');
+    resetEnvVariable('CID');
+    resetEnvVariable('CID_HASH');
+    resetEnvVariable('EXECUTOR_SIGNATURE');
 };
 
 main();

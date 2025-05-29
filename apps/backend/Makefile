@@ -1,20 +1,16 @@
-include .env
-
 all: approve-permit predict-address generate-signature encrypt-testament upload-testament download-and-decrypt-testament download-and-decrypt-testament-local sign-cid
 
 .PHONY: all
-
-
 
 init:
 	@echo "Resetting environment variables..."
 	@node utils/others/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
 	
 	@echo "Removing generated files..."
-	-rm -f testament/3_addressed.json
-	-rm -f testament/4_signed.json
-	-rm -f testament/5_encrypted.json
-	-rm -f testament/6_decrypted.json
+	-rm -f testament/3_addressed*.json
+	-rm -f testament/4_signed*.json
+	-rm -f testament/5_encrypted*.json
+	-rm -f testament/6_decrypted*.json
 
 	@@echo "Initialization completed"
 
