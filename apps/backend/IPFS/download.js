@@ -1,8 +1,9 @@
+import { PATHS_CONFIG, CRYPTO_CONFIG } from '../config.js';
 import { createHelia } from 'helia';
 import { json } from '@helia/json';
 import { CID } from 'multiformats/cid';
-import { getDecryptionKey, decrypt } from '../utils/crypto/decrypt.js';
-import { readFileSync, writeFileSync } from 'fs';
+import { getDecryptionKey, aes256gcmDecrypt, chacha20Decrypt } from '../utils/crypto/decrypt.js';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import { config } from 'dotenv';
@@ -11,43 +12,166 @@ import chalk from 'chalk';
 const modulePath = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(modulePath, '../.env') });
 
-const decryptedTestamentPath = resolve(modulePath, '../testament/6_decrypted.json'); 
+/**
+ * Validate environment variables
+ */
+function validateEnvironment() {
+    const { ALGORITHM, CID } = process.env;
 
-function decryptJson(downloaded) {
-    const authTag = downloaded.authTag;
-    const ciphertext = downloaded.ciphertext;
-    const algorithm = process.env.ALGORITHM;
-    const iv = downloaded.iv;
-    const encryptionKey = getDecryptionKey();
+    if (!ALGORITHM) {
+        throw new Error('Environment variable ALGORITHM is not set');
+    }
 
-    console.info("Decrypting...");
-    const plaintext = decrypt(ciphertext, algorithm, encryptionKey, iv, authTag);
-    console.info(chalk.green(`Testament downloaded and decrypted.`));
-    writeFileSync(decryptedTestamentPath, plaintext);
-    console.log("Decrypted testament saved to:", decryptedTestamentPath);
-};
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(ALGORITHM)) {
+        throw new Error(`Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(', ')}`);
+    }
 
-async function test() {
-    console.info("Downloading...");
-    const encryptedTestamentPath = resolve(modulePath, '../testament/5_encrypted.json'); 
-    const encryptedTestament = readFileSync(encryptedTestamentPath, 'utf8');
-
-    const encryptedTestamentJson = JSON.parse(encryptedTestament);
-    decryptJson(encryptedTestamentJson);
-};
-
-async function main() {
-    const helia = await createHelia();
-    const j = json(helia);
-
-    const cid = CID.parse(process.env.CID);
-    console.info("CID:", cid.toString());
-
-    console.info("Downloading...");
-    const encryptedTestamentJson = await j.get(cid);
-
-    decryptJson(encryptedTestamentJson);
+    return { ALGORITHM, CID };
 }
 
-// test().catch(error => console.error("Error in main:", error));
-main().catch(error => console.error("Error in main:", error));
+/**
+ * Validate encrypted data structure
+ */
+function validateEncryptedData(data) {
+    const requiredFields = ['ciphertext', 'iv', 'authTag'];
+
+    for (const field of requiredFields) {
+        if (!data[field]) {
+            throw new Error(`Missing required field: ${field}`);
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Decrypt JSON data
+ */
+function decryptTestament(encryptedData) {
+    try {
+        validateEncryptedData(encryptedData);
+
+        const { ALGORITHM } = validateEnvironment();
+
+        // Convert data format
+        const ciphertext = Buffer.from(encryptedData.ciphertext, 'base64');
+        const key = Buffer.from(getDecryptionKey(), 'base64');
+        const iv = Buffer.from(encryptedData.iv, 'base64');
+        const authTag = Buffer.from(encryptedData.authTag, 'base64');
+
+        console.log(chalk.blue(`Decrypting with ${ALGORITHM} algorithm...`));
+
+        let plaintext;
+        switch (ALGORITHM) {
+            case 'aes-256-gcm':
+                plaintext = aes256gcmDecrypt(ciphertext, key, iv, authTag);
+                break;
+            case 'chacha20':
+                plaintext = chacha20Decrypt(ciphertext, key, iv, authTag);
+                break;
+            default:
+                throw new Error(`Unsupported encryption algorithm: ${ALGORITHM}`);
+        }
+
+        // Save decrypted result
+        writeFileSync(PATHS_CONFIG.testament.decrypted, plaintext);
+        console.log(chalk.green('Testament successfully decrypted and saved to:'), PATHS_CONFIG.testament.decrypted);
+
+        return plaintext;
+
+    } catch (error) {
+        console.error(chalk.red('Error occurred during decryption:'), error.message);
+        throw error;
+    }
+}
+
+/**
+ * Read from local file and decrypt
+ */
+async function decryptFromLocalFile() {
+    try {
+        if (!existsSync(PATHS_CONFIG.testament.encrypted)) {
+            throw new Error(`Encrypted file does not exist: ${PATHS_CONFIG.testament.encrypted}`);
+        }
+
+        console.log(chalk.blue('Reading encrypted data from local file...'));
+        const encryptedContent = readFileSync(PATHS_CONFIG.testament.encrypted, 'utf8');
+        const encryptedData = JSON.parse(encryptedContent);
+
+        return decryptTestament(encryptedData);
+
+    } catch (error) {
+        console.error(chalk.red('Failed to decrypt from local file:'), error.message);
+        throw error;
+    }
+}
+
+/**
+ * Download from IPFS and decrypt
+ */
+async function decryptFromIPFS() {
+    let helia;
+
+    try {
+        const { CID: cidString } = validateEnvironment();
+
+        if (!cidString) {
+            throw new Error('Environment variable CID is not set');
+        }
+
+        // Create Helia instance
+        helia = await createHelia();
+        const j = json(helia);
+
+        const cid = CID.parse(cidString);
+        console.log(chalk.blue('CID:'), cid.toString());
+        console.log(chalk.blue('Downloading encrypted data from IPFS...'));
+
+        const encryptedData = await j.get(cid);
+        return decryptTestament(encryptedData);
+
+    } catch (error) {
+        console.error(chalk.red('Failed to decrypt from IPFS:'), error.message);
+        throw error;
+    } finally {
+        // Clean up resources
+        if (helia) {
+            try {
+                await helia.stop();
+                console.log(chalk.gray('Helia instance stopped'));
+            } catch (stopError) {
+                console.warn(chalk.yellow('Warning occurred while stopping Helia instance:'), stopError.message);
+            }
+        }
+    }
+}
+
+/**
+ * Main function - decide which method to use based on environment
+ */
+async function main() {
+    try {
+        const isTestMode = process.argv.includes('--test');
+
+        if (isTestMode) {
+            console.log(chalk.cyan('=== Test Mode: Decrypt from file ==='));
+            await decryptFromLocalFile();
+        } else {
+            console.log(chalk.cyan('=== Production Mode: Decrypt from IPFS ==='));
+            await decryptFromIPFS();
+        }
+
+        console.log(chalk.green.bold('✅ Decryption completed!'));
+        console.log(chalk.gray('Closing the process...'));
+
+    } catch (error) {
+        console.error(chalk.red.bold('❌ Program execution failed:'), error.message);
+        process.exit(1);
+    }
+}
+
+// Execute main function
+main().catch(error => {
+    console.error(chalk.red.bold('Uncaught error:'), error);
+    process.exit(1);
+});

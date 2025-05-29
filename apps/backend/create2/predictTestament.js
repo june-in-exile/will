@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from '../config.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { updateFoundryEnvVariable } from '../utils/others/updateEnvVariable.js';
+import { updateEnvVariable } from '../utils/others/updateEnvVariable.js';
 import crypto from 'crypto';
 import { ethers } from 'ethers';
 import { fileURLToPath } from 'url';
@@ -11,7 +11,7 @@ import chalk from 'chalk';
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
 // Load environment configuration
-config({ path: PATHS_CONFIG.env.foundry });
+config({ path: PATHS_CONFIG.env });
 
 /**
  * Validate environment variables
@@ -58,7 +58,7 @@ async function validateRpcConnection(provider) {
  */
 function getContractAbi(contractName) {
     try {
-        const artifactPath = resolve(modulePath, `../../foundry/out/${contractName}.sol/${contractName}.json`);
+        const artifactPath = resolve(modulePath, `../../../contracts/out/${contractName}.sol/${contractName}.json`);
 
         if (!existsSync(artifactPath)) {
             throw new Error(`Contract artifact not found: ${artifactPath}`);
@@ -249,7 +249,7 @@ async function updateEnvironmentVariables(estates, salt, predictedAddress) {
 
         // Execute all updates in parallel
         await Promise.all(
-            updates.map(([key, value]) => updateFoundryEnvVariable(key, value))
+            updates.map(([key, value]) => updateEnvVariable(key, value))
         );
 
         console.log(chalk.green('✅ Environment variables updated successfully'));

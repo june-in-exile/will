@@ -1,7 +1,7 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from '../config.js';
 import { createHelia } from 'helia';
 import { json } from '@helia/json';
-import { updateFoundryEnvVariable, updateMultipleEnvVariables } from '../utils/others/updateEnvVariable.js';
+import { updateEnvVariable } from '../utils/others/updateEnvVariable.js';
 import { keccak256 } from '../utils/crypto/hash.js';
 import { readFileSync, existsSync } from 'fs';
 import { exec } from 'child_process';
@@ -155,8 +155,8 @@ async function updateEnvironmentVariables(cid) {
 
         // Update environment variables
         await Promise.all([
-            updateMultipleEnvVariables(['backend', 'foundry'], 'CID', cidString),
-            updateFoundryEnvVariable('CID_HASH', cidHash.toString())
+            updateEnvVariable('CID', cidString),
+            updateEnvVariable('CID_HASH', cidHash.toString())
         ]);
 
         console.log(chalk.green('✅ Environment variables updated successfully'));

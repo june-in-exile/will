@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { ethers } from 'ethers';
 import { config } from 'dotenv';
 import { createRequire } from 'module';
-import { updateFoundryEnvVariable } from '../utils/others/updateEnvVariable.js';
+import { updateEnvVariable } from '../utils/others/updateEnvVariable.js';
 import chalk from 'chalk';
 
 const require = createRequire(import.meta.url);
@@ -291,7 +291,7 @@ async function updateEnvironmentVariables(nonce, deadline, signature) {
         ];
 
         await Promise.all(
-            updates.map(([key, value]) => updateFoundryEnvVariable(key, value))
+            updates.map(([key, value]) => updateEnvVariable(key, value))
         );
 
         console.log(chalk.green('✅ Environment variables updated successfully'));

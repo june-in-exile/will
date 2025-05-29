@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, SIGNATURE_CONFIG } from '../config.js';
 import { signString, verify } from '../utils/crypto/signature.js';
-import { updateFoundryEnvVariable } from '../utils/others/updateEnvVariable.js';
+import { updateEnvVariable } from '../utils/others/updateEnvVariable.js';
 import { config } from 'dotenv';
 import assert from 'assert';
 import chalk from 'chalk';
@@ -187,7 +187,7 @@ async function updateEnvironmentVariable(signature) {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
-        await updateFoundryEnvVariable('EXECUTOR_SIGNATURE', signature);
+        await updateEnvVariable('EXECUTOR_SIGNATURE', signature);
 
         console.log(chalk.green('✅ Environment variable updated successfully'));
         console.log(chalk.gray('Updated variable: EXECUTOR_SIGNATURE'));

@@ -2,7 +2,7 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config.js';
 import { randomBytes, createCipheriv } from 'crypto';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { config } from 'dotenv';
-import { updateBackendEnvVariable } from '../others/updateEnvVariable.js';
+import { updateEnvVariable } from '../others/updateEnvVariable.js';
 import chalk from 'chalk';
 
 // Load environment configuration
@@ -230,7 +230,7 @@ export function getInitializationVector(size = CRYPTO_CONFIG.ivSize) {
 
             // Update environment variable
             try {
-                updateBackendEnvVariable('IV', ivBase64);
+                updateEnvVariable('IV', ivBase64);
                 console.log(chalk.green('✅ IV saved to environment variable'));
             } catch (error) {
                 console.warn(chalk.yellow('⚠️ Failed to update environment variable with IV:', error.message));
