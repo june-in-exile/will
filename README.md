@@ -273,13 +273,17 @@ pnpm build
 
 ## 🎯 Next Steps
 
-1. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
+1. **Fix Bugs**
+   - [ ] The cpp circom compilation doesn't work.
+   - [ ] The [script](contracts/script/TestamentFactory.s.sol) for depolying testament factory cannnot read the environment variables.
+2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format
      - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files
    - [ ] **ZKP2**: Prove that a JSON file can be encrypted into given ciphertext with given IV
    - [ ] **ZKP3**: Prove that the former two JSON files are identical
-2. **Integrate Pinata** for reliable IPFS pinning
-3. **Implement Permit2** token approval flow
-4. **Add comprehensive testing**
-5. **Deploy to testnet**
-6. **Security audit**
+3. **Integrate Pinata** for reliable IPFS pinning
+4. **Implement Permit2** token approval flow
+5. **Add comprehensive testing**
+6. **Deploy to testnet**
+7. **Security audit**
+
