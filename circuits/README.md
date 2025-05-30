@@ -23,14 +23,14 @@
     circom multiplier2.circom --r1cs --wasm --sym --c
     ```
 
-3. Computing the witness with **either** WebAssembly or C++
+3. Computing the witness with **either** WebAssembly or C++ (deprecated)
 
     #### WebAssembly
 
     ``` sh
     cd multiplier2_js
     echo "{\"a\": \"3\", \"b\": \"11\"}" >> input.json
-    node generate_witness.js multiplier2.wasm input.json witness.wtns
+    snarkjs wtns calculate multiplier2.wasm input.json witness.wtns
     mv witness.wtns ..
     ```
 
@@ -83,18 +83,18 @@
     # Generate the Solidity code
     snarkjs zkey export solidityverifier multiplier2_0001.zkey verifier.sol
     # Copy the Solidity code for depolyment
-    cp verifier.sol ../foundry/src/implementations/Groth16Verifier.sol
+    cp verifier.sol ../contracts/src/implementations/Groth16Verifier.sol
     ```
 
-7. Deploying the contract9
+7. Deploying the contract
 
-    Refer to the [foundry Makefile](../foundry/Makefile) for deploying the contract.
+    Refer to the [contracts](../contracts/) document for deployment.
 
 8. Verifying onchain
 
     ``` sh
     snarkjs generatecall
-    # Update `verify_on_chain` in [foundry Makefile](../foundry/Makefile) accordingly
+    # Update the parameters in [contracts Makefile](../contracts/Makefile) accordingly
     ```
 
 ---

@@ -1,5 +1,3 @@
-// multiplier2.circom
-
 pragma circom 2.0.0;
 
 template Multiplier2() {
