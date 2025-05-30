@@ -4,7 +4,7 @@
 
 ### Arbitrum Sepolia
    
-1. Set `USE_ANVIL=false` in [`.env`](./env).
+1. Set `USE_ANVIL=false` in [`.env`](../.env.example).
 
 2. Build the contracts.
 
@@ -67,7 +67,7 @@
 
     Open a new terminal and run the following commands.
 
-2. Set `USE_ANVIL=true` in [`.env`](./env).
+2. Set `USE_ANVIL=true` in [`.env`](../.env.example).
 
 3. Build the contracts.
 
