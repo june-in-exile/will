@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {TestamentFactory} from "../src/implementations/TestamentFactory.sol";
+import {TestamentFactory} from "src/implementations/TestamentFactory.sol";
 
 contract TestamentFactoryScript is Script {
     TestamentFactory public testamentFactory;

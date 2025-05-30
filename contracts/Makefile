@@ -1,4 +1,5 @@
 include ../.env
+export
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -30,6 +31,7 @@ deploy_groth16verifier_to_arb_sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
+		--via-ir \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
@@ -40,6 +42,7 @@ deploy_ecdsaverifier_to_arb_sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
+		--via-ir \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
@@ -51,6 +54,7 @@ deploy_testamentFactory_to_arb_sepolia:
 	@forge script \
     	--broadcast \
 		--verify \
+		--via-ir \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
     	--private-key $(MY_PRIVATE_KEY) \
@@ -66,6 +70,7 @@ fork:
 deploy_groth16verifier_to_forked_arb_sepolia:
 	@forge script \
 		--broadcast \
+		--via-ir \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
@@ -74,19 +79,19 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 deploy_ecdsaverifier_to_forked_arb_sepolia:
 	@forge script \
     	--broadcast \
+		--via-ir \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/ECDSAVerifier.s.sol:ECDSAVerifierScript
 	@echo "$(YELLOW)Remember to update EXECUTOR_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory_to_forked_arb_sepolia:
-	@ln -sf ../.env .env
 	@forge script \
     	--broadcast \
+		--via-ir \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
-	@rm .env
 	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # ---------------- Call Groth16 Verifier ----------------
@@ -132,14 +137,18 @@ executor:
 testatorValidateTime:
 	@cast call --from $(EXECUTOR) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"testatorValidateTimes(bytes32)(uint256)" \
-		$(CID_HASH)
-	@echo "$(YELLOW)Expect: Timestamp of calling uploadCID$(RESET)"
+		$(CID_HASH) | \
+		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
+		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
+	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCID$(RESET)"
 
 executorValidateTime:
 	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"executorValidateTimes(bytes32)(uint256)" \
-		$(CID_HASH)
-	@echo "$(YELLOW)Expect: Timestamp of calling notarizeCID$(RESET)"
+		$(CID_HASH) | \
+		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
+		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
+	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCID$(RESET)"
 
 testament:
 	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \

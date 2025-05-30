@@ -124,7 +124,7 @@
 
 ### Phase1: Encrypt & Upload Testament
 
-1. Follow the backend's "Phase1: Encrypt & Upload Testament" instructions to predict the address, generate the signature, encrypt the testament, and upload it to IPFS.
+1. Follow the [backend's](../apps/backend/) "Phase1: Encrypt & Upload Testament" instructions to predict the address, generate the signature, encrypt the testament, and upload it to IPFS.
 
 2. Upload the `CID_HASH` to the TestamentFactory contract.
 
@@ -139,7 +139,7 @@
 
 ### Phase2: Probation
 
-1. Follow the backend's "Phase2: Probation" instructions to doownload the testament from the IPFS, decrypt it, and sign the cid as the executor.
+1. Follow the [backend's](../apps/backend/) "Phase2: Probation" instructions to doownload the testament from the IPFS, decrypt it, and sign the cid as the executor.
 
 2. Notarize the `CID_HASH` in the TestamentFactory contract.
     

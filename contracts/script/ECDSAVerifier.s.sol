@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {ECDSAVerifier} from "../src/implementations/ECDSAVerifier.sol";
+import {ECDSAVerifier} from "src/implementations/ECDSAVerifier.sol";
 
 contract ECDSAVerifierScript is Script {
     ECDSAVerifier public verifier;
