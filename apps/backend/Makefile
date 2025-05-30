@@ -4,8 +4,12 @@ all: approve-permit predict-address generate-signature encrypt-testament upload-
 
 init:
 	@echo "Resetting environment variables..."
-	@ts-node ../../shared/utils/env/resetEnvVariable.js || echo "Warning: Failed to reset env variables"
-	
+	@pnpm exec tsx ../../shared/utils/env/resetEnvVariable.ts SALT TESTAMENT_ADDRESS \
+        BENEFICIARY0 TOKEN0 AMOUNT0 \
+        BENEFICIARY1 TOKEN1 AMOUNT1 \
+        NONCE DEADLINE PERMIT2_SIGNATURE \
+        CID CID_HASH EXECUTOR_SIGNATURE \
+		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
 	-rm -f testament/3_addressed*.json
 	-rm -f testament/4_signed*.json

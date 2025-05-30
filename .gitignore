@@ -58,6 +58,10 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 *.icloud
+* 2.*
+* 3.*
+* 4.*
+* 5.*
 
 # =============================================================================
 # BLOCKCHAIN & SMART CONTRACTS

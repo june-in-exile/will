@@ -2,11 +2,6 @@ import { PATHS_CONFIG } from '../../config.js';
 import { readFileSync, writeFileSync } from 'fs';
 import chalk from 'chalk';
 
-/**
- * Updates an environment variable in the specified .env file
- * @param {string} key - Environment variable key
- * @param {string} value - Environment variable value
- */
 export function updateEnvVariable(key: string, value: string): void {
   const envPath = PATHS_CONFIG.env;
   try {
@@ -28,7 +23,8 @@ export function updateEnvVariable(key: string, value: string): void {
     writeFileSync(envPath, envContent);
     console.log(chalk.yellow(`Updated ${key} to ${value} in .env file.`));
   } catch (error) {
-    console.error(chalk.red(`Failed to update ${key} in ${envPath}: ${error.message}`));
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red(`Failed to update ${key} in ${envPath}: ${errorMessage}`));
     throw error;
   }
 }
