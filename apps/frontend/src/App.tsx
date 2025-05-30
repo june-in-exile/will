@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatAddress } from '@shared/utils'
 import { NETWORKS } from '@shared/constants'
 import type { Testament } from '@shared/types'
 

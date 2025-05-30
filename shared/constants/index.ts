@@ -6,6 +6,15 @@ export const NETWORKS = {
   ANVIL: 31337
 } as const;
 
+export const CONTRACT_ADDRESSES = {
+  [NETWORKS.ETHEREUM]: {
+    TESTAMENT_FACTORY: "0x...",
+  },
+  [NETWORKS.SEPOLIA]: {
+    TESTAMENT_FACTORY: "0x...",
+  },
+} as const;
+
 export type NetworkId = keyof typeof NETWORKS;
 
 export * from './crypto';

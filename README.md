@@ -12,6 +12,7 @@ testament-project/
 ├── contracts/             # Foundry smart contracts
 ├── circuits/              # Circom zero-knowledge circuits
 ├── shared/                # Shared code (types, utilities, constants)
+├── scripts/               # Utility scripts
 └── package.json           # Root dependency management
 ```
 
@@ -34,8 +35,8 @@ npm install -g pnpm
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 
-# Install Circom:
-# https://docs.circom.io/getting-started/installation/
+# Install Circom (macOS)
+brew install circom
 ```
 
 ### Installation and Setup
