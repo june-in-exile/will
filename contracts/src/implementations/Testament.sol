@@ -23,37 +23,52 @@ contract Testament {
     // Can be removed since the nonce brings the same effect
     bool public executed = false;
 
-    event testamentExecuted();
+    event TestamentExecuted();
+
+    error OnlyExecutor();
+    error AlreadyExecuted();
+    error InvalidNonce();
+    error DeadlineExpired();
+    error InsufficientBalance(address token, uint256 required, uint256 available);
+    error TestatorAddressZero();
+    error ExecutorAddressZero();
+    error BeneficiaryAddressZero();
+    error BeneficiaryCannotBeTestator(address beneficiary);
+    error InvalidTokenAddress();
+    error AmountMustBeGreaterThanZero();
 
     constructor(address _testator, address _executor, Estate[] memory _estates) {
-        require(_testator != address(0), "Testator address cannot be zero");
+        if (_testator == address(0)) revert TestatorAddressZero();
         testator = _testator;
 
-        require(_executor != address(0), "Executor address cannot be zero");
+        if (_executor == address(0)) revert ExecutorAddressZero();
         executor = _executor;
 
-        for (uint256 i = 0; i < estates.length; i++) {
-            require(_estates[i].beneficiary != address(0), "Invalid beneficiary address");
-            require(_estates[i].beneficiary != _testator, "Beneficiary and testator cannot be the same");
-            require(_estates[i].token != address(0), "Invalid token address");
-            require(_estates[i].amount > 0, "Amount must be greater than zero");
+        for (uint256 i = 0; i < _estates.length; i++) {
+            if (_estates[i].beneficiary == address(0)) revert BeneficiaryAddressZero();
+            if (_estates[i].beneficiary == _testator) revert BeneficiaryCannotBeTestator(_estates[i].beneficiary);
+            if (_estates[i].token == address(0)) revert InvalidTokenAddress();
+            if (_estates[i].amount == 0) revert AmountMustBeGreaterThanZero();
         }
         estates = _estates;
     }
 
-    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external {
-        require(msg.sender == executor, "Only executor can execute the testament");
-        require(!executed, "Transfer has already been executed");
+    function getAllEstates() external view returns (Estate[] memory) {
+        return estates;
+    }
 
-        require(nonce > 0, "Nonce must be greater than zero");
-        require(deadline > block.timestamp, "Deadline must be in the future");
+    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external {
+        if (msg.sender != executor) revert OnlyExecutor();
+        if (executed) revert AlreadyExecuted();
+        if (nonce == 0) revert InvalidNonce();
+        if (deadline <= block.timestamp) revert DeadlineExpired();
 
         // FIX: should add up the balances of the same token first
         for (uint256 i = 0; i < estates.length; i++) {
-            require(
-                IERC20(estates[i].token).balanceOf(testator) >= estates[i].amount,
-                "Testator does not have enough tokens"
-            );
+            uint256 balance = IERC20(estates[i].token).balanceOf(testator);
+            if (balance < estates[i].amount) {
+                revert InsufficientBalance(estates[i].token, estates[i].amount, balance);
+            }
         }
 
         ISignatureTransfer.TokenPermissions[] memory permitted =
@@ -76,6 +91,6 @@ contract Testament {
         permit2.permitTransferFrom(permit, transferDetails, testator, signature);
 
         executed = true;
-        emit testamentExecuted();
+        emit TestamentExecuted();
     }
 }
