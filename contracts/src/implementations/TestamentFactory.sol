@@ -11,25 +11,25 @@ contract TestamentFactory {
     Groth16Verifier public decryptionVerifier;
     address public executor;
 
-    mapping(bytes32 => uint256) private _testatorValidateTimes;
-    mapping(bytes32 => uint256) private _executorValidateTimes;
-    mapping(bytes32 => address) public testaments;
+    mapping(string => uint256) private _testatorValidateTimes;
+    mapping(string => uint256) private _executorValidateTimes;
+    mapping(string => address) public testaments;
 
     event TestamentCreated(
-        bytes32 indexed cidHash,
+        string indexed cid,
         address indexed testator,
         address testament
     );
-    event CIDUploaded(bytes32 indexed cidHash, uint256 timestamp);
-    event CIDNotarized(bytes32 indexed cidHash, uint256 timestamp);
+    event CIDUploaded(string indexed cid, uint256 timestamp);
+    event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
-    error CIDNotValidatedByTestator(bytes32 cidHash);
-    error CIDNotValidatedByExecutor(bytes32 cidHash);
-    error TestamentAlreadyExists(bytes32 cidHash, address existingTestament);
+    error CIDNotValidatedByTestator(string cid);
+    error CIDNotValidatedByExecutor(string cid);
+    error TestamentAlreadyExists(string cid, address existingTestament);
     error TestamentAddressInconsistent(address predicted, address actual);
 
     constructor(
@@ -51,15 +51,15 @@ contract TestamentFactory {
     }
 
     function testatorValidateTimes(
-        bytes32 _cidHash
+        string calldata _cid
     ) external view onlyAuthorized returns (uint256) {
-        return _testatorValidateTimes[_cidHash];
+        return _testatorValidateTimes[_cid];
     }
 
     function executorValidateTimes(
-        bytes32 _cidHash
+        string calldata _cid
     ) external view onlyAuthorized returns (uint256) {
-        return _executorValidateTimes[_cidHash];
+        return _executorValidateTimes[_cid];
     }
 
     function uploadCID(
@@ -67,23 +67,26 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        bytes32 _cidHash
+        string calldata _cid
     ) external {
         if (!testatorVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
 
-        _testatorValidateTimes[_cidHash] = block.timestamp;
-        emit CIDUploaded(_cidHash, block.timestamp);
+        _testatorValidateTimes[_cid] = block.timestamp;
+        emit CIDUploaded(_cid, block.timestamp);
     }
 
-    function notarizeCID(bytes32 _cidHash, bytes memory _signature) external {
-        if (_testatorValidateTimes[_cidHash] == 0)
-            revert CIDNotValidatedByTestator(_cidHash);
-        if (!executorVerifier.verifySignature(executor, _cidHash, _signature))
+    function notarizeCID(string calldata _cid, bytes memory _signature) external {
+        if (_testatorValidateTimes[_cid] == 0)
+            revert CIDNotValidatedByTestator(_cid);
+        
+        // 將 CID 字串轉換為 bytes32 用於簽名驗證
+        bytes32 cidHash = keccak256(abi.encodePacked(_cid));
+        if (!executorVerifier.verifySignature(executor, cidHash, _signature))
             revert ExecutorSignatureInvalid();
 
-        _executorValidateTimes[_cidHash] = block.timestamp;
-        emit CIDNotarized(_cidHash, block.timestamp);
+        _executorValidateTimes[_cid] = block.timestamp;
+        emit CIDNotarized(_cid, block.timestamp);
     }
 
     function predictTestament(
@@ -113,20 +116,20 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        bytes32 _cidHash,
+        string calldata _cid,
         address _testator,
         Testament.Estate[] calldata _estates,
         uint256 _salt
     ) external returns (address) {
-        if (_testatorValidateTimes[_cidHash] == 0)
-            revert CIDNotValidatedByTestator(_cidHash);
+        if (_testatorValidateTimes[_cid] == 0)
+            revert CIDNotValidatedByTestator(_cid);
         if (
-            _executorValidateTimes[_cidHash] <= _testatorValidateTimes[_cidHash]
-        ) revert CIDNotValidatedByExecutor(_cidHash);
+            _executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]
+        ) revert CIDNotValidatedByExecutor(_cid);
         if (!decryptionVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
-        if (testaments[_cidHash] != address(0))
-            revert TestamentAlreadyExists(_cidHash, testaments[_cidHash]);
+        if (testaments[_cid] != address(0))
+            revert TestamentAlreadyExists(_cid, testaments[_cid]);
 
         Testament testament = new Testament{salt: bytes32(_salt)}(
             _testator,
@@ -140,8 +143,8 @@ contract TestamentFactory {
                 address(testament)
             );
 
-        testaments[_cidHash] = address(testament);
-        emit TestamentCreated(_cidHash, _testator, address(testament));
+        testaments[_cid] = address(testament);
+        emit TestamentCreated(_cid, _testator, address(testament));
 
         return address(testament);
     }
