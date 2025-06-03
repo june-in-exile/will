@@ -8,7 +8,7 @@ init:
         BENEFICIARY0 TOKEN0 AMOUNT0 \
         BENEFICIARY1 TOKEN1 AMOUNT1 \
         NONCE DEADLINE PERMIT2_SIGNATURE \
-        CID CID_HASH EXECUTOR_SIGNATURE \
+        CID EXECUTOR_SIGNATURE \
 		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
 	-rm -f testament/3_addressed*.json

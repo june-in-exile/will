@@ -107,7 +107,7 @@ groth16verify_on_chain:
 ecdsaverify_on_chain:
 	@cast call $(EXECUTOR_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
 		"verifySignature(address,bytes32,bytes)(bool)" \
-		$(EXECUTOR) $(CID_HASH) $(EXECUTOR_SIGNATURE)
+		$(EXECUTOR) $(CID) $(EXECUTOR_SIGNATURE)
 	@echo "$(YELLOW)Expect: true$(RESET)"
 
 # -------------------- Call Factory ---------------------
@@ -137,7 +137,7 @@ executor:
 testatorValidateTime:
 	@cast call --from $(EXECUTOR) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"testatorValidateTimes(bytes32)(uint256)" \
-		$(CID_HASH) | \
+		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
 	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCID$(RESET)"
@@ -145,7 +145,7 @@ testatorValidateTime:
 executorValidateTime:
 	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"executorValidateTimes(bytes32)(uint256)" \
-		$(CID_HASH) | \
+		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
 	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCID$(RESET)"
@@ -153,7 +153,7 @@ executorValidateTime:
 testament:
 	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"testaments(bytes32)(address)" \
-		$(CID_HASH)
+		$(CID)
 	@echo "$(YELLOW)Expect: $(TESTAMENT_ADDRESS)$(RESET)"
 
 predictTestament:
@@ -167,17 +167,17 @@ predictTestament:
 uploadCID:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes32)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID_HASH)
+		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
 
 notarizeCID:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"notarizeCID(bytes32,bytes)" \
-		$(CID_HASH) $(EXECUTOR_SIGNATURE)
+		$(CID) $(EXECUTOR_SIGNATURE)
 
 createTestament:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"createTestament(uint[2],uint[2][2],uint[2],uint[1],bytes32,address,(address,address,uint256)[],uint256)(address)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID_HASH) $(TESTATOR) $(ESTATES) $(SALT)
+		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
 	
 # ------------------- Verify Contract -------------------
 

@@ -3,7 +3,6 @@ import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
 import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
-import { keccak256 } from '@shared/utils/crypto/hash.js';
 import { readFileSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -196,18 +195,15 @@ async function updateEnvironmentVariables(cid: CID): Promise<void> {
         console.log(chalk.blue('Updating environment variables...'));
 
         const cidString = cid.toString();
-        const cidHash = keccak256(cidString);
 
         // Update environment variables
         await Promise.all([
             updateEnvVariable('CID', cidString),
-            updateEnvVariable('CID_HASH', cidHash.toString())
         ]);
 
         console.log(chalk.green('✅ Environment variables updated successfully'));
         console.log(chalk.gray('Updated variables:'));
         console.log(chalk.gray('- CID:'), cidString);
-        console.log(chalk.gray('- CID_HASH:'), cidHash.toString());
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

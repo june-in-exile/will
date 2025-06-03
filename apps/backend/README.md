@@ -96,7 +96,6 @@ make upload-testament
 
 - **Updates**: The following `.env` variables are automatically updated:
   - `CID` (IPFS Content Identifier)
-  - `CID_HASH` (Keccak256 hash of CID)
 
 ## Phase 2: Probation
 
@@ -148,7 +147,7 @@ The system automatically manages the following `.env` variables during the proce
 - `TESTAMENT_ADDRESS`: Predicted contract address
 - `NONCE`, `DEADLINE`: Permit2 parameters
 - `PERMIT2_SIGNATURE`: Testator's authorization signature
-- `CID`, `CID_HASH`: IPFS storage identifiers
+- `CID`: IPFS storage identifiers
 - `EXECUTOR_SIGNATURE`: Executor's authorization signature
 
 ## Troubleshooting

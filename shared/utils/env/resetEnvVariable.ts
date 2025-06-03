@@ -17,7 +17,7 @@ function main(): void {
             'BENEFICIARY0', 'TOKEN0', 'AMOUNT0',
             'BENEFICIARY1', 'TOKEN1', 'AMOUNT1',
             'NONCE', 'DEADLINE', 'PERMIT2_SIGNATURE',
-            'CID', 'CID_HASH', 'EXECUTOR_SIGNATURE'
+            'CID', 'EXECUTOR_SIGNATURE'
         ];
         console.log('Resetting default environment variables...');
         resetEnvVariables(defaultKeys);

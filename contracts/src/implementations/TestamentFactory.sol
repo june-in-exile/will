@@ -80,7 +80,6 @@ contract TestamentFactory {
         if (_testatorValidateTimes[_cid] == 0)
             revert CIDNotValidatedByTestator(_cid);
         
-        // 將 CID 字串轉換為 bytes32 用於簽名驗證
         bytes32 cidHash = keccak256(abi.encodePacked(_cid));
         if (!executorVerifier.verifySignature(executor, cidHash, _signature))
             revert ExecutorSignatureInvalid();

@@ -3,8 +3,7 @@ import { ethers } from 'ethers';
 import chalk from 'chalk';
 import type { 
     HashableInput, 
-    ByteInput, 
-    HashConfig
+    ByteInput
 } from '../../types';
 
 /**
