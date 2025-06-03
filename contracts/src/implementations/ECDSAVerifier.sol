@@ -9,7 +9,12 @@ contract ECDSAVerifier {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    function verifySignature(address signer, bytes32 messageHash, bytes memory signature) public pure returns (bool) {
+    function verifySignature(
+        address signer,
+        string calldata message,
+        bytes memory signature
+    ) public pure returns (bool) {
+        bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address recoveredSigner = ethSignedMessageHash.recover(signature);
         return recoveredSigner == signer;

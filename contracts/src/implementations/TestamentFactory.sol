@@ -80,8 +80,7 @@ contract TestamentFactory {
         if (_testatorValidateTimes[_cid] == 0)
             revert CIDNotValidatedByTestator(_cid);
         
-        bytes32 cidHash = keccak256(abi.encodePacked(_cid));
-        if (!executorVerifier.verifySignature(executor, cidHash, _signature))
+        if (!executorVerifier.verifySignature(executor, _cid, _signature))
             revert ExecutorSignatureInvalid();
 
         _executorValidateTimes[_cid] = block.timestamp;
