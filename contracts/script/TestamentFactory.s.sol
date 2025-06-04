@@ -13,7 +13,6 @@ contract TestamentFactoryScript is Script {
 
     constructor() {
         _testatorVerifier = vm.envAddress("PERMIT2_VERIFIER_ADDRESS");
-        _executorVerifier = vm.envAddress("EXECUTOR_VERIFIER_ADDRESS");
         _decryptionVerifier = vm.envAddress("DECRYPTION_VERIFIER_ADDRESS");
         _executor = vm.envAddress("EXECUTOR");
     }
@@ -25,7 +24,6 @@ contract TestamentFactoryScript is Script {
 
         testamentFactory = new TestamentFactory(
             _testatorVerifier,
-            _executorVerifier,
             _decryptionVerifier,
             _executor
         );

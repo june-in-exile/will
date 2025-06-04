@@ -38,17 +38,6 @@ deploy_groth16verifier_to_arb_sepolia:
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
-deploy_ecdsaverifier_to_arb_sepolia:
-	@forge script \
-		--broadcast \
-		--verify \
-		--via-ir \
-		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
-		--etherscan-api-key $(ARBSCAN_API_KEY) \
-		--private-key $(MY_PRIVATE_KEY) \
-		script/ECDSAVerifier.s.sol:ECDSAVerifierScript
-	@echo "$(YELLOW)Remember to update EXECUTOR_VERIFIER_ADDRESS in .env.$(RESET)"
-
 deploy_testamentFactory_to_arb_sepolia:
 	@ln -sf ../.env .env
 	@forge script \
@@ -76,15 +65,6 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
-deploy_ecdsaverifier_to_forked_arb_sepolia:
-	@forge script \
-    	--broadcast \
-		--via-ir \
-		--fork-url $(ANVIL_RPC_URL) \
-    	--private-key $(MY_PRIVATE_KEY) \
-    	script/ECDSAVerifier.s.sol:ECDSAVerifierScript
-	@echo "$(YELLOW)Remember to update EXECUTOR_VERIFIER_ADDRESS in .env.$(RESET)"
-
 deploy_testamentFactory_to_forked_arb_sepolia:
 	@forge script \
     	--broadcast \
@@ -102,14 +82,6 @@ groth16verify_on_chain:
 		$(PA) $(PB) $(PC) $(PUBSIGNALS)
 	@echo "$(YELLOW)Expect: true$(RESET)"
 
-# ----------------- Call ECDSA Verifier -----------------
-
-ecdsaverify_on_chain:
-	@cast call $(EXECUTOR_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
-		"verifySignature(address,string,bytes)(bool)" \
-		$(EXECUTOR) $(CID) $(EXECUTOR_SIGNATURE)
-	@echo "$(YELLOW)Expect: true$(RESET)"
-
 # -------------------- Call Factory ---------------------
 
 # ----------------------- Read --------------------------
@@ -118,11 +90,6 @@ testatorVerifier:
 	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"testatorVerifier()(address)"
 	@echo "$(YELLOW)Expect: $(PERMIT2_VERIFIER_ADDRESS)$(RESET)"
-
-executorVerifier:
-	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
-		"executorVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(EXECUTOR_VERIFIER_ADDRESS)$(RESET)"
 
 decryptionVerifier:
 	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \

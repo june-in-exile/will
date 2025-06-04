@@ -26,23 +26,9 @@
     make deploy_groth16verifier_to_arb_sepolia
     ```
 
-4. Deploy `ECDSAVerifier.sol`.
-
-    Check the deployment
-
-    ``` sh
-    make ecdsaverify_on_chain
-    ```
-
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `EXECUTOR_VERIFIER_ADDRESS` in `.env`.
-
-    ``` sh
-    make deploy_ecdsaverifier_to_arb_sepolia
-    ```
-
-5. Deploy `TestamentFactory.sol`.
+4. Deploy `TestamentFactory.sol`.
    
-   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_testamentFactory_to_arb_sepolia
@@ -52,7 +38,6 @@
     > 
     > ``` sh
     > make testatorVerifier
-    > make executorVerifier
     > make decryptionVerifier
     > make executor
     > ```
@@ -89,23 +74,9 @@
     make deploy_groth16verifier_to_forked_arb_sepolia
     ```
     
-5. Deploy `ECDSAVerifier.sol`.
-
-    Check the deployment
-
-    ``` sh
-    make ecdsaverify_on_chain
-    ```
-
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `EXECUTOR_VERIFIER_ADDRESS` in `.env`.
-
-    ``` sh
-    make deploy_ecdsaverifier_to_forked_arb_sepolia
-    ```
-
-6. Deploy `TestamentFactory.sol`.
+5. Deploy `TestamentFactory.sol`.
    
-   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS`, `EXECUTOR_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
     ``` sh
     make deploy_testamentFactory_to_forked_arb_sepolia
@@ -115,7 +86,6 @@
     > 
     > ``` sh
     > make testatorVerifier
-    > make executorVerifier
     > make decryptionVerifier
     > make executor
     > ```

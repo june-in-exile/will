@@ -3,11 +3,14 @@ pragma solidity ^0.8.21;
 
 import "src/implementations/Testament.sol";
 import "src/implementations/Groth16Verifier.sol";
-import "src/implementations/ECDSAVerifier.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract TestamentFactory {
+    using ECDSA for bytes32;
+    using MessageHashUtils for bytes32;
+
     Groth16Verifier public testatorVerifier;
-    ECDSAVerifier public executorVerifier;
     Groth16Verifier public decryptionVerifier;
     address public executor;
 
@@ -34,12 +37,10 @@ contract TestamentFactory {
 
     constructor(
         address _testatorVerifier,
-        address _executorVerifier,
         address _decryptionVerifier,
         address _executor
     ) {
         testatorVerifier = Groth16Verifier(_testatorVerifier);
-        executorVerifier = ECDSAVerifier(_executorVerifier);
         decryptionVerifier = Groth16Verifier(_decryptionVerifier);
         executor = _executor;
     }
@@ -48,6 +49,17 @@ contract TestamentFactory {
         if (msg.sender != executor)
             revert UnauthorizedCaller(msg.sender, executor);
         _;
+    }
+
+    function _verifySignature(
+        address signer,
+        string calldata message,
+        bytes memory signature
+    ) internal pure returns (bool) {
+        bytes32 messageHash = keccak256(abi.encodePacked(message));
+        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
+        address recoveredSigner = ethSignedMessageHash.recover(signature);
+        return recoveredSigner == signer;
     }
 
     function testatorValidateTimes(
@@ -76,11 +88,14 @@ contract TestamentFactory {
         emit CIDUploaded(_cid, block.timestamp);
     }
 
-    function notarizeCID(string calldata _cid, bytes memory _signature) external {
+    function notarizeCID(
+        string calldata _cid,
+        bytes memory _signature
+    ) external {
         if (_testatorValidateTimes[_cid] == 0)
             revert CIDNotValidatedByTestator(_cid);
-        
-        if (!executorVerifier.verifySignature(executor, _cid, _signature))
+
+        if (!_verifySignature(executor, _cid, _signature))
             revert ExecutorSignatureInvalid();
 
         _executorValidateTimes[_cid] = block.timestamp;
@@ -121,9 +136,8 @@ contract TestamentFactory {
     ) external returns (address) {
         if (_testatorValidateTimes[_cid] == 0)
             revert CIDNotValidatedByTestator(_cid);
-        if (
-            _executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]
-        ) revert CIDNotValidatedByExecutor(_cid);
+        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid])
+            revert CIDNotValidatedByExecutor(_cid);
         if (!decryptionVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (testaments[_cid] != address(0))
@@ -134,7 +148,11 @@ contract TestamentFactory {
             executor,
             _estates
         );
-        address predictedAddress = predictTestament(_testator, _estates, _salt);
+        address predictedAddress = predictTestament(
+            _testator,
+            _estates,
+            _salt
+        );
         if (address(testament) != predictedAddress)
             revert TestamentAddressInconsistent(
                 predictedAddress,
