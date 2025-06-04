@@ -745,7 +745,6 @@ export const ENV_CONFIG: EnvConfig = {
   optional: [
     'CID',
     'PERMIT2_ADDRESS',
-    'IV',
     'ALGORITHM',
     'NODE_ENV',
     'LOG_LEVEL',

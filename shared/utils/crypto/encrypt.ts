@@ -203,14 +203,8 @@ export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): string {
             throw new Error(`Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${size} bytes`);
         }
 
-        if (existsSync(PATHS_CONFIG.crypto.keyFile)) {
-            console.log(chalk.blue('Using existing encryption key'));
-            return validateExistingKey(PATHS_CONFIG.crypto.keyFile, size);
-        } else {
-            console.log(chalk.blue('Generating new encryption key...'));
-            const keyBuffer = generateSecureRandomBytes(size, 'encryption key');
-            return createSecureKeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
-        }
+        const keyBuffer = generateSecureRandomBytes(size, 'encryption key');
+        return createSecureKeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -230,34 +224,8 @@ export function getInitializationVector(size: number = CRYPTO_CONFIG.ivSize): st
 
         let ivBase64: string;
 
-        if (process.env.IV && process.env.IV !== 'YOUR_INITIALIZATION_VECTOR') {
-            console.log(chalk.blue('Using IV from environment variable'));
-            ivBase64 = process.env.IV;
-
-            // Validate existing IV
-            try {
-                const ivBuffer = Buffer.from(ivBase64, 'base64');
-                if (ivBuffer.length !== size) {
-                    throw new Error(`Invalid IV size in environment: expected ${size} bytes, got ${ivBuffer.length} bytes`);
-                }
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                throw new Error(`Invalid IV in environment variable: ${errorMessage}`);
-            }
-        } else {
-            console.log(chalk.blue('Generating new initialization vector...'));
-            const ivBuffer = generateSecureRandomBytes(size, 'initialization vector');
-            ivBase64 = ivBuffer.toString('base64');
-
-            // Update environment variable
-            try {
-                updateEnvVariable('IV', ivBase64);
-                console.log(chalk.green('✅ IV saved to environment variable'));
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                console.warn(chalk.yellow('⚠️ Failed to update environment variable with IV:', errorMessage));
-            }
-        }
+        const ivBuffer = generateSecureRandomBytes(size, 'initialization vector');
+        ivBase64 = ivBuffer.toString('base64');
 
         return ivBase64;
 
