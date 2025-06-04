@@ -99,25 +99,10 @@
     > Check
     > ``` sh
     > make permit2
-    > ```
-    > 
-    > ``` sh
     > make testament
-    > ```
-    > 
-    > ``` sh
     > make testator
-    > ```
-    > 
-    > ``` sh
     > make estate0
-    > ```
-    > 
-    > ``` sh
     > make estate1
-    > ```
-    > 
-    > ``` sh
     > make executed_before
     > ```
 
