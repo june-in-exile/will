@@ -41,20 +41,20 @@
     ```
 
 3. Deploy `TestamentFactory.sol`.
-   
-   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
-    ``` sh
-    make deploy_testamentFactory
-    ```
+    Check the deployment
 
-    > Check
-    > 
     > ``` sh
     > make testatorVerifier
     > make decryptionVerifier
     > make executor
     > ```
+   
+   If it returns the expected value, skip the deployment. Otherwise, ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+
+    ``` sh
+    make deploy_testamentFactory
+    ```
 
 ## Execution
 
