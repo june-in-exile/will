@@ -20,10 +20,10 @@
 
 ## Initialization
 
-1. Build the contracts.
+1. Build the contracts, generate TypeScript types, etc.
 
     ``` sh
-    make build
+    make init
     ```
 
 2. Deploy `Groth16Verifier.sol`.

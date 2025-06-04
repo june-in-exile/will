@@ -275,8 +275,6 @@ pnpm build
 
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
-   - [ ] remove IV from .env
-   - [ ] Add script to update addresses in `.env`
 2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format
      - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files

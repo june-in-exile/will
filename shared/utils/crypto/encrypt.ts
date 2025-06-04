@@ -1,8 +1,7 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '../../config';
 import { randomBytes, createCipheriv } from 'crypto';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 import { config } from 'dotenv';
-import { updateEnvVariable } from '../env/updateEnvVariable';
 import type { 
     AuthenticatedCipher, 
     EncryptionResult
@@ -110,45 +109,6 @@ function createSecureKeyFile(keyPath: string, keyBuffer: Buffer): string {
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to create key file: ${errorMessage}`);
-    }
-}
-
-/**
- * Validate existing key file
- */
-function validateExistingKey(keyPath: string, expectedSize: number): string {
-    try {
-        const keyContent = readFileSync(keyPath, 'utf8').trim();
-
-        if (!keyContent) {
-            throw new Error('Key file is empty');
-        }
-
-        // Validate base64 format
-        let keyBuffer: Buffer;
-        try {
-            keyBuffer = Buffer.from(keyContent, 'base64');
-        } catch (error) {
-            throw new Error('Key file contains invalid base64 data');
-        }
-
-        if (keyBuffer.length !== expectedSize) {
-            throw new Error(`Invalid key size in file: expected ${expectedSize} bytes, got ${keyBuffer.length} bytes`);
-        }
-
-        // Security check for weak keys
-        const isAllZeros = keyBuffer.every(byte => byte === 0);
-        const isAllOnes = keyBuffer.every(byte => byte === 255);
-
-        if (isAllZeros || isAllOnes) {
-            console.warn(chalk.yellow('⚠️ Warning: Detected potentially weak encryption key in file'));
-        }
-
-        return keyContent;
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        throw new Error(`Failed to validate existing key: ${errorMessage}`);
     }
 }
 
