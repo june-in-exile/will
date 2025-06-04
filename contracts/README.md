@@ -1,46 +1,10 @@
 # How to use?
 
-## Initialization
+## Configuration
 
 ### Arbitrum Sepolia
    
 1. Set `USE_ANVIL=false` in [`.env`](../.env.example).
-
-2. Build the contracts.
-
-    ``` sh
-    make build
-    ```
-
-3. Deploy `Groth16Verifier.sol`.
-
-    Check the deployment
-
-    ``` sh
-    make groth16verify_on_chain
-    ```
-
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
-
-    ``` sh
-    make deploy_groth16verifier_to_arb_sepolia
-    ```
-
-4. Deploy `TestamentFactory.sol`.
-   
-   Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
-
-    ``` sh
-    make deploy_testamentFactory_to_arb_sepolia
-    ```
-
-    > Check
-    > 
-    > ``` sh
-    > make testatorVerifier
-    > make decryptionVerifier
-    > make executor
-    > ```
 
 ### Forked Arbitrum Sepolia
    
@@ -54,13 +18,15 @@
 
 2. Set `USE_ANVIL=true` in [`.env`](../.env.example).
 
-3. Build the contracts.
+## Initialization
+
+1. Build the contracts.
 
     ``` sh
     make build
     ```
 
-4. Deploy `Groth16Verifier.sol`.
+2. Deploy `Groth16Verifier.sol`.
 
     Check the deployment
 
@@ -71,15 +37,15 @@
     If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
 
     ``` sh
-    make deploy_groth16verifier_to_forked_arb_sepolia
+    make deploy_groth16verifier
     ```
-    
-5. Deploy `TestamentFactory.sol`.
+
+3. Deploy `TestamentFactory.sol`.
    
    Ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
 
     ``` sh
-    make deploy_testamentFactory_to_forked_arb_sepolia
+    make deploy_testamentFactory
     ```
 
     > Check

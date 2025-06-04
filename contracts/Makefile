@@ -25,6 +25,30 @@ endif
 build:
 	@forge build --via-ir
 
+# --------------- Conditional Deployment ----------------
+
+deploy_groth16verifier:
+ifdef USE_ANVIL
+    ifeq ($(USE_ANVIL),true)
+	@make deploy_groth16verifier_to_forked_arb_sepolia
+    else
+	@make deploy_groth16verifier_to_arb_sepolia
+    endif
+else
+	@make deploy_groth16verifier_to_arb_sepolia
+endif
+
+deploy_testamentFactory:
+ifdef USE_ANVIL
+    ifeq ($(USE_ANVIL),true)
+	@make deploy_testamentFactory_to_forked_arb_sepolia
+    else
+	@make deploy_testamentFactory_to_arb_sepolia
+    endif
+else
+	@make deploy_testamentFactory_to_arb_sepolia
+endif
+
 # ------------ Scripts for Arbitrun Sepolia -------------
 
 deploy_groth16verifier_to_arb_sepolia:
