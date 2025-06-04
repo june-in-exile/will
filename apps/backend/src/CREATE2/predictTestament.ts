@@ -2,13 +2,14 @@ import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from '@shared/config.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
 import crypto from 'crypto';
-import { ethers, JsonRpcProvider, Contract, Network } from 'ethers';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { ethers, JsonRpcProvider, Network } from 'ethers';
 import { config } from 'dotenv';
 import chalk from 'chalk';
-
-const modulePath = dirname(fileURLToPath(import.meta.url));
+import { 
+    Estate,
+    TestamentFactory, 
+    TestamentFactory__factory,
+} from '@shared/types';
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
@@ -18,11 +19,6 @@ interface EnvironmentVariables {
     TESTAMENT_FACTORY_ADDRESS: string;
 }
 
-interface Estate {
-    beneficiary: string;
-    token: string;
-    amount: string;
-}
 
 interface TestamentData {
     testator: string;
@@ -85,32 +81,6 @@ async function validateRpcConnection(provider: JsonRpcProvider): Promise<Network
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-    }
-}
-
-/**
- * Load contract ABI from artifact
- */
-function getContractAbi(contractName: string): any[] {
-    try {
-        const artifactPath = resolve(modulePath, `../../../../contracts/out/${contractName}.sol/${contractName}.json`);
-
-        if (!existsSync(artifactPath)) {
-            throw new Error(`Contract artifact not found: ${artifactPath}`);
-        }
-
-        const artifact = JSON.parse(readFileSync(artifactPath, 'utf8'));
-
-        if (!artifact.abi || !Array.isArray(artifact.abi)) {
-            throw new Error(`Invalid ABI in artifact for ${contractName}`);
-        }
-
-        console.log(chalk.gray(`✅ Loaded ABI for ${contractName}`));
-        return artifact.abi;
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        throw new Error(`Failed to load ABI for ${contractName}: ${errorMessage}`);
     }
 }
 
@@ -189,11 +159,11 @@ function readTestamentData(): TestamentData {
 /**
  * Create contract instance with validation
  */
-async function createContractInstance(factoryAddress: string, provider: JsonRpcProvider): Promise<Contract> {
+async function createContractInstance(factoryAddress: string, provider: JsonRpcProvider): Promise<TestamentFactory> {
     try {
         console.log(chalk.blue('Loading testament factory contract...'));
-        const abi = getContractAbi('TestamentFactory');
-        const contract = new ethers.Contract(factoryAddress, abi, provider);
+        
+        const contract = TestamentFactory__factory.connect(factoryAddress, provider);
 
         // Validate contract exists at address
         const code = await provider.getCode(factoryAddress);
@@ -214,7 +184,7 @@ async function createContractInstance(factoryAddress: string, provider: JsonRpcP
  * Predict testament address
  */
 async function predictTestamentAddress(
-    contract: Contract,
+    contract: TestamentFactory,
     testator: string,
     estates: Estate[],
     salt: number
@@ -286,8 +256,8 @@ async function updateEnvironmentVariables(estates: Estate[], salt: number, predi
         // Add estate-specific variables
         estates.forEach((estate, index) => {
             updates.push(
-                [`BENEFICIARY${index}`, estate.beneficiary],
-                [`TOKEN${index}`, estate.token],
+                [`BENEFICIARY${index}`, estate.beneficiary.toString()],
+                [`TOKEN${index}`, estate.token.toString()],
                 [`AMOUNT${index}`, estate.amount.toString()]
             );
         });
@@ -311,6 +281,33 @@ async function updateEnvironmentVariables(estates: Estate[], salt: number, predi
 }
 
 /**
+ * List the contract's information
+ */
+async function getContractInfo(contract: TestamentFactory): Promise<void> {
+    try {
+        console.log(chalk.blue('Fetching contract information...'));
+        
+        const [
+            executor,
+            testatorVerifier,
+            decryptionVerifier
+        ] = await Promise.all([
+            contract.executor(),
+            contract.testatorVerifier(),
+            contract.decryptionVerifier()
+        ]);
+
+        console.log(chalk.gray('Contract addresses:'));
+        console.log(chalk.gray('- Executor:'), executor);
+        console.log(chalk.gray('- Testator Verifier:'), testatorVerifier);
+        console.log(chalk.gray('- Decryption Verifier:'), decryptionVerifier);
+
+    } catch (error) {
+        console.warn(chalk.yellow('Warning: Could not fetch contract info'), error);
+    }
+}
+
+/**
  * Process testament addressing workflow
  */
 async function processTestamentAddressing(): Promise<ProcessResult> {
@@ -325,6 +322,9 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
 
         // Create contract instance
         const contract = await createContractInstance(TESTAMENT_FACTORY_ADDRESS, provider);
+
+        // Get contract information
+        await getContractInfo(contract);
 
         // Read and validate testament data
         const testamentData = readTestamentData();

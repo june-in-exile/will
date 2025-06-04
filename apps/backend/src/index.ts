@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-// 使用相對路徑引用，避免 path mapping 問題
 import type { Testament } from '@shared/types/index.js';
 
 const app = express();

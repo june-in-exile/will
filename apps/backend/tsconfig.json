@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "allowJs": true,
     "checkJs": false,
     "outDir": "./dist",
@@ -15,6 +15,9 @@
       "@shared/*": ["../../shared/*"],
     }
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "../../shared/**/*"
+  ],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

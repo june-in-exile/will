@@ -10,12 +10,8 @@ PUBSIGNALS := "["0x0000000000000000000000000000000000000000000000000000000000000
 
 ESTATES := "[($(BENEFICIARY0),$(TOKEN0),$(AMOUNT0)),($(BENEFICIARY1),$(TOKEN1),$(AMOUNT1))]"
 
-ifdef USE_ANVIL
-    ifeq ($(USE_ANVIL),true)
+ifeq ($(USE_ANVIL),true)
         RPC_URL := $(ANVIL_RPC_URL)
-    else
-        RPC_URL := $(ARB_SEPOLIA_RPC_URL)
-    endif
 else
     RPC_URL := $(ARB_SEPOLIA_RPC_URL)
 endif
@@ -24,30 +20,25 @@ endif
 
 build:
 	@forge build --via-ir
+	@pnpm typechain
 
 # --------------- Conditional Deployment ----------------
 
 deploy_groth16verifier:
-ifdef USE_ANVIL
-    ifeq ($(USE_ANVIL),true)
+ifeq ($(USE_ANVIL),true)
 	@make deploy_groth16verifier_to_forked_arb_sepolia
-    else
-	@make deploy_groth16verifier_to_arb_sepolia
-    endif
 else
 	@make deploy_groth16verifier_to_arb_sepolia
 endif
+	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory:
-ifdef USE_ANVIL
-    ifeq ($(USE_ANVIL),true)
+ifeq ($(USE_ANVIL),true)
 	@make deploy_testamentFactory_to_forked_arb_sepolia
-    else
-	@make deploy_testamentFactory_to_arb_sepolia
-    endif
 else
 	@make deploy_testamentFactory_to_arb_sepolia
 endif
+	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 
@@ -60,7 +51,6 @@ deploy_groth16verifier_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory_to_arb_sepolia:
 	@ln -sf ../.env .env
@@ -73,7 +63,6 @@ deploy_testamentFactory_to_arb_sepolia:
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
 	@rm .env
-	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
@@ -87,7 +76,6 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@echo "$(YELLOW)Remember to update PERMIT2_VERIFIER_ADDRESS and DECRYPTION_VERIFIER_ADDRESS in .env.$(RESET)"
 
 deploy_testamentFactory_to_forked_arb_sepolia:
 	@forge script \
@@ -96,7 +84,6 @@ deploy_testamentFactory_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
-	@echo "$(YELLOW)Remember to update TESTAMENT_FACTORY_ADDRESS in .env.$(RESET)"
 
 # ---------------- Call Groth16 Verifier ----------------
 
