@@ -18,6 +18,6 @@
   "include": [
     "src/**/*",
     "../../shared/**/*"
-, "../../contracts/script/extract_address.js"  ],
+, "../../contracts/script/extract-address.js"  ],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

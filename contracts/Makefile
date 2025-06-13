@@ -32,7 +32,7 @@ endif
 # ---------------- Utility Function ---------------------
 
 define extract_contract_address
-	$(shell node script/extract_address.js $(1) $(2) 2>/dev/null)
+	$(shell node script/extract-address.js $(1) $(2) 2>/dev/null)
 endef
 
 define update_env_var
@@ -57,6 +57,7 @@ endef
 # ----------------- Initialization ----------------------	
 
 init:
+	@npm run anvil-env-sync
 	@forge build
 	@pnpm typechain
 
@@ -131,6 +132,7 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 
 deploy_cidverifier_to_forked_arb_sepolia:
 	@forge create \
+	 	--broadcast \
 		--rpc-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		--gas-limit 3000000 \

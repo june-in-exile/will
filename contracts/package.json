@@ -10,7 +10,8 @@
   "scripts": {
     "prepare": "husky && husky install",
     "clean": "forge clean && rm -rf node_modules",
-    "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'"
+    "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'",
+    "anvil-env-sync": "node script/anvil-env-sync.js"
   },
   "lint-staged": {
     "*.sol": [

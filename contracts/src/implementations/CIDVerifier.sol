@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {ContentToCIDVerifier, CIDStringVerifier} from ".";
+import {ContentToCIDVerifier} from "src/implementations/ContentToCIDVerifier.sol";
+import {CIDStringVerifier} from "src/implementations/CIDStringVerifier.sol";
 
 /**
  * 主驗證合約：結合完整驗證和字符串檢查
@@ -9,12 +10,12 @@ import {ContentToCIDVerifier, CIDStringVerifier} from ".";
 contract CIDVerifier {
     ContentToCIDVerifier public immutable contentToCIDVerifier;
     CIDStringVerifier public immutable stringVerifier;
-    
+
     constructor() {
         contentToCIDVerifier = new ContentToCIDVerifier();
         stringVerifier = new CIDStringVerifier();
     }
-    
+
     /**
      * 完整的驗證流程
      */
@@ -22,44 +23,61 @@ contract CIDVerifier {
         string memory testament,
         string memory cid
     ) external returns (bool success, string memory message) {
-        
         // 1. 檢查 CID 字符串格式
-        (bool formatValid, string memory formatReason) = 
-            stringVerifier.verifyCIDStringFormat(cid);
-        
+        (bool formatValid, string memory formatReason) = stringVerifier
+            .verifyCIDStringFormat(cid);
+
         if (!formatValid) {
-            return (false, string(abi.encodePacked("CID format error: ", formatReason)));
+            return (
+                false,
+                string(abi.encodePacked("CID format error: ", formatReason))
+            );
         }
-        
+
         // 2. 執行完整的鏈上驗證
         try contentToCIDVerifier.verifyTestamentToCID(testament, cid) {
             return (true, "Verification successful");
         } catch Error(string memory reason) {
-            return (false, string(abi.encodePacked("Verification failed: ", reason)));
+            return (
+                false,
+                string(abi.encodePacked("Verification failed: ", reason))
+            );
         } catch {
             return (false, "Verification failed: Unknown error");
         }
     }
-    
+
     /**
      * 查詢驗證狀態
      */
-    function getVerificationStatus(string memory testament) 
-        external 
-        view 
+    function getVerificationStatus(
+        string memory testament
+    )
+        external
+        view
         returns (
-            bool isVerified,
+            bytes32 testamentHash,
             bytes32 contentHash,
-            bytes memory cidBytes
-        ) 
+            bytes memory cidBytes,
+            string memory cidString,
+            bool stringVerified,
+            uint256 timestamp,
+            address verifier
+        )
     {
-        CIDVerifier.VerificationResult memory result = 
-            contentToCIDVerifier.getVerificationResult(testament);
-        
+        ContentToCIDVerifier.VerificationResult
+            memory result = contentToCIDVerifier.getVerificationResult(
+                testament
+            );
+
         return (
-            result.isValid,
+            result.testamentHash,
             result.contentHash,
-            result.cidBytes
+            result.cidBytes,
+            result.cidString,
+            result.stringVerified,
+            result.timestamp,
+            result.verifier
         );
     }
 }

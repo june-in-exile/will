@@ -1,14 +1,8 @@
 # How to use?
-
-## Configuration
-
-### Arbitrum Sepolia
    
-1. Set `USE_ANVIL=false` in [`.env`](../.env.example).
+## Initialization
 
-### Forked Arbitrum Sepolia
-   
-1. Fork the Arbitrum Sepolia network.
+1. (Forked Arbitrum Sepolia Only) Fork the Arbitrum Sepolia network.
 
     ``` sh
     make fork
@@ -16,17 +10,13 @@
 
     Open a new terminal and run the following commands.
 
-2. Set `USE_ANVIL=true` in [`.env`](../.env.example).
-
-## Initialization
-
-1. Build the contracts, generate TypeScript types, etc.
+2. Update the `USE_ANVIL` in `.env`, build the contracts, generate TypeScript types, etc.
 
     ``` sh
     make init
     ```
 
-2. Deploy `Groth16Verifier.sol`.
+3. Deploy `Groth16Verifier.sol`.
 
     Check the deployment
 
@@ -40,7 +30,7 @@
     make deploy_groth16verifier
     ```
 
-3. Deploy `TestamentFactory.sol`.
+4. Deploy `TestamentFactory.sol`.
 
     Check the deployment
 
