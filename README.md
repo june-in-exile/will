@@ -47,17 +47,12 @@ git clone https://github.com/june-in-exile/testament.git
 cd testament
 ```
 
-2. **Install dependencies**
+2. **Install dependencies & build smart contracts**
 ```bash
-pnpm install
+pnpm setup
 ```
 
-3. **Build smart contracts**
-```bash
-pnpm build:contracts
-```
-
-4. **Start development environment**
+3. **Start development environment**
 ```bash
 # Start both frontend and backend
 pnpm dev
@@ -147,12 +142,6 @@ Copy the `.env.example` file as `.env`:
 
 ```bash
 cp .env.example .env 
-```
-
-Choose your network:
-
-```bash
-USE_ANVIL=<true|false>
 ```
 
 Fill in the fields required to interact with the contracts:

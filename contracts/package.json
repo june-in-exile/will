@@ -3,12 +3,10 @@
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
     "ethers": "^6.14.3",
-    "husky": "^8.0.0",
     "lint-staged": "^15.5.2",
     "typechain": "^8.3.2"
   },
   "scripts": {
-    "prepare": "husky && husky install",
     "clean": "forge clean && rm -rf node_modules",
     "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'"
   },

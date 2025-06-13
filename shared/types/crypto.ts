@@ -43,12 +43,12 @@ export interface HashValidationResult {
 }
 
 // Crypto-specific interfaces for Node.js crypto module
-import type { Cipher, Decipher } from 'crypto';
+import type { Cipheriv, Decipheriv } from 'crypto';
 
-export interface AuthenticatedCipher extends Cipher {
+export interface AuthenticatedCipher extends Cipheriv {
     getAuthTag(): Buffer;
 }
 
-export interface AuthenticatedDecipher extends Decipher {
+export interface AuthenticatedDecipher extends Decipheriv {
     setAuthTag(tag: Buffer): this;
 }

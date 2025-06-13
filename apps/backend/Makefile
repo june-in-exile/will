@@ -11,10 +11,12 @@ init:
         CID EXECUTOR_SIGNATURE \
 		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
-	-rm -f testament/3_addressed*.json
-	-rm -f testament/4_signed*.json
-	-rm -f testament/5_encrypted*.json
-	-rm -f testament/6_decrypted*.json
+	@-rm -f testament/3_addressed*.json
+	@-rm -f testament/4_signed*.json
+	@-rm -f testament/5_encrypted*.json
+	@-rm -f testament/6_decrypted*.json
+	@echo "Removing secret key..."
+	@-rm -f ../../shared/utils/crypto/key.txt
 
 	@@echo "Initialization completed"
 
