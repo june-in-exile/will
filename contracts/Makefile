@@ -57,7 +57,7 @@ endef
 # ----------------- Initialization ----------------------	
 
 init:
-	@npm run anvil-env-sync
+	@pnpm exec tsx ../shared/utils/env/checkAnvil.ts
 	@forge build
 	@pnpm typechain
 

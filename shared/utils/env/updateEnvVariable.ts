@@ -21,7 +21,7 @@ export function updateEnvVariable(key: string, value: string): void {
     }
 
     writeFileSync(envPath, envContent);
-    console.log(chalk.yellow(`Updated ${key} to ${value} in .env file.`));
+    console.log(chalk.yellow(`Set ${key} to ${value} in .env file.`));
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(chalk.red(`Failed to update ${key} in ${envPath}: ${errorMessage}`));
