@@ -11,7 +11,7 @@ import chalk from 'chalk';
 const execPromise = promisify(exec);
 
 // Type definitions
-interface EncryptedTestamentData {
+export interface EncryptedTestamentData {
     ciphertext: string;
     iv: string;
     authTag: string;
@@ -49,7 +49,7 @@ function validateFiles(): void {
 /**
  * Read and validate testament data
  */
-function readTestamentData(): EncryptedTestamentData {
+export function readTestamentData(): EncryptedTestamentData {
     try {
         console.log(chalk.blue('Reading encrypted testament data...'));
         const testamentContent = readFileSync(PATHS_CONFIG.testament.encrypted, 'utf8');
@@ -357,9 +357,12 @@ async function main(): Promise<void> {
     }
 }
 
-// Execute main function
-main().catch((error: Error) => {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(chalk.red.bold('Uncaught error:'), errorMessage);
-    process.exit(1);
-});
+// Check: is this file being executed directly or imported?
+if (import.meta.url === new URL(process.argv[1], 'file:').href) {
+    // Only run when executed directly
+    main().catch((error: Error) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red.bold('Uncaught error:'), errorMessage);
+        process.exit(1);
+    });
+}
