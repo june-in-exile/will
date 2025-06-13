@@ -30,7 +30,7 @@ init:
 
 # ------------------- Reset Env -------------------------
 
-reset:
+reset_address:
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
 
 # --------------- Conditional Deployment ----------------
@@ -43,7 +43,15 @@ else
 endif
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts PERMIT2_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts DECRYPTION_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
-	
+
+deploy_cidVerifier:
+ifeq ($(USE_ANVIL),true)
+	@make deploy_cidVerifier_to_forked_arb_sepolia
+else
+	@make deploy_cidVerifier_to_arb_sepolia
+endif
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CID_VERIFIER_ADDRESS CIDVerifier $(CHAIN_ID)
+
 deploy_testamentFactory:
 ifeq ($(USE_ANVIL),true)
 	@make deploy_testamentFactory_to_forked_arb_sepolia
@@ -63,8 +71,16 @@ deploy_groth16verifier_to_arb_sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 
+deploy_cidVerifier_to_arb_sepolia:
+	@forge script \
+	 	--broadcast \
+		--verify \
+		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
+		--etherscan-api-key $(ARBSCAN_API_KEY) \
+		--private-key $(MY_PRIVATE_KEY) \
+		script/CIDVerifier.s.sol:CIDVerifierScript
+
 deploy_testamentFactory_to_arb_sepolia:
-	@ln -sf ../.env .env
 	@forge script \
     	--broadcast \
 		--verify \
@@ -72,7 +88,6 @@ deploy_testamentFactory_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript
-	@rm .env
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
@@ -86,21 +101,19 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 
-deploy_cidverifier_to_forked_arb_sepolia:
-	@forge create \
+deploy_cidVerifier_to_forked_arb_sepolia:
+	@forge script \
 	 	--broadcast \
-		--rpc-url $(ANVIL_RPC_URL) \
+		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
-		--gas-limit 3000000 \
-    	--gas-price 20000000000 \
-		src/implementations/CIDVerifier.sol:CIDVerifier
+		script/CIDVerifier.s.sol:CIDVerifierScript
 
 deploy_testamentFactory_to_forked_arb_sepolia:
-	@forge script \
+	forge script \
     	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
-    	script/TestamentFactory.s.sol:TestamentFactoryScript
+    	script/TestamentFactory.s.sol:TestamentFactoryScript \
 
 # ---------------- Call Groth16 Verifier ----------------
 

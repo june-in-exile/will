@@ -7,7 +7,6 @@ import {TestamentFactory} from "src/implementations/TestamentFactory.sol";
 contract TestamentFactoryScript is Script {
     TestamentFactory public testamentFactory;
     address private _testatorVerifier;
-    address private _executorVerifier;
     address private _decryptionVerifier;
     address private _executor;
 
@@ -16,6 +15,12 @@ contract TestamentFactoryScript is Script {
         _decryptionVerifier = vm.envAddress("DECRYPTION_VERIFIER_ADDRESS");
         _executor = vm.envAddress("EXECUTOR");
     }
+
+    // constructor(address testatorVerifier, address decryptionVerifier, address executor) {
+    //     _testatorVerifier = testatorVerifier;
+    //     _decryptionVerifier = decryptionVerifier;
+    //     _executor = executor;
+    // }
 
     function setUp() public {}
 
