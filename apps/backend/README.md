@@ -169,7 +169,6 @@ The system automatically manages the following `.env` variables during the proce
 ipfs id
 
 # Verify environment variables
-echo $ARB_SEPOLIA_RPC_URL
 echo $TESTAMENT_FACTORY_ADDRESS
 
 # Check testament files

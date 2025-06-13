@@ -1,4 +1,4 @@
-import { PATHS_CONFIG, IPFS_CONFIG } from '@shared/config.js';
+import { PATHS_CONFIG, IPFS_CONFIG, CRYPTO_CONFIG } from '@shared/config.js';
 import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
@@ -11,10 +11,14 @@ import chalk from 'chalk';
 const execPromise = promisify(exec);
 
 // Type definitions
+export type SupportedAlgorithm = typeof CRYPTO_CONFIG.supportedAlgorithms[number];
+
 export interface EncryptedTestamentData {
-    ciphertext: string;
+    algorithm: SupportedAlgorithm;
     iv: string;
     authTag: string;
+    ciphertext: string;
+    timestamp: string;
 }
 
 interface HeliaInstance {

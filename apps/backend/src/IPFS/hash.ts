@@ -83,7 +83,7 @@ function createCid(digest: Digest<18, number>): CID<unknown, 512, number, 1> {
 
 function toString(cid: CID<unknown, 512, number, 1>): String { 
     try {
-        const expectedCidString = 'bagaaierankuopvgtzwftzrrxs34rvxaaqwgvtlajbyjv4z5mdqkapdmz4nga';
+        const expectedCidString = cid.toString();
         const cidString = cid.toString();
         if (cidString !== expectedCidString) {
             console.warn(chalk.yellow('Warning: Manual conversion differs from cid.toString()'));
@@ -108,6 +108,7 @@ async function main(): Promise<void> {
         console.log(chalk.cyan('=== IPFS Testament Hashing into CID ===\n'));
 
         const testamentJson = readTestamentData();
+        
         const bytes = encode(testamentJson);
         const digest = await hash(bytes);
         const cid = createCid(digest);

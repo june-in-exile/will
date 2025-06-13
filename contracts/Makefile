@@ -57,7 +57,7 @@ endef
 # ----------------- Initialization ----------------------	
 
 init:
-	@forge build --via-ir
+	@forge build
 	@pnpm typechain
 
 # ------------------- Clear Env -------------------------
@@ -101,7 +101,6 @@ deploy_groth16verifier_to_arb_sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
-		--via-ir \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
@@ -112,7 +111,6 @@ deploy_testamentFactory_to_arb_sepolia:
 	@forge script \
     	--broadcast \
 		--verify \
-		--via-ir \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
     	--private-key $(MY_PRIVATE_KEY) \
@@ -127,15 +125,21 @@ fork:
 deploy_groth16verifier_to_forked_arb_sepolia:
 	@forge script \
 		--broadcast \
-		--via-ir \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 
+deploy_cidverifier_to_forked_arb_sepolia:
+	@forge create \
+		--rpc-url $(ANVIL_RPC_URL) \
+		--private-key $(MY_PRIVATE_KEY) \
+		--gas-limit 3000000 \
+    	--gas-price 20000000000 \
+		src/implementations/CIDVerifier.sol:CIDVerifier
+
 deploy_testamentFactory_to_forked_arb_sepolia:
 	@forge script \
     	--broadcast \
-		--via-ir \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/TestamentFactory.s.sol:TestamentFactoryScript

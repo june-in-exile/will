@@ -22,6 +22,6 @@
       "noFallthroughCasesInSwitch": true,
       "baseUrl": "."
     },
-    "include": ["**/*"],
+    "include": ["**/*", "../contracts/script/extract_address.js"],
     "exclude": ["node_modules", "dist"]
   }
