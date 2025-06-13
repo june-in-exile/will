@@ -12,72 +12,28 @@ PUBSIGNALS := "["0x0000000000000000000000000000000000000000000000000000000000000
 
 ESTATES := "[($(BENEFICIARY0),$(TOKEN0),$(AMOUNT0)),($(BENEFICIARY1),$(TOKEN1),$(AMOUNT1))]"
 
-# Check OS
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    SED_INPLACE = sed -i ''
-else
-    SED_INPLACE = sed -i
-endif
-
 # Check network
 ifeq ($(USE_ANVIL),true)
-        RPC_URL := $(ANVIL_RPC_URL)
-		CHAIN_ID := $(ANVIL_CHAIN_ID)
+	RPC_URL := $(ANVIL_RPC_URL)
+	CHAIN_ID := $(ANVIL_CHAIN_ID)
 else
     RPC_URL := $(ARB_SEPOLIA_RPC_URL)
 	CHAIN_ID := $(ARB_SEPOLIA_CHAIN_ID)
 endif
 
-# ---------------- Utility Function ---------------------
-
-define extract_contract_address
-	$(shell node script/extract-address.js $(1) $(2) 2>/dev/null)
-endef
-
-define update_env_var
-	@if [ ! -f $(ENV_FILE) ]; then \
-		echo "$(YELLOW)⚠️  Creating $(ENV_FILE) file$(RESET)"; \
-		cp $(ENV_FILE).example $(ENV_FILE); \
-	fi
-	@if grep -q "^$(1)=" $(ENV_FILE); then \
-		$(SED_INPLACE) "s/^$(1)=.*/$(1)=$(2)/" $(ENV_FILE); \
-		echo "$(GREEN)Updated $(1)=$(2)$(RESET)"; \
-	else \
-		echo "$(1)=$(2)" >> $(ENV_FILE); \
-		echo "$(GREEN)Added $(1)=$(2)$(RESET)"; \
-	fi
-endef
-
-define extract_and_update_address
-	$(eval CONTRACT_ADDRESS := $(call extract_contract_address,$(1),$(CHAIN_ID)))
-	$(call update_env_var,$(2),$(CONTRACT_ADDRESS))
-endef
-
 # ----------------- Initialization ----------------------	
 
 init:
-	@pnpm exec tsx ../shared/utils/env/checkAnvil.ts
+	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 	@forge build
 	@pnpm typechain
 
-# ------------------- Clear Env -------------------------
+# ------------------- Reset Env -------------------------
 
-clear:
-	$(call update_env_var,PERMIT2_VERIFIER_ADDRESS,)
-	$(call update_env_var,DECRYPTION_VERIFIER_ADDRESS,)
-	$(call update_env_var,TESTAMENT_FACTORY_ADDRESS,)
+reset:
+	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
 
 # --------------- Conditional Deployment ----------------
-
-update_permit2_verifier_address:
-	$(call extract_and_update_address,Groth16Verifier,PERMIT2_VERIFIER_ADDRESS)
-
-update_decryption_verifier_address:
-	$(call extract_and_update_address,Groth16Verifier,DECRYPTION_VERIFIER_ADDRESS)
-
-update_testament_factory_address:
-	$(call extract_and_update_address,TestamentFactory,TESTAMENT_FACTORY_ADDRESS)
 
 deploy_groth16verifier:
 ifeq ($(USE_ANVIL),true)
@@ -85,8 +41,8 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_groth16verifier_to_arb_sepolia
 endif
-	@make update_permit2_verifier_address
-	@make update_decryption_verifier_address
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts PERMIT2_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts DECRYPTION_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
 	
 deploy_testamentFactory:
 ifeq ($(USE_ANVIL),true)
@@ -94,7 +50,7 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_testamentFactory_to_arb_sepolia
 endif
-	@make update_testament_factory_address
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts TESTAMENT_FACTORY_ADDRESS TestamentFactory $(CHAIN_ID)
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 

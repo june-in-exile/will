@@ -154,6 +154,7 @@ interface TestamentPathsConfig {
 }
 
 interface ContractPathsConfig {
+  broadcastDir: string;
   outDir: string;
   testamentFactory: string;
 }
@@ -563,6 +564,7 @@ export const PATHS_CONFIG: PathsConfig = {
 
   // Contract artifacts
   contracts: {
+    broadcastDir: resolve(modulePath, '../contracts/broadcast'),
     outDir: resolve(modulePath, '../contracts/out'),
     testamentFactory: resolve(modulePath, '../contracts/out/TestamentFactory.sol/TestamentFactory.json')
   },

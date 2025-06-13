@@ -23,10 +23,8 @@ async function main(): Promise<void> {
         console.log('Resetting default environment variables...');
         resetEnvVariables(defaultKeys);
     } else {
-        console.log(`Resetting specific environment variables: ${args.join(', ')}`);
         resetEnvVariables(args);
     }
-    console.log('Reset completed');
 }
 
 // Check: is this file being executed directly or imported?

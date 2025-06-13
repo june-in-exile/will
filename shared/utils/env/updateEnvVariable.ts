@@ -28,3 +28,26 @@ export function updateEnvVariable(key: string, value: string): void {
     throw error;
   }
 }
+
+async function main(): Promise<void> {
+  const args = process.argv.slice(2);
+
+  if (args.length < 2) {
+      console.error(chalk.red(`❌ Usage: pnpm exec tsx ${process.argv[1]} <KEY> <VALUE>`));
+      console.error(chalk.gray(`📝 For example: pnpm exec tsx ${process.argv[1]} USE_ANVIL true`));
+      console.error(chalk.gray(`👉 Refer to resetEnvVariable.ts if you want to reset the environment variable.`));
+      process.exit(1);
+  }
+  const [key, value] = args;
+  updateEnvVariable(key, value);
+}
+
+// Check: is this file being executed directly or imported?
+if (import.meta.url === new URL(process.argv[1], 'file:').href) {
+  // Only run when executed directly
+  main().catch((error: Error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(chalk.red.bold('Uncaught error:'), errorMessage);
+      process.exit(1);
+  });
+}
