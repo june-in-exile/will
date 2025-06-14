@@ -50,6 +50,10 @@ hash-testament:
 
 hash-data:
 	@pnpm exec tsx ../../shared/utils/hash/cid.ts --json '{"id":1}'
+# Results: {
+#   cid: 'bagaaieraan6jefho65gmhcd7hjhqqw2oc7lwfag27uttwdxbmdajys5bz7ka',
+#   json: { id: 1 }
+# }
 
 sign-cid:
 	@pnpm exec tsx src/signature/cid.ts

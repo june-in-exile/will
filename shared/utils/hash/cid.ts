@@ -2,8 +2,8 @@ import { CID } from 'multiformats/cid'
 import * as json from 'multiformats/codecs/json'
 import { sha256 } from 'multiformats/hashes/sha2'
 import { equals, Digest } from 'multiformats/hashes/digest'
-import chalk from 'chalk';
 import * as fs from 'fs';
+import chalk from 'chalk';
 
 // Type definitions
 interface Args {
@@ -119,7 +119,6 @@ function getjsonData(): any {
     } else {
         throw new Error('Nothing to be hashed');
     }
-    
 }
   
 /**
@@ -130,7 +129,6 @@ function getjsonData(): any {
  * @throws Error if encoding fails
  */
 function encode(jsonData: any): Uint8Array { 
-    console.log(chalk.yellow('Note that, while non-JSON data could be accepted, the result is incorrect since we sepcify JSON codec here'));
     try {
         const expectedBytes = json.encode(jsonData);
         
