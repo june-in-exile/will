@@ -2,17 +2,17 @@
 pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
-import {CIDVerifier} from "src/implementations/CIDVerifier.sol";
+import {JSONCIDVerifier} from "src/implementations/JSONCIDVerifier.sol";
 
-contract CIDVerifierScript is Script {
-    CIDVerifier public cidVerifier;
+contract JSONCIDVerifierScript is Script {
+    JSONCIDVerifier public jsonCidVerifier;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        cidVerifier = new CIDVerifier();
+        jsonCidVerifier = new JSONCIDVerifier();
 
         vm.stopBroadcast();
     }

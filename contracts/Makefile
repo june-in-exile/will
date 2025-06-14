@@ -10,6 +10,9 @@ PB := "[["0x1fe89bd3f35bd07ca20afa0637f056f9eed89c0f63ce4f65126c7e9b2e9a1e6a", "
 PC := "["0x22e53c8de0c5058bfd4fd7358227965e1ea935d0e18d36bbcf49d4f4d320e21e", "0x2dcb3d97482cf20509fc1c2b64a41ea29fb73825c7e70cf25bc0763b66377100"]"
 PUBSIGNALS := "["0x0000000000000000000000000000000000000000000000000000000000000021"]"
 
+EXAMPLE_JSON := '{id:1}'
+EXAMPLE_CID := bagaaieraan6jefho65gmhcd7hjhqqw2oc7lwfag27uttwdxbmdajys5bz7ka
+
 ESTATES := "[($(BENEFICIARY0),$(TOKEN0),$(AMOUNT0)),($(BENEFICIARY1),$(TOKEN1),$(AMOUNT1))]"
 
 # Check network
@@ -44,13 +47,13 @@ endif
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts PERMIT2_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts DECRYPTION_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
 
-deploy_cidVerifier:
+deploy_jsonCidVerifier:
 ifeq ($(USE_ANVIL),true)
-	@make deploy_cidVerifier_to_forked_arb_sepolia
+	@make deploy_jsonCidVerifier_to_forked_arb_sepolia
 else
-	@make deploy_cidVerifier_to_arb_sepolia
+	@make deploy_jsonCidVerifier_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CID_VERIFIER_ADDRESS CIDVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER_ADDRESS JSONCIDVerifier $(CHAIN_ID)
 
 deploy_testamentFactory:
 ifeq ($(USE_ANVIL),true)
@@ -71,14 +74,14 @@ deploy_groth16verifier_to_arb_sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 
-deploy_cidVerifier_to_arb_sepolia:
+deploy_jsonCidVerifier_to_arb_sepolia:
 	@forge script \
 	 	--broadcast \
 		--verify \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/CIDVerifier.s.sol:CIDVerifierScript
+		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
 
 deploy_testamentFactory_to_arb_sepolia:
 	@forge script \
@@ -101,12 +104,12 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 
-deploy_cidVerifier_to_forked_arb_sepolia:
+deploy_jsonCidVerifier_to_forked_arb_sepolia:
 	@forge script \
 	 	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/CIDVerifier.s.sol:CIDVerifierScript
+		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
 
 deploy_testamentFactory_to_forked_arb_sepolia:
 	forge script \
@@ -122,6 +125,14 @@ groth16verify_on_chain:
 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
 		$(PA) $(PB) $(PC) $(PUBSIGNALS)
 	@echo "$(YELLOW)Expect: true$(RESET)"
+
+# ------------------ Call CID Verifier ------------------
+
+jsoncidverify_on_chain:
+	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+		"verifyCID(string,string)(bool,string)" \
+		$(EXAMPLE_JSON) $(EXAMPLE_CID)
+	@echo "$(YELLOW)Expect: (true, "Verification successful")$(RESET)"
 
 # -------------------- Call Factory ---------------------
 
