@@ -3,6 +3,7 @@ pragma solidity ^0.8.21;
 
 import "src/implementations/Testament.sol";
 import "src/implementations/Groth16Verifier.sol";
+import "src/implementations/JSONCIDVerifier.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
@@ -12,6 +13,7 @@ contract TestamentFactory {
 
     Groth16Verifier public testatorVerifier;
     Groth16Verifier public decryptionVerifier;
+    JSONCIDVerifier public jsonCidVerifier;
     address public executor;
 
     mapping(string => uint256) private _testatorValidateTimes;
@@ -27,6 +29,7 @@ contract TestamentFactory {
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
+    error JSONCIDInvalid(string cid, string reason);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
@@ -38,10 +41,12 @@ contract TestamentFactory {
     constructor(
         address _testatorVerifier,
         address _decryptionVerifier,
+        address _jsonCidVerifier,
         address _executor
     ) {
         testatorVerifier = Groth16Verifier(_testatorVerifier);
         decryptionVerifier = Groth16Verifier(_decryptionVerifier);
+        jsonCidVerifier = JSONCIDVerifier(_jsonCidVerifier);
         executor = _executor;
     }
 
@@ -79,8 +84,16 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
+        bytes memory _testamentBytes,
         string calldata _cid
     ) external {
+        (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
+            _testamentBytes,
+            _cid
+        );
+
+        if (!isValid) revert JSONCIDInvalid(_cid, reason);
+
         if (!testatorVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
 
@@ -129,6 +142,7 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
+        bytes memory _testamentBytes,
         string calldata _cid,
         address _testator,
         Testament.Estate[] calldata _estates,
@@ -138,6 +152,13 @@ contract TestamentFactory {
             revert CIDNotValidatedByTestator(_cid);
         if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid])
             revert CIDNotValidatedByExecutor(_cid);
+
+        (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
+            _testamentBytes,
+            _cid
+        );
+
+        if (!isValid) revert JSONCIDInvalid(_cid, reason);
         if (!decryptionVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (testaments[_cid] != address(0))
@@ -148,11 +169,7 @@ contract TestamentFactory {
             executor,
             _estates
         );
-        address predictedAddress = predictTestament(
-            _testator,
-            _estates,
-            _salt
-        );
+        address predictedAddress = predictTestament(_testator, _estates, _salt);
         if (address(testament) != predictedAddress)
             revert TestamentAddressInconsistent(
                 predictedAddress,

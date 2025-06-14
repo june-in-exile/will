@@ -20,7 +20,7 @@ interface Args {
 function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
-      if (a[i] !== b[i]) return false;
+        if (a[i] !== b[i]) return false;
     }
     return true;
 }
@@ -37,7 +37,7 @@ function parseArgs(): Args {
     const result: Args = {};
     let hasJson = false;
     let hasPath = false;
-    
+
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--json' && i + 1 < args.length) {
             if (hasPath) {
@@ -60,12 +60,12 @@ function parseArgs(): Args {
             hasPath = true;
         }
     }
-    
+
     // Check if neither option was provided
     if (!hasJson && !hasPath) {
         throw new Error('Must specify either --json with JSON string or --path with file path.');
     }
-    
+
     return result;
 }
 
@@ -81,21 +81,21 @@ function readJsonFromFile(path: string): unknown {
         if (!fs.existsSync(path)) {
             throw new Error(`File does not exist: ${path}`);
         }
-        
+
         // Check if it's a file (not a directory)
         const stats = fs.statSync(path);
         if (!stats.isFile()) {
             throw new Error(`Path is not a file: ${path}`);
         }
-        
+
         // Read file content
         const fileContent = fs.readFileSync(path, 'utf8');
         console.log(chalk.green(`Successfully read file: ${path}`));
-        
+
         // Parse JSON
         const json = JSON.parse(fileContent);
         console.log(chalk.blue('Parsed JSON data from file:'), json);
-        
+
         return json;
     } catch (error) {
         if (error instanceof Error) {
@@ -120,7 +120,7 @@ function getjsonData(): any {
         throw new Error('Nothing to be hashed');
     }
 }
-  
+
 /**
  * Encode JSON data into Uint8Array using JSON codec
  * Compares manual encoding with multiformats json.encode() for validation
@@ -128,14 +128,14 @@ function getjsonData(): any {
  * @returns Encoded data as Uint8Array
  * @throws Error if encoding fails
  */
-function encode(jsonData: any): Uint8Array { 
+export function encode(jsonData: any): Uint8Array {
     try {
         const expectedBytes = json.encode(jsonData);
-        
+
         const textEncoder = new TextEncoder();
         const jsonString = JSON.stringify(jsonData)
         const bytes = textEncoder.encode(jsonString);
-        
+
         const isEqual = uint8ArraysEqual(expectedBytes, bytes);
         if (!isEqual) {
             console.warn(chalk.yellow('Warning: Manual encoding differs from json.encode()'));
@@ -144,7 +144,7 @@ function encode(jsonData: any): Uint8Array {
             return expectedBytes;
         }
         return bytes
-    } catch (error) { 
+    } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red('Failed to encode JSON data:'), errorMessage);
         throw error;
@@ -152,13 +152,13 @@ function encode(jsonData: any): Uint8Array {
 }
 
 /**
- * Generate SHA-256 hash digest from encoded bytes
+ * Generate SHA-256 multihash digest from encoded bytes
  * Performs validation by computing hash twice and comparing results
  * @param bytes - Encoded data as Uint8Array to hash
  * @returns Promise resolving to SHA-256 digest
  * @throws Error if hashing fails
  */
-async function hash(bytes: Uint8Array): Promise<Digest<18, number>> { 
+async function multihash(bytes: Uint8Array): Promise<Digest<18, number>> {
     try {
         const expectedDigest = await sha256.digest(bytes);
         const digest = await sha256.digest(bytes);
@@ -169,11 +169,11 @@ async function hash(bytes: Uint8Array): Promise<Digest<18, number>> {
             console.log('Manual hash digest:', digest);
             return expectedDigest;
         }
-        
+
         console.log(chalk.green('Hash digest calculated successfully'));
         return digest;
-        
-    } catch (error) { 
+
+    } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red('Failed to calculate hash digest:'), errorMessage);
         throw error;
@@ -192,17 +192,17 @@ function createCid(digest: Digest<18, number>): CID<unknown, 512, number, 1> {
     try {
         const expectedCid = CID.create(1, json.code, digest);
         const cid = CID.create(1, json.code, digest);
-    
+
         if (!expectedCid.equals(cid)) {
             console.warn(chalk.yellow('Warning: Manual creation differs from CID.create()'));
             console.log('Expected cid:', expectedCid);
             console.log('Manual cid:', cid);
             return expectedCid;
         }
-        
+
         console.log(chalk.green('CID calculated successfully'));
         return cid;
-    } catch (error) { 
+    } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red('Failed to calculate CID:'), errorMessage);
         throw error;
@@ -216,7 +216,7 @@ function createCid(digest: Digest<18, number>): CID<unknown, 512, number, 1> {
  * @returns String representation of the CID
  * @throws Error if conversion fails
  */
-function toString(cid: CID<unknown, 512, number, 1>): String { 
+function toString(cid: CID<unknown, 512, number, 1>): String {
     try {
         const expectedCidString = cid.toString();
         const cidString = cid.toString();
@@ -228,7 +228,7 @@ function toString(cid: CID<unknown, 512, number, 1>): String {
         }
         console.log(chalk.green('CID string converted successfully'));
         return cidString;
-    } catch (error) { 
+    } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red('Failed to convert CID to string:'), errorMessage);
         throw error;
@@ -241,16 +241,27 @@ function toString(cid: CID<unknown, 512, number, 1>): String {
 function showUsage(): void {
     console.log(chalk.cyan('\n=== Usage Information ==='));
     console.log(chalk.white('This script generates IPFS CID from JSON data using one of three methods:\n'));
-    
+
     console.log(chalk.yellow('1. Using JSON data directly:'));
     console.log(chalk.gray('   pnpm exec tsx hash.ts --json \'{"id":1,"name":"test"}\''));
-    
+
     console.log(chalk.yellow('\n2. Using JSON file:'));
     console.log(chalk.gray('   pnpm exec tsx hash.ts --path ./data.json'));
-    
+
     console.log(chalk.red('\nImportant:'));
     console.log(chalk.red('• You must specify either --json OR --path (not both)'));
     console.log(chalk.red('• You cannot run the script without any arguments'));
+}
+
+/**
+ * Convert Uint8Array to hex string representation
+ * @param bytes - Uint8Array to convert
+ * @returns Hex string representation (0x prefixed)
+ */
+export function uint8ArrayToHex(bytes: Uint8Array): string {
+    return '0x' + Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 }
 
 /**
@@ -270,21 +281,24 @@ async function main(): Promise<void> {
 
         const jsonData = getjsonData();
         const bytes = encode(jsonData);
-        const digest = await hash(bytes);
+        const digest = await multihash(bytes);
         const cid = createCid(digest);
         const cidString = toString(cid);
 
         console.log(chalk.green.bold('\n✅ Process completed successfully!'));
         console.log(chalk.gray('Results:'), {
             cid: cidString,
-            json: jsonData
+            json: jsonData,
+            contentBytes: uint8ArrayToHex(bytes),
+            contentMultiHash: uint8ArrayToHex(digest.bytes),
+            cidBytes: uint8ArrayToHex(cid.bytes)
         });
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
 
         // Show usage information for argument-related errors
-        if (errorMessage.includes('--json') || errorMessage.includes('--path') || 
+        if (errorMessage.includes('--json') || errorMessage.includes('--path') ||
             errorMessage.includes('Must specify')) {
             showUsage();
         }

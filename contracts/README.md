@@ -30,7 +30,21 @@
     make deploy_groth16verifier
     ```
 
-4. Deploy `TestamentFactory.sol`.
+4. Deploy `JSONCIDVerifier.sol`.
+
+    Check the deployment
+
+    ``` sh
+    make groth16verify_on_chain
+    ```
+
+    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
+
+    ``` sh
+    make deploy_jsonCidVerifier
+    ```
+    
+5. Deploy `TestamentFactory.sol`.
 
     Check the deployment
 

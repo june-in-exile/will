@@ -3,6 +3,7 @@ import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
 import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
+import { encode, uint8ArrayToHex } from '@shared/utils/hash/cid.js';
 import { readFileSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -194,21 +195,20 @@ function displayAccessInfo(cid: CID): void {
 /**
  * Update environment variables
  */
-async function updateEnvironmentVariables(cid: CID): Promise<void> {
+async function updateEnvironmentVariables(testamentBytes: Uint8Array, cid: CID): Promise<void> {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
+        const testamentBytesHex = uint8ArrayToHex(testamentBytes);
         const cidString = cid.toString();
 
         // Update environment variables
         await Promise.all([
+            updateEnvVariable('TESTAMENT_BYTES', testamentBytesHex),
             updateEnvVariable('CID', cidString),
         ]);
 
         console.log(chalk.green('✅ Environment variables updated successfully'));
-        console.log(chalk.gray('Updated variables:'));
-        console.log(chalk.gray('- CID:'), cidString);
-
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red('❌ Failed to update environment variables:'), errorMessage);
@@ -228,6 +228,9 @@ async function processIPFSUpload(): Promise<UploadResult> {
 
         // Read and validate testament data
         const testamentData = readTestamentData();
+
+        // Encode the testament data into bytes
+        const testamentBytes = encode(testamentData);
 
         // Create Helia instance
         const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
@@ -254,7 +257,7 @@ async function processIPFSUpload(): Promise<UploadResult> {
         displayAccessInfo(cid);
 
         // Update environment variables
-        await updateEnvironmentVariables(cid);
+        await updateEnvironmentVariables(testamentBytes, cid);
 
         console.log(chalk.green.bold('\n🎉 IPFS upload process completed successfully!'));
         console.log(chalk.green('All steps including both pinning operations were successful'));
@@ -347,7 +350,7 @@ async function main(): Promise<void> {
 
             process.exit(1);
         }
-
+        
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);

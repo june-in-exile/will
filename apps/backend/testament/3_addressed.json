@@ -12,11 +12,11 @@
             "amount": 5000000
         }
     ],
-    "salt": 6973053963157398,
-    "testament": "0x7AD96a90E441DFC9d219B559a80Cc4c516981501",
-    "timestamp": "2025-06-14T10:03:21.015Z",
+    "salt": 7137925538320278,
+    "testament": "0xa50060f5F5b98ca4D8C7233555b189E49F8a75ca",
+    "timestamp": "2025-06-14T14:38:08.166Z",
     "metadata": {
-        "predictedAt": 1749895401016,
+        "predictedAt": 1749911888167,
         "estatesCount": 2
     }
 }
