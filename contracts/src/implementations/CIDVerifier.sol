@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-// import {ContentToCIDVerifier} from "src/implementations/ContentToCIDVerifier.sol";
-// import {CIDStringVerifier} from "src/implementations/CIDStringVerifier.sol";
-
 /**
  * 主驗證合約：結合完整驗證和字符串檢查
  */
@@ -32,10 +29,7 @@ contract CIDVerifier {
 
     mapping(bytes32 => VerificationResult) public verifiedTestaments;
 
-    constructor() {
-        // contentToCIDVerifier = new ContentToCIDVerifier();
-        // stringVerifier = new CIDStringVerifier();
-    }
+    constructor() {}
 
     /**
      * 核心驗證函數：完整驗證 testament 到 CID 字符串
@@ -397,10 +391,7 @@ contract CIDVerifier {
             address verifier
         )
     {
-        VerificationResult
-            memory result = getVerificationResult(
-                testament
-            );
+        VerificationResult memory result = getVerificationResult(testament);
 
         return (
             result.testamentHash,

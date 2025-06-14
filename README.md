@@ -264,7 +264,9 @@ pnpm build
 
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
-   - [ ] Add CIDVerifier into the doc of `./contract`
+   - [ ] Check the function of CIDVerifier.
+   - [ ] Add CIDVerifier into the doc of `./contract` (how to deploy and check it).
+   - [ ] Add CIDVerifier into Testament factory contract.
 2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format
      - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files

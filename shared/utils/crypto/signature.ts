@@ -1,6 +1,6 @@
 import { SIGNATURE_CONFIG } from '../../config';
 import { ethers, Wallet } from 'ethers';
-import { keccak256 } from './hash';
+import { keccak256 } from '../hash/keccak256';
 import type { SignatureValidationResult } from '../../types';
 import chalk from 'chalk';
 

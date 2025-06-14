@@ -46,7 +46,10 @@ download-and-decrypt-testament-test:
 	@pnpm exec tsx src/IPFS/download.ts --test
 
 hash-testament:
-	@pnpm exec tsx src/IPFS/hash.ts
+	@pnpm exec tsx ../../shared/utils/hash/cid.ts --path './testament/5_encrypted.json'
+
+hash-data:
+	@pnpm exec tsx ../../shared/utils/hash/cid.ts --data '123'
 
 sign-cid:
 	@pnpm exec tsx src/signature/cid.ts
