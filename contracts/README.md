@@ -24,7 +24,7 @@
     make groth16verify_on_chain
     ```
 
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
+    If it returns `true`, skip the deployment. Otherwise, execute the instruction.
 
     ``` sh
     make deploy_groth16verifier
@@ -35,10 +35,10 @@
     Check the deployment
 
     ``` sh
-    make groth16verify_on_chain
+    make jsoncidverify_on_chain
     ```
 
-    If it returns `true`, skip the deployment. Otherwise, execute the instruction and update `PERMIT2_VERIFIER_ADDRESS` and `DECRYPTION_VERIFIER_ADDRESS` in `.env`.
+    If it returns `true`, skip the deployment. Otherwise, execute the instruction.
 
     ``` sh
     make deploy_jsonCidVerifier
@@ -54,7 +54,7 @@
     > make executor
     > ```
    
-   If it returns the expected value, skip the deployment. Otherwise, ensure that the `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction and update `TESTAMENT_FACTORY_ADDRESS` in `.env`.
+   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER_ADDRESS`, `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction.
 
     ``` sh
     make deploy_testamentFactory
