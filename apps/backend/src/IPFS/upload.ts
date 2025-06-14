@@ -11,9 +11,9 @@ import chalk from 'chalk';
 const execPromise = promisify(exec);
 
 // Type definitions
-export type SupportedAlgorithm = typeof CRYPTO_CONFIG.supportedAlgorithms[number];
+type SupportedAlgorithm = typeof CRYPTO_CONFIG.supportedAlgorithms[number];
 
-export interface EncryptedTestamentData {
+interface EncryptedTestamentData {
     algorithm: SupportedAlgorithm;
     iv: string;
     authTag: string;
