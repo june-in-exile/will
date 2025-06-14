@@ -132,7 +132,7 @@ jsoncidverify_on_chain:
 	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
 		"verifyCID(string,string)(bool,string)" \
 		$(EXAMPLE_JSON) $(EXAMPLE_CID)
-	@echo "$(YELLOW)Expect: (true, "Verification successful")$(RESET)"
+	@echo "$(YELLOW)Expect:\ntrue\n\"Verification successful\"$(RESET)"
 
 # -------------------- Call Factory ---------------------
 
