@@ -51,11 +51,11 @@ hash-testament:
 hash-data:
 	@pnpm exec tsx ../../shared/utils/hash/cid.ts --json '{"id":1}'
 # Results: {
-#   cid: 'bagaaieraan6jefho65gmhcd7hjhqqw2oc7lwfag27uttwdxbmdajys5bz7ka',
 #   json: { id: 1 },
 #   contentBytes: '0x7b226964223a317d',
 #   contentMultiHash: '0x1220037c9214eef74cc3887f3a4f085b4e17d76280dafd273b0ee160c09c4ba1cfd4',
-#   cidBytes: '0x0180041220037c9214eef74cc3887f3a4f085b4e17d76280dafd273b0ee160c09c4ba1cfd4'
+#   cidBytes: '0x0180041220037c9214eef74cc3887f3a4f085b4e17d76280dafd273b0ee160c09c4ba1cfd4',
+#   cid: 'bagaaieraan6jefho65gmhcd7hjhqqw2oc7lwfag27uttwdxbmdajys5bz7ka'
 # }
 
 sign-cid:
