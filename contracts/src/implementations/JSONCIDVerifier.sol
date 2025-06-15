@@ -11,21 +11,18 @@ contract JSONCIDVerifier {
 
     /**
      * @dev Complete verification workflow
-     * @param contentBytes The JSON content bytes to verify
+     * @param json The JSON content to verify
      * @param cid Expected CID string
      * @return success Whether verification succeeded
      * @return message Result message
      */
     function verifyCID(
-        bytes memory contentBytes,
+        string memory json,
         string memory cid
     ) external pure returns (bool success, string memory message) {
-        bytes memory contentMultihash = getContentMultihash(contentBytes);
-        bytes memory cidBytes = getCIDBytes(contentMultihash);
-        string memory generatedCID = getCIDString(cidBytes);
-        bool isValid = compareStrings(generatedCID, cid);
+        string memory generatedCID = generateCIDString(json);
 
-        if (!isValid) {
+        if (!stringEquals(generatedCID, cid)) {
             return (false, "Generated CID does not match expected CID string");
         }
 
@@ -33,13 +30,14 @@ contract JSONCIDVerifier {
     }
 
     /**
-     * @dev Generate CID string for given JSON content
-     * @param contentBytes The JSON content bytes to generate CID for
+     * @dev Generate CID string for given JSON data
+     * @param json The JSON data to generate CID for
      * @return Generated CID string
      */
     function generateCIDString(
-        bytes memory contentBytes
+        string memory json
     ) public pure returns (string memory) {
+        bytes memory contentBytes = getBytes(json);
         bytes memory contentMultihash = getContentMultihash(contentBytes);
         bytes memory cidBytes = getCIDBytes(contentMultihash);
         return getCIDString(cidBytes);
@@ -48,6 +46,10 @@ contract JSONCIDVerifier {
     // =============================================================================
     // UTILITY FUNCTIONS
     // =============================================================================
+
+    function getBytes(string memory json) public pure returns (bytes memory) {
+        return bytes(json);
+    }
 
     function getContentMultihash(
         bytes memory contentBytes
@@ -90,7 +92,7 @@ contract JSONCIDVerifier {
      */
     function getCIDString(
         bytes memory cidBytes
-    ) internal pure returns (string memory) {
+    ) public pure returns (string memory) {
         // CIDv1 byte format: [version][codec][hash_type][hash_length][hash_bytes]
         require(
             cidBytes.length == 37,
@@ -162,7 +164,7 @@ contract JSONCIDVerifier {
         return string(finalResult);
     }
 
-    function compareStrings(
+    function stringEquals(
         string memory a,
         string memory b
     ) public pure returns (bool) {

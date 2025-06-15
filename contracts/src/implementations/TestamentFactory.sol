@@ -84,11 +84,11 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        bytes memory _testamentBytes,
+        string memory _testament,
         string calldata _cid
     ) external {
         (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
-            _testamentBytes,
+            _testament,
             _cid
         );
 
@@ -142,7 +142,7 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        bytes memory _testamentBytes,
+        string memory _testament,
         string calldata _cid,
         address _testator,
         Testament.Estate[] calldata _estates,
@@ -154,7 +154,7 @@ contract TestamentFactory {
             revert CIDNotValidatedByExecutor(_cid);
 
         (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
-            _testamentBytes,
+            _testament,
             _cid
         );
 
