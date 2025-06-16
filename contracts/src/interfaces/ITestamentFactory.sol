@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.17;
 
-import "src/implementations/Testament.sol";
+import "src/Testament.sol";
 
 interface ITestamentFactory {
     event TestamentCreated(
@@ -23,15 +23,19 @@ interface ITestamentFactory {
     error TestamentAddressInconsistent(address predicted, address actual);
 
     function testatorVerifier() external view returns (address);
+
     function executorVerifier() external view returns (address);
+
     function decryptionVerifier() external view returns (address);
+
     function executor() external view returns (address);
+
     function testaments(string calldata cid) external view returns (address);
-    
+
     function testatorValidateTimes(
         string calldata _cid
     ) external view returns (uint256);
-    
+
     function executorValidateTimes(
         string calldata _cid
     ) external view returns (uint256);
@@ -52,7 +56,7 @@ interface ITestamentFactory {
     ) external;
 
     function notarizeCID(
-        string calldata _cid, 
+        string calldata _cid,
         bytes memory _signature
     ) external;
 

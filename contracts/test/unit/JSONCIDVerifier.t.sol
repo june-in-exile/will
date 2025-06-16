@@ -2,7 +2,7 @@
 pragma solidity ^0.8.21;
 
 import "forge-std/Test.sol";
-import "../../src/implementations/JSONCIDVerifier.sol";
+import "../../src/JSONCIDVerifier.sol";
 
 contract JSONCIDVerifierTest is Test {
     JSONCIDVerifier public verifier;

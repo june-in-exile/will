@@ -222,7 +222,7 @@ verify_testament:
 		--etherscan-api-key ${ARBSCAN_API_KEY} \
 		--watch \
 		$(TESTAMENT_ADDRESS) \
-		src/implementations/Testament.sol:Testament
+		src/Testament.sol:Testament
 
 # --------------------- Testament -----------------------
 # ----------------------- Read --------------------------

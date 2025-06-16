@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import "src/implementations/Testament.sol";
-import "src/implementations/Groth16Verifier.sol";
-import "src/implementations/JSONCIDVerifier.sol";
+import "src/Testament.sol";
+import "src/Groth16Verifier.sol";
+import "src/JSONCIDVerifier.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
@@ -14,6 +14,7 @@ contract TestamentFactory {
     Groth16Verifier public testatorVerifier;
     Groth16Verifier public decryptionVerifier;
     JSONCIDVerifier public jsonCidVerifier;
+    address public permit2;
     address public executor;
 
     mapping(string => uint256) private _testatorValidateTimes;
@@ -42,12 +43,14 @@ contract TestamentFactory {
         address _testatorVerifier,
         address _decryptionVerifier,
         address _jsonCidVerifier,
-        address _executor
+        address _executor,
+        address _permit2
     ) {
         testatorVerifier = Groth16Verifier(_testatorVerifier);
         decryptionVerifier = Groth16Verifier(_decryptionVerifier);
         jsonCidVerifier = JSONCIDVerifier(_jsonCidVerifier);
         executor = _executor;
+        permit2 = _permit2;
     }
 
     modifier onlyAuthorized() {
@@ -165,6 +168,7 @@ contract TestamentFactory {
             revert TestamentAlreadyExists(_cid, testaments[_cid]);
 
         Testament testament = new Testament{salt: bytes32(_salt)}(
+            permit2,
             _testator,
             executor,
             _estates

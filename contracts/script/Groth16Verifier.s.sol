@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.21;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Groth16Verifier} from "src/implementations/Groth16Verifier.sol";
+import {Groth16Verifier} from "src/Groth16Verifier.sol";
 
 contract Groth16VerifierScript is Script {
     Groth16Verifier public verifier;

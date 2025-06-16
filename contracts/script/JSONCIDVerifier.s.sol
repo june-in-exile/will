@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.21;
 
 import {Script, console} from "forge-std/Script.sol";
-import {JSONCIDVerifier} from "src/implementations/JSONCIDVerifier.sol";
+import {JSONCIDVerifier} from "src/JSONCIDVerifier.sol";
 
 contract JSONCIDVerifierScript is Script {
     JSONCIDVerifier public jsonCidVerifier;

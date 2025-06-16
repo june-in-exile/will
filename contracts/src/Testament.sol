@@ -2,12 +2,13 @@
 pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IPermit2, ISignatureTransfer} from "src/interfaces/IPermit2.sol";
+import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol";
 
 using SafeERC20 for IERC20;
 
 contract Testament {
-    IPermit2 public immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    // IPermit2 public immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    IPermit2 public immutable permit2;
 
     struct Estate {
         address beneficiary;
@@ -29,7 +30,12 @@ contract Testament {
     error AlreadyExecuted();
     error InvalidNonce();
     error DeadlineExpired();
-    error InsufficientBalance(address token, uint256 required, uint256 available);
+    error InsufficientBalance(
+        address token,
+        uint256 required,
+        uint256 available
+    );
+    error Permit2AddressZero();
     error TestatorAddressZero();
     error ExecutorAddressZero();
     error BeneficiaryAddressZero();
@@ -37,7 +43,15 @@ contract Testament {
     error InvalidTokenAddress();
     error AmountMustBeGreaterThanZero();
 
-    constructor(address _testator, address _executor, Estate[] memory _estates) {
+    constructor(
+        address _permit2,
+        address _testator,
+        address _executor,
+        Estate[] memory _estates
+    ) {
+        if (_permit2 == address(0)) revert Permit2AddressZero();
+        permit2 = IPermit2(_permit2);
+
         if (_testator == address(0)) revert TestatorAddressZero();
         testator = _testator;
 
@@ -45,8 +59,10 @@ contract Testament {
         executor = _executor;
 
         for (uint256 i = 0; i < _estates.length; i++) {
-            if (_estates[i].beneficiary == address(0)) revert BeneficiaryAddressZero();
-            if (_estates[i].beneficiary == _testator) revert BeneficiaryCannotBeTestator(_estates[i].beneficiary);
+            if (_estates[i].beneficiary == address(0))
+                revert BeneficiaryAddressZero();
+            if (_estates[i].beneficiary == _testator)
+                revert BeneficiaryCannotBeTestator(_estates[i].beneficiary);
             if (_estates[i].token == address(0)) revert InvalidTokenAddress();
             if (_estates[i].amount == 0) revert AmountMustBeGreaterThanZero();
         }
@@ -57,7 +73,11 @@ contract Testament {
         return estates;
     }
 
-    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external {
+    function signatureTransferToBeneficiaries(
+        uint256 nonce,
+        uint256 deadline,
+        bytes calldata signature
+    ) external {
         if (msg.sender != executor) revert OnlyExecutor();
         if (executed) revert AlreadyExecuted();
         if (nonce == 0) revert InvalidNonce();
@@ -67,20 +87,35 @@ contract Testament {
         for (uint256 i = 0; i < estates.length; i++) {
             uint256 balance = IERC20(estates[i].token).balanceOf(testator);
             if (balance < estates[i].amount) {
-                revert InsufficientBalance(estates[i].token, estates[i].amount, balance);
+                revert InsufficientBalance(
+                    estates[i].token,
+                    estates[i].amount,
+                    balance
+                );
             }
         }
 
-        ISignatureTransfer.TokenPermissions[] memory permitted =
-            new ISignatureTransfer.TokenPermissions[](estates.length);
+        ISignatureTransfer.TokenPermissions[]
+            memory permitted = new ISignatureTransfer.TokenPermissions[](
+                estates.length
+            );
         for (uint256 i = 0; i < estates.length; i++) {
-            permitted[i] = ISignatureTransfer.TokenPermissions({token: estates[i].token, amount: estates[i].amount});
+            permitted[i] = ISignatureTransfer.TokenPermissions({
+                token: estates[i].token,
+                amount: estates[i].amount
+            });
         }
-        ISignatureTransfer.PermitBatchTransferFrom memory permit =
-            ISignatureTransfer.PermitBatchTransferFrom({permitted: permitted, nonce: nonce, deadline: deadline});
+        ISignatureTransfer.PermitBatchTransferFrom
+            memory permit = ISignatureTransfer.PermitBatchTransferFrom({
+                permitted: permitted,
+                nonce: nonce,
+                deadline: deadline
+            });
 
-        ISignatureTransfer.SignatureTransferDetails[] memory transferDetails =
-            new ISignatureTransfer.SignatureTransferDetails[](estates.length);
+        ISignatureTransfer.SignatureTransferDetails[]
+            memory transferDetails = new ISignatureTransfer.SignatureTransferDetails[](
+                estates.length
+            );
         for (uint256 i = 0; i < estates.length; i++) {
             transferDetails[i] = ISignatureTransfer.SignatureTransferDetails({
                 to: estates[i].beneficiary,
@@ -88,7 +123,12 @@ contract Testament {
             });
         }
 
-        permit2.permitTransferFrom(permit, transferDetails, testator, signature);
+        permit2.permitTransferFrom(
+            permit,
+            transferDetails,
+            testator,
+            signature
+        );
 
         executed = true;
         emit TestamentExecuted();
