@@ -3,6 +3,8 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
+.PHONY: init test
+
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
 PA := "["0x2c980756d6558991c65a5f82e7d0603b1608754ceac751620e56efd644135bb7", "0x2f953155593e6d01a868eaa06b2a3db9f036f11ff8c760016419b996a053e896"]"
@@ -26,15 +28,24 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init:
+init: build test
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
-	@forge build
 	@pnpm typechain
 
 # ------------------- Reset Env -------------------------
 
 reset_address:
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS JSON_CID_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
+
+
+
+# ----------------- CICD Commands -----------------------
+
+build:
+	@forge build
+
+test:
+	@forge test --match-path "test/*" -vv
 
 # --------------- Conditional Deployment ----------------
 

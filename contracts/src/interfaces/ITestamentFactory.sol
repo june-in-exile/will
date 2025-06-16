@@ -13,6 +13,7 @@ interface ITestamentFactory {
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
+    error JSONCIDInvalid(string cid, string reason);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
@@ -46,6 +47,7 @@ interface ITestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
+        string memory _testament,
         string calldata _cid
     ) external;
 
@@ -59,6 +61,7 @@ interface ITestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
+        string memory _testament,
         string calldata _cid,
         address _testator,
         Testament.Estate[] calldata _estates,

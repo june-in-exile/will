@@ -128,24 +128,40 @@ async function checkAnvilStatus(): Promise<boolean> {
     return true;
 }
 
+// Display usage information for the script
+function showUsage(): void {
+    console.log(chalk.cyan('\n=== Usage Information ==='));
+    console.log(chalk.yellow('Tips: You can use this script in the following ways:'));
+    console.log('  pnpm exec tsx chackAnvil.ts        # Use default port 8545');
+    console.log('  pnpm exec tsx chackAnvil.ts 8546   # Use custom port');
+}
+
 // Main function
 async function main(): Promise<void> {
-    console.log(`Checking port: ${ANVIL_PORT}`);
+    try {
+        console.log(`Checking port: ${ANVIL_PORT}`);
 
-    const isRunning: boolean = await checkAnvilStatus();
+        const isRunning: boolean = await checkAnvilStatus();
     
-    if (isRunning) {
-        console.log(chalk.green('✓ Anvil is running'));
-        updateEnvVariable('USE_ANVIL', 'true');
-    } else {
-        console.log(chalk.green('✓ Anvil is not running'));
-        updateEnvVariable('USE_ANVIL', 'false');
-    }
+        if (isRunning) {
+            console.log(chalk.green('✓ Anvil is running'));
+            updateEnvVariable('USE_ANVIL', 'true');
+        } else {
+            console.log(chalk.green('✓ Anvil is not running'));
+            updateEnvVariable('USE_ANVIL', 'false');
+        }
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
+        
+        showUsage();
 
-    console.log('');
-    // console.log(chalk.yellow('Tips: You can use this script in the following ways:'));
-    // console.log('  pnpm exec tsx chackAnvil.ts        # Use default port 8545');
-    // console.log('  pnpm exec tsx chackAnvil.ts 8546   # Use custom port');
+        if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+            console.error(chalk.gray('Stack trace:'), error.stack);
+        }
+        
+        process.exit(1);
+    }
 }
 
 // Check: is this file being executed directly or imported?
