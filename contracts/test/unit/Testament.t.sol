@@ -14,12 +14,14 @@ contract MockERC20 is ERC20 {
     }
 }
 
-contract TestamentTest is Test {
+contract TestamentUnitTest is Test {
     Testament public testament;
     MockERC20 public token1;
     MockERC20 public token2;
 
-    address public permit2 = vm.envAddress("PERMIT2_ADDRESS");
+    address public PERMIT2 =
+        address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+
     address public testator = address(0x1);
     address public executor = address(0x2);
     address public beneficiary1 = address(0x3);
@@ -51,7 +53,7 @@ contract TestamentTest is Test {
         );
 
         // Deploy testament with mock Permit2
-        testament = new Testament(permit2, testator, executor, estates);
+        testament = new Testament(PERMIT2, testator, executor, estates);
 
         // Mint tokens to testator
         token1.mint(testator, 10000e18);
@@ -68,7 +70,7 @@ contract TestamentTest is Test {
         });
 
         Testament newTestament = new Testament(
-            permit2,
+            PERMIT2,
             testator,
             executor,
             newEstates
@@ -76,7 +78,7 @@ contract TestamentTest is Test {
 
         assertEq(newTestament.testator(), testator);
         assertEq(newTestament.executor(), executor);
-        assertEq(address(newTestament.permit2()), permit2);
+        assertEq(address(newTestament.permit2()), PERMIT2);
 
         Testament.Estate[] memory retrievedEstates = newTestament
             .getAllEstates();
@@ -107,7 +109,7 @@ contract TestamentTest is Test {
         });
 
         vm.expectRevert(Testament.TestatorAddressZero.selector);
-        new Testament(permit2, address(0), executor, newEstates);
+        new Testament(PERMIT2, address(0), executor, newEstates);
     }
 
     function testConstructorFailsWithZeroExecutorAddress() public {
@@ -119,7 +121,7 @@ contract TestamentTest is Test {
         });
 
         vm.expectRevert(Testament.ExecutorAddressZero.selector);
-        new Testament(permit2, testator, address(0), newEstates);
+        new Testament(PERMIT2, testator, address(0), newEstates);
     }
 
     function testConstructorFailsWithZeroBeneficiaryAddress() public {
@@ -131,7 +133,7 @@ contract TestamentTest is Test {
         });
 
         vm.expectRevert(Testament.BeneficiaryAddressZero.selector);
-        new Testament(permit2, testator, executor, newEstates);
+        new Testament(PERMIT2, testator, executor, newEstates);
     }
 
     function testConstructorFailsWithBeneficiaryAsTestator() public {
@@ -148,7 +150,7 @@ contract TestamentTest is Test {
                 testator
             )
         );
-        new Testament(permit2, testator, executor, newEstates);
+        new Testament(PERMIT2, testator, executor, newEstates);
     }
 
     function testConstructorFailsWithZeroTokenAddress() public {
@@ -160,7 +162,7 @@ contract TestamentTest is Test {
         });
 
         vm.expectRevert(Testament.InvalidTokenAddress.selector);
-        new Testament(permit2, testator, executor, newEstates);
+        new Testament(PERMIT2, testator, executor, newEstates);
     }
 
     function testConstructorFailsWithZeroAmount() public {
@@ -172,7 +174,7 @@ contract TestamentTest is Test {
         });
 
         vm.expectRevert(Testament.AmountMustBeGreaterThanZero.selector);
-        new Testament(permit2, testator, executor, newEstates);
+        new Testament(PERMIT2, testator, executor, newEstates);
     }
 
     // View Functions Tests
@@ -226,7 +228,7 @@ contract TestamentTest is Test {
         });
 
         Testament largeTestament = new Testament(
-            permit2,
+            PERMIT2,
             testator,
             executor,
             largeEstates
@@ -252,7 +254,7 @@ contract TestamentTest is Test {
     function testEmptyEstatesArray() public {
         Testament.Estate[] memory emptyEstates = new Testament.Estate[](0);
         Testament emptyTestament = new Testament(
-            permit2,
+            PERMIT2,
             testator,
             executor,
             emptyEstates
@@ -275,7 +277,7 @@ contract TestamentTest is Test {
         });
 
         Testament sameTestament = new Testament(
-            permit2,
+            PERMIT2,
             testator,
             executor,
             sameEstates
@@ -301,7 +303,7 @@ contract TestamentTest is Test {
         });
 
         Testament sameTokenTestament = new Testament(
-            permit2,
+            PERMIT2,
             testator,
             executor,
             sameTokenEstates

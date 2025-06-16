@@ -3,176 +3,122 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import "src/Testament.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol";
 
-// Mock ERC20 token for testing
-contract MockERC20 is ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-}
-
-// Mock Permit2 contract for testing
-contract MockPermit2 {
-    mapping(address => mapping(uint256 => bool)) public usedNonces;
-
-    function permitTransferFrom(
-        ISignatureTransfer.PermitBatchTransferFrom memory permit,
-        ISignatureTransfer.SignatureTransferDetails[] calldata transferDetails,
-        address owner,
-        bytes calldata signature
-    ) external {
-        // Mark nonce as used
-        usedNonces[owner][permit.nonce] = true;
-
-        // Simulate the transfer
-        for (uint256 i = 0; i < permit.permitted.length; i++) {
-            IERC20(permit.permitted[i].token).transferFrom(
-                owner,
-                transferDetails[i].to,
-                transferDetails[i].requestedAmount
-            );
-        }
-    }
-
-    function permitTransferFrom(
-        ISignatureTransfer.PermitTransferFrom memory permit,
-        ISignatureTransfer.SignatureTransferDetails calldata transferDetails,
-        address owner,
-        bytes calldata signature
-    ) external {
-        // Implementation for single transfer
-        usedNonces[owner][permit.nonce] = true;
-        IERC20(permit.permitted.token).transferFrom(
-            owner,
-            transferDetails.to,
-            transferDetails.requestedAmount
-        );
-    }
-}
-
-contract TestamentTest is Test {
+contract TestamentIntegrationTest is Test {
     Testament public testament;
-    MockERC20 public token1;
-    MockERC20 public token2;
-    MockPermit2 public mockPermit2;
 
-    // Real Permit2 address for fork testing
-    address public constant REAL_PERMIT2 =
-        0x000000000022D473030F116dDEE9F6B43aC78BA3;
+    address public constant PERMIT2 =
+        address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    address public constant TESTATOR =
+        address(0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc);
+    address public constant EXECUTOR =
+        address(0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a);
 
-    address public testator = address(0x1);
-    address public executor = address(0x2);
-    address public beneficiary1 = address(0x3);
-    address public beneficiary2 = address(0x4);
+    address public constant BENEFICIARY0 =
+        address(0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c);
+    address public constant TOKEN0 =
+        address(0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d); // USDC
+    uint public constant AMOUNT0 = 1000; // USDC has 6 decimals
+
+    address public constant BENEFICIARY1 =
+        address(0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c);
+    address public constant TOKEN1 =
+        address(0xb1D4538B4571d411F07960EF2838Ce337FE1E80E); // LINK
+    uint public constant AMOUNT1 = 5000000; // LINK has 18 decimals
+
+    uint56 public constant NONCE = 640395789920456;
+    uint56 public constant DEADLINE = 1781609900;
+    bytes public constant PERMIT2_SIGNATURE =
+        hex"443f3a5846dbfed52b46479e7ea2ae9e5bf4471c2e220a8416b2e60d3d09d3bf66b4fc1597f0440ea31b6967ba82131eb2f4d8e71742fafa2bf2f2fc225387f41b";
 
     Testament.Estate[] public estates;
 
     event TestamentExecuted();
 
     function setUp() public {
-        // Deploy mock tokens
-        token1 = new MockERC20("Token1", "TK1");
-        token2 = new MockERC20("Token2", "TK2");
+        uint256 forkId = vm.createFork(
+            "https://sepolia-rollup.arbitrum.io/rpc"
+        );
+        vm.selectFork(forkId);
 
-        // Deploy mock Permit2
-        mockPermit2 = new MockPermit2();
+        require(block.chainid == 421614, "Must be on Arbitrum Sepolia");
 
-        // Setup estates
+        _verifyTokensExist();
+
         estates.push(
             Testament.Estate({
-                beneficiary: beneficiary1,
-                token: address(token1),
-                amount: 1000e18
+                beneficiary: BENEFICIARY0,
+                token: address(TOKEN0),
+                amount: AMOUNT0
             })
         );
         estates.push(
             Testament.Estate({
-                beneficiary: beneficiary2,
-                token: address(token2),
-                amount: 500e18
+                beneficiary: BENEFICIARY1,
+                token: address(TOKEN1),
+                amount: AMOUNT1
             })
         );
 
-        // Deploy testament with mock Permit2
-        testament = new Testament(
-            address(mockPermit2),
-            testator,
-            executor,
-            estates
-        );
+        testament = new Testament(PERMIT2, TESTATOR, EXECUTOR, estates);
 
-        // Mint tokens to testator
-        token1.mint(testator, 10000e18);
-        token2.mint(testator, 5000e18);
-
-        // Approve tokens for mock Permit2
-        vm.startPrank(testator);
-        token1.approve(address(mockPermit2), type(uint256).max);
-        token2.approve(address(mockPermit2), type(uint256).max);
+        vm.startPrank(TESTATOR);
+        IERC20(TOKEN0).approve(PERMIT2, type(uint256).max);
+        IERC20(TOKEN1).approve(PERMIT2, type(uint256).max);
         vm.stopPrank();
     }
 
-    // 整合測試 - 使用 Mock Permit2
-    function testSignatureTransferWithMockPermit2() public {
-        uint256 nonce = 1;
-        uint256 deadline = block.timestamp + 1000;
-        bytes memory signature = "mock_signature";
+    function _verifyTokensExist() internal view {
+        require(TOKEN0.code.length > 0, "USDC contract not found");
+        require(TOKEN1.code.length > 0, "LINK contract not found");
+        require(PERMIT2.code.length > 0, "Permit2 contract not found");
+    }
 
-        uint256 beneficiary1BalanceBefore = token1.balanceOf(beneficiary1);
-        uint256 beneficiary2BalanceBefore = token2.balanceOf(beneficiary2);
+    function testSignatureTransferWithArbitrumSepolia() public {
+        uint56 nonce = 640395789920456;
+        uint56 deadline = 1781609900;
+        bytes
+            memory permit2_signature = hex"443f3a5846dbfed52b46479e7ea2ae9e5bf4471c2e220a8416b2e60d3d09d3bf66b4fc1597f0440ea31b6967ba82131eb2f4d8e71742fafa2bf2f2fc225387f41b";
+
+        uint256 testatorUSDCBefore = IERC20(TOKEN0).balanceOf(TESTATOR);
+        uint256 testatorLINKBefore = IERC20(TOKEN1).balanceOf(TESTATOR);
+        uint256 beneficiary0USDCBefore = IERC20(TOKEN0).balanceOf(BENEFICIARY0);
+        uint256 beneficiary1LINKBefore = IERC20(TOKEN1).balanceOf(BENEFICIARY1);
+
+        console.log("Before execution:");
+        console.log("Testator USDC:", testatorUSDCBefore);
+        console.log("Testator LINK:", testatorLINKBefore);
+        console.log("Beneficiary0 USDC:", beneficiary0USDCBefore);
+        console.log("Beneficiary1 LINK:", beneficiary1LINKBefore);
+
+        assertFalse(testament.executed());
 
         vm.expectEmit(true, true, true, true);
         emit TestamentExecuted();
 
-        vm.prank(executor);
-        testament.signatureTransferToBeneficiaries(nonce, deadline, signature);
+        vm.prank(EXECUTOR);
+        testament.signatureTransferToBeneficiaries(
+            nonce,
+            deadline,
+            permit2_signature
+        );
 
+        assertEq(IERC20(TOKEN0).balanceOf(TESTATOR), testatorUSDCBefore - 1000);
         assertEq(
-            token1.balanceOf(beneficiary1),
-            beneficiary1BalanceBefore + 1000e18
+            IERC20(TOKEN1).balanceOf(TESTATOR),
+            testatorLINKBefore - 5000000
         );
         assertEq(
-            token2.balanceOf(beneficiary2),
-            beneficiary2BalanceBefore + 500e18
+            IERC20(TOKEN0).balanceOf(BENEFICIARY0),
+            beneficiary0USDCBefore + 1000
+        );
+        assertEq(
+            IERC20(TOKEN1).balanceOf(BENEFICIARY1),
+            beneficiary1LINKBefore + 5000000
         );
         assertTrue(testament.executed());
-    }
-
-    // Fork 測試 - 使用真實的 Permit2
-    function testForkWithRealPermit2() public {
-        // Fork mainnet
-        vm.createFork("https://ethereum.publicnode.com");
-
-        // Deploy new testament with real Permit2
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
-            amount: 1000e18
-        });
-
-        Testament realTestament = new Testament(
-            REAL_PERMIT2,
-            testator,
-            executor,
-            newEstates
-        );
-
-        // Mint tokens
-        token1.mint(testator, 10000e18);
-
-        // Approve real Permit2
-        vm.prank(testator);
-        token1.approve(REAL_PERMIT2, type(uint256).max);
-
-        // Test basic functionality (without actual signature execution)
-        assertEq(address(realTestament.permit2()), REAL_PERMIT2);
-        assertEq(realTestament.testator(), testator);
-        assertEq(realTestament.executor(), executor);
     }
 
     function testSignatureTransferFailsWhenAlreadyExecuted() public {
@@ -181,12 +127,12 @@ contract TestamentTest is Test {
         bytes memory signature = "mock_signature";
 
         // First execution (successful)
-        vm.prank(executor);
+        vm.prank(EXECUTOR);
         testament.signatureTransferToBeneficiaries(nonce, deadline, signature);
 
         // Second execution should fail
         vm.expectRevert(Testament.AlreadyExecuted.selector);
-        vm.prank(executor);
-        testament.signatureTransferToBeneficiaries(2, deadline, "signature2");
+        vm.prank(EXECUTOR);
+        testament.signatureTransferToBeneficiaries(nonce, deadline, signature);
     }
 }

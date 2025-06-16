@@ -4,7 +4,7 @@ pragma solidity ^0.8.21;
 import "forge-std/Test.sol";
 import "../../src/JSONCIDVerifier.sol";
 
-contract JSONCIDVerifierTest is Test {
+contract JSONCIDVerifierUnitTest is Test {
     JSONCIDVerifier public verifier;
 
     string constant JSON = '{"id":1}';

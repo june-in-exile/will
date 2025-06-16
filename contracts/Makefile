@@ -45,7 +45,7 @@ build:
 	@forge build
 
 test:
-	forge test --match-contract TestamentTest -vv
+	forge test --match-contract TestamentIntegrationTest -vv
 # @forge test --match-path "test/*" -vv
 
 # --------------- Conditional Deployment ----------------
