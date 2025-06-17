@@ -95,7 +95,7 @@ make upload-testament
 ```
 
 - **Updates**: The following `.env` variables are automatically updated:
-  - `TESTAMENT_BYTES`, `CID` (IPFS Content Identifier)
+  - `CID` (IPFS Content Identifier)
 
 ## Phase 2: Probation
 

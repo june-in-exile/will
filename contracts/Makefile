@@ -37,15 +37,13 @@ init: build test
 reset_address:
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS JSON_CID_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
 
-
-
 # ----------------- CICD Commands -----------------------
 
 build:
 	@forge build
 
 test:
-	forge test --match-contract TestamentIntegrationTest -vv
+	forge test --match-contract TestamentFactoryFuzzTest
 # @forge test --match-path "test/*" -vv
 
 # --------------- Conditional Deployment ----------------
@@ -198,7 +196,7 @@ predictTestament:
 uploadCID:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(TESTAMENT_BYTES) $(CID)
+		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
 
 notarizeCID:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
@@ -208,7 +206,7 @@ notarizeCID:
 createTestament:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"createTestament(uint[2],uint[2][2],uint[2],uint[1],bytes,string,address,(address,address,uint256)[],uint256)(address)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(TESTAMENT_BYTES) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
+		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
 	
 # ------------------- Verify Contract -------------------
 

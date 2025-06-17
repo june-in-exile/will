@@ -112,7 +112,7 @@ function getjsonData(): any {
  * @param jsonData - JSON data to encode
  * @returns Encoded data as Uint8Array
  */
-export function encode(jsonData: any): Uint8Array {
+function encode(jsonData: any): Uint8Array {
     return json.encode(jsonData);
 }
 
@@ -158,7 +158,7 @@ function showUsage(): void {
  * @param bytes - Uint8Array to convert
  * @returns Hex string representation (0x prefixed)
  */
-export function uint8ArrayToHex(bytes: Uint8Array): string {
+function uint8ArrayToHex(bytes: Uint8Array): string {
     return '0x' + Array.from(bytes)
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');

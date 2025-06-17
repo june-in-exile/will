@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.24;
 
 import "src/Testament.sol";
 import "src/Groth16Verifier.sol";
@@ -59,15 +59,14 @@ contract TestamentFactory {
         _;
     }
 
-    function _verifySignature(
-        address signer,
+    function verifyExecutorSignature(
         string calldata message,
         bytes memory signature
-    ) internal pure returns (bool) {
+    ) external view returns (bool) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address recoveredSigner = ethSignedMessageHash.recover(signature);
-        return recoveredSigner == signer;
+        return recoveredSigner == executor;
     }
 
     function testatorValidateTimes(
@@ -111,8 +110,15 @@ contract TestamentFactory {
         if (_testatorValidateTimes[_cid] == 0)
             revert CIDNotValidatedByTestator(_cid);
 
-        if (!_verifySignature(executor, _cid, _signature))
-            revert ExecutorSignatureInvalid();
+        bool isValidSignature;
+        try this.verifyExecutorSignature(_cid, _signature) returns (
+            bool result
+        ) {
+            isValidSignature = result;
+        } catch {
+            isValidSignature = false;
+        }
+        if (!isValidSignature) revert ExecutorSignatureInvalid();
 
         _executorValidateTimes[_cid] = block.timestamp;
         emit CIDNotarized(_cid, block.timestamp);
