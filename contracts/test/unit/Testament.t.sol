@@ -3,15 +3,8 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import "src/Testament.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "mock/MockContracts.sol";
 
-contract MockERC20 is ERC20 {
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
-
-    function mint(address to, uint256 amount) external {
-        _mint(to, amount);
-    }
-}
 
 contract TestamentUnitTest is Test {
     Testament public testament;

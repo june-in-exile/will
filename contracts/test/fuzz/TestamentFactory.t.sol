@@ -5,45 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "src/TestamentFactory.sol";
 import "src/Testament.sol";
-import "src/Groth16Verifier.sol";
-import "src/JSONCIDVerifier.sol";
-
-contract MockGroth16Verifier {
-    bool public shouldReturnTrue = true;
-
-    function setShouldReturnTrue(bool _shouldReturnTrue) external {
-        shouldReturnTrue = _shouldReturnTrue;
-    }
-
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[1] calldata
-    ) external view returns (bool) {
-        return shouldReturnTrue;
-    }
-}
-
-contract MockJSONCIDVerifier {
-    bool public shouldReturnTrue = true;
-    string public reason = "";
-
-    function setShouldReturnTrue(
-        bool _shouldReturnTrue,
-        string memory _reason
-    ) external {
-        shouldReturnTrue = _shouldReturnTrue;
-        reason = _reason;
-    }
-
-    function verifyCID(
-        string memory,
-        string memory
-    ) external view returns (bool, string memory) {
-        return (shouldReturnTrue, reason);
-    }
-}
+import "mock/MockContracts.sol";
 
 contract TestamentFactoryFuzzTest is Test {
     TestamentFactory public factory;
