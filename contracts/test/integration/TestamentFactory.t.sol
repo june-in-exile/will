@@ -63,34 +63,34 @@ contract TestamentFactoryIntegrationTest is Test {
     // ];
     // uint256[1] pubSignals = [uint256(0x21)];
 
-    address public executor;
-    uint256 public executorPrivateKey;
-    address public permit2 = makeAddr("permit2");
-    address public testator = makeAddr("testator");
+    address executor;
+    uint256 executorPrivateKey;
+    address permit2 = makeAddr("permit2");
+    address testator = makeAddr("testator");
 
-    address public beneficiary0 = makeAddr("beneficiary0");
-    address public token0 = makeAddr("token0");
-    uint256 public amount0 = 1000;
+    address beneficiary0 = makeAddr("beneficiary0");
+    address token0 = makeAddr("token0");
+    uint256 amount0 = 1000;
 
-    address public beneficiary1 = makeAddr("beneficiary1");
-    address public token1 = makeAddr("token1");
-    uint256 public amount1 = 2000;
+    address beneficiary1 = makeAddr("beneficiary1");
+    address token1 = makeAddr("token1");
+    uint256 amount1 = 2000;
 
-    address public beneficiary2 = makeAddr("beneficiary2");
-    address public token2 = makeAddr("token2");
-    uint256 public amount2 = 3000;
+    address beneficiary2 = makeAddr("beneficiary2");
+    address token2 = makeAddr("token2");
+    uint256 amount2 = 3000;
 
-    string public cid = "QmTest123";
-    string public testament = '{"beneficiaries": ["0x123"]}';
+    string cid = "QmTest123";
+    JSONCIDVerifier.JsonObject testamentJson;
 
-    uint256 public salt = 12345;
+    uint256 salt = 12345;
 
-    uint256[2] public pA = [1, 2];
-    uint256[2][2] public pB = [[3, 4], [5, 6]];
-    uint256[2] public pC = [7, 8];
-    uint256[1] public pubSignals = [9];
+    uint256[2] pA = [1, 2];
+    uint256[2][2] pB = [[3, 4], [5, 6]];
+    uint256[2] pC = [7, 8];
+    uint256[1] pubSignals = [9];
 
-    Testament.Estate[] public estates;
+    Testament.Estate[] estates;
 
     function setUp() public {
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
@@ -123,17 +123,28 @@ contract TestamentFactoryIntegrationTest is Test {
                 amount: amount1
             })
         );
+
+        string[] memory keys = new string[](1);
+        keys[0] = "salt";
+
+        string[] memory values = new string[](1);
+        values[0] = "12345";
+
+        testamentJson = JSONCIDVerifier.JsonObject({
+            keys: keys,
+            values: values
+        });
     }
 
     function test_FullWorkflow_UploadNotarizeCreate() public {
         // Step 1: Upload CID
-        mockJSONCIDVerifier.setShouldReturnTrue(true, "");
+        mockJSONCIDVerifier.setShouldReturnTrue(true);
         mockTestatorVerifier.setShouldReturnTrue(true);
 
         vm.expectEmit(true, true, false, true);
         emit TestamentFactory.CIDUploaded(cid, block.timestamp);
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testament, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         // Verify upload
         vm.prank(executor);
@@ -172,7 +183,7 @@ contract TestamentFactoryIntegrationTest is Test {
             pB,
             pC,
             pubSignals,
-            testament,
+            testamentJson,
             cid,
             testator,
             estates,
@@ -210,13 +221,13 @@ contract TestamentFactoryIntegrationTest is Test {
     }
 
     function test_WorkflowWithTimingConstraints() public {
-        mockJSONCIDVerifier.setShouldReturnTrue(true, "");
+        mockJSONCIDVerifier.setShouldReturnTrue(true);
         mockTestatorVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
 
         // Upload at time T
         uint256 startTime = block.timestamp;
-        factory.uploadCID(pA, pB, pC, pubSignals, testament, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         // Try to create testament without notarization - should fail
         vm.expectRevert(
@@ -230,7 +241,7 @@ contract TestamentFactoryIntegrationTest is Test {
             pB,
             pC,
             pubSignals,
-            testament,
+            testamentJson,
             cid,
             testator,
             estates,
@@ -252,7 +263,7 @@ contract TestamentFactoryIntegrationTest is Test {
             pB,
             pC,
             pubSignals,
-            testament,
+            testamentJson,
             cid,
             testator,
             estates,
@@ -268,7 +279,7 @@ contract TestamentFactoryIntegrationTest is Test {
             pB,
             pC,
             pubSignals,
-            testament,
+            testamentJson,
             cid,
             testator,
             estates,

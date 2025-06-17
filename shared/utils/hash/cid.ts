@@ -1,7 +1,6 @@
 import { CID } from 'multiformats/cid'
 import * as json from 'multiformats/codecs/json'
 import { sha256 } from 'multiformats/hashes/sha2'
-import { Digest } from 'multiformats/hashes/digest'
 import * as fs from 'fs';
 import chalk from 'chalk';
 
@@ -106,6 +105,7 @@ function getJsonData(): any {
         throw new Error('Nothing to be hashed');
     }
 }
+
 
 /**
  * Display usage information for the script

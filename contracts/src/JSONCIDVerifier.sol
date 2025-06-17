@@ -7,45 +7,126 @@ pragma solidity ^0.8.24;
  * @notice This contract verifies JSON against its IPFS CID v1 representation with json codec
  */
 contract JSONCIDVerifier {
-    constructor() {}
-
-    /**
-     * @dev Complete verification workflow
-     * @param json The JSON to verify
-     * @param cid Expected CID string
-     * @return success Whether verification succeeded
-     * @return message Result message
-     */
-    function verifyCID(
-        string memory json,
-        string memory cid
-    ) external pure returns (bool success, string memory message) {
-        string memory generatedCID = generateCIDString(json);
-
-        if (!stringEquals(generatedCID, cid)) {
-            return (false, "Generated CID does not match expected CID string");
-        }
-
-        return (true, "Verification successful");
+    error LengthMismatch(uint256 keyLength, uint256 valueLength);
+    error EmptyJSONObject();
+    struct JsonObject {
+        string[] keys;
+        string[] values;
     }
 
-    /**
-     * @dev Generate CID string for given JSON data
-     * @param json The JSON data to generate CID for
-     * @return Generated CID string
-     */
+    enum JsonValueType {
+        STRING,
+        NUMBER,
+        BOOLEAN,
+        NULL
+    }
+
+    struct JsonValue {
+        string value;
+        JsonValueType valueType;
+    }
+
+    struct TypedJsonObject {
+        string[] keys;
+        JsonValue[] values;
+    }
+
+    constructor() {}
+
+    function verifyCID(
+        JsonObject memory jsonObj,
+        string memory cid
+    ) external pure returns (bool) {
+        return stringEquals(generateCIDString(jsonObj), cid);
+    }
+
     function generateCIDString(
-        string memory json
+        JsonObject memory jsonObj
     ) public pure returns (string memory) {
+        string memory json = buildStandardizedJson(jsonObj);
         bytes memory jsonBytes = getJsonBytes(json);
         bytes memory multihash = getMultihash(jsonBytes);
         bytes memory cidBytes = getCIDBytes(multihash);
         return getCIDString(cidBytes);
     }
 
-    // =============================================================================
-    // UTILITY FUNCTIONS
-    // =============================================================================
+    function verifyCID(
+        TypedJsonObject memory jsonObj,
+        string memory cid
+    ) external pure returns (bool) {
+        return stringEquals(generateCIDString(jsonObj), cid);
+    }
+
+    function generateCIDString(
+        TypedJsonObject memory jsonObj
+    ) public pure returns (string memory) {
+        string memory json = buildStandardizedJson(jsonObj);
+        bytes memory jsonBytes = getJsonBytes(json);
+        bytes memory multihash = getMultihash(jsonBytes);
+        bytes memory cidBytes = getCIDBytes(multihash);
+        return getCIDString(cidBytes);
+    }
+
+    function buildStandardizedJson(
+        JsonObject memory jsonObj
+    ) public pure returns (string memory) {
+        if (jsonObj.keys.length != jsonObj.values.length)
+            revert LengthMismatch(jsonObj.keys.length, jsonObj.values.length);
+        if (jsonObj.keys.length == 0) revert EmptyJSONObject();
+
+        string memory json = "{";
+
+        for (uint256 i = 0; i < jsonObj.keys.length; i++) {
+            if (i > 0) {
+                json = string.concat(json, ",");
+            }
+
+            json = string.concat(
+                json,
+                '"',
+                jsonObj.keys[i],
+                '":"',
+                jsonObj.values[i],
+                '"'
+            );
+        }
+
+        json = string.concat(json, "}");
+        return json;
+    }
+
+    function buildStandardizedJson(
+        TypedJsonObject memory jsonObj
+    ) public pure returns (string memory) {
+        if (jsonObj.keys.length != jsonObj.values.length)
+            revert LengthMismatch(jsonObj.keys.length, jsonObj.values.length);
+        if (jsonObj.keys.length == 0) revert EmptyJSONObject();
+
+        string memory json = "{";
+
+        for (uint256 i = 0; i < jsonObj.keys.length; i++) {
+            if (i > 0) {
+                json = string.concat(json, ",");
+            }
+
+            json = string.concat(json, '"', jsonObj.keys[i], '":');
+
+            JsonValue memory val = jsonObj.values[i];
+
+            if (val.valueType == JsonValueType.STRING) {
+                json = string.concat(json, '"', val.value, '"');
+            } else if (val.valueType == JsonValueType.NUMBER) {
+                json = string.concat(json, val.value);
+            } else if (val.valueType == JsonValueType.BOOLEAN) {
+                json = string.concat(json, val.value); // "true" or "false"
+            } else if (val.valueType == JsonValueType.NULL) {
+                json = string.concat(json, "null");
+            }
+        }
+
+        json = string.concat(json, "}");
+        return json;
+    }
 
     function getJsonBytes(
         string memory json
@@ -87,11 +168,6 @@ contract JSONCIDVerifier {
         return result;
     }
 
-    /**
-     * @dev Convert CID bytes to base32 string
-     * @param cidBytes Binary CID representation
-     * @return Base32 encoded CID string
-     */
     function getCIDString(
         bytes memory cidBytes
     ) public pure returns (string memory) {
@@ -112,16 +188,9 @@ contract JSONCIDVerifier {
         require(cidBytes[3] == 0x12, "Not SHA-256 hash");
         require(cidBytes[4] == 0x20, "Invalid hash length");
 
-        // Perform base32 encoding
         return encodeBase32(cidBytes);
     }
 
-    /**
-     * @dev Base32 encoding implementation
-     * @dev Uses IPFS standard base32 alphabet: abcdefghijklmnopqrstuvwxyz234567
-     * @param data Data to encode
-     * @return Base32 encoded string with multibase prefix
-     */
     function encodeBase32(
         bytes memory data
     ) internal pure returns (string memory) {

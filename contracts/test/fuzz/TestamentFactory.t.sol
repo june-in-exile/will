@@ -8,13 +8,15 @@ import "src/Testament.sol";
 import "mock/MockContracts.sol";
 
 contract TestamentFactoryFuzzTest is Test {
-    TestamentFactory public factory;
-    MockGroth16Verifier public mockTestatorVerifier;
-    MockGroth16Verifier public mockDecryptionVerifier;
-    MockJSONCIDVerifier public mockJSONCIDVerifier;
+    TestamentFactory factory;
+    MockGroth16Verifier mockTestatorVerifier;
+    MockGroth16Verifier mockDecryptionVerifier;
+    MockJSONCIDVerifier mockJSONCIDVerifier;
 
-    address public executor = makeAddr("executor");
-    address public permit2 = makeAddr("permit2");
+    address executor = makeAddr("executor");
+    address permit2 = makeAddr("permit2");
+
+    JSONCIDVerifier.JsonObject testamentJson;
 
     function setUp() public {
         mockTestatorVerifier = new MockGroth16Verifier();
@@ -28,6 +30,17 @@ contract TestamentFactoryFuzzTest is Test {
             executor,
             permit2
         );
+
+        string[] memory keys = new string[](1);
+        keys[0] = "salt";
+
+        string[] memory values = new string[](1);
+        values[0] = "12345";
+
+        testamentJson = JSONCIDVerifier.JsonObject({
+            keys: keys,
+            values: values
+        });
     }
 
     function testFuzz_PredictTestament_DeterministicOutput(
@@ -87,7 +100,7 @@ contract TestamentFactoryFuzzTest is Test {
         vm.assume(bytes(cid).length > 0);
         vm.assume(invalidSignature.length > 0);
 
-        mockJSONCIDVerifier.setShouldReturnTrue(true, "");
+        mockJSONCIDVerifier.setShouldReturnTrue(true);
         mockTestatorVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
@@ -98,7 +111,7 @@ contract TestamentFactoryFuzzTest is Test {
         uint256[2] memory pC = [uint256(7), uint256(8)];
         uint256[1] memory pubSignals = [uint256(9)];
 
-        factory.uploadCID(pA, pB, pC, pubSignals, "test", cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         vm.expectRevert(TestamentFactory.ExecutorSignatureInvalid.selector);
         factory.notarizeCID(cid, invalidSignature);

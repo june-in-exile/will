@@ -1,55 +1,155 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.24;
 
 /**
  * @title IJSONCIDVerifier
- * @dev Interface for the JSONCIDVerifier contract
+ * @dev Interface for verifying that JSON corresponds to its IPFS CID using json codec
  */
 interface IJSONCIDVerifier {
-    /**
-     * @dev Complete verification workflow
-     * @param json The JSON content to verify
-     * @param cid Expected CID string
-     * @return success Whether verification succeeded
-     * @return message Result message
-     */
-    function verifyCID(
-        string memory json,
-        string memory cid
-    ) external pure returns (bool success, string memory message);
+    // =============================================================================
+    // ERRORS
+    // =============================================================================
+
+    error LengthMismatch(uint256 keyLength, uint256 valueLength);
+    error EmptyJSONObject();
+
+    // =============================================================================
+    // STRUCTS AND TYPES
+    // =============================================================================
 
     /**
-     * @dev Generate CID string for given JSON data
-     * @param json The JSON data to generate CID for
+     * @dev Represents a JSON object as key-value pairs
+     */
+    struct JsonObject {
+        string[] keys;
+        string[] values;
+    }
+
+    /**
+     * @dev Represents different types of JSON values
+     */
+    enum JsonValueType {
+        STRING,
+        NUMBER,
+        BOOLEAN,
+        NULL
+    }
+
+    /**
+     * @dev Enhanced JSON value with type information
+     */
+    struct JsonValue {
+        string value;
+        JsonValueType valueType;
+    }
+
+    /**
+     * @dev Enhanced JSON object with typed values
+     */
+    struct TypedJsonObject {
+        string[] keys;
+        JsonValue[] values;
+    }
+
+    // =============================================================================
+    // MAIN VERIFICATION FUNCTIONS
+    // =============================================================================
+
+    /**
+     * @dev Complete verification workflow for simple JSON object
+     * @param jsonObj The JSON object to verify (all values treated as strings)
+     * @param cid Expected CID string
+     * @return success Whether verification succeeded
+     */
+    function verifyCID(
+        JsonObject memory jsonObj,
+        string memory cid
+    ) external pure returns (bool success);
+
+    /**
+     * @dev Complete verification workflow for typed JSON object
+     * @param jsonObj The typed JSON object to verify
+     * @param cid Expected CID string
+     * @return success Whether verification succeeded
+     */
+    function verifyCID(
+        TypedJsonObject memory jsonObj,
+        string memory cid
+    ) external pure returns (bool success);
+
+    // =============================================================================
+    // CID GENERATION FUNCTIONS
+    // =============================================================================
+
+    /**
+     * @dev Generate CID string for given JSON object
+     * @param jsonObj The JSON object to generate CID for
      * @return Generated CID string
      */
     function generateCIDString(
-        string memory json
+        JsonObject memory jsonObj
     ) external pure returns (string memory);
 
     /**
-     * @dev Convert string to bytes
-     * @param json The JSON string to convert
-     * @return Bytes representation of the string
+     * @dev Generate CID string for given typed JSON object
+     * @param jsonObj The typed JSON object to generate CID for
+     * @return Generated CID string
      */
-    function getBytes(string memory json) external pure returns (bytes memory);
+    function generateCIDString(
+        TypedJsonObject memory jsonObj
+    ) external pure returns (string memory);
+
+    // =============================================================================
+    // JSON BUILDING FUNCTIONS
+    // =============================================================================
 
     /**
-     * @dev Generate multihash for content
-     * @param contentBytes The content bytes to hash
-     * @return Multihash bytes
+     * @dev Build standardized JSON string from JsonObject
+     * @param jsonObj The JSON object structure
+     * @return Standardized JSON string (no spaces, sorted keys)
      */
-    function getContentMultihash(
-        bytes memory contentBytes
+    function buildStandardizedJson(
+        JsonObject memory jsonObj
+    ) external pure returns (string memory);
+
+    /**
+     * @dev Build standardized JSON string from TypedJsonObject
+     * @param jsonObj The typed JSON object structure
+     * @return Standardized JSON string with proper typing
+     */
+    function buildStandardizedJson(
+        TypedJsonObject memory jsonObj
+    ) external pure returns (string memory);
+
+    // =============================================================================
+    // UTILITY FUNCTIONS
+    // =============================================================================
+
+    /**
+     * @dev Convert JSON string to bytes
+     * @param json The JSON string
+     * @return JSON as bytes
+     */
+    function getJsonBytes(
+        string memory json
     ) external pure returns (bytes memory);
 
     /**
-     * @dev Generate CID bytes from content hash
-     * @param contentHash The content multihash
+     * @dev Generate multihash from JSON bytes
+     * @param jsonBytes The JSON bytes
+     * @return Multihash bytes
+     */
+    function getMultihash(
+        bytes memory jsonBytes
+    ) external pure returns (bytes memory);
+
+    /**
+     * @dev Generate CID bytes from multihash
+     * @param multihash The multihash bytes
      * @return CID bytes
      */
     function getCIDBytes(
-        bytes memory contentHash
+        bytes memory multihash
     ) external pure returns (bytes memory);
 
     /**
@@ -65,7 +165,7 @@ interface IJSONCIDVerifier {
      * @dev Compare two strings for equality
      * @param a First string
      * @param b Second string
-     * @return True if strings are equal
+     * @return Whether strings are equal
      */
     function stringEquals(
         string memory a,

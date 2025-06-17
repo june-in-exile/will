@@ -1,22 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "src/JSONCIDVerifier.sol";
+
 contract MockJSONCIDVerifier {
     bool public shouldReturnTrue = true;
-    string public reason = "";
+    bool public shouldRevert = false;
 
-    function setShouldReturnTrue(
-        bool _shouldReturnTrue,
-        string memory _reason
-    ) external {
+    function setShouldReturnTrue(bool _shouldReturnTrue) external {
         shouldReturnTrue = _shouldReturnTrue;
-        reason = _reason;
+    }
+
+    function setShouldRevert(bool _shouldRevert) external {
+        shouldRevert = _shouldRevert;
     }
 
     function verifyCID(
-        string memory,
+        JSONCIDVerifier.JsonObject memory,
         string memory
-    ) external view returns (bool, string memory) {
-        return (shouldReturnTrue, reason);
+    ) external view returns (bool) {
+        if (shouldRevert) {
+            revert("MockJSONCIDVerifier: verifyCID reverted");
+        }
+
+        return shouldReturnTrue;
+    }
+
+    function verifyCID(
+        JSONCIDVerifier.TypedJsonObject memory,
+        string memory
+    ) external view returns (bool) {
+        if (shouldRevert) {
+            revert("MockJSONCIDVerifier: verifyCIDTyped reverted");
+        }
+
+        return shouldReturnTrue;
     }
 }

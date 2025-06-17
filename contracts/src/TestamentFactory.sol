@@ -30,7 +30,7 @@ contract TestamentFactory {
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
-    error JSONCIDInvalid(string cid, string reason);
+    error JSONCIDInvalid(string cid);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
@@ -86,15 +86,12 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        string memory _testament,
+        JSONCIDVerifier.JsonObject memory _testament,
         string calldata _cid
     ) external {
-        (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
-            _testament,
-            _cid
-        );
+        bool isValid = jsonCidVerifier.verifyCID(_testament, _cid);
 
-        if (!isValid) revert JSONCIDInvalid(_cid, reason);
+        if (!isValid) revert JSONCIDInvalid(_cid);
 
         if (!testatorVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
@@ -151,7 +148,7 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        string memory _testament,
+        JSONCIDVerifier.JsonObject memory _testament,
         string calldata _cid,
         address _testator,
         Testament.Estate[] calldata _estates,
@@ -162,12 +159,9 @@ contract TestamentFactory {
         if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid])
             revert CIDNotValidatedByExecutor(_cid);
 
-        (bool isValid, string memory reason) = jsonCidVerifier.verifyCID(
-            _testament,
-            _cid
-        );
+        bool isValid = jsonCidVerifier.verifyCID(_testament, _cid);
 
-        if (!isValid) revert JSONCIDInvalid(_cid, reason);
+        if (!isValid) revert JSONCIDInvalid(_cid);
         if (!decryptionVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (testaments[_cid] != address(0))
