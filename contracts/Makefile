@@ -43,7 +43,7 @@ build:
 	@forge build
 
 test:
-	forge test --match-contract TestamentFactoryUnitTest
+	forge test --match-contract UnitTest
 # forge test --match-contract TestamentFactoryIntegrationTest --match-test test_WorkflowWithTimingConstraints
 # @forge test --match-path "test/*" -vv
 

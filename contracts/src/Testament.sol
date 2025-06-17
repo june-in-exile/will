@@ -7,7 +7,6 @@ import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol"
 using SafeERC20 for IERC20;
 
 contract Testament {
-    // IPermit2 public immutable permit2 = IPermit2(0x000000000022D473030F116dDEE9F6B43aC78BA3);
     IPermit2 public immutable permit2;
 
     struct Estate {
@@ -28,13 +27,7 @@ contract Testament {
 
     error OnlyExecutor();
     error AlreadyExecuted();
-    error InvalidNonce();
-    error DeadlineExpired();
-    error InsufficientBalance(
-        address token,
-        uint256 required,
-        uint256 available
-    );
+    
     error Permit2AddressZero();
     error TestatorAddressZero();
     error ExecutorAddressZero();
@@ -80,20 +73,6 @@ contract Testament {
     ) external {
         if (msg.sender != executor) revert OnlyExecutor();
         if (executed) revert AlreadyExecuted();
-        if (nonce == 0) revert InvalidNonce();
-        if (deadline <= block.timestamp) revert DeadlineExpired();
-
-        // FIX: should add up the balances of the same token first
-        for (uint256 i = 0; i < estates.length; i++) {
-            uint256 balance = IERC20(estates[i].token).balanceOf(testator);
-            if (balance < estates[i].amount) {
-                revert InsufficientBalance(
-                    estates[i].token,
-                    estates[i].amount,
-                    balance
-                );
-            }
-        }
 
         ISignatureTransfer.TokenPermissions[]
             memory permitted = new ISignatureTransfer.TokenPermissions[](

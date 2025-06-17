@@ -7,16 +7,15 @@ import "src/Testament.sol";
 contract TestamentFuzzTest is Test {
     Testament public testament;
 
-    address public PERMIT2 =
-        address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
-    address public testator = address(0x1);
-    address public executor = address(0x2);
+    address public permit2 = makeAddr("permit2");
+    address public executor = makeAddr("executor");
+    address public testator = makeAddr("testator");
 
     Testament.Estate[] public estates;
 
     function setUp() public {
         // Deploy testament with mock Permit2
-        testament = new Testament(PERMIT2, testator, executor, estates);
+        testament = new Testament(permit2, testator, executor, estates);
     }
 
     function testFuzzConstructorValidEstates(
@@ -41,13 +40,13 @@ contract TestamentFuzzTest is Test {
         });
 
         Testament newTestament = new Testament(
-            PERMIT2,
+            permit2,
             _testator,
             _executor,
             newEstates
         );
 
-        assertEq(address(newTestament.permit2()), PERMIT2);
+        assertEq(address(newTestament.permit2()), permit2);
         assertEq(newTestament.testator(), _testator);
         assertEq(newTestament.executor(), _executor);
         assertEq(newTestament.getAllEstates().length, 1);

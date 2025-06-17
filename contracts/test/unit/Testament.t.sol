@@ -5,64 +5,70 @@ import "forge-std/Test.sol";
 import "src/Testament.sol";
 import "mock/MockContracts.sol";
 
-
 contract TestamentUnitTest is Test {
     Testament public testament;
+    MockERC20 public token0;
     MockERC20 public token1;
-    MockERC20 public token2;
 
-    address public PERMIT2 =
-        address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    MockPermit2 mockPermit2;
 
-    address public testator = address(0x1);
-    address public executor = address(0x2);
-    address public beneficiary1 = address(0x3);
-    address public beneficiary2 = address(0x4);
+    address public testator = makeAddr("testator");
+    address public executor = makeAddr("executor");
+    address public beneficiary0 = makeAddr("beneficiary0");
+    address public beneficiary1 = makeAddr("beneficiary1");
 
     Testament.Estate[] public estates;
 
     event TestamentExecuted();
 
     function setUp() public {
+        // Deploy mock permit2
+        mockPermit2 = new MockPermit2();
+
         // Deploy mock tokens
-        token1 = new MockERC20("Token1", "TK1");
-        token2 = new MockERC20("Token2", "TK2");
+        token0 = new MockERC20("Token1", "TK1");
+        token1 = new MockERC20("Token2", "TK2");
 
         // Setup estates
         estates.push(
             Testament.Estate({
-                beneficiary: beneficiary1,
-                token: address(token1),
+                beneficiary: beneficiary0,
+                token: address(token0),
                 amount: 1000e18
             })
         );
         estates.push(
             Testament.Estate({
-                beneficiary: beneficiary2,
-                token: address(token2),
+                beneficiary: beneficiary1,
+                token: address(token1),
                 amount: 500e18
             })
         );
 
         // Deploy testament with mock Permit2
-        testament = new Testament(PERMIT2, testator, executor, estates);
+        testament = new Testament(
+            address(mockPermit2),
+            testator,
+            executor,
+            estates
+        );
 
         // Mint tokens to testator
-        token1.mint(testator, 10000e18);
-        token2.mint(testator, 5000e18);
+        token0.mint(testator, 10000e18);
+        token1.mint(testator, 5000e18);
     }
 
     // Constructor Tests
     function testConstructorSuccess() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
 
         Testament newTestament = new Testament(
-            PERMIT2,
+            address(mockPermit2),
             testator,
             executor,
             newEstates
@@ -70,21 +76,21 @@ contract TestamentUnitTest is Test {
 
         assertEq(newTestament.testator(), testator);
         assertEq(newTestament.executor(), executor);
-        assertEq(address(newTestament.permit2()), PERMIT2);
+        assertEq(address(newTestament.permit2()), address(mockPermit2));
 
         Testament.Estate[] memory retrievedEstates = newTestament
             .getAllEstates();
         assertEq(retrievedEstates.length, 1);
-        assertEq(retrievedEstates[0].beneficiary, beneficiary1);
-        assertEq(retrievedEstates[0].token, address(token1));
+        assertEq(retrievedEstates[0].beneficiary, beneficiary0);
+        assertEq(retrievedEstates[0].token, address(token0));
         assertEq(retrievedEstates[0].amount, 100e18);
     }
 
     function testConstructorFailsWithZeroPermit2Address() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
 
@@ -95,44 +101,44 @@ contract TestamentUnitTest is Test {
     function testConstructorFailsWithZeroTestatorAddress() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
 
         vm.expectRevert(Testament.TestatorAddressZero.selector);
-        new Testament(PERMIT2, address(0), executor, newEstates);
+        new Testament(address(mockPermit2), address(0), executor, newEstates);
     }
 
     function testConstructorFailsWithZeroExecutorAddress() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
 
         vm.expectRevert(Testament.ExecutorAddressZero.selector);
-        new Testament(PERMIT2, testator, address(0), newEstates);
+        new Testament(address(mockPermit2), testator, address(0), newEstates);
     }
 
     function testConstructorFailsWithZeroBeneficiaryAddress() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
             beneficiary: address(0),
-            token: address(token1),
+            token: address(token0),
             amount: 100e18
         });
 
         vm.expectRevert(Testament.BeneficiaryAddressZero.selector);
-        new Testament(PERMIT2, testator, executor, newEstates);
+        new Testament(address(mockPermit2), testator, executor, newEstates);
     }
 
     function testConstructorFailsWithBeneficiaryAsTestator() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
             beneficiary: testator,
-            token: address(token1),
+            token: address(token0),
             amount: 100e18
         });
 
@@ -142,31 +148,31 @@ contract TestamentUnitTest is Test {
                 testator
             )
         );
-        new Testament(PERMIT2, testator, executor, newEstates);
+        new Testament(address(mockPermit2), testator, executor, newEstates);
     }
 
     function testConstructorFailsWithZeroTokenAddress() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
+            beneficiary: beneficiary0,
             token: address(0),
             amount: 100e18
         });
 
         vm.expectRevert(Testament.InvalidTokenAddress.selector);
-        new Testament(PERMIT2, testator, executor, newEstates);
+        new Testament(address(mockPermit2), testator, executor, newEstates);
     }
 
     function testConstructorFailsWithZeroAmount() public {
         Testament.Estate[] memory newEstates = new Testament.Estate[](1);
         newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 0
         });
 
         vm.expectRevert(Testament.AmountMustBeGreaterThanZero.selector);
-        new Testament(PERMIT2, testator, executor, newEstates);
+        new Testament(address(mockPermit2), testator, executor, newEstates);
     }
 
     // View Functions Tests
@@ -175,12 +181,12 @@ contract TestamentUnitTest is Test {
 
         assertEq(retrievedEstates.length, 2);
 
-        assertEq(retrievedEstates[0].beneficiary, beneficiary1);
-        assertEq(retrievedEstates[0].token, address(token1));
+        assertEq(retrievedEstates[0].beneficiary, beneficiary0);
+        assertEq(retrievedEstates[0].token, address(token0));
         assertEq(retrievedEstates[0].amount, 1000e18);
 
-        assertEq(retrievedEstates[1].beneficiary, beneficiary2);
-        assertEq(retrievedEstates[1].token, address(token2));
+        assertEq(retrievedEstates[1].beneficiary, beneficiary1);
+        assertEq(retrievedEstates[1].token, address(token1));
         assertEq(retrievedEstates[1].amount, 500e18);
     }
 
@@ -188,57 +194,81 @@ contract TestamentUnitTest is Test {
         (address beneficiary, address token, uint256 amount) = testament
             .estates(0);
 
-        assertEq(beneficiary, beneficiary1);
-        assertEq(token, address(token1));
+        assertEq(beneficiary, beneficiary0);
+        assertEq(token, address(token0));
         assertEq(amount, 1000e18);
     }
 
-    // Transfer Failure Tests
-    function testSignatureTransferFailsWithZeroNonce() public {
-        vm.expectRevert(Testament.InvalidNonce.selector);
+    // Transfer Tests
+    function testSignatureTransferSuccess() public {
+        assertFalse(testament.executed());
+
+        vm.expectEmit(true, false, false, false);
+        emit Testament.TestamentExecuted();
+
         vm.prank(executor);
         testament.signatureTransferToBeneficiaries(
             0,
             block.timestamp + 1000,
-            ""
+            "signature"
         );
+
+        assertTrue(testament.executed());
     }
 
     function testSignatureTransferFailsWithExpiredDeadline() public {
-        vm.expectRevert(Testament.DeadlineExpired.selector);
-        vm.prank(executor);
-        testament.signatureTransferToBeneficiaries(1, block.timestamp - 1, "");
-    }
-
-    function testSignatureTransferFailsWithInsufficientBalance() public {
-        // Create a testament with amount greater than balance
-        Testament.Estate[] memory largeEstates = new Testament.Estate[](1);
-        largeEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
-            amount: 20000e18 // More than the 10000e18 minted
-        });
-
-        Testament largeTestament = new Testament(
-            PERMIT2,
-            testator,
-            executor,
-            largeEstates
-        );
-
         vm.expectRevert(
             abi.encodeWithSelector(
-                Testament.InsufficientBalance.selector,
-                address(token1),
-                20000e18,
-                10000e18
+                MockPermit2.SignatureExpired.selector,
+                block.timestamp - 1
             )
         );
         vm.prank(executor);
-        largeTestament.signatureTransferToBeneficiaries(
+        testament.signatureTransferToBeneficiaries(
             1,
+            block.timestamp - 1,
+            "signature"
+        );
+    }
+
+    function testSignatureTransferFailsAlreadyExecuted() public {
+        vm.prank(executor);
+        testament.signatureTransferToBeneficiaries(
+            0,
             block.timestamp + 1000,
-            ""
+            "signature0"
+        );
+
+        vm.expectRevert(Testament.AlreadyExecuted.selector);
+        vm.prank(executor);
+        testament.signatureTransferToBeneficiaries(
+            0,
+            block.timestamp + 1000,
+            "signature0"
+        );
+    }
+
+    function testSignatureTransferFailsInvalidSignature() public {
+        mockPermit2.setShouldRejectSignature(true);
+
+        vm.expectRevert("MockPermit2: Invalid signature");
+        vm.prank(executor);
+        testament.signatureTransferToBeneficiaries(
+            0,
+            block.timestamp + 1000,
+            "signature"
+        );
+    }
+
+    function testSignatureTransferFailsWithTransferReverted() public {
+        mockPermit2.setShouldTransferRevert(true);
+
+        vm.expectRevert("MockPermit2: Transfer reverted");
+        vm.prank(executor);
+        testament.signatureTransferToBeneficiaries(
+            0,
+            block.timestamp + 1000,
+            "signature"
         );
     }
 
@@ -246,7 +276,7 @@ contract TestamentUnitTest is Test {
     function testEmptyEstatesArray() public {
         Testament.Estate[] memory emptyEstates = new Testament.Estate[](0);
         Testament emptyTestament = new Testament(
-            PERMIT2,
+            address(mockPermit2),
             testator,
             executor,
             emptyEstates
@@ -258,18 +288,18 @@ contract TestamentUnitTest is Test {
     function testMultipleEstatesSameBeneficiary() public {
         Testament.Estate[] memory sameEstates = new Testament.Estate[](2);
         sameEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
         sameEstates[1] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token2),
+            beneficiary: beneficiary0,
+            token: address(token1),
             amount: 200e18
         });
 
         Testament sameTestament = new Testament(
-            PERMIT2,
+            address(mockPermit2),
             testator,
             executor,
             sameEstates
@@ -277,25 +307,25 @@ contract TestamentUnitTest is Test {
         Testament.Estate[] memory retrieved = sameTestament.getAllEstates();
 
         assertEq(retrieved.length, 2);
-        assertEq(retrieved[0].beneficiary, beneficiary1);
-        assertEq(retrieved[1].beneficiary, beneficiary1);
+        assertEq(retrieved[0].beneficiary, beneficiary0);
+        assertEq(retrieved[1].beneficiary, beneficiary0);
     }
 
     function testMultipleEstatesSameToken() public {
         Testament.Estate[] memory sameTokenEstates = new Testament.Estate[](2);
         sameTokenEstates[0] = Testament.Estate({
-            beneficiary: beneficiary1,
-            token: address(token1),
+            beneficiary: beneficiary0,
+            token: address(token0),
             amount: 100e18
         });
         sameTokenEstates[1] = Testament.Estate({
-            beneficiary: beneficiary2,
-            token: address(token1),
+            beneficiary: beneficiary1,
+            token: address(token0),
             amount: 200e18
         });
 
         Testament sameTokenTestament = new Testament(
-            PERMIT2,
+            address(mockPermit2),
             testator,
             executor,
             sameTokenEstates
@@ -304,7 +334,7 @@ contract TestamentUnitTest is Test {
             .getAllEstates();
 
         assertEq(retrieved.length, 2);
-        assertEq(retrieved[0].token, address(token1));
-        assertEq(retrieved[1].token, address(token1));
+        assertEq(retrieved[0].token, address(token0));
+        assertEq(retrieved[1].token, address(token0));
     }
 }

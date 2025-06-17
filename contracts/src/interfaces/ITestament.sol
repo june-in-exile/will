@@ -14,13 +14,6 @@ interface ITestament {
 
     error OnlyExecutor();
     error AlreadyExecuted();
-    error InvalidNonce();
-    error DeadlineExpired();
-    error InsufficientBalance(
-        address token,
-        uint256 required,
-        uint256 available
-    );
     error TestatorAddressZero();
     error ExecutorAddressZero();
     error BeneficiaryAddressZero();
