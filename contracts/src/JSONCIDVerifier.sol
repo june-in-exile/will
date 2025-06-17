@@ -3,15 +3,15 @@ pragma solidity ^0.8.24;
 
 /**
  * @title JSONCIDVerifier
- * @dev A contract for verifying that JSON content corresponds to its IPFS CID using json codec
- * @notice This contract verifies JSON content against its IPFS CID v1 representation with json codec
+ * @dev A contract for verifying that JSON corresponds to its IPFS CID using json codec
+ * @notice This contract verifies JSON against its IPFS CID v1 representation with json codec
  */
 contract JSONCIDVerifier {
     constructor() {}
 
     /**
      * @dev Complete verification workflow
-     * @param json The JSON content to verify
+     * @param json The JSON to verify
      * @param cid Expected CID string
      * @return success Whether verification succeeded
      * @return message Result message
@@ -37,9 +37,9 @@ contract JSONCIDVerifier {
     function generateCIDString(
         string memory json
     ) public pure returns (string memory) {
-        bytes memory contentBytes = getBytes(json);
-        bytes memory contentMultihash = getContentMultihash(contentBytes);
-        bytes memory cidBytes = getCIDBytes(contentMultihash);
+        bytes memory jsonBytes = getJsonBytes(json);
+        bytes memory multihash = getMultihash(jsonBytes);
+        bytes memory cidBytes = getCIDBytes(multihash);
         return getCIDString(cidBytes);
     }
 
@@ -47,14 +47,16 @@ contract JSONCIDVerifier {
     // UTILITY FUNCTIONS
     // =============================================================================
 
-    function getBytes(string memory json) public pure returns (bytes memory) {
+    function getJsonBytes(
+        string memory json
+    ) public pure returns (bytes memory) {
         return bytes(json);
     }
 
-    function getContentMultihash(
-        bytes memory contentBytes
+    function getMultihash(
+        bytes memory jsonBytes
     ) public pure returns (bytes memory) {
-        bytes32 rawHash = sha256(contentBytes);
+        bytes32 rawHash = sha256(jsonBytes);
         bytes memory multihash = new bytes(34); // 2 bytes prefix + 32 bytes hash
 
         multihash[0] = 0x12; // SHA-256 hash type
@@ -69,7 +71,7 @@ contract JSONCIDVerifier {
     }
 
     function getCIDBytes(
-        bytes memory contentHash
+        bytes memory multihash
     ) public pure returns (bytes memory) {
         bytes memory result = new bytes(37);
 
@@ -79,7 +81,7 @@ contract JSONCIDVerifier {
 
         // Copy hash value
         for (uint256 i = 0; i < 34; i++) {
-            result[3 + i] = contentHash[i];
+            result[3 + i] = multihash[i];
         }
 
         return result;

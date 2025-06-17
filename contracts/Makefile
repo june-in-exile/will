@@ -145,6 +145,19 @@ jsoncidverify_on_chain:
 		$(EXAMPLE_JSON) $(EXAMPLE_CID)
 	@echo "$(YELLOW)Expect:\ntrue\n\"Verification successful\"$(RESET)"
 
+getJsonBytes:
+	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+		"getJsonBytes(string)(bytes)" \
+		'{"id":1}'
+	@echo "$(YELLOW)Expect:0x7b226964223a317d$(RESET)"
+
+getMultihash:
+	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+		"getMultihash(bytes)(bytes)" \
+		0x7b226964223a317d
+	@echo "$(YELLOW)Expect:0x1220037c9214eef74cc3887f3a4f085b4e17d76280dafd273b0ee160c09c4ba1cfd4$(RESET)"
+
+
 # -------------------- Call Factory ---------------------
 
 # ----------------------- Read --------------------------

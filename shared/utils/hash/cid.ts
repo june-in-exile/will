@@ -96,7 +96,7 @@ function readJsonFromFile(path: string): unknown {
  * @returns JSON data object (from CLI or file)
  * @throws Error if file operations fail or arguments are invalid
  */
-function getjsonData(): any {
+function getJsonData(): any {
     const { data, path } = parseArgs();
     if (data) {
         return data;
@@ -105,34 +105,6 @@ function getjsonData(): any {
     } else {
         throw new Error('Nothing to be hashed');
     }
-}
-
-/**
- * Encode JSON data into Uint8Array using JSON codec
- * @param jsonData - JSON data to encode
- * @returns Encoded data as Uint8Array
- */
-function encode(jsonData: any): Uint8Array {
-    return json.encode(jsonData);
-}
-
-/**
- * Generate SHA-256 multihash digest from encoded bytes
- * @param bytes - Encoded data as Uint8Array to hash
- * @returns Promise resolving to SHA-256 digest
- */
-async function multihash(bytes: Uint8Array): Promise<Digest<18, number>> {
-    return await sha256.digest(bytes);
-}
-
-/**
- * Create a Content Identifier (CID) from a hash digest
- * Uses CIDv1 with JSON codec and the provided hash digest
- * @param digest - SHA-256 digest to create CID from
- * @returns CID object with version 1, JSON codec, and provided digest
- */
-function createCIDv1(digest: Digest<18, number>): CID<unknown, 512, number, 1> {
-    return CID.create(1, json.code, digest);
 }
 
 /**
@@ -179,16 +151,16 @@ async function main(): Promise<void> {
     try {
         console.log(chalk.cyan('=== Hashing JSON into CID ===\n'));
 
-        const jsonData = getjsonData();
-        const bytes = encode(jsonData);
-        const digest = await multihash(bytes);
-        const cid = createCIDv1(digest);
+        const jsonData = getJsonData();
+        const bytes = json.encode(jsonData);
+        const digest = await sha256.digest(bytes);
+        const cid = CID.create(1, json.code, digest);
 
         console.log(chalk.green.bold('\n✅ Process completed successfully!'));
         console.log(chalk.gray('Results:'), {
             json: jsonData,
-            contentBytes: uint8ArrayToHex(bytes),
-            contentMultiHash: uint8ArrayToHex(digest.bytes),
+            jsonBytes: uint8ArrayToHex(bytes),
+            multihash: uint8ArrayToHex(digest.bytes),
             cidBytes: uint8ArrayToHex(cid.bytes),
             cid: cid.toString()
         });
