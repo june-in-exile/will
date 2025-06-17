@@ -43,7 +43,7 @@ build:
 	@forge build
 
 test:
-	forge test --match-contract TestamentFactoryFuzzTest
+	forge test --match-contract TestamentFactoryUnitTest
 # @forge test --match-path "test/*" -vv
 
 # --------------- Conditional Deployment ----------------

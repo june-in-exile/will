@@ -1,6 +1,6 @@
-all: approve-permit predict-address generate-signature encrypt-testament upload-testament download-and-decrypt-testament download-and-decrypt-testament-local sign-cid
-
 .PHONY: all
+
+all: init phase1 phase2
 
 init:
 	@echo "Resetting environment variables..."
@@ -20,9 +20,8 @@ init:
 
 	@@echo "Initialization completed"
 
-phase1: approve-permit predict-address generate-signature encrypt-testament upload-testament
 
-phase2: download-and-decrypt-testament sign-cid
+phase1: approve-permit predict-address generate-signature encrypt-testament upload-testament
 
 approve-permit:
 	@pnpm exec tsx src/permit2/approveTokenPermit2.ts
@@ -38,6 +37,9 @@ encrypt-testament:
 
 upload-testament:
 	@pnpm exec tsx src/IPFS/upload.ts
+
+
+phase2: download-and-decrypt-testament sign-cid
 
 download-and-decrypt-testament:
 	@pnpm exec tsx src/IPFS/download.ts
@@ -61,6 +63,3 @@ hash-data:
 
 sign-cid:
 	@pnpm exec tsx src/signature/cid.ts
-
-
-	

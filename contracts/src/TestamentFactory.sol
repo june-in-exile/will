@@ -131,7 +131,7 @@ contract TestamentFactory {
     ) public view returns (address) {
         bytes memory bytecode = abi.encodePacked(
             type(Testament).creationCode,
-            abi.encode(_testator, executor, estates)
+            abi.encode(permit2, _testator, executor, estates)
         );
 
         bytes32 hash = keccak256(
