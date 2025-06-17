@@ -7,10 +7,6 @@ import "../../src/JSONCIDVerifier.sol";
 contract JSONCIDVerifierFuzzTest is Test {
     JSONCIDVerifier public verifier;
 
-    string constant JSON = '{"id":1}';
-    string constant CID =
-        "bagaaieraan6jefho65gmhcd7hjhqqw2oc7lwfag27uttwdxbmdajys5bz7ka";
-
     function setUp() public {
         verifier = new JSONCIDVerifier();
     }

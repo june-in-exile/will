@@ -22,14 +22,11 @@ contract TestamentUnitTest is Test {
     event TestamentExecuted();
 
     function setUp() public {
-        // Deploy mock permit2
         mockPermit2 = new MockPermit2();
 
-        // Deploy mock tokens
         token0 = new MockERC20("Token1", "TK1");
         token1 = new MockERC20("Token2", "TK2");
 
-        // Setup estates
         estates.push(
             Testament.Estate({
                 beneficiary: beneficiary0,
@@ -45,7 +42,6 @@ contract TestamentUnitTest is Test {
             })
         );
 
-        // Deploy testament with mock Permit2
         testament = new Testament(
             address(mockPermit2),
             testator,
@@ -53,7 +49,6 @@ contract TestamentUnitTest is Test {
             estates
         );
 
-        // Mint tokens to testator
         token0.mint(testator, 10000e18);
         token1.mint(testator, 5000e18);
     }
