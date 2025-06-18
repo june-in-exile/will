@@ -40,9 +40,9 @@ build:
 	@forge build
 
 test:	
-	forge test --match-contract TestamentFactoryFuzzTest
+# forge test --match-contract TestamentFactoryIntegrationTest -vv
+	@forge test --match-path "test/*" -vv
 # forge test --match-contract TestamentFactoryIntegrationTest --match-test test_WorkflowWithTimingConstraints
-# @forge test --match-path "test/*" -vv
 
 # --------------- Conditional Deployment ----------------
 

@@ -43,7 +43,7 @@ contract TestamentFactoryFuzzTest is Test {
         });
     }
 
-    function testFuzz_PredictTestament_DeterministicOutput(
+    function test_PredictTestament_DeterministicOutput(
         address testator,
         uint256 salt,
         address token,
@@ -67,7 +67,7 @@ contract TestamentFactoryFuzzTest is Test {
         assertEq(predicted1, predicted2);
     }
 
-    function testFuzz_PredictTestament_DifferentSalts(
+    function test_PredictTestament_DifferentSalts(
         address testator,
         uint256 salt1,
         uint256 salt2,
@@ -93,7 +93,7 @@ contract TestamentFactoryFuzzTest is Test {
         assertTrue(predicted1 != predicted2);
     }
 
-    function testFuzz_NotarizeCID_RevertOnInvalidSignature(
+    function test_NotarizeCID_RevertOnInvalidSignature(
         string calldata cid,
         bytes calldata invalidSignature
     ) public {
@@ -117,7 +117,7 @@ contract TestamentFactoryFuzzTest is Test {
         factory.notarizeCID(cid, invalidSignature);
     }
 
-    function testFuzz_OnlyAuthorizedModifier(
+    function test_OnlyAuthorizedModifier(
         address unauthorizedCaller,
         string calldata cid
     ) public {

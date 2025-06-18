@@ -40,27 +40,30 @@ contract JSONCIDVerifier {
         return stringEquals(generateCIDString(jsonObj), cid);
     }
 
+    function verifyCID(
+        TypedJsonObject memory typedJsonObj,
+        string memory cid
+    ) external pure returns (bool) {
+        return stringEquals(generateCIDString(typedJsonObj), cid);
+    }
+
     function generateCIDString(
         JsonObject memory jsonObj
     ) public pure returns (string memory) {
         string memory json = buildStandardizedJson(jsonObj);
-        bytes memory jsonBytes = getJsonBytes(json);
-        bytes memory multihash = getMultihash(jsonBytes);
-        bytes memory cidBytes = getCIDBytes(multihash);
-        return getCIDString(cidBytes);
-    }
-
-    function verifyCID(
-        TypedJsonObject memory jsonObj,
-        string memory cid
-    ) external pure returns (bool) {
-        return stringEquals(generateCIDString(jsonObj), cid);
+        return _generateCIDString(json);
     }
 
     function generateCIDString(
-        TypedJsonObject memory jsonObj
+        TypedJsonObject memory typedJsonObj
     ) public pure returns (string memory) {
-        string memory json = buildStandardizedJson(jsonObj);
+        string memory json = buildStandardizedJson(typedJsonObj);
+        return _generateCIDString(json);
+    }
+
+    function _generateCIDString(
+        string memory json
+    ) internal pure returns (string memory) {
         bytes memory jsonBytes = getJsonBytes(json);
         bytes memory multihash = getMultihash(jsonBytes);
         bytes memory cidBytes = getCIDBytes(multihash);
@@ -96,22 +99,25 @@ contract JSONCIDVerifier {
     }
 
     function buildStandardizedJson(
-        TypedJsonObject memory jsonObj
+        TypedJsonObject memory typedJsonObj
     ) public pure returns (string memory) {
-        if (jsonObj.keys.length != jsonObj.values.length)
-            revert LengthMismatch(jsonObj.keys.length, jsonObj.values.length);
-        if (jsonObj.keys.length == 0) revert EmptyJSONObject();
+        if (typedJsonObj.keys.length != typedJsonObj.values.length)
+            revert LengthMismatch(
+                typedJsonObj.keys.length,
+                typedJsonObj.values.length
+            );
+        if (typedJsonObj.keys.length == 0) revert EmptyJSONObject();
 
         string memory json = "{";
 
-        for (uint256 i = 0; i < jsonObj.keys.length; i++) {
+        for (uint256 i = 0; i < typedJsonObj.keys.length; i++) {
             if (i > 0) {
                 json = string.concat(json, ",");
             }
 
-            json = string.concat(json, '"', jsonObj.keys[i], '":');
+            json = string.concat(json, '"', typedJsonObj.keys[i], '":');
 
-            JsonValue memory val = jsonObj.values[i];
+            JsonValue memory val = typedJsonObj.values[i];
 
             if (val.valueType == JsonValueType.STRING) {
                 json = string.concat(json, '"', val.value, '"');

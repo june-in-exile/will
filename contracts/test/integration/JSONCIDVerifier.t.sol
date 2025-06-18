@@ -11,7 +11,7 @@ import "src/JSONCIDVerifier.sol";
 contract JSONCIDVerifierIntegrationTest is Test {
     JSONCIDVerifier verifier;
 
-    // Known test vectors (you would generate these using your JavaScript implementation)
+    // Known test vectors (generate these using your JavaScript implementation)
     struct TestVector {
         string name;
         JSONCIDVerifier.JsonObject jsonObj;
