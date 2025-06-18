@@ -111,7 +111,7 @@ function getJsonData(): any {
  * Display usage information for the script
  */
 function showUsage(): void {
-    console.log(chalk.cyan('\n=== Usage Information ==='));
+    console.log(chalk.cyan('\n=== Usage Information ===\n'));
     console.log(chalk.white('This script generates IPFS CID from JSON data using one of three methods:\n'));
 
     console.log(chalk.yellow('1. Using JSON data directly:'));
@@ -149,7 +149,7 @@ function uint8ArrayToHex(bytes: Uint8Array): string {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== Hashing JSON into CID ===\n'));
+        console.log(chalk.cyan('\n=== Hashing JSON into CID ===\n'));
 
         const jsonData = getJsonData();
         const bytes = json.encode(jsonData);
@@ -177,7 +177,7 @@ async function main(): Promise<void> {
         // Log stack trace in development mode
         if (process.env.NODE_ENV === 'development' && error instanceof Error) {
             console.error(chalk.gray('Stack trace:'), error.stack);
-        }
+    }
 
         process.exit(1);
     }

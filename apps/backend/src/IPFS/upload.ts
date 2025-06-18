@@ -254,7 +254,6 @@ async function processIPFSUpload(): Promise<UploadResult> {
         await updateEnvironmentVariables(cid);
 
         console.log(chalk.green.bold('\n🎉 IPFS upload process completed successfully!'));
-        console.log(chalk.green('All steps including both pinning operations were successful'));
 
         return {
             cid: cid.toString(),
@@ -309,7 +308,7 @@ async function processIPFSUpload(): Promise<UploadResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== IPFS Testament Upload & Pinning ===\n'));
+        console.log(chalk.cyan('\n=== IPFS Testament Upload & Pinning ===\n'));
 
         const result = await processIPFSUpload();
 

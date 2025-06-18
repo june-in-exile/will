@@ -259,11 +259,11 @@ async function processTestamentEncryption(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== Testament Encryption & ZK Proof Generation ==='));
+        console.log(chalk.cyan('\n=== Testament Encryption & ZK Proof Generation ===\n'));
 
         const result = await processTestamentEncryption();
 
-        console.log(chalk.green.bold('🎉 Process completed successfully!'));
+        console.log(chalk.green.bold('✅ Process completed successfully!'));
         console.log(chalk.gray('Results:'), result);
 
     } catch (error) {

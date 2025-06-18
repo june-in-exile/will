@@ -153,10 +153,10 @@ async function main(): Promise<void> {
         const isTestMode = process.argv.includes('--test');
 
         if (isTestMode) {
-            console.log(chalk.cyan('=== Test Mode: Decrypt from file ==='));
+            console.log(chalk.cyan('\n=== Test Mode: Decrypt from file ===\n'));
             await decryptFromLocalFile();
         } else {
-            console.log(chalk.cyan('=== Production Mode: Decrypt from IPFS ==='));
+            console.log(chalk.cyan('\n=== Production Mode: Decrypt from IPFS ===\n'));
             await decryptFromIPFS();
         }
 

@@ -1,4 +1,4 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG, CONFIG_UTILS } from '@shared/config.js';
+import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from '@shared/config.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
 import crypto from 'crypto';
@@ -47,31 +47,17 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-    try {
-        console.log(chalk.blue('Validating environment...'));
-        CONFIG_UTILS.validateEnvironment();
+    const { TESTAMENT_FACTORY_ADDRESS } = process.env;
 
-        if (CONFIG_UTILS.isUsingAnvil()) { 
-            console.log(chalk.gray('Using Anvil for local development'));
-        }
-        
-        const { TESTAMENT_FACTORY_ADDRESS } = process.env;
-
-        if (!TESTAMENT_FACTORY_ADDRESS) {
-            throw new Error('Environment variable TESTAMENT_FACTORY_ADDRESS is not set');
-        }
-
-        if (!ethers.isAddress(TESTAMENT_FACTORY_ADDRESS)) {
-            throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY_ADDRESS}`);
-        }
-
-        console.log(chalk.green('✅ Environment validated'));        
-
-        return { TESTAMENT_FACTORY_ADDRESS };
-    } catch (error) { 
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        throw new Error(`Failed to validate the environment: ${errorMessage}`);
+    if (!TESTAMENT_FACTORY_ADDRESS) {
+        throw new Error('Environment variable TESTAMENT_FACTORY_ADDRESS is not set');
     }
+
+    if (!ethers.isAddress(TESTAMENT_FACTORY_ADDRESS)) {
+        throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY_ADDRESS}`);
+    }
+
+    return { TESTAMENT_FACTORY_ADDRESS };
 }
 
 /**
@@ -325,8 +311,8 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
         const { TESTAMENT_FACTORY_ADDRESS } = validateEnvironment();
 
         // Initialize provider and validate connection
-        const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);    
-        await validateRpcConnection(provider);           
+        const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+        await validateRpcConnection(provider);
 
         // Create contract instance
         const contract = await createContractInstance(TESTAMENT_FACTORY_ADDRESS, provider);
@@ -376,7 +362,7 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('\n=== Testament Address Prediction & Environment Setup ===\n'));
+        console.log(chalk.cyan('\n=== Upload CID Testament Address Prediction & Environment Setup ===\n'));
 
         const result = await processTestamentAddressing();
 

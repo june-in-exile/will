@@ -207,11 +207,9 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
     try {
         console.log(chalk.blue('Updating environment variables...'));
 
-        await updateEnvVariable('EXECUTOR_SIGNATURE', signature);
+        updateEnvVariable('EXECUTOR_SIGNATURE', signature);
 
         console.log(chalk.green('✅ Environment variable updated successfully'));
-        console.log(chalk.gray('Updated variable: EXECUTOR_SIGNATURE'));
-
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to update environment variable: ${errorMessage}`);
@@ -266,7 +264,7 @@ async function processCidSigning(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== CID Signature Generation & Verification ===\n'));
+        console.log(chalk.cyan('\n=== CID Signature Generation & Verification ===\n'));
 
         const result = await processCidSigning();
 

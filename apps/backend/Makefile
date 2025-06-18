@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: init phase1 phase2
+all: init phase1 phase2 phase3
 
 init:
 	@echo "Resetting environment variables..."
@@ -21,7 +21,7 @@ init:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit predict-address generate-signature encrypt-testament upload-testament
+phase1: approve-permit predict-address generate-signature encrypt-testament upload-testament upload-cid
 
 approve-permit:
 	@pnpm exec tsx src/permit2/approveTokenPermit2.ts
@@ -38,8 +38,11 @@ encrypt-testament:
 upload-testament:
 	@pnpm exec tsx src/IPFS/upload.ts
 
+upload-cid:
+	@pnpm exec tsx src/testamentFactory/uploadCID.ts
 
-phase2: download-and-decrypt-testament sign-cid
+
+phase2: download-and-decrypt-testament sign-cid notarize-cid
 
 download-and-decrypt-testament:
 	@pnpm exec tsx src/IPFS/download.ts
@@ -62,3 +65,15 @@ hash-data:
 
 sign-cid:
 	@pnpm exec tsx src/signature/cid.ts
+
+notarize-cid:
+	@pnpm exec tsx src/testamentFactory/notarizeCID.ts
+
+
+phase3: create-testament signature-transfer
+
+create-testament:
+	@pnpm exec tsx src/testamentFactory/createTestament.ts
+
+signature-transfer:
+	@pnpm exec tsx src/testamentFactory/signatureTransferToBeneficiaries.ts

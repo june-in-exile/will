@@ -487,7 +487,7 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== Token Approval for Permit2 ===\n'));
+        console.log(chalk.cyan('\n=== Token Approval for Permit2 ===\n'));
 
         const result = await processTokenApprovalWorkflow();
 

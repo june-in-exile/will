@@ -130,7 +130,7 @@ async function checkAnvilStatus(): Promise<boolean> {
 
 // Display usage information for the script
 function showUsage(): void {
-    console.log(chalk.cyan('\n=== Usage Information ==='));
+    console.log(chalk.cyan('\n=== Usage Information ===\n'));
     console.log(chalk.yellow('Tips: You can use this script in the following ways:'));
     console.log('  pnpm exec tsx chackAnvil.ts        # Use default port 8545');
     console.log('  pnpm exec tsx chackAnvil.ts 8546   # Use custom port');

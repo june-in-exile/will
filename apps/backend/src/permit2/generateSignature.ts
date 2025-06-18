@@ -345,14 +345,6 @@ async function updateEnvironmentVariables(nonce: number, deadline: number, signa
         );
 
         console.log(chalk.green('✅ Environment variables updated successfully'));
-        console.log(chalk.gray('Updated variables:'));
-        updates.forEach(([key, value]) => {
-            const displayValue = key === 'PERMIT2_SIGNATURE'
-                ? `${value.substring(0, 10)}...${value.substring(value.length - 8)}`
-                : value;
-            console.log(chalk.gray(`- ${key}:`), displayValue);
-        });
-
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to update environment variables: ${errorMessage}`);
@@ -430,7 +422,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
     try {
-        console.log(chalk.cyan('=== Testament EIP-712 Signature Generation ===\n'));
+        console.log(chalk.cyan('\n=== Testament EIP-712 Signature Generation ===\n'));
 
         const result = await processTestamentSigning();
 
