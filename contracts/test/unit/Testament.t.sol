@@ -6,18 +6,18 @@ import "src/Testament.sol";
 import "mock/MockContracts.sol";
 
 contract TestamentUnitTest is Test {
-    Testament public testament;
-    MockERC20 public token0;
-    MockERC20 public token1;
+    Testament testament;
+    MockERC20 token0;
+    MockERC20 token1;
 
     MockPermit2 mockPermit2;
 
-    address public testator = makeAddr("testator");
-    address public executor = makeAddr("executor");
-    address public beneficiary0 = makeAddr("beneficiary0");
-    address public beneficiary1 = makeAddr("beneficiary1");
+    address testator = makeAddr("testator");
+    address executor = makeAddr("executor");
+    address beneficiary0 = makeAddr("beneficiary0");
+    address beneficiary1 = makeAddr("beneficiary1");
 
-    Testament.Estate[] public estates;
+    Testament.Estate[] estates;
 
     event TestamentExecuted();
 
@@ -81,93 +81,50 @@ contract TestamentUnitTest is Test {
         assertEq(retrievedEstates[0].amount, 100e18);
     }
 
-    function test_ConstructorFailsWithZeroPermit2Address() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
+    function test_ConstructorFails() public {
+        Testament.Estate[] memory _estates = new Testament.Estate[](1);
+        _estates[0] = Testament.Estate({
             beneficiary: beneficiary0,
             token: address(token0),
-            amount: 100e18
+            amount: 1000e18
         });
 
+        // Test zero address validations
         vm.expectRevert(Testament.Permit2AddressZero.selector);
-        new Testament(address(0), testator, executor, newEstates);
-    }
-
-    function test_ConstructorFailsWithZeroTestatorAddress() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary0,
-            token: address(token0),
-            amount: 100e18
-        });
+        new Testament(address(0), testator, executor, _estates);
 
         vm.expectRevert(Testament.TestatorAddressZero.selector);
-        new Testament(address(mockPermit2), address(0), executor, newEstates);
-    }
-
-    function test_ConstructorFailsWithZeroExecutorAddress() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary0,
-            token: address(token0),
-            amount: 100e18
-        });
+        new Testament(address(mockPermit2), address(0), executor, _estates);
 
         vm.expectRevert(Testament.ExecutorAddressZero.selector);
-        new Testament(address(mockPermit2), testator, address(0), newEstates);
-    }
+        new Testament(address(mockPermit2), testator, address(0), _estates);
 
-    function test_ConstructorFailsWithZeroBeneficiaryAddress() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: address(0),
-            token: address(token0),
-            amount: 100e18
-        });
-
-        vm.expectRevert(Testament.BeneficiaryAddressZero.selector);
-        new Testament(address(mockPermit2), testator, executor, newEstates);
-    }
-
-    function test_ConstructorFailsWithBeneficiaryAsTestator() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: testator,
-            token: address(token0),
-            amount: 100e18
-        });
-
+        // Test beneficiary cannot be testator
+        _estates[0].beneficiary = testator;
         vm.expectRevert(
             abi.encodeWithSelector(
                 Testament.BeneficiaryCannotBeTestator.selector,
                 testator
             )
         );
-        new Testament(address(mockPermit2), testator, executor, newEstates);
-    }
+        new Testament(address(mockPermit2), testator, executor, _estates);
 
-    function test_ConstructorFailsWithZeroTokenAddress() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary0,
-            token: address(0),
-            amount: 100e18
-        });
+        // Test zero beneficiary address
+        _estates[0].beneficiary = address(0);
+        vm.expectRevert(Testament.BeneficiaryAddressZero.selector);
+        new Testament(address(mockPermit2), testator, executor, _estates);
 
+        // Test invalid token address
+        _estates[0].beneficiary = beneficiary0;
+        _estates[0].token = address(0);
         vm.expectRevert(Testament.InvalidTokenAddress.selector);
-        new Testament(address(mockPermit2), testator, executor, newEstates);
-    }
+        new Testament(address(mockPermit2), testator, executor, _estates);
 
-    function test_ConstructorFailsWithZeroAmount() public {
-        Testament.Estate[] memory newEstates = new Testament.Estate[](1);
-        newEstates[0] = Testament.Estate({
-            beneficiary: beneficiary0,
-            token: address(token0),
-            amount: 0
-        });
-
+        // Test zero amount
+        _estates[0].token = address(token0);
+        _estates[0].amount = 0;
         vm.expectRevert(Testament.AmountMustBeGreaterThanZero.selector);
-        new Testament(address(mockPermit2), testator, executor, newEstates);
+        new Testament(address(mockPermit2), testator, executor, _estates);
     }
 
     // View Functions Tests
@@ -197,6 +154,22 @@ contract TestamentUnitTest is Test {
     // Transfer Tests
     function test_SignatureTransferSuccess() public {
         assertFalse(testament.executed());
+
+        vm.expectEmit(true, true, true, true);
+        emit MockPermit2.MockTransfer(
+            testator,
+            beneficiary0,
+            address(token0),
+            1000e18
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit MockPermit2.MockTransfer(
+            testator,
+            beneficiary1,
+            address(token1),
+            500e18
+        );
 
         vm.expectEmit(true, false, false, false);
         emit Testament.TestamentExecuted();

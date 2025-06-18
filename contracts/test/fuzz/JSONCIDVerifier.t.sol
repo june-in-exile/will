@@ -17,10 +17,8 @@ contract JSONCIDVerifierFuzzTest is Test {
 
     function test_buildStandardizedJson_ValidInputs(
         uint256 lengthSeed,
-        uint256 keySeed1,
-        uint256 keySeed2,
-        uint256 valueSeed1,
-        uint256 valueSeed2
+        uint256 keySeed,
+        uint256 valueSeed
     ) public view {
         // Bound the arrays to reasonable sizes (1-5 elements)
         uint256 arrayLength = bound(lengthSeed, 1, 5);
@@ -31,12 +29,12 @@ contract JSONCIDVerifierFuzzTest is Test {
         // Filter out empty keys to avoid invalid JSON
         for (uint256 i = 0; i < arrayLength; i++) {
             uint256 keyNum = bound(
-                uint256(keccak256(abi.encode(keySeed1, i))),
+                uint256(keccak256(abi.encode(keySeed, i))),
                 0,
                 999
             );
             uint256 valueNum = bound(
-                uint256(keccak256(abi.encode(valueSeed1, i))),
+                uint256(keccak256(abi.encode(valueSeed, i))),
                 0,
                 999
             );

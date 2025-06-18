@@ -732,10 +732,15 @@ export const LOGGING_CONFIG: LoggingConfig = {
 export const ENV_CONFIG: EnvConfig = {
   // Required environment variables
   required: [
+    'PERMIT2_ADDRESS',
+    'PERMIT2_VERIFIER_ADDRESS',
+    'DECRYPTION_VERIFIER_ADDRESS',
+    'JSON_CID_VERIFIER_ADDRESS',
+    'TESTAMENT_FACTORY_ADDRESS',
     'TESTATOR_PRIVATE_KEY',
     'EXECUTOR_PRIVATE_KEY',
-    'EXECUTOR',
-    'TESTAMENT_FACTORY_ADDRESS'
+    'EXECUTOR'
+    
   ],
 
   // Network-specific required variables
@@ -745,21 +750,20 @@ export const ENV_CONFIG: EnvConfig = {
 
   // Optional environment variables
   optional: [
-    'CID',
-    'PERMIT2_ADDRESS',
-    'ALGORITHM',
     'NODE_ENV',
     'LOG_LEVEL',
-    'USE_ANVIL'
   ],
 
   // Validation patterns
   validation: {
+    PERMIT2_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
+    PERMIT2_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
+    DECRYPTION_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
+    JSON_CID_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
+    TESTAMENT_FACTORY_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
     TESTATOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR: /^0x[0-9a-fA-F]{40}$/,
-    TESTAMENT_FACTORY_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
-    PERMIT2_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
     CID: /^[a-zA-Z0-9]{46,100}$/,
     ALGORITHM: /^(aes-256-gcm|chacha20-poly1305)$/,
     ANVIL_RPC_URL: /^https?:\/\/.+/,

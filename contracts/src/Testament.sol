@@ -4,8 +4,6 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol";
 
-using SafeERC20 for IERC20;
-
 contract Testament {
     IPermit2 public immutable permit2;
 

@@ -5,13 +5,13 @@ import "forge-std/Test.sol";
 import "src/Testament.sol";
 
 contract TestamentFuzzTest is Test {
-    Testament public testament;
+    Testament testament;
 
-    address public permit2 = makeAddr("permit2");
-    address public executor = makeAddr("executor");
-    address public testator = makeAddr("testator");
+    address permit2 = makeAddr("permit2");
+    address executor = makeAddr("executor");
+    address testator = makeAddr("testator");
 
-    Testament.Estate[] public estates;
+    Testament.Estate[] estates;
 
     function setUp() public {
         // Deploy testament with mock Permit2

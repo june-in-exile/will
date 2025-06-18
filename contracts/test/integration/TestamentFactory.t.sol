@@ -9,7 +9,7 @@ import "src/Groth16Verifier.sol";
 import "src/JSONCIDVerifier.sol";
 
 contract TestamentFactoryIntegrationTest is Test {
-    TestamentFactory factory;
+    TestamentFactory testamentFactory;
     Groth16Verifier testatorVerifier;
     Groth16Verifier decryptionVerifier;
     JSONCIDVerifier jsonCidVerifier;
@@ -39,10 +39,10 @@ contract TestamentFactoryIntegrationTest is Test {
         decryptionVerifier = new Groth16Verifier();
         jsonCidVerifier = new JSONCIDVerifier();
 
-        executor = address(0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a);
-        permit2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+        executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
+        permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
-        factory = new TestamentFactory(
+        testamentFactory = new TestamentFactory(
             address(testatorVerifier),
             address(decryptionVerifier),
             address(jsonCidVerifier),
@@ -62,7 +62,7 @@ contract TestamentFactoryIntegrationTest is Test {
             testamentJsonObj.keys[1] = "iv";
             testamentJsonObj.keys[2] = "authTag";
             testamentJsonObj.keys[3] = "ciphertext";
-            testamentJsonObj.keys[4] = "saltimestampt";
+            testamentJsonObj.keys[4] = "timestamp";
             testamentJsonObj.values[0] = "aes-256-gcm";
             testamentJsonObj.values[1] = "SXwGj4zpnPz6fJvo";
             testamentJsonObj.values[2] = "tp0VPERBYMhUac8HyQwfFA==";
@@ -77,7 +77,7 @@ contract TestamentFactoryIntegrationTest is Test {
                 beneficiary: address(
                     0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c
                 ),
-                token: address(0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d), // Arbitrum Sepolia USDC
+                token: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d, // Arbitrum Sepolia USDC
                 amount: 1000 // USDC has 6 decimals
             });
 
@@ -85,13 +85,13 @@ contract TestamentFactoryIntegrationTest is Test {
                 beneficiary: address(
                     0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c
                 ),
-                token: address(0xb1D4538B4571d411F07960EF2838Ce337FE1E80E), // Arbitrum Sepolia LINK
+                token: 0xb1D4538B4571d411F07960EF2838Ce337FE1E80E, // Arbitrum Sepolia LINK
                 amount: 5000000 // LINK has 18 decimals
             });
 
             testVectors.push(
                 TestVector({
-                    name: "20250618 Test Case",
+                    name: "20250618 Testament",
                     testator: address(
                         0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc
                     ),
@@ -124,148 +124,161 @@ contract TestamentFactoryIntegrationTest is Test {
         }
     }
 
-    // function test_FullWorkflow_UploadNotarizeCreate() public {
-    //     // Step 1: Upload CID
-    //     vm.expectEmit(true, true, false, true);
-    //     emit TestamentFactory.CIDUploaded(cid, block.timestamp);
+    function test_FullWorkflow_UploadNotarizeCreate() public {
+        TestVector memory tv = testVectors[0];
 
-    //     factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        // Step 1: Upload CID
+        vm.expectEmit(true, true, false, true);
+        emit TestamentFactory.CIDUploaded(tv.cid, block.timestamp);
 
-    //     // Verify upload
-    //     vm.prank(executor);
-    //     uint256 uploadTime = factory.testatorValidateTimes(cid);
-    //     assertEq(uploadTime, block.timestamp);
+        testamentFactory.uploadCID(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid
+        );
 
-    //     // Step 2: Notarize CID
-    //     vm.warp(block.timestamp + 1);
-    //     bytes memory signature = _executorSign(cid);
+        // Verify upload
+        vm.prank(executor);
+        uint256 uploadTime = testamentFactory.testatorValidateTimes(tv.cid);
+        assertEq(uploadTime, block.timestamp);
 
-    //     vm.expectEmit(true, false, false, true);
-    //     emit TestamentFactory.CIDNotarized(cid, block.timestamp);
+        // Step 2: Notarize CID
+        vm.warp(block.timestamp + 1);
 
-    //     factory.notarizeCID(cid, signature);
+        vm.expectEmit(true, false, false, true);
+        emit TestamentFactory.CIDNotarized(tv.cid, block.timestamp);
 
-    //     // Verify notarization
-    //     vm.prank(executor);
-    //     uint256 notarizeTime = factory.executorValidateTimes(cid);
-    //     assertEq(notarizeTime, block.timestamp);
-    //     assertTrue(notarizeTime > uploadTime);
+        testamentFactory.notarizeCID(tv.cid, tv.executorSignature);
 
-    //     // Step 3: Create Testament
-    //     address predictedAddress = factory.predictTestament(
-    //         testator,
-    //         estates,
-    //         salt
-    //     );
+        // Verify notarization
+        vm.prank(executor);
+        uint256 notarizeTime = testamentFactory.executorValidateTimes(tv.cid);
+        assertEq(notarizeTime, block.timestamp);
+        assertTrue(notarizeTime > uploadTime);
 
-    //     vm.expectEmit(true, true, false, true);
-    //     emit TestamentFactory.TestamentCreated(cid, testator, predictedAddress);
+        // Step 3: Create Testament
+        address predictedAddress = testamentFactory.predictTestament(
+            tv.testator,
+            tv.estates,
+            tv.salt
+        );
 
-    //     address testamentAddress = factory.createTestament(
-    //         pA,
-    //         pB,
-    //         pC,
-    //         pubSignals,
-    //         testamentJson,
-    //         cid,
-    //         testator,
-    //         estates,
-    //         salt
-    //     );
+        vm.expectEmit(true, true, false, true);
+        emit TestamentFactory.TestamentCreated(
+            tv.cid,
+            tv.testator,
+            predictedAddress
+        );
 
-    //     // Verify testament creation
-    //     assertEq(factory.testaments(cid), testamentAddress);
-    //     assertEq(testamentAddress, predictedAddress);
+        address testamentAddress = testamentFactory.createTestament(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid,
+            tv.testator,
+            tv.estates,
+            tv.salt
+        );
 
-    //     // Verify testament contract exists and has correct properties
-    //     Testament testamentContract = Testament(testamentAddress);
-    //     assertEq(address(testamentContract.permit2()), permit2);
-    //     assertEq(testamentContract.testator(), testator);
-    //     assertEq(testamentContract.executor(), executor);
-    //     assertFalse(testamentContract.executed());
+        // Verify testament creation
+        assertEq(testamentFactory.testaments(tv.cid), testamentAddress);
+        assertEq(testamentAddress, predictedAddress);
 
-    //     (
-    //         address testamentBeneficiary0,
-    //         address testamentToken0,
-    //         uint256 testamentAmount0
-    //     ) = testamentContract.estates(0);
-    //     assertEq(testamentBeneficiary0, beneficiary0);
-    //     assertEq(testamentToken0, token0);
-    //     assertEq(testamentAmount0, amount0);
+        // Verify testament contract exists and has correct properties
+        Testament testament = Testament(testamentAddress);
+        assertEq(address(testament.permit2()), permit2);
+        assertEq(testament.testator(), tv.testator);
+        assertEq(testament.executor(), executor);
+        assertFalse(testament.executed());
 
-    //     (
-    //         address testamentBeneficiary1,
-    //         address testamentToken1,
-    //         uint256 testamentAmount1
-    //     ) = testamentContract.estates(1);
-    //     assertEq(testamentBeneficiary1, beneficiary1);
-    //     assertEq(testamentToken1, token1);
-    //     assertEq(testamentAmount1, amount1);
-    // }
+        assertTrue(
+            _compareEstateArraysHash(testament.getAllEstates(), tv.estates)
+        );
+    }
 
     function test_WorkflowWithTimingConstraints() public {
         TestVector memory tv = testVectors[0];
+
         // Upload at time T
-        // uint256 startTime = block.timestamp;
-        factory.uploadCID(tv.pA, tv.pB, tv.pC, tv.pubSignals, tv.testamentJsonObj, tv.cid);
+        uint256 startTime = block.timestamp;
+        testamentFactory.uploadCID(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid
+        );
 
         // Try to create testament without notarization - should fail
-        // vm.expectRevert(
-        //     abi.encodeWithSelector(
-        //         TestamentFactory.CIDNotValidatedByExecutor.selector,
-        //         cid
-        //     )
-        // );
-        // factory.createTestament(
-        //     pA,
-        //     pB,
-        //     pC,
-        //     pubSignals,
-        //     testamentJson,
-        //     cid,
-        //     testator,
-        //     estates,
-        //     salt
-        // );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TestamentFactory.CIDNotValidatedByExecutor.selector,
+                tv.cid
+            )
+        );
+        testamentFactory.createTestament(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid,
+            tv.testator,
+            tv.estates,
+            tv.salt
+        );
 
-        // // Notarize at time T (same as upload) - should fail creation
-        // bytes memory signature = _executorSign(cid);
-        // factory.notarizeCID(cid, signature);
+        // Notarize at time T (same as upload) - should fail creation
+        testamentFactory.notarizeCID(tv.cid, tv.executorSignature);
 
-        // vm.expectRevert(
-        //     abi.encodeWithSelector(
-        //         TestamentFactory.CIDNotValidatedByExecutor.selector,
-        //         cid
-        //     )
-        // );
-        // factory.createTestament(
-        //     pA,
-        //     pB,
-        //     pC,
-        //     pubSignals,
-        //     testamentJson,
-        //     cid,
-        //     testator,
-        //     estates,
-        //     salt
-        // );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TestamentFactory.CIDNotValidatedByExecutor.selector,
+                tv.cid
+            )
+        );
+        testamentFactory.createTestament(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid,
+            tv.testator,
+            tv.estates,
+            tv.salt
+        );
 
-        // // Fast forward time and re-notarize - should succeed
-        // vm.warp(startTime + 100);
-        // factory.notarizeCID(cid, signature);
+        // Fast forward time and re-notarize - should succeed
+        vm.warp(startTime + 100);
+        testamentFactory.notarizeCID(tv.cid, tv.executorSignature);
 
-        // address testamentAddress = factory.createTestament(
-        //     pA,
-        //     pB,
-        //     pC,
-        //     pubSignals,
-        //     testamentJson,
-        //     cid,
-        //     testator,
-        //     estates,
-        //     salt
-        // );
+        address testamentAddress = testamentFactory.createTestament(
+            tv.pA,
+            tv.pB,
+            tv.pC,
+            tv.pubSignals,
+            tv.testamentJsonObj,
+            tv.cid,
+            tv.testator,
+            tv.estates,
+            tv.salt
+        );
 
-        // assertEq(factory.testaments(cid), testamentAddress);
+        assertEq(testamentFactory.testaments(tv.cid), testamentAddress);
+    }
+
+    function _compareEstateArraysHash(
+        Testament.Estate[] memory estates0,
+        Testament.Estate[] memory estates1
+    ) public pure returns (bool) {
+        return
+            keccak256(abi.encode(estates0)) == keccak256(abi.encode(estates1));
     }
 }
