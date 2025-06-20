@@ -1,6 +1,5 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from '@shared/config';
 import { readProof } from "@shared/utils/read";
-import { validatePrivateKey } from '@shared/utils/format';
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
@@ -44,22 +43,10 @@ function validateEnvironment(): EnvironmentVariables {
       console.log(chalk.gray('Using Anvil for local development'));
     }
 
-    const { PERMIT2_VERIFIER_ADDRESS, EXECUTOR_PRIVATE_KEY } = process.env;
+    const { PERMIT2_VERIFIER_ADDRESS } = process.env;
 
     if (!PERMIT2_VERIFIER_ADDRESS) {
       throw new Error('Environment variable PERMIT2_VERIFIER_ADDRESS is not set');
-    }
-
-    if (!EXECUTOR_PRIVATE_KEY) {
-      throw new Error('Environment variable EXECUTOR_PRIVATE_KEY is not set');
-    }
-
-    if (!ethers.isAddress(PERMIT2_VERIFIER_ADDRESS)) {
-      throw new Error(`Invalid verifier contract address: ${PERMIT2_VERIFIER_ADDRESS}`);
-    }
-
-    if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-      throw new Error('Invalid private key format');
     }
 
     console.log(chalk.green('✅ Environment validated'));
