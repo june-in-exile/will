@@ -1,22 +1,12 @@
+// Load environment configuration
+config({ path: PATHS_CONFIG.env });
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { validatePrivateKey } from "@shared/utils/format";
-import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
+import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
+import { Testament, Testament__factory } from "@shared/types";
 import { config } from "dotenv";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
-
-// Testament ABI - only the functions we need
-const TESTAMENT_ABI = [
-  "function testator() external view returns (address)",
-  "function executor() external view returns (address)",
-  "function executed() external view returns (bool)",
-  "function getAllEstates() external view returns (tuple(address beneficiary, address token, uint256 amount)[])",
-  "function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external",
-  "event TestamentExecuted()",
-];
 
 // Type definitions
 interface EnvironmentVariables {
@@ -180,7 +170,7 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
 async function createTestamentContract(
   testamentAddress: string,
   wallet: Wallet
-): Promise<Contract> {
+): Promise<Testament> {
   try {
     console.log(chalk.blue("Loading testament contract..."));
 
@@ -193,7 +183,7 @@ async function createTestamentContract(
       throw new Error(`No contract found at address: ${testamentAddress}`);
     }
 
-    const contract = new Contract(testamentAddress, TESTAMENT_ABI, wallet);
+    const contract = Testament__factory.connect(testamentAddress, wallet);
 
     console.log(chalk.green("✅ Testament contract loaded"));
     return contract;
@@ -209,7 +199,7 @@ async function createTestamentContract(
 /**
  * Fetch testament information
  */
-async function getTestamentInfo(contract: Contract): Promise<TestamentInfo> {
+async function getTestamentInfo(contract: Testament): Promise<TestamentInfo> {
   try {
     console.log(chalk.blue("Fetching testament information..."));
 
@@ -220,7 +210,7 @@ async function getTestamentInfo(contract: Contract): Promise<TestamentInfo> {
       contract.getAllEstates(),
     ]);
 
-    const formattedEstates: Estate[] = estates.map((estate: any) => ({
+    const formattedEstates: Estate[] = estates.map((estate) => ({
       beneficiary: estate.beneficiary,
       token: estate.token,
       amount: estate.amount,
@@ -322,7 +312,7 @@ function printSignatureTransferDetails(
  * Execute signatureTransferToBeneficiaries transaction
  */
 async function executeSignatureTransfer(
-  contract: Contract,
+  contract: Testament,
   testamentInfo: TestamentInfo,
   nonce: string,
   deadline: string,
@@ -449,7 +439,7 @@ async function updateEnvironmentVariables(
 /**
  * Verify testament execution status
  */
-async function verifyTestamentExecution(contract: Contract): Promise<void> {
+async function verifyTestamentExecution(contract: Testament): Promise<void> {
   try {
     console.log(chalk.blue("Verifying testament execution status..."));
 
@@ -547,6 +537,7 @@ async function main(): Promise<void> {
     console.log(chalk.gray("Results:"));
     console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
     console.log(chalk.gray("- Testament Address:"), result.testamentAddress);
+    console.log(chalk.gray("- Estates Transferred:"), result.estateCount);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
     const errorMessage =

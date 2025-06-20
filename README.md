@@ -247,7 +247,6 @@ pnpm build
 
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
-   - [ ] Fix `createTestament.ts`.
    
 2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format

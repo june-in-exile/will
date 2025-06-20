@@ -11,30 +11,7 @@ function resetEnvVariables(keys: string[]): void {
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-
-  if (args.length === 0) {
-    const defaultKeys = [
-      "SALT",
-      "TESTAMENT_ADDRESS",
-      "BENEFICIARY0",
-      "TOKEN0",
-      "AMOUNT0",
-      "BENEFICIARY1",
-      "TOKEN1",
-      "AMOUNT1",
-      "NONCE",
-      "DEADLINE",
-      "PERMIT2_SIGNATURE",
-      "CID",
-      "UPLOAD_TX_HASH",
-      "UPLOAD_TIMESTAMP",
-      "EXECUTOR_SIGNATURE",
-    ];
-    console.log("Resetting default environment variables...");
-    resetEnvVariables(defaultKeys);
-  } else {
-    resetEnvVariables(args);
-  }
+  resetEnvVariables(args);
 }
 
 // Check: is this file being executed directly or imported?
