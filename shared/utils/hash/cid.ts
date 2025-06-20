@@ -1,6 +1,7 @@
 import { CID } from "multiformats/cid";
-import * as json from "multiformats/codecs/json";
 import { sha256 } from "multiformats/hashes/sha2";
+import * as json from "multiformats/codecs/json";
+import { toHex } from "../format";
 import * as fs from "fs";
 import chalk from "chalk";
 
@@ -141,20 +142,6 @@ function showUsage(): void {
 }
 
 /**
- * Convert Uint8Array to hex string representation
- * @param bytes - Uint8Array to convert
- * @returns Hex string representation (0x prefixed)
- */
-function uint8ArrayToHex(bytes: Uint8Array): string {
-  return (
-    "0x" +
-    Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-  );
-}
-
-/**
  * Main function that orchestrates the entire IPFS hashing process
  * 1. Gets JSON data (from CLI args or file)
  * 2. Encodes the data to bytes
@@ -177,9 +164,9 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {
       json: jsonData,
-      jsonBytes: uint8ArrayToHex(bytes),
-      multihash: uint8ArrayToHex(digest.bytes),
-      cidBytes: uint8ArrayToHex(cid.bytes),
+      jsonBytes: toHex(bytes),
+      multihash: toHex(digest.bytes),
+      cidBytes: toHex(cid.bytes),
       cid: cid.toString(),
     });
   } catch (error) {

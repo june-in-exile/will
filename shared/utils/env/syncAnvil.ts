@@ -143,7 +143,11 @@ function showUsage(): void {
 // Main function
 async function main(): Promise<void> {
   try {
-    console.log(`Checking port: ${ANVIL_PORT}`);
+    console.log(
+      chalk.cyan("\n=== Synchronizing anvil status to .env file ===\n")
+    );
+
+    console.log(chalk.blue(`Checking port: ${ANVIL_PORT}`));
 
     const isRunning: boolean = await checkAnvilStatus();
 
@@ -154,6 +158,8 @@ async function main(): Promise<void> {
       console.log(chalk.green("✓ Anvil is not running"));
       updateEnvVariable("USE_ANVIL", "false");
     }
+
+    console.log("✅ Successfully synced anvil status to .env file.");
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

@@ -7,11 +7,6 @@ export
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
-PA := "["0x08c35f7c434ba8c5426398ee0420200f6910a696e983a11efaa2b5adc2195a89", "0x2abca425c205c5b339704b29647e3f0c6390eb99b39924bea5ba4406e0922c6a"]"
-PB := "[["0x12438cf74314362aa727c0692dbaacc015ca3f3583685a675e1aead05a31ac12", "0x232bccbcea951659a241d7315a665c5e727fdc69640916b6a2a9acd40bf645df"],["0x0d8273b8ef1cbb0b97d1ff38393a33c108125e7187c49cd511607dd480a21bc4", "0x28ed665e8fb00c8b9418b4558fff68081e3419c06440d41a0c862a198bd132ee"]]"
-PC := "["0x2ebb18910748a41d31ae22f72b323b572b1bc7ba15b98da1b8c71d22ca4e3305", "0x1e6b5a7c74e12838f5d89087be76e4e1793603ba373138867a24446484f0fdfc"]"
-PUBSIGNALS := "["0x21"]"
-
 ESTATES := "[($(BENEFICIARY0),$(TOKEN0),$(AMOUNT0)),($(BENEFICIARY1),$(TOKEN1),$(AMOUNT1))]"
 
 # Check network
@@ -25,14 +20,19 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: build test
-	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
+init: sync_anvil sync_proof build test
 	@pnpm typechain
 
-# ------------------- Reset Env -------------------------
+# -------------- Environment Variables ------------------
 
 reset_address:
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS JSON_CID_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
+
+sync_anvil:
+	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
+
+sync_proof:
+	@pnpm exec tsx ../shared/utils/env/syncProof.ts
 
 # ----------------- CICD Commands -----------------------
 

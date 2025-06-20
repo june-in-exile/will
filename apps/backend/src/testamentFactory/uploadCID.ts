@@ -1,240 +1,83 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
-import { updateEnvVariable } from "@shared/utils/env";
-import { readProof } from "@shared/utils/read";
-import {
-  validateBase64,
-  validatePrivateKey,
-  validateCIDv1,
-} from "@shared/utils/format";
+import { PATHS_CONFIG, IPFS_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
+import { updateEnvVariable } from "@shared/utils";
+import { createHelia, Helia } from "helia";
+import { json, JSON as HeliaJSON } from "@helia/json";
+import { CID } from "multiformats/cid";
 import { readFileSync, existsSync } from "fs";
-import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
-import {
-  TestamentFactory,
-  TestamentFactory__factory,
-  JSONCIDVerifier,
-  ProofData,
-} from "@shared/types";
-import { config } from "dotenv";
+import { exec } from "child_process";
+import { promisify } from "util";
 import chalk from "chalk";
 
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
+const execPromise = promisify(exec);
 
 // Type definitions
-interface EnvironmentVariables {
-  TESTAMENT_FACTORY_ADDRESS: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  CID: string;
-}
+type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
 
 interface EncryptedTestamentData {
-  algorithm: string;
+  algorithm: SupportedAlgorithm;
   iv: string;
   authTag: string;
   ciphertext: string;
   timestamp: string;
 }
 
-interface UploadCIDData {
-  proof: ProofData;
-  testament: JSONCIDVerifier.JsonObjectStruct;
-  cid: string;
+interface HeliaInstance {
+  helia: Helia;
+  jsonHandler: HeliaJSON;
 }
 
 interface UploadResult {
-  transactionHash: string;
-  cid: string;
-  timestamp: number;
-  gasUsed: bigint;
+  cid?: string;
   success: boolean;
+  uploadPath?: string;
+  pinnedInHelia?: boolean;
+  pinnedLocally?: boolean;
+  error?: string;
+  stage?: string;
+}
+
+interface ExecResult {
+  stdout: string;
+  stderr: string;
 }
 
 /**
- * Validate environment variables
- */
-function validateEnvironment(): EnvironmentVariables {
-  const { TESTAMENT_FACTORY_ADDRESS, EXECUTOR_PRIVATE_KEY, CID } = process.env;
-
-  if (!TESTAMENT_FACTORY_ADDRESS) {
-    throw new Error(
-      "Environment variable TESTAMENT_FACTORY_ADDRESS is not set",
-    );
-  }
-
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable TESTATOR_PRIVATE_KEY is not set");
-  }
-
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
-  }
-
-  if (!ethers.isAddress(TESTAMENT_FACTORY_ADDRESS)) {
-    throw new Error(
-      `Invalid testament factory address: ${TESTAMENT_FACTORY_ADDRESS}`,
-    );
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  if (!validateCIDv1(CID)) {
-    throw new Error("Invalid CID v1 format");
-  }
-
-  return { TESTAMENT_FACTORY_ADDRESS, EXECUTOR_PRIVATE_KEY, CID };
-}
-
-/**
- * Validate required files
+ * Validate file existence and readability
  */
 function validateFiles(): void {
-  const requiredFiles = [
-    PATHS_CONFIG.circuits.proof,
-    PATHS_CONFIG.circuits.public,
-    PATHS_CONFIG.testament.encrypted,
-  ];
-
-  for (const filePath of requiredFiles) {
-    if (!existsSync(filePath)) {
-      throw new Error(`Required file does not exist: ${filePath}`);
-    }
-  }
-}
-
-/**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
- * Create wallet instance
- */
-function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
-  try {
-    console.log(chalk.blue("Creating wallet instance..."));
-    const wallet = new Wallet(privateKey, provider);
-    console.log(chalk.green("✅ Wallet created:"), wallet.address);
-    return wallet;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate required fields
- */
-function validateRequiredFields(
-  testament: Partial<EncryptedTestamentData>,
-): asserts testament is EncryptedTestamentData {
-  const REQUIRED_FIELDS: (keyof EncryptedTestamentData)[] = [
-    "algorithm",
-    "iv",
-    "authTag",
-    "ciphertext",
-    "timestamp",
-  ] as const;
-
-  for (const field of REQUIRED_FIELDS) {
-    if (!testament[field]) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
-}
-
-/**
- * Validate business rules
- */
-function validateTestamentBusinessRules(
-  encryptedTestament: EncryptedTestamentData,
-): void {
-  // Validate encryption algorithm
-  if (
-    !CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedTestament.algorithm)
-  ) {
+  if (!existsSync(PATHS_CONFIG.testament.encrypted)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${encryptedTestament.algorithm}`,
-    );
-  }
-
-  // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
-  if (encryptedTestament.iv.length < 12) {
-    throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedTestament.iv.length}`,
-    );
-  }
-
-  // Validate timestamp format
-  const timestamp = new Date(encryptedTestament.timestamp);
-  if (isNaN(timestamp.getTime())) {
-    throw new Error(
-      `Invalid timestamp format: ${encryptedTestament.timestamp}`,
-    );
-  }
-
-  // Validate authTag is Base64
-  if (!validateBase64(encryptedTestament.authTag)) {
-    throw new Error("AuthTag must be valid Base64");
-  }
-
-  // Validate ciphertext is not empty
-  if (
-    !encryptedTestament.ciphertext ||
-    encryptedTestament.ciphertext.length === 0
-  ) {
-    throw new Error("Ciphertext cannot be empty");
-  }
-
-  // Warn if timestamp is too old
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-  if (timestamp < oneYearAgo) {
-    console.warn(
-      chalk.yellow("⚠️  Warning: Testament timestamp is older than 1 year"),
+      `Encrypted testament file does not exist: ${PATHS_CONFIG.testament.encrypted}`,
     );
   }
 }
 
 /**
- * Read testament JSON data
+ * Read and validate testament data
  */
-function readTestamentData(): EncryptedTestamentData {
+export function readTestamentData(): EncryptedTestamentData {
   try {
-    console.log(chalk.blue("Reading encrypted testament JSON data..."));
+    console.log(chalk.blue("Reading encrypted testament data..."));
     const testamentContent = readFileSync(
       PATHS_CONFIG.testament.encrypted,
       "utf8",
     );
-    const encryptedTestamentJson = JSON.parse(
-      testamentContent,
-    ) as EncryptedTestamentData;
+    const testamentJson: EncryptedTestamentData = JSON.parse(testamentContent);
 
-    validateRequiredFields(encryptedTestamentJson);
+    // Validate required fields
+    const requiredFields: (keyof EncryptedTestamentData)[] = [
+      "ciphertext",
+      "iv",
+      "authTag",
+    ];
+    for (const field of requiredFields) {
+      if (!testamentJson[field]) {
+        throw new Error(`Missing required field in testament: ${field}`);
+      }
+    }
 
-    validateTestamentBusinessRules(encryptedTestamentJson);
-
-    console.log(chalk.green("✅ Testament JSON data validated successfully"));
-    return encryptedTestamentJson;
+    console.log(chalk.gray("Testament data structure validated"));
+    return testamentJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in testament file: ${error.message}`);
@@ -244,315 +87,276 @@ function readTestamentData(): EncryptedTestamentData {
 }
 
 /**
- * Convert testament data to JsonObject format
+ * Create and configure Helia instance
  */
-function convertToJsonObject(
-  encryptedTestamentData: EncryptedTestamentData,
-): JSONCIDVerifier.JsonObjectStruct {
+async function createHeliaInstance(): Promise<HeliaInstance> {
   try {
-    console.log(
-      chalk.blue("Converting encrypted testament data to JsonObject format..."),
-    );
+    console.log(chalk.blue("Initializing Helia IPFS node..."));
+    const helia = await createHelia();
+    const jsonHandler = json(helia);
 
-    const keys: string[] = [];
-    const values: string[] = [];
-
-    // Add encryption metadata
-    keys.push("algorithm");
-    values.push(encryptedTestamentData.algorithm);
-
-    keys.push("iv");
-    values.push(encryptedTestamentData.iv);
-
-    keys.push("authTag");
-    values.push(encryptedTestamentData.authTag);
-
-    keys.push("ciphertext");
-    values.push(encryptedTestamentData.ciphertext);
-
-    keys.push("timestamp");
-    values.push(encryptedTestamentData.timestamp);
-
-    console.log(
-      chalk.green("✅ Encrypted testament data converted to JsonObject format"),
-    );
-
-    return { keys, values };
+    console.log(chalk.green("✅ Helia instance created successfully"));
+    return { helia, jsonHandler };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(
-      `Failed to convert encrypted testament data: ${errorMessage}`,
-    );
+    throw new Error(`Failed to create Helia instance: ${errorMessage}`);
   }
 }
 
 /**
- * Create contract instance with validation
+ * Upload data to IPFS
  */
-async function createContractInstance(
-  factoryAddress: string,
-  wallet: Wallet,
-): Promise<TestamentFactory> {
+async function uploadToIPFS(
+  jsonHandler: HeliaJSON,
+  testamentData: EncryptedTestamentData,
+): Promise<CID> {
   try {
-    console.log(chalk.blue("Loading testament factory contract..."));
+    console.log(chalk.blue("Uploading encrypted testament to IPFS..."));
+    const cid = await jsonHandler.add(testamentData);
 
-    const contract = TestamentFactory__factory.connect(factoryAddress, wallet);
+    console.log(chalk.green("✅ Data uploaded successfully"));
+    console.log(chalk.gray("CID:"), chalk.white(cid.toString()));
 
-    if (!wallet.provider) {
-      throw new Error("Wallet provider is null");
-    }
-    const code = await wallet.provider.getCode(factoryAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${factoryAddress}`);
-    }
-
-    console.log(chalk.green("✅ Testament factory contract loaded"));
-    return contract;
+    return cid;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create contract instance: ${errorMessage}`);
+    throw new Error(`Failed to upload to IPFS: ${errorMessage}`);
   }
 }
 
 /**
- * Print detailed UploadCIDData information
+ * Pin content in local IPFS daemon with retry mechanism
+ * Now throws error on failure instead of returning false
  */
-function printUploadCIDData(uploadData: UploadCIDData): void {
-  console.log(chalk.cyan("\n=== UploadCIDData Details ==="));
+async function pinInLocalDaemon(
+  cid: CID,
+  retryAttempts: number = IPFS_CONFIG.pinning.retryAttempts,
+): Promise<boolean> {
+  for (let attempt = 1; attempt <= retryAttempts; attempt++) {
+    try {
+      console.log(
+        chalk.blue(
+          `Attempting to pin in local IPFS daemon (attempt ${attempt}/${retryAttempts})...`,
+        ),
+      );
 
-  // Print CID
-  console.log(chalk.blue("\n📋 CID Information:"));
-  console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
+      const { stdout, stderr }: ExecResult = await execPromise(
+        `ipfs pin add ${cid.toString()}`,
+        { timeout: IPFS_CONFIG.pinning.timeout },
+      );
 
-  // Print Proof Data
-  console.log(chalk.blue("\n🔐 Proof Data:"));
-  console.log(
-    chalk.gray("- pA[0]:"),
-    chalk.white(uploadData.proof.pA[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pA[1]:"),
-    chalk.white(uploadData.proof.pA[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][0]:"),
-    chalk.white(uploadData.proof.pB[0][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][1]:"),
-    chalk.white(uploadData.proof.pB[0][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][0]:"),
-    chalk.white(uploadData.proof.pB[1][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][1]:"),
-    chalk.white(uploadData.proof.pB[1][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[0]:"),
-    chalk.white(uploadData.proof.pC[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[1]:"),
-    chalk.white(uploadData.proof.pC[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pubSignals[0]:"),
-    chalk.white(uploadData.proof.pubSignals[0].toString()),
-  );
+      if (stderr && stderr.trim()) {
+        console.warn(chalk.yellow("IPFS daemon warning:"), stderr.trim());
+      }
 
-  // Print Testament Data
-  console.log(chalk.blue("\n📝 Excrypted Testament Keys & Values:"));
-  uploadData.testament.keys.forEach((key, index) => {
-    const value = uploadData.testament.values[index];
-    console.log(
-      chalk.gray(`  [${index}]`),
-      chalk.cyan(key),
-      chalk.gray("=>"),
-      chalk.white(value),
-    );
+      console.log(
+        chalk.green("✅ Content pinned in local IPFS daemon:"),
+        stdout.trim(),
+      );
+      return true;
+    } catch (error: unknown) {
+      const isLastAttempt = attempt === retryAttempts;
+
+      // Type-safe error handling
+      if (error && typeof error === "object" && "code" in error) {
+        const execError = error as { code: string; message?: string };
+
+        if (execError.code === "TIMEOUT") {
+          console.warn(
+            chalk.yellow(
+              `⚠️ Timeout on attempt ${attempt}: IPFS daemon pinning timed out`,
+            ),
+          );
+        } else if (execError.code === "ENOENT") {
+          console.error(
+            chalk.red(
+              "❌ IPFS CLI not found - please ensure IPFS is installed and in PATH",
+            ),
+          );
+          throw new Error("IPFS CLI not available - pinning failed");
+        } else {
+          const errorMessage = execError.message || "Unknown exec error";
+          console.warn(
+            chalk.yellow(`⚠️ Attempt ${attempt} failed:`),
+            errorMessage,
+          );
+        }
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.warn(
+          chalk.yellow(`⚠️ Attempt ${attempt} failed:`),
+          errorMessage,
+        );
+      }
+
+      if (isLastAttempt) {
+        console.error(
+          chalk.red("❌ Could not pin in local IPFS daemon after all attempts"),
+        );
+        console.error(chalk.gray("This might be because:"));
+        console.error(chalk.gray("- The daemon is not running"));
+        console.error(chalk.gray("- The CID format is incompatible"));
+        console.error(chalk.gray("- Network connectivity issues"));
+
+        // Throw error on final failure
+        throw new Error(
+          `Failed to pin content in local IPFS daemon after ${retryAttempts} attempts`,
+        );
+      }
+    }
+  }
+
+  // This should never be reached due to the throw in the loop, but TypeScript requires it
+  return false;
+}
+
+/**
+ * Display access information
+ */
+function displayAccessInfo(cid: CID): void {
+  console.log(chalk.cyan("\n📍 Access Information:"));
+  console.log(chalk.gray("CID:"), chalk.white(cid.toString()));
+
+  console.log(chalk.cyan("\n🌐 IPFS Gateways:"));
+  IPFS_CONFIG.gateways.forEach((gateway, index) => {
+    const url = `${gateway}${cid}`;
+    console.log(chalk.gray(`${index + 1}.`), chalk.blue(url));
   });
-
-  console.log(chalk.cyan("\n=== End of UploadCIDData Details ===\n"));
 }
 
 /**
- * Execute uploadCID transaction
+ * Update environment variables
  */
-async function executeUploadCID(
-  contract: TestamentFactory,
-  uploadData: UploadCIDData,
-): Promise<UploadResult> {
-  try {
-    console.log(chalk.blue("Executing uploadCID transaction..."));
-
-    // Print detailed upload data information
-    printUploadCIDData(uploadData);
-
-    // Estimate gas
-    const gasEstimate = await contract.uploadCID.estimateGas(
-      uploadData.proof.pA,
-      uploadData.proof.pB,
-      uploadData.proof.pC,
-      uploadData.proof.pubSignals,
-      uploadData.testament,
-      uploadData.cid,
-    );
-
-    console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
-
-    // Execute transaction
-    const tx = await contract.uploadCID(
-      uploadData.proof.pA,
-      uploadData.proof.pB,
-      uploadData.proof.pC,
-      uploadData.proof.pubSignals,
-      uploadData.testament,
-      uploadData.cid,
-      {
-        gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      },
-    );
-
-    console.log(chalk.yellow("Transaction sent:"), tx.hash);
-    console.log(chalk.blue("Waiting for confirmation..."));
-
-    const receipt = await tx.wait();
-
-    if (!receipt) {
-      throw new Error("Transaction receipt is null");
-    }
-
-    if (receipt.status !== 1) {
-      throw new Error(`Transaction failed with status: ${receipt.status}`);
-    }
-
-    console.log(chalk.green("✅ Transaction confirmed:"), receipt.hash);
-    console.log(chalk.gray("Block number:"), receipt.blockNumber);
-    console.log(chalk.gray("Gas used:"), receipt.gasUsed.toString());
-
-    return {
-      transactionHash: receipt.hash,
-      cid: uploadData.cid,
-      timestamp: Date.now(),
-      gasUsed: receipt.gasUsed,
-      success: true,
-    };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute uploadCID: ${errorMessage}`);
-  }
-}
-
-/**
- * Update environment variables with upload data
- */
-async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
+async function updateEnvironmentVariables(cid: CID): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
 
-    const updates: Array<[string, string]> = [
-      ["UPLOAD_TX_HASH", result.transactionHash],
-      ["UPLOAD_TIMESTAMP", result.timestamp.toString()],
-    ];
+    const cidString = cid.toString();
 
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
+    // Update environment variables
+    await Promise.all([updateEnvVariable("CID", cidString)]);
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
+    console.error(
+      chalk.red("❌ Failed to update environment variables:"),
       errorMessage,
     );
+    throw error;
   }
 }
 
 /**
- * List the contract's information
+ * Process IPFS upload workflow with strict pinning requirement
  */
-async function getContractInfo(contract: TestamentFactory): Promise<void> {
-  try {
-    console.log(chalk.blue("Fetching contract information..."));
+async function processIPFSUpload(): Promise<UploadResult> {
+  let helia: Helia | undefined;
 
-    const [executor, testatorVerifier, decryptionVerifier, jsonCidVerifier] =
-      await Promise.all([
-        contract.executor(),
-        contract.testatorVerifier(),
-        contract.decryptionVerifier(),
-        contract.jsonCidVerifier(),
-      ]);
-
-    console.log(chalk.gray("Contract addresses:"));
-    console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), testatorVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), decryptionVerifier);
-    console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
-  } catch (error) {
-    console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
-  }
-}
-
-/**
- * Process CID upload workflow
- */
-async function processUploadCID(): Promise<UploadResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTAMENT_FACTORY_ADDRESS, EXECUTOR_PRIVATE_KEY, CID } =
-      validateEnvironment();
 
-    // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    // Read and validate testament data
+    const testamentData = readTestamentData();
 
-    // Create wallet instance
-    const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
+    // Create Helia instance
+    const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
+    helia = heliaInstance;
 
-    // Create contract instance
-    const contract = await createContractInstance(
-      TESTAMENT_FACTORY_ADDRESS,
-      wallet,
-    );
+    // Upload to IPFS
+    const cid = await uploadToIPFS(jsonHandler, testamentData);
 
-    // Get contract information
-    await getContractInfo(contract);
+    // Pin in local daemon
+    try {
+      await pinInLocalDaemon(cid);
+      console.log(
+        chalk.green("✅ Local daemon pinning completed successfully"),
+      );
+    } catch (daemonError) {
+      console.error(
+        chalk.red("❌ Local daemon pinning failed - aborting process"),
+      );
+      const errorMessage =
+        daemonError instanceof Error
+          ? daemonError.message
+          : "Unknown daemon error";
+      throw new Error(`Critical daemon pinning failure: ${errorMessage}`);
+    }
 
-    // Read required data
-    const proof: ProofData = readProof();
-    const testamentData: EncryptedTestamentData = readTestamentData();
-    const testament: JSONCIDVerifier.JsonObjectStruct = convertToJsonObject(testamentData);
+    // Only proceed if both pinning operations succeeded
+    console.log(chalk.cyan("\n📋 Finalizing Process..."));
+    console.log(chalk.green("All pinning operations completed successfully"));
 
-    // Execute upload
-    const result = await executeUploadCID(contract, {
-      proof,
-      testament,
-      cid: CID,
-    });
+    // Display access information
+    displayAccessInfo(cid);
 
-    // Update environment
-    await updateEnvironmentVariables(result);
+    // Update environment variables
+    await updateEnvironmentVariables(cid);
 
     console.log(
-      chalk.green.bold("\n🎉 CID upload process completed successfully!"),
+      chalk.green.bold("\n🎉 IPFS upload process completed successfully!"),
     );
 
-    return result;
+    return {
+      cid: cid.toString(),
+      success: true,
+      uploadPath: PATHS_CONFIG.testament.encrypted,
+      pinnedInHelia: true,
+      pinnedLocally: true,
+    };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Error during CID upload process:"), errorMessage);
+    console.error(chalk.red("Error during IPFS upload process:"), errorMessage);
+
+    // Determine failure type for better error reporting
+    if (
+      errorMessage.includes("pinning failure") ||
+      errorMessage.includes("pin content") ||
+      errorMessage.includes("Helia pinning")
+    ) {
+      console.error(
+        chalk.red.bold("❌ Process failed due to pinning requirements not met"),
+      );
+
+      // Determine which pinning failed
+      let failedStage = "pinning";
+      if (errorMessage.includes("Helia")) {
+        failedStage = "helia_pinning";
+      } else if (errorMessage.includes("daemon")) {
+        failedStage = "daemon_pinning";
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+        stage: failedStage,
+        uploadPath: PATHS_CONFIG.testament.encrypted,
+      };
+    }
+
     throw error;
+  } finally {
+    // Clean up Helia instance
+    if (helia) {
+      try {
+        console.log(chalk.blue("Cleaning up Helia instance..."));
+        await helia.stop();
+        console.log(chalk.gray("✅ Helia instance stopped successfully"));
+      } catch (stopError) {
+        const stopErrorMessage =
+          stopError instanceof Error ? stopError.message : "Unknown stop error";
+        console.warn(
+          chalk.yellow("⚠️ Warning while stopping Helia:"),
+          stopErrorMessage,
+        );
+      }
+    }
   }
 }
 
@@ -561,13 +365,41 @@ async function processUploadCID(): Promise<UploadResult> {
  */
 async function main(): Promise<void> {
   try {
-    const result = await processUploadCID();
+    console.log(chalk.cyan("\n=== IPFS Testament Upload & Pinning ===\n"));
 
-    console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- CID:"), result.cid);
-    console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
+    const result = await processIPFSUpload();
+
+    if (result.success) {
+      console.log(chalk.green.bold("\n✅ Process completed successfully!"));
+      console.log(chalk.gray("Results:"), {
+        cid: result.cid,
+        pinnedInHelia: result.pinnedInHelia,
+        pinnedLocally: result.pinnedLocally,
+        success: result.success,
+      });
+    } else {
+      console.log(chalk.red.bold("\n❌ Process failed!"));
+      console.log(chalk.gray("Error details:"), {
+        stage: result.stage,
+        error: result.error,
+        success: result.success,
+      });
+
+      // Provide specific guidance based on failure type
+      if (result.stage === "helia_pinning") {
+        console.log(chalk.yellow("\n💡 Troubleshooting Helia pinning:"));
+        console.log(chalk.gray("- Check Helia node configuration"));
+        console.log(chalk.gray("- Verify network connectivity"));
+        console.log(chalk.gray("- Check available storage space"));
+      } else if (result.stage === "daemon_pinning") {
+        console.log(chalk.yellow("\n💡 Troubleshooting local daemon pinning:"));
+        console.log(chalk.gray("- Ensure IPFS daemon is running"));
+        console.log(chalk.gray("- Check IPFS CLI installation"));
+        console.log(chalk.gray("- Verify daemon API accessibility"));
+      }
+
+      process.exit(1);
+    }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
