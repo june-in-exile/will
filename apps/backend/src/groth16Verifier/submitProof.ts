@@ -1,99 +1,246 @@
-import { NETWORK_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from '@shared/config';
 import { readProof } from "@shared/utils/read";
-import { bigintToBase32 } from "@shared/utils/format";
-import { ProofData } from "@shared/types";
+import { validatePrivateKey } from '@shared/utils/format';
 import {
   Groth16Verifier,
-  Groth16Verifier__factory
-} from "@shared/types";
-import { ethers, JsonRpcProvider } from "ethers";
-import chalk from "chalk";
+  Groth16Verifier__factory,
+  ProofData
+} from '@shared/types';
+import { existsSync } from 'fs';
+import { ethers, JsonRpcProvider, Network } from 'ethers';
+import { config } from 'dotenv';
+import chalk from 'chalk';
 
-export interface FormattedProofData {
-  pA: [string, string];
-  pB: [[string, string], [string, string]];
-  pC: [string, string];
-  pubSignals: [string];
+// Load environment configuration
+config({ path: PATHS_CONFIG.env });
+
+// Type definitions
+interface EnvironmentVariables {
+  PERMIT2_VERIFIER_ADDRESS: string;
 }
+
+interface ProofSubmissionResult {
+  isValid: boolean;
+  contractAddress: string;
+  submittedAt: number;
+  success: boolean;
+}
+
+interface ProofValidationResult {
+  proofValid: boolean;
+  gasUsed?: bigint;
+  executionTime: number;
+}
+
+/**
+ * Validate environment variables
+ */
+function validateEnvironment(): EnvironmentVariables {
+  try {
+    console.log(chalk.blue('Validating environment...'));
+    CONFIG_UTILS.validateEnvironment();
+
+    if (CONFIG_UTILS.isUsingAnvil()) {
+      console.log(chalk.gray('Using Anvil for local development'));
+    }
+
+    const { PERMIT2_VERIFIER_ADDRESS, EXECUTOR_PRIVATE_KEY } = process.env;
+
+    if (!PERMIT2_VERIFIER_ADDRESS) {
+      throw new Error('Environment variable PERMIT2_VERIFIER_ADDRESS is not set');
+    }
+
+    if (!EXECUTOR_PRIVATE_KEY) {
+      throw new Error('Environment variable EXECUTOR_PRIVATE_KEY is not set');
+    }
+
+    if (!ethers.isAddress(PERMIT2_VERIFIER_ADDRESS)) {
+      throw new Error(`Invalid verifier contract address: ${PERMIT2_VERIFIER_ADDRESS}`);
+    }
+
+    if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
+      throw new Error('Invalid private key format');
+    }
+
+    console.log(chalk.green('✅ Environment validated'));
+
+    return { PERMIT2_VERIFIER_ADDRESS };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to validate the environment: ${errorMessage}`);
+  }
+}
+
+/**
+ * Validate required files
+ */
+function validateFiles(): void {
+  const requiredFiles = [
+    PATHS_CONFIG.circuits.proof,
+    PATHS_CONFIG.circuits.public
+  ];
+
+  for (const filePath of requiredFiles) {
+    if (!existsSync(filePath)) {
+      throw new Error(`Required file does not exist: ${filePath}`);
+    }
+  }
+
+  console.log(chalk.green('✅ Required files validated'));
+}
+
+/**
+ * Validate RPC connection
+ */
+async function validateRpcConnection(provider: JsonRpcProvider): Promise<Network> {
+  try {
+    console.log(chalk.blue('Validating RPC connection...'));
+    const network = await provider.getNetwork();
+    console.log(chalk.green('✅ Connected to network:'), network.name, `(Chain ID: ${network.chainId})`);
+    return network;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
+  }
+}
+
 
 /**
  * Create contract instance with validation
  */
 async function createContractInstance(
-  groth16verifierAddress: string,
-  provider: JsonRpcProvider,
+  verifierAddress: string,
+  provider: JsonRpcProvider
 ): Promise<Groth16Verifier> {
   try {
-    console.log(chalk.blue("Loading Groth16 verifier contract..."));
+    console.log(chalk.blue('Loading Groth16 verifier contract...'));
 
-    const contract = Groth16Verifier__factory.connect(
-      groth16verifierAddress,
-      provider,
-    );
+    const contract = Groth16Verifier__factory.connect(verifierAddress, provider);
 
     // Validate contract exists at address
-    const code = await provider.getCode(groth16verifierAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${groth16verifierAddress}`);
+    const code = await provider.getCode(verifierAddress);
+    if (code === '0x') {
+      throw new Error(`No contract found at address: ${verifierAddress}`);
     }
 
-    console.log(chalk.green("✅ Groth16 verifier contract loaded"));
+    console.log(chalk.green('✅ Groth16 verifier contract loaded'));
+    console.log(chalk.gray('Contract address:'), verifierAddress);
+
     return contract;
+
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Failed to create contract instance: ${errorMessage}`);
   }
 }
 
-function formatProof(proof: ProofData): FormattedProofData {
-  const formattedProof: FormattedProofData = {
-    pA: [
-      bigintToBase32(proof.pA[0], "pA[0]"),
-      bigintToBase32(proof.pA[1], "pA[1]")
-    ] as [string, string],
+/**
+ * Print detailed proof information
+ */
+function printProofData(proof: ProofData): void {
+  console.log(chalk.cyan('\n=== Zero-Knowledge Proof Details ==='));
 
-    pB: [
-      [
-        bigintToBase32(proof.pB[0][0], "pB[0][0]"),
-        bigintToBase32(proof.pB[0][1], "pB[0][1]")
-      ],
-      [
-        bigintToBase32(proof.pB[1][0], "pB[1][0]"),
-        bigintToBase32(proof.pB[1][1], "pB[1][1]")
-      ]
-    ] as [[string, string], [string, string]],
+  console.log(chalk.blue('\n🔐 Proof Components:'));
+  console.log(chalk.gray('- pA[0]:'), chalk.white(proof.pA[0].toString()));
+  console.log(chalk.gray('- pA[1]:'), chalk.white(proof.pA[1].toString()));
+  console.log(chalk.gray('- pB[0][0]:'), chalk.white(proof.pB[0][0].toString()));
+  console.log(chalk.gray('- pB[0][1]:'), chalk.white(proof.pB[0][1].toString()));
+  console.log(chalk.gray('- pB[1][0]:'), chalk.white(proof.pB[1][0].toString()));
+  console.log(chalk.gray('- pB[1][1]:'), chalk.white(proof.pB[1][1].toString()));
+  console.log(chalk.gray('- pC[0]:'), chalk.white(proof.pC[0].toString()));
+  console.log(chalk.gray('- pC[1]:'), chalk.white(proof.pC[1].toString()));
 
-    pC: [
-      bigintToBase32(proof.pC[0], "pC[0]"),
-      bigintToBase32(proof.pC[1], "pC[1]")
-    ] as [string, string],
+  console.log(chalk.blue('\n📊 Public Signals:'));
+  proof.pubSignals.forEach((signal, index) => {
+    console.log(chalk.gray(`- pubSignal[${index}]:`), chalk.white(signal.toString()));
+  });
 
-    pubSignals: [
-      bigintToBase32(proof.pubSignals[0], "pubSignals[0]"),
-    ] as [string],
-  };
-
-  console.log(chalk.blue("Formatted proof structure:"));
-  console.log(JSON.stringify(formattedProof, null, 2));
-
-  return formattedProof;
+  console.log(chalk.cyan('\n=== End of Proof Details ===\n'));
 }
 
-async function submitProof(
+/**
+ * Submit proof to verifier contract
+ */
+async function submitProofToContract(
   contract: Groth16Verifier,
-  formattedProof: FormattedProofData
-) {
+  proof: ProofData
+): Promise<ProofValidationResult> {
   try {
-    const result = await contract.verifyProof(
-      formattedProof.pA,
-      formattedProof.pB,
-      formattedProof.pC,
-      formattedProof.pubSignals,
+    console.log(chalk.blue('Submitting proof for verification...'));
+
+    // Print detailed proof information
+    printProofData(proof);
+
+    const startTime = Date.now();
+
+    // Call the verifyProof function (this is a view function, so no gas cost)
+    const isValid = await contract.verifyProof(
+      proof.pA,
+      proof.pB,
+      proof.pC,
+      proof.pubSignals
     );
-    console.log(chalk.green("✅ Verification result:", result));
+
+    const executionTime = Date.now() - startTime;
+
+    if (isValid) {
+      console.log(chalk.green('✅ Proof verification successful!'));
+      console.log(chalk.green('🎉 Zero-knowledge proof is VALID'));
+    } else {
+      console.log(chalk.red('❌ Proof verification failed!'));
+      console.log(chalk.red('💥 Zero-knowledge proof is INVALID'));
+    }
+
+    console.log(chalk.gray('Verification time:'), `${executionTime}ms`);
+
+    return {
+      proofValid: isValid,
+      executionTime
+    };
+
   } catch (error) {
-    console.error("Error submitting proof:", error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red('Error during proof submission:'), errorMessage);
+    throw new Error(`Failed to submit proof: ${errorMessage}`);
+  }
+}
+
+/**
+ * Process proof submission workflow
+ */
+async function processProofSubmission(): Promise<ProofSubmissionResult> {
+  try {
+    // Validate prerequisites
+    validateFiles();
+    const { PERMIT2_VERIFIER_ADDRESS } = validateEnvironment();
+
+    // Initialize provider and validate connection
+    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateRpcConnection(provider);
+
+    // Create contract instance
+    const contract = await createContractInstance(PERMIT2_VERIFIER_ADDRESS, provider);
+
+    // Read and validate proof data
+    const proof = readProof();
+
+    // Submit proof for verification
+    const verificationResult = await submitProofToContract(contract, proof);
+
+    const result: ProofSubmissionResult = {
+      isValid: verificationResult.proofValid,
+      contractAddress: PERMIT2_VERIFIER_ADDRESS,
+      submittedAt: Date.now(),
+      success: true
+    };
+
+    console.log(chalk.green.bold('\n🎉 Proof submission process completed successfully!'));
+
+    return result;
+
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red('Error during proof submission process:'), errorMessage);
     throw error;
   }
 }
@@ -103,38 +250,31 @@ async function submitProof(
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Testament CID Upload ===\n"));
+    console.log(chalk.cyan('\n=== Zero-Knowledge Proof Submission ===\n'));
 
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    const result = await processProofSubmission();
 
-    const { EXECUTOR_PRIVATE_KEY, PERMIT2_VERIFIER_ADDRESS } = process.env;
-    if (EXECUTOR_PRIVATE_KEY === undefined) {
-      throw new Error("EXECUTOR_PRIVATE_KEY is not defined");
+    console.log(chalk.green.bold('\n✅ Process completed successfully!'));
+    console.log(chalk.gray('Results:'));
+    console.log(chalk.gray('- Proof Valid:'), result.isValid ? chalk.green('✅ YES') : chalk.red('❌ NO'));
+    console.log(chalk.gray('- Contract Address:'), result.contractAddress);
+    console.log(chalk.gray('- Submitted At:'), new Date(result.submittedAt).toISOString());
+
+    if (!result.isValid) {
+      console.log(chalk.yellow('\n⚠️  Proof verification failed. Please check:'));
+      console.log(chalk.gray('1. Proof generation process'));
+      console.log(chalk.gray('2. Public signal consistency'));
+      console.log(chalk.gray('3. Circuit parameters'));
+      console.log(chalk.gray('4. Verifier contract compatibility'));
     }
-    if (PERMIT2_VERIFIER_ADDRESS === undefined) {
-      throw new Error("PERMIT2_VERIFIER_ADDRESS is not defined");
-    }
 
-    const contract = await createContractInstance(PERMIT2_VERIFIER_ADDRESS, provider);
-
-    try {
-      const proof: ProofData = readProof();
-      const formattedProof: FormattedProofData = formatProof(proof);
-      await submitProof(contract, formattedProof);
-    } catch (error) {
-      console.error("Main error:", error);
-    }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red.bold('\n❌ Program execution failed:'), errorMessage);
 
     // Log stack trace in development mode
-    if (process.env.NODE_ENV === "development" && error instanceof Error) {
-      console.error(chalk.gray("Stack trace:"), error.stack);
+    if (process.env.NODE_ENV === 'development' && error instanceof Error) {
+      console.error(chalk.gray('Stack trace:'), error.stack);
     }
 
     process.exit(1);
@@ -142,12 +282,11 @@ async function main(): Promise<void> {
 }
 
 // Check: is this file being executed directly or imported?
-if (import.meta.url === new URL(process.argv[1], "file:").href) {
+if (import.meta.url === new URL(process.argv[1], 'file:').href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(chalk.red.bold('Uncaught error:'), errorMessage);
     process.exit(1);
   });
 }

@@ -1,8 +1,11 @@
-export const bigintToBase32 = (val: bigint, path: string): string => {
+import { Base32String } from "types";
+
+export const toBase32 = (val: bigint): Base32String => {
     try {
         const bigIntVal = BigInt(val);
-        return "0x" + bigIntVal.toString(16).padStart(64, '0');
+        const base32String = "0x" + bigIntVal.toString(16).padStart(64, '0') as Base32String;
+        return base32String;
     } catch {
-        throw new Error(`Invalid number at ${path}: ${val}`);
+        throw new Error(`Invalid number`);
     }
 };

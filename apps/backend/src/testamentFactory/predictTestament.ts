@@ -1,5 +1,5 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config.js";
-import { updateEnvVariable } from "@shared/utils/env/updateEnvVariable.js";
+import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config";
+import { updateEnvVariable } from "@shared/utils/env";
 import {
   Estate,
   TestamentFactory,

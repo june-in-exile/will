@@ -53,9 +53,11 @@ export interface AuthenticatedDecipher extends Decipheriv {
 }
 
 // ZKP interfaces
+export type Base32String = string & { readonly __brand: 'Base32String' };
+
 export interface ProofData {
-  pA: [bigint, bigint];
-  pB: [[bigint, bigint], [bigint, bigint]];
-  pC: [bigint, bigint];
-  pubSignals: [bigint];
+  pA: [Base32String, Base32String];
+  pB: [[Base32String, Base32String], [Base32String, Base32String]];
+  pC: [Base32String, Base32String];
+  pubSignals: [Base32String];
 }

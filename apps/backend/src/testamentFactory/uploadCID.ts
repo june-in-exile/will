@@ -529,9 +529,9 @@ async function processUploadCID(): Promise<UploadResult> {
     await getContractInfo(contract);
 
     // Read required data
-    const proof = readProof();
-    const testamentData = readTestamentData();
-    const testament = convertToJsonObject(testamentData);
+    const proof: ProofData = readProof();
+    const testamentData: EncryptedTestamentData = readTestamentData();
+    const testament: JSONCIDVerifier.JsonObjectStruct = convertToJsonObject(testamentData);
 
     // Execute upload
     const result = await executeUploadCID(contract, {
