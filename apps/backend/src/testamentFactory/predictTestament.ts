@@ -1,15 +1,15 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config.js";
-import { readFileSync, writeFileSync, existsSync } from "fs";
 import { updateEnvVariable } from "@shared/utils/env/updateEnvVariable.js";
+import {
+  Estate,
+  TestamentFactory,
+  TestamentFactory__factory
+} from "@shared/types";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
 import crypto from "crypto";
 import chalk from "chalk";
-import {
-  Estate,
-  TestamentFactory,
-  TestamentFactory__factory,
-} from "@shared/types";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
