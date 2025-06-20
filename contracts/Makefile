@@ -20,7 +20,7 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil sync_proof build test
+init: sync_anvil sync_groth16verifier_and_proof build test
 	@pnpm typechain
 
 # -------------- Environment Variables ------------------
@@ -31,7 +31,8 @@ reset_address:
 sync_anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 
-sync_proof:
+sync_groth16verifier_and_proof:
+	@cp ../circuits/verifier.sol ./src/Groth16Verifier.sol
 	@pnpm exec tsx ../shared/utils/env/syncProof.ts
 
 # ----------------- CICD Commands -----------------------
