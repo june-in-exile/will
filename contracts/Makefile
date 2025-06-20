@@ -198,27 +198,28 @@ predictTestament:
 
 # ----------------------- Write -------------------------
 
-uploadCID:
-	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
-		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
+# uploadCID:
+# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+# 		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
+# 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
 
 notarizeCID:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
 		"notarizeCID(string,bytes)" \
 		$(CID) $(EXECUTOR_SIGNATURE)
 
-createTestament:
-	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
-		"createTestament(uint[2],uint[2][2],uint[2],uint[1],bytes,string,address,(address,address,uint256)[],uint256)(address)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
+# createTestament:
+# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+# 		"createTestament(uint[2],uint[2][2],uint[2],uint[1],bytes,string,address,(address,address,uint256)[],uint256)(address)" \
+# 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
 	
 # ------------------- Verify Contract -------------------
 
 verify_testament:
 	forge verify-contract \
 		--chain-id $(ARB_SEPOLIA_CHAIN_ID) \
-		--constructor-args $$(cast abi-encode "constructor(address,address,(address,address,uint256)[])" \
+		--constructor-args $$(cast abi-encode "constructor(address,address,address,(address,address,uint256)[])" \
+			"$(PERMIT2_ADDRESS)" \
 			"$(TESTATOR)" \
 			"$(EXECUTOR)" \
 			$(ESTATES)) \

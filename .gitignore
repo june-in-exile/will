@@ -68,6 +68,14 @@ Thumbs.db
 * 5/
 
 # =============================================================================
+# TESTAMENT FILES
+# =============================================================================
+apps/backend/testament/3_addressed.json
+apps/backend/testament/4_signed.json
+apps/backend/testament/5_encrypted.json
+apps/backend/testament/6_decrypted.json
+
+# =============================================================================
 # BLOCKCHAIN & SMART CONTRACTS
 # =============================================================================
 # Foundry
