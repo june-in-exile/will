@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --project tsconfig.typecheck.json",
+    "type-check": "tsc --project tsconfig.typecheck.json",
     "clean": "rm -rf dist .vite node_modules"
   }
 }

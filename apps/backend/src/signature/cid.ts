@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, SIGNATURE_CONFIG } from '@shared/config.js';
-import { signString, verify } from '@shared/utils/crypto/signature.js';
-import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
+import { signString, verify } from '@shared/utils/crypto';
+import { updateEnvVariable } from '@shared/utils/env';
 import { config } from 'dotenv';
 import assert from 'assert';
 import chalk from 'chalk';

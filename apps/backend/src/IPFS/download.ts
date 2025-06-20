@@ -1,9 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '@shared/config.js';
+import { getDecryptionKey, aes256gcmDecrypt, chacha20Decrypt } from '@shared/utils/crypto';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants/crypto';
 import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
-import { getDecryptionKey, aes256gcmDecrypt, chacha20Decrypt } from '@shared/utils/crypto/decrypt.js';
-import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants/crypto.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';

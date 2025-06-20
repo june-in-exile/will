@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, VALIDATION_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from '@shared/config.js';
-import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
+import { updateEnvVariable } from '@shared/utils/env/';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { ethers, JsonRpcProvider, Wallet, Network } from 'ethers';
 import { config } from 'dotenv';

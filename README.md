@@ -49,7 +49,8 @@ cd testament
 
 2. **Install dependencies & build smart contracts**
 ```bash
-pnpm setup
+pnpm install
+pnpm build
 ```
 
 3. **Start development environment**
@@ -79,7 +80,7 @@ pnpm build:backend        # Build backend
 pnpm build:contracts      # Compile smart contracts
 
 # Code quality
-pnpm typecheck            # TypeScript type checking
+pnpm type-check            # TypeScript type checking
 pnpm lint                 # ESLint code checking
 pnpm lint --fix           # Auto-fix ESLint issues
 pnpm format               # Prettier formatting
@@ -239,7 +240,7 @@ pnpm deps:update
 # Complete reset
 pnpm deps:clean
 cd contracts && forge clean
-rm -rf circuits/build
+cd circuits && make clean
 pnpm install
 pnpm build
 ```

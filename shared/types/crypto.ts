@@ -2,12 +2,6 @@
 export type HashableInput = string | number | boolean | object;
 export type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
 
-// Encryption/Decryption interfaces
-export interface EncryptionResult {
-    ciphertext: Buffer;
-    authTag: Buffer;
-}
-
 // Configuration interfaces
 export interface EncryptionConfig {
     keySize: number;
@@ -31,14 +25,19 @@ export interface SignatureConfig {
 }
 
 // Result interfaces
-export interface SignatureValidationResult {
-    valid: boolean;
-    signer?: string;
-    error?: string;
+export interface EncryptionResult {
+    ciphertext: Buffer;
+    authTag: Buffer;
 }
 
 export interface HashValidationResult {
     valid: boolean;
+    error?: string;
+}
+
+export interface SignatureValidationResult {
+    valid: boolean;
+    signer?: string;
     error?: string;
 }
 
@@ -51,4 +50,12 @@ export interface AuthenticatedCipher extends Cipheriv {
 
 export interface AuthenticatedDecipher extends Decipheriv {
     setAuthTag(tag: Buffer): this;
+}
+
+// ZKP interfaces
+export interface ProofData {
+    pA: [bigint, bigint];
+    pB: [[bigint, bigint], [bigint, bigint]];
+    pC: [bigint, bigint];
+    pubSignals: [bigint];
 }

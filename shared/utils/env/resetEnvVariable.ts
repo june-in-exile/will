@@ -18,7 +18,8 @@ async function main(): Promise<void> {
             'BENEFICIARY0', 'TOKEN0', 'AMOUNT0',
             'BENEFICIARY1', 'TOKEN1', 'AMOUNT1',
             'NONCE', 'DEADLINE', 'PERMIT2_SIGNATURE',
-            'CID', 'EXECUTOR_SIGNATURE'
+            'CID', 'UPLOAD_TX_HASH', 'UPLOAD_TIMESTAMP',
+            'EXECUTOR_SIGNATURE'
         ];
         console.log('Resetting default environment variables...');
         resetEnvVariables(defaultKeys);

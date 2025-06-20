@@ -1,8 +1,8 @@
 import { PATHS_CONFIG, IPFS_CONFIG, CRYPTO_CONFIG } from '@shared/config.js';
+import { updateEnvVariable } from '@shared/utils/env';
 import { createHelia, Helia } from 'helia';
 import { json, JSON as HeliaJSON } from '@helia/json';
 import { CID } from 'multiformats/cid';
-import { updateEnvVariable } from '@shared/utils/env/updateEnvVariable.js';
 import { readFileSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';

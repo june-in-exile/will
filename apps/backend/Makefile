@@ -8,7 +8,8 @@ init:
         BENEFICIARY0 TOKEN0 AMOUNT0 \
         BENEFICIARY1 TOKEN1 AMOUNT1 \
         NONCE DEADLINE PERMIT2_SIGNATURE \
-        CID EXECUTOR_SIGNATURE \
+        CID UPLOAD_TX_HASH UPLOAD_TIMESTAMP \
+		EXECUTOR_SIGNATURE \
 		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
 	@-rm -f testament/3_addressed*.json
@@ -27,7 +28,7 @@ approve-permit:
 	@pnpm exec tsx src/permit2/approveTokenPermit2.ts
 
 predict-address:
-	@pnpm exec tsx src/create2/predictTestament.ts
+	@pnpm exec tsx src/testamentFactory/predictTestament.ts
 
 generate-signature:
 	@pnpm exec tsx src/permit2/generateSignature.ts
@@ -40,6 +41,9 @@ upload-testament:
 
 upload-cid:
 	@pnpm exec tsx src/testamentFactory/uploadCID.ts
+
+submit-proof:
+	@pnpm exec tsx src/groth16Verifier/submitProof.ts
 
 
 phase2: download-and-decrypt-testament sign-cid notarize-cid

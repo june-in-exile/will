@@ -1,7 +1,7 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from '@shared/config.js';
 // import { generateProof, verifyProof, makeLocalSnarkJsZkOperator } from '@reclaimprotocol/circom-symmetric-crypto';
-import { getEncryptionKey, getInitializationVector, aes256gcmEncrypt, chacha20Encrypt } from '@shared/utils/crypto/encrypt.js';
-import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants/crypto.js';
+import { getEncryptionKey, getInitializationVector, aes256gcmEncrypt, chacha20Encrypt } from '@shared/utils/crypto';
+import { AES_256_GCM, CHACHA20_POLY1305 } from '@shared/constants';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';

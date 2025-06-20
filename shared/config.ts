@@ -153,6 +153,11 @@ interface TestamentPathsConfig {
   decrypted: string;
 }
 
+interface CircuitsPathsConfig { 
+  proof: string;
+  public: string;
+}
+
 interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
@@ -167,6 +172,7 @@ interface CryptoPathsConfig {
 interface PathsConfig {
   base: BasePathsConfig;
   testament: TestamentPathsConfig;
+  circuits: CircuitsPathsConfig;
   env: string;
   contracts: ContractPathsConfig;
   crypto: CryptoPathsConfig;
@@ -557,6 +563,12 @@ export const PATHS_CONFIG: PathsConfig = {
     signed: resolve(modulePath, '../apps/backend/testament/4_signed.json'),
     encrypted: resolve(modulePath, '../apps/backend/testament/5_encrypted.json'),
     decrypted: resolve(modulePath, '../apps/backend/testament/6_decrypted.json')
+  },
+
+  // ZKP files
+  circuits: {
+    proof: resolve(modulePath, '../circuits/proof.json'),
+    public: resolve(modulePath, '../circuits/public.json'),
   },
 
   // Environment files

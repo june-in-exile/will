@@ -12,16 +12,16 @@
             "amount": 5000000
         }
     ],
-    "salt": 1450169156847511,
-    "testament": "0xA38B135d5F25d6773Bc1C9c05935a6d4f424d13F",
-    "timestamp": "2025-06-18T10:50:32.441Z",
+    "salt": 2856518300708759,
+    "testament": "0x555b481d7aACD68B372a866e49cAaa6f4BB28cAC",
+    "timestamp": "2025-06-20T01:54:27.039Z",
     "metadata": {
-        "predictedAt": 1750243832443,
+        "predictedAt": 1750384467040,
         "estatesCount": 2
     },
     "signature": {
-        "nonce": 91309719463535,
-        "deadline": 1781779833,
-        "signature": "0x696a5c97cf7cfa0c72eb555870b02e394f98aeb7bb5e002537e6bb60bdfe5ea0534ad30d36793898143cbfc14c1a5a2a484ffe6d236a741c099ccff737ac8f711c"
+        "nonce": 839694427403757,
+        "deadline": 1781920467,
+        "signature": "0xe66a9a553ac876c9b2f169ecf6a7af3a6fd67b20f8d9d43d22b328d7e318d64c3226940892ebfbae7dc9ba384e611280638db31ba6bcae5662b6d54dcc8b47d81b"
     }
 }
