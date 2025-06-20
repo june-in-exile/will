@@ -82,8 +82,6 @@
    ```sh
    # Generate the Solidity code
    snarkjs zkey export solidityverifier multiplier2_0001.zkey verifier.sol
-   # Copy the Solidity code for depolyment
-   cp verifier.sol ../contracts/src/Groth16Verifier.sol
    ```
 
 7. Deploying the contract

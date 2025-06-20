@@ -31,6 +31,7 @@ verify:
 
 solidity:
 	snarkjs zkey export solidityverifier multiplier2_0001.zkey verifier.sol
+	cp verifier.sol ../contracts/src/Groth16Verifier.sol
 
 generate_call:
 	snarkjs generatecall

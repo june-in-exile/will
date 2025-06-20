@@ -95,6 +95,7 @@ circuits/*.zkey
 circuits/*.wtns
 circuits/*.r1cs
 circuits/*.sym
+contracts/src/Groth16Verifier.sol
 
 # =============================================================================
 # IPFS & STORAGE
