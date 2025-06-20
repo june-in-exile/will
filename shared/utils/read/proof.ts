@@ -34,7 +34,7 @@ export function readProof(): ProofData {
         proof.pi_c[0],
         proof.pi_c[1]
       ],
-      pubSignals: [publicSignals],
+      pubSignals: publicSignals,
     };
 
     console.log(chalk.green("✅ Proof data loaded successfully"));

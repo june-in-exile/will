@@ -243,7 +243,6 @@ pnpm build
    - [ ] The cpp circom compilation doesn't work.
    - [ ] Fix `UploadCID.ts`.
    - [ ] Auto update the ZKP in `TestamentFactoryIntegrationTest` after we update the cirsuits.
-   - [ ] Backend build issues.
 2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format
      - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files

@@ -1,5 +1,9 @@
 # How to use?
 
+## Prerequisite
+
+1. Generate ZKP in [../circuits/](../circuits/).
+
 ## Initialization
 
 1. (Forked Arbitrum Sepolia Only) Fork the Arbitrum Sepolia network.
