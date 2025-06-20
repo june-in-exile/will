@@ -12,7 +12,6 @@ testament-project/
 ├── contracts/             # Foundry smart contracts
 ├── circuits/              # Circom zero-knowledge circuits
 ├── shared/                # Shared code (types, utilities, constants)
-├── scripts/               # Utility scripts
 └── package.json           # Root dependency management
 ```
 
@@ -42,18 +41,21 @@ brew install circom
 ### Installation and Setup
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/june-in-exile/testament.git
 cd testament
 ```
 
 2. **Install dependencies & build smart contracts**
+
 ```bash
 pnpm install
 pnpm build
 ```
 
 3. **Start development environment**
+
 ```bash
 # Start both frontend and backend
 pnpm dev
@@ -105,36 +107,6 @@ pnpm deps:audit
 pnpm deps:clean
 ```
 
-### Smart Contract Commands
-
-```bash
-cd contracts
-
-# Compile contracts
-forge build
-
-# Run tests
-forge test
-```
-
-For detailed smart contract instructions, Check [./contracts/](./contracts/).
-
-### Zero-Knowledge Circuit Commands
-
-Check [./circuits/](./circuits/).
-
-## 🔐 Zero-Knowledge Proof Implementation
-
-### ZKP Circuit Architecture (TBD)
-
-```
-circuits/
-├── format_verification.circom    # ZKP1: JSON format validation
-├── encryption_proof.circom       # ZKP2: Encryption verification  
-├── consistency_proof.circom      # ZKP3: File consistency proof
-└── main.circom                   # Combined circuit
-```
-
 ## 🔧 Project Configuration
 
 ### Environment Variables
@@ -142,11 +114,11 @@ circuits/
 Copy the `.env.example` file as `.env`:
 
 ```bash
-cp .env.example .env 
+cp .env.example .env
 ```
 
 Fill in the fields required to interact with the contracts:
- 
+
 ```bash
 ARB_SEPOLIA_RPC_URL=https://arb-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_API_KEY
 ARBSCAN_API_KEY=YOUR_ARBSCAN_API_KEY
@@ -209,6 +181,7 @@ The other fileds would be automatically updated during the execution.
 ### Common Issues
 
 1. **TypeScript module resolution errors**
+
 ```bash
 # Clean and reinstall
 pnpm clean
@@ -216,18 +189,21 @@ pnpm install
 ```
 
 2. **ESLint parsing errors**
+
 ```bash
 # Check ESLint configuration
 pnpm lint --debug
 ```
 
 3. **Smart contract compilation failures**
+
 ```bash
 # Clean Foundry cache
 cd contracts && forge clean && forge build
 ```
 
 4. **Deprecated dependency warnings**
+
 ```bash
 # Check and update dependencies
 pnpm deps:check

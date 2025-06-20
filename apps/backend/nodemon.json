@@ -1,6 +1,6 @@
 {
-    "watch": ["src", "../../shared"],
-    "ext": "ts,js",
-    "ignore": ["src/**/*.test.ts"],
-    "exec": "node --loader ts-node/esm src/index.ts"
+  "watch": ["src", "../../shared"],
+  "ext": "ts,js",
+  "ignore": ["src/**/*.test.ts"],
+  "exec": "node --loader ts-node/esm src/index.ts"
 }

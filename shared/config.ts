@@ -1,12 +1,12 @@
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import { config } from 'dotenv';
-import { AES_256_GCM, CHACHA20_POLY1305 } from './constants';
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import { config } from "dotenv";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
 // Load environment variables
-config({ path: resolve(modulePath, '../.env') });
+config({ path: resolve(modulePath, "../.env") });
 
 /**
  * Unified Configuration for Testament Application
@@ -153,7 +153,7 @@ interface TestamentPathsConfig {
   decrypted: string;
 }
 
-interface CircuitsPathsConfig { 
+interface CircuitsPathsConfig {
   proof: string;
   public: string;
 }
@@ -342,15 +342,15 @@ interface ConfigUtilsInterface {
 // ================================
 // ENVIRONMENT DETECTION
 // ================================
-const USE_ANVIL: boolean = process.env.USE_ANVIL === 'true';
-const NODE_ENV: string = process.env.NODE_ENV || 'development';
+const USE_ANVIL: boolean = process.env.USE_ANVIL === "true";
+const NODE_ENV: string = process.env.NODE_ENV || "development";
 
 // ================================
 // GENERAL APPLICATION CONFIG
 // ================================
 export const APP_CONFIG: AppConfig = {
-  name: 'Testament Application',
-  version: '1.0.0',
+  name: "Testament Application",
+  version: "1.0.0",
   environment: NODE_ENV,
   useAnvil: USE_ANVIL,
 
@@ -358,15 +358,15 @@ export const APP_CONFIG: AppConfig = {
   development: {
     enableStackTrace: true,
     verboseLogging: true,
-    enableRetries: true
+    enableRetries: true,
   },
 
   // Production settings
   production: {
     enableStackTrace: false,
     verboseLogging: false,
-    enableRetries: true
-  }
+    enableRetries: true,
+  },
 };
 
 // ================================
@@ -375,10 +375,12 @@ export const APP_CONFIG: AppConfig = {
 export const NETWORK_CONFIG: NetworkConfig = {
   // RPC configuration
   rpc: {
-    current: USE_ANVIL ? process.env.ANVIL_RPC_URL : process.env.ARB_SEPOLIA_RPC_URL,
+    current: USE_ANVIL
+      ? process.env.ANVIL_RPC_URL
+      : process.env.ARB_SEPOLIA_RPC_URL,
     anvil: process.env.ANVIL_RPC_URL,
     arbitrumSepolia: process.env.ARB_SEPOLIA_RPC_URL,
-    useAnvil: USE_ANVIL
+    useAnvil: USE_ANVIL,
   },
 
   // Connection settings
@@ -391,22 +393,22 @@ export const NETWORK_CONFIG: NetworkConfig = {
   confirmationBlocks: USE_ANVIL ? 1 : 2, // Faster confirmation for local network
 
   // Network validation
-  network: USE_ANVIL ? 'Anvil Local' : 'Arbitrum Sepolia',
+  network: USE_ANVIL ? "Anvil Local" : "Arbitrum Sepolia",
   expectedChainIds: USE_ANVIL ? [31337] : [421614], // Anvil local or Arbitrum Sepolia
-  maxGasPrice: USE_ANVIL ? '1000000000' : '100000000000', // 1 gwei for local, 100 gwei for testnet
+  maxGasPrice: USE_ANVIL ? "1000000000" : "100000000000", // 1 gwei for local, 100 gwei for testnet
 
   // Network-specific settings
   anvil: {
     chainId: 31337,
-    gasPrice: '1000000000', // 1 gwei
-    blockTime: 1 // 1 second block time
+    gasPrice: "1000000000", // 1 gwei
+    blockTime: 1, // 1 second block time
   },
 
   arbitrumSepolia: {
     chainId: 421614,
-    gasPrice: '100000000000', // 100 gwei
-    blockTime: 0.25 // ~0.25 second block time
-  }
+    gasPrice: "100000000000", // 100 gwei
+    blockTime: 0.25, // ~0.25 second block time
+  },
 };
 
 // ================================
@@ -417,26 +419,26 @@ export const CRYPTO_CONFIG: CryptoConfig = {
   supportedAlgorithms: [AES_256_GCM, CHACHA20_POLY1305],
 
   // Key and IV sizes
-  keySize: 32,        // 256 bits
-  ivSize: 12,         // 96 bits
-  authTagSize: 16,    // 128 bits
+  keySize: 32, // 256 bits
+  ivSize: 12, // 96 bits
+  authTagSize: 16, // 128 bits
 
   // Security limits
   maxPlaintextSize: 10 * 1024 * 1024, // 10MB
   maxCiphertextSize: 10 * 1024 * 1024, // 10MB
 
   // Encodings
-  inputEncoding: 'utf8',
-  outputEncoding: 'utf8',
+  inputEncoding: "utf8",
+  outputEncoding: "utf8",
 
   // File paths (relative to utils/crypto/)
   paths: {
-    keyFile: './key.txt'
+    keyFile: "./key.txt",
   },
 
   // Validation settings
   weakKeyDetection: true,
-  validateEncodings: true
+  validateEncodings: true,
 };
 
 // ================================
@@ -447,22 +449,22 @@ export const SIGNATURE_CONFIG: SignatureConfig = {
   maxMessageLength: 1024 * 1024, // 1MB
 
   // Key and signature formats
-  privateKeyLength: 64,   // 32 bytes in hex
-  signatureLength: 132,   // 65 bytes in hex with 0x prefix
+  privateKeyLength: 64, // 32 bytes in hex
+  signatureLength: 132, // 65 bytes in hex with 0x prefix
 
   // Retry settings
   maxRetries: 3,
-  retryDelay: 1000,      // 1 second
+  retryDelay: 1000, // 1 second
 
   // CID validation
   cid: {
     minLength: 46,
     maxLength: 100,
-    validPrefixes: ['Qm', 'b', 'z', 'f', 'u']
+    validPrefixes: ["Qm", "b", "z", "f", "u"],
   },
 
   // Address validation
-  addressFormat: /^0x[0-9a-fA-F]{40}$/
+  addressFormat: /^0x[0-9a-fA-F]{40}$/,
 };
 
 // ================================
@@ -471,7 +473,7 @@ export const SIGNATURE_CONFIG: SignatureConfig = {
 export const HASH_CONFIG: HashConfig = {
   // Input validation
   maxInputSize: 10 * 1024 * 1024, // 10MB max input size
-  supportedEncodings: ['utf8', 'ascii', 'base64', 'hex'],
+  supportedEncodings: ["utf8", "ascii", "base64", "hex"],
 
   // Output format validation
   expectedHashLength: 66, // 32 bytes + 0x prefix = 66 characters
@@ -479,7 +481,7 @@ export const HASH_CONFIG: HashConfig = {
 
   // Performance settings
   enableValidation: true,
-  enableLogging: process.env.NODE_ENV === 'development'
+  enableLogging: process.env.NODE_ENV === "development",
 };
 
 // ================================
@@ -488,7 +490,7 @@ export const HASH_CONFIG: HashConfig = {
 export const APPROVAL_CONFIG: ApprovalConfig = {
   // Retry settings
   maxRetries: 3,
-  retryDelay: 2000,      // 2 seconds
+  retryDelay: 2000, // 2 seconds
 
   // Gas settings
   gasLimitMultiplier: 1.2,
@@ -496,7 +498,7 @@ export const APPROVAL_CONFIG: ApprovalConfig = {
   defaultGasLimit: 100000n,
 
   // Processing settings
-  batchDelay: USE_ANVIL ? 500 : 1000,      // Faster for local network
+  batchDelay: USE_ANVIL ? 500 : 1000, // Faster for local network
   maxConcurrentApprovals: 1,
 
   // Token validation
@@ -504,12 +506,12 @@ export const APPROVAL_CONFIG: ApprovalConfig = {
 
   // Contract ABIs
   tokenAbi: [
-    'function approve(address spender, uint256 amount) returns (bool)',
-    'function allowance(address owner, address spender) view returns (uint256)',
-    'function name() view returns (string)',
-    'function symbol() view returns (string)',
-    'function decimals() view returns (uint8)'
-  ]
+    "function approve(address spender, uint256 amount) returns (bool)",
+    "function allowance(address owner, address spender) view returns (uint256)",
+    "function name() view returns (string)",
+    "function symbol() view returns (string)",
+    "function decimals() view returns (uint8)",
+  ],
 };
 
 // ================================
@@ -521,16 +523,16 @@ export const IPFS_CONFIG: IpfsConfig = {
     pinataJWT: process.env.PINATA_JWT,
     retryAttempts: 3,
     timeout: 30000,
-    retryDelay: 2000
+    retryDelay: 2000,
   },
 
   // Gateway URLs
   gateways: [
-    'https://gateway.pinata.cloud/ipfs/',
-    'http://localhost:8080/ipfs/',
-    'https://ipfs.io/ipfs/',
-    'https://gateway.ipfs.io/ipfs/',
-    'https://cloudflare-ipfs.com/ipfs/'
+    "https://gateway.pinata.cloud/ipfs/",
+    "http://localhost:8080/ipfs/",
+    "https://ipfs.io/ipfs/",
+    "https://gateway.ipfs.io/ipfs/",
+    "https://cloudflare-ipfs.com/ipfs/",
   ],
 
   // File size limits
@@ -538,8 +540,8 @@ export const IPFS_CONFIG: IpfsConfig = {
 
   // Helia configuration
   helia: {
-    cleanupTimeout: 5000  // 5 seconds
-  }
+    cleanupTimeout: 5000, // 5 seconds
+  },
 };
 
 // ================================
@@ -548,44 +550,59 @@ export const IPFS_CONFIG: IpfsConfig = {
 export const PATHS_CONFIG: PathsConfig = {
   // Base paths
   base: {
-    root: resolve(modulePath, '..'),
-    backend: resolve(modulePath, '../apps/backend'),
-    frontend: resolve(modulePath, '../apps/frontend'),
-    circuits: resolve(modulePath, '../circuits'),
-    contracts: resolve(modulePath, '../contracts')
+    root: resolve(modulePath, ".."),
+    backend: resolve(modulePath, "../apps/backend"),
+    frontend: resolve(modulePath, "../apps/frontend"),
+    circuits: resolve(modulePath, "../circuits"),
+    contracts: resolve(modulePath, "../contracts"),
   },
 
   // Testament files
   testament: {
-    raw: resolve(modulePath, '../apps/backend/testament/1_raw.json'),
-    formatted: resolve(modulePath, '../apps/backend/testament/2_formatted.json'),
-    addressed: resolve(modulePath, '../apps/backend/testament/3_addressed.json'),
-    signed: resolve(modulePath, '../apps/backend/testament/4_signed.json'),
-    encrypted: resolve(modulePath, '../apps/backend/testament/5_encrypted.json'),
-    decrypted: resolve(modulePath, '../apps/backend/testament/6_decrypted.json')
+    raw: resolve(modulePath, "../apps/backend/testament/1_raw.json"),
+    formatted: resolve(
+      modulePath,
+      "../apps/backend/testament/2_formatted.json",
+    ),
+    addressed: resolve(
+      modulePath,
+      "../apps/backend/testament/3_addressed.json",
+    ),
+    signed: resolve(modulePath, "../apps/backend/testament/4_signed.json"),
+    encrypted: resolve(
+      modulePath,
+      "../apps/backend/testament/5_encrypted.json",
+    ),
+    decrypted: resolve(
+      modulePath,
+      "../apps/backend/testament/6_decrypted.json",
+    ),
   },
 
   // ZKP files
   circuits: {
-    proof: resolve(modulePath, '../circuits/proof.json'),
-    public: resolve(modulePath, '../circuits/public.json'),
+    proof: resolve(modulePath, "../circuits/proof.json"),
+    public: resolve(modulePath, "../circuits/public.json"),
   },
 
   // Environment files
-  env: resolve(modulePath, '../.env'),
+  env: resolve(modulePath, "../.env"),
 
   // Contract artifacts
   contracts: {
-    broadcastDir: resolve(modulePath, '../contracts/broadcast'),
-    outDir: resolve(modulePath, '../contracts/out'),
-    testamentFactory: resolve(modulePath, '../contracts/out/TestamentFactory.sol/TestamentFactory.json')
+    broadcastDir: resolve(modulePath, "../contracts/broadcast"),
+    outDir: resolve(modulePath, "../contracts/out"),
+    testamentFactory: resolve(
+      modulePath,
+      "../contracts/out/TestamentFactory.sol/TestamentFactory.json",
+    ),
   },
 
   // Crypto keys
   crypto: {
-    keyDir: resolve(modulePath, 'utils/crypto'),
-    keyFile: resolve(modulePath, 'utils/crypto/key.txt')
-  }
+    keyDir: resolve(modulePath, "utils/crypto"),
+    keyFile: resolve(modulePath, "utils/crypto/key.txt"),
+  },
 };
 
 // ================================
@@ -595,8 +612,8 @@ export const VALIDATION_CONFIG: ValidationConfig = {
   // File validation
   files: {
     maxSize: 100 * 1024 * 1024, // 100MB
-    allowedExtensions: ['.json', '.txt'],
-    encoding: 'utf8'
+    allowedExtensions: [".json", ".txt"],
+    encoding: "utf8",
   },
 
   // Testament validation
@@ -604,22 +621,22 @@ export const VALIDATION_CONFIG: ValidationConfig = {
     minEstatesRequired: 1,
     maxEstatesAllowed: 100,
     requiredFields: {
-      testament: ['testator', 'estates'],
-      estate: ['beneficiary', 'token', 'amount']
-    }
+      testament: ["testator", "estates"],
+      estate: ["beneficiary", "token", "amount"],
+    },
   },
 
   // Address validation
   ethereum: {
     addressPattern: /^0x[0-9a-fA-F]{40}$/,
-    checksumValidation: true
+    checksumValidation: true,
   },
 
   // Amount validation
   amounts: {
-    minAmount: '1',
-    maxAmount: '1000000000000000000000000' // 1M tokens with 18 decimals
-  }
+    minAmount: "1",
+    maxAmount: "1000000000000000000000000", // 1M tokens with 18 decimals
+  },
 };
 
 // ================================
@@ -631,7 +648,7 @@ export const SALT_CONFIG: SaltConfig = {
 
   // Entropy validation
   validateEntropy: true,
-  minEntropyBits: 128
+  minEntropyBits: 128,
 };
 
 // ================================
@@ -640,22 +657,22 @@ export const SALT_CONFIG: SaltConfig = {
 export const ERROR_CONFIG: ErrorConfig = {
   // Retry settings
   maxRetries: 3,
-  baseDelay: USE_ANVIL ? 500 : 1000,       // Faster for local network
-  maxDelay: 10000,       // 10 seconds
+  baseDelay: USE_ANVIL ? 500 : 1000, // Faster for local network
+  maxDelay: 10000, // 10 seconds
   backoffMultiplier: 2,
 
   // Error categories
   categories: {
-    VALIDATION_ERROR: 'ValidationError',
-    NETWORK_ERROR: 'NetworkError',
-    CRYPTO_ERROR: 'CryptoError',
-    FILE_ERROR: 'FileError',
-    CONTRACT_ERROR: 'ContractError'
+    VALIDATION_ERROR: "ValidationError",
+    NETWORK_ERROR: "NetworkError",
+    CRYPTO_ERROR: "CryptoError",
+    FILE_ERROR: "FileError",
+    CONTRACT_ERROR: "ContractError",
   },
 
   // Logging settings
-  logLevel: process.env.LOG_LEVEL || (USE_ANVIL ? 'debug' : 'info'),
-  enableStackTrace: NODE_ENV === 'development'
+  logLevel: process.env.LOG_LEVEL || (USE_ANVIL ? "debug" : "info"),
+  enableStackTrace: NODE_ENV === "development",
 };
 
 // ================================
@@ -675,8 +692,8 @@ export const PERMIT2_CONFIG: Permit2Config = {
   signatureValidation: {
     enableDomainValidation: true,
     enableTypeValidation: true,
-    enableValueValidation: true
-  }
+    enableValueValidation: true,
+  },
 };
 
 // ================================
@@ -685,23 +702,23 @@ export const PERMIT2_CONFIG: Permit2Config = {
 export const ZK_CONFIG: ZkConfig = {
   // Proof generation
   generation: {
-    timeout: USE_ANVIL ? 60000 : 300000,    // 1 min for local, 5 min for testnet
+    timeout: USE_ANVIL ? 60000 : 300000, // 1 min for local, 5 min for testnet
     maxCircuitSize: 1000000,
-    enableOptimizations: true
+    enableOptimizations: true,
   },
 
   // Verification
   verification: {
-    timeout: 60000,     // 1 minute
+    timeout: 60000, // 1 minute
     enableCache: true,
-    strictValidation: true
+    strictValidation: true,
   },
 
   // Supported curves
-  supportedCurves: ['bn128', 'bls12-381'],
+  supportedCurves: ["bn128", "bls12-381"],
 
   // Circuit constraints
-  maxConstraints: 1000000
+  maxConstraints: 1000000,
 };
 
 // ================================
@@ -710,13 +727,13 @@ export const ZK_CONFIG: ZkConfig = {
 export const LOGGING_CONFIG: LoggingConfig = {
   // Console colors (chalk)
   colors: {
-    success: 'green',
-    error: 'red',
-    warning: 'yellow',
-    info: 'blue',
-    debug: 'gray',
-    highlight: 'white',
-    accent: 'cyan'
+    success: "green",
+    error: "red",
+    warning: "yellow",
+    info: "blue",
+    debug: "gray",
+    highlight: "white",
+    accent: "cyan",
   },
 
   // Log levels
@@ -724,7 +741,7 @@ export const LOGGING_CONFIG: LoggingConfig = {
     ERROR: 0,
     WARN: 1,
     INFO: 2,
-    DEBUG: 3
+    DEBUG: 3,
   },
 
   // Output settings
@@ -732,10 +749,10 @@ export const LOGGING_CONFIG: LoggingConfig = {
   signatureDisplayLength: 18, // Show first 10 + last 8 characters
 
   // Timestamp format
-  timestampFormat: 'YYYY-MM-DD HH:mm:ss',
+  timestampFormat: "YYYY-MM-DD HH:mm:ss",
 
   // Environment-specific settings
-  verboseMode: USE_ANVIL || NODE_ENV === 'development'
+  verboseMode: USE_ANVIL || NODE_ENV === "development",
 };
 
 // ================================
@@ -744,27 +761,21 @@ export const LOGGING_CONFIG: LoggingConfig = {
 export const ENV_CONFIG: EnvConfig = {
   // Required environment variables
   required: [
-    'PERMIT2_ADDRESS',
-    'PERMIT2_VERIFIER_ADDRESS',
-    'DECRYPTION_VERIFIER_ADDRESS',
-    'JSON_CID_VERIFIER_ADDRESS',
-    'TESTAMENT_FACTORY_ADDRESS',
-    'TESTATOR_PRIVATE_KEY',
-    'EXECUTOR_PRIVATE_KEY',
-    'EXECUTOR'
-    
+    "PERMIT2_ADDRESS",
+    "PERMIT2_VERIFIER_ADDRESS",
+    "DECRYPTION_VERIFIER_ADDRESS",
+    "JSON_CID_VERIFIER_ADDRESS",
+    "TESTAMENT_FACTORY_ADDRESS",
+    "TESTATOR_PRIVATE_KEY",
+    "EXECUTOR_PRIVATE_KEY",
+    "EXECUTOR",
   ],
 
   // Network-specific required variables
-  networkRequired: USE_ANVIL
-    ? ['ANVIL_RPC_URL']
-    : ['ARB_SEPOLIA_RPC_URL'],
+  networkRequired: USE_ANVIL ? ["ANVIL_RPC_URL"] : ["ARB_SEPOLIA_RPC_URL"],
 
   // Optional environment variables
-  optional: [
-    'NODE_ENV',
-    'LOG_LEVEL',
-  ],
+  optional: ["NODE_ENV", "LOG_LEVEL"],
 
   // Validation patterns
   validation: {
@@ -779,7 +790,7 @@ export const ENV_CONFIG: EnvConfig = {
     CID: /^[a-zA-Z0-9]{46,100}$/,
     ALGORITHM: /^(aes-256-gcm|chacha20-poly1305)$/,
     ANVIL_RPC_URL: /^https?:\/\/.+/,
-    ARB_SEPOLIA_RPC_URL: /^https?:\/\/.+/
+    ARB_SEPOLIA_RPC_URL: /^https?:\/\/.+/,
   },
 
   // Current environment values
@@ -787,8 +798,8 @@ export const ENV_CONFIG: EnvConfig = {
     USE_ANVIL,
     NODE_ENV,
     ANVIL_RPC_URL: process.env.ANVIL_RPC_URL,
-    ARB_SEPOLIA_RPC_URL: process.env.ARB_SEPOLIA_RPC_URL
-  }
+    ARB_SEPOLIA_RPC_URL: process.env.ARB_SEPOLIA_RPC_URL,
+  },
 };
 
 // ================================
@@ -814,7 +825,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       permit2: PERMIT2_CONFIG,
       zk: ZK_CONFIG,
       logging: LOGGING_CONFIG,
-      env: ENV_CONFIG
+      env: ENV_CONFIG,
     };
 
     return configs[moduleName] || null;
@@ -825,17 +836,21 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
    */
   validateEnvironment(): boolean {
     const allRequired = [...ENV_CONFIG.required, ...ENV_CONFIG.networkRequired];
-    const missing = allRequired.filter(key => !process.env[key]);
+    const missing = allRequired.filter((key) => !process.env[key]);
 
     if (missing.length > 0) {
-      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+      throw new Error(
+        `Missing required environment variables: ${missing.join(", ")}`,
+      );
     }
 
     // Validate format of existing variables
     for (const [key, pattern] of Object.entries(ENV_CONFIG.validation)) {
       const value = process.env[key];
       if (value && !pattern.test(value)) {
-        throw new Error(`Invalid format for environment variable ${key}: ${value}`);
+        throw new Error(
+          `Invalid format for environment variable ${key}: ${value}`,
+        );
       }
     }
 
@@ -846,9 +861,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
    * Get network-specific configuration
    */
   getNetworkConfig(): AnvilNetworkConfig | ArbitrumSepoliaNetworkConfig {
-    return USE_ANVIL
-      ? NETWORK_CONFIG.anvil
-      : NETWORK_CONFIG.arbitrumSepolia;
+    return USE_ANVIL ? NETWORK_CONFIG.anvil : NETWORK_CONFIG.arbitrumSepolia;
   },
 
   /**
@@ -877,7 +890,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       permit2: PERMIT2_CONFIG,
       zk: ZK_CONFIG,
       logging: LOGGING_CONFIG,
-      env: ENV_CONFIG
+      env: ENV_CONFIG,
     };
   },
 
@@ -885,14 +898,14 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
    * Check if running in development mode
    */
   isDevelopment(): boolean {
-    return NODE_ENV === 'development';
+    return NODE_ENV === "development";
   },
 
   /**
    * Check if running in production mode
    */
   isProduction(): boolean {
-    return NODE_ENV === 'production';
+    return NODE_ENV === "production";
   },
 
   /**
@@ -903,7 +916,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       network: NETWORK_CONFIG.timeout,
       ipfs: IPFS_CONFIG.pinning.timeout,
       zk_generation: ZK_CONFIG.generation.timeout,
-      zk_verification: ZK_CONFIG.verification.timeout
+      zk_verification: ZK_CONFIG.verification.timeout,
     };
 
     return timeouts[operation] || 30000; // Default 30 seconds
@@ -916,26 +929,28 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
     const retryConfigs: { [key: string]: RetryConfig } = {
       network: {
         attempts: NETWORK_CONFIG.retryAttempts,
-        delay: NETWORK_CONFIG.retryDelay
+        delay: NETWORK_CONFIG.retryDelay,
       },
       approval: {
         attempts: APPROVAL_CONFIG.maxRetries,
-        delay: APPROVAL_CONFIG.retryDelay
+        delay: APPROVAL_CONFIG.retryDelay,
       },
       signature: {
         attempts: SIGNATURE_CONFIG.maxRetries,
-        delay: SIGNATURE_CONFIG.retryDelay
+        delay: SIGNATURE_CONFIG.retryDelay,
       },
       ipfs: {
         attempts: IPFS_CONFIG.pinning.retryAttempts,
-        delay: IPFS_CONFIG.pinning.retryDelay
-      }
+        delay: IPFS_CONFIG.pinning.retryDelay,
+      },
     };
 
-    return retryConfigs[operation] || {
-      attempts: ERROR_CONFIG.maxRetries,
-      delay: ERROR_CONFIG.baseDelay
-    };
+    return (
+      retryConfigs[operation] || {
+        attempts: ERROR_CONFIG.maxRetries,
+        delay: ERROR_CONFIG.baseDelay,
+      }
+    );
   },
 
   /**
@@ -948,9 +963,9 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       network: NETWORK_CONFIG.network,
       chainId: NETWORK_CONFIG.expectedChainIds,
       rpcUrl: NETWORK_CONFIG.rpc.current,
-      configLoaded: true
+      configLoaded: true,
     };
-  }
+  },
 };
 
 // ================================
@@ -972,5 +987,5 @@ export default {
   ZK_CONFIG,
   LOGGING_CONFIG,
   ENV_CONFIG,
-  CONFIG_UTILS
+  CONFIG_UTILS,
 };

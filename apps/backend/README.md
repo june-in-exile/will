@@ -22,11 +22,13 @@ make init
 Store the testament in [`testament/1_plaintext.txt`](testament/1_plaintext.txt).
 
 The testament should contain:
+
 - [ ] The testator's wallet address
 - [ ] The beneficiary's wallet address (multiple beneficiaries support planned)
 - [ ] ERC20 tokens and corresponding amounts to be transferred
 
 **Example testament:**
+
 ```
 After my death, I would like to transfer 5 USDC and 10 LINK to my son.
 My wallet is 0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc.
@@ -36,10 +38,11 @@ My son's wallet 0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c.
 ### Step 2: Format Testament (In Development)
 
 Format the plaintext testament into a JSON file:
+
 - **Required `.env` fields**: None
 - **Output**: [`testament/2_formatted.json`](testament/2_formatted.json)
 
-*Note: This step is currently under development.*
+_Note: This step is currently under development._
 
 ### Step 3: Approve Permit2 Contract
 
@@ -138,11 +141,13 @@ testament/
 The system automatically manages the following `.env` variables during the process:
 
 ### Estate Configuration
+
 - `BENEFICIARY<ID>`: Beneficiary wallet addresses
 - `TOKEN<ID>`: Token contract addresses
 - `AMOUNT<ID>`: Transfer amounts
 
 ### Testament Lifecycle
+
 - `SALT`: CREATE2 salt for contract deployment
 - `TESTAMENT_ADDRESS`: Predicted contract address
 - `NONCE`, `DEADLINE`: Permit2 parameters

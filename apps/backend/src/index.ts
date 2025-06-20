@@ -1,5 +1,5 @@
-import express from 'express';
-import cors from 'cors';
+import express from "express";
+import cors from "cors";
 // import type { Testament } from '@shared/types/index.js';
 
 const app = express();
@@ -8,10 +8,10 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok',
-    message: 'Testament backend is running',
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Testament backend is running",
   });
 });
 
@@ -24,7 +24,7 @@ app.get('/health', (req, res) => {
 //     encrypted: false,
 //     timestamp: Date.now()
 //   };
-  
+
 //   res.json([mockTestament]);
 // });
 

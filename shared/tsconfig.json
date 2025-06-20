@@ -1,27 +1,27 @@
 {
-    "compilerOptions": {
-      "target": "ES2022",
-      "module": "ESNext",
-      "moduleResolution": "node",
-      "allowJs": true,
-      "checkJs": false,
-      "declaration": true,      // generate .d.ts
-      "declarationMap": true,   // generate .d.ts.map
-      "sourceMap": true,        // generate .js.map
-      "outDir": "./dist",
-      "strict": true,
-      "skipLibCheck": false,
-      "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "lib": ["ES2022", "DOM", "DOM.Iterable"],
-      "resolveJsonModule": true,
-      "isolatedModules": true,
-      "jsx": "react-jsx",
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-      "noFallthroughCasesInSwitch": true,
-      "baseUrl": "."
-    },
-    "include": ["**/*"],
-    "exclude": ["node_modules", "dist"]
-  }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": true, // generate .d.ts
+    "declarationMap": true, // generate .d.ts.map
+    "sourceMap": true, // generate .js.map
+    "outDir": "./dist",
+    "strict": true,
+    "skipLibCheck": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": "."
+  },
+  "include": ["**/*"],
+  "exclude": ["node_modules", "dist"]
+}

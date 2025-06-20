@@ -1,27 +1,27 @@
 {
-    "testator": "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
-    "estates": [
-        {
-            "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
-            "token": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
-            "amount": 1000
-        },
-        {
-            "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
-            "token": "0xb1D4538B4571d411F07960EF2838Ce337FE1E80E",
-            "amount": 5000000
-        }
-    ],
-    "salt": 2856518300708759,
-    "testament": "0x555b481d7aACD68B372a866e49cAaa6f4BB28cAC",
-    "timestamp": "2025-06-20T01:54:27.039Z",
-    "metadata": {
-        "predictedAt": 1750384467040,
-        "estatesCount": 2
+  "testator": "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
+  "estates": [
+    {
+      "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
+      "token": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+      "amount": 1000
     },
-    "signature": {
-        "nonce": 839694427403757,
-        "deadline": 1781920467,
-        "signature": "0xe66a9a553ac876c9b2f169ecf6a7af3a6fd67b20f8d9d43d22b328d7e318d64c3226940892ebfbae7dc9ba384e611280638db31ba6bcae5662b6d54dcc8b47d81b"
+    {
+      "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
+      "token": "0xb1D4538B4571d411F07960EF2838Ce337FE1E80E",
+      "amount": 5000000
     }
+  ],
+  "salt": 2856518300708759,
+  "testament": "0x555b481d7aACD68B372a866e49cAaa6f4BB28cAC",
+  "timestamp": "2025-06-20T01:54:27.039Z",
+  "metadata": {
+    "predictedAt": 1750384467040,
+    "estatesCount": 2
+  },
+  "signature": {
+    "nonce": 839694427403757,
+    "deadline": 1781920467,
+    "signature": "0xe66a9a553ac876c9b2f169ecf6a7af3a6fd67b20f8d9d43d22b328d7e318d64c3226940892ebfbae7dc9ba384e611280638db31ba6bcae5662b6d54dcc8b47d81b"
+  }
 }
