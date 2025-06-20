@@ -80,4 +80,4 @@ create-testament:
 	@pnpm exec tsx src/testamentFactory/createTestament.ts
 
 signature-transfer:
-	@pnpm exec tsx src/testamentFactory/signatureTransferToBeneficiaries.ts
+	@pnpm exec tsx src/testament/signatureTransfer.ts
