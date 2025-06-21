@@ -47,20 +47,14 @@ git clone https://github.com/june-in-exile/testament.git
 cd testament
 ```
 
-2. **Generate groth16 zero-knowledge proof and verifer**
-
-```bash
-cd circuits && make all
-```
-
-3. **Install dependencies & build smart contracts**
+2. **Install dependencies & generate ZKP & build smart contracts**
 
 ```bash
 pnpm install
 pnpm build
 ```
 
-4. **Start development environment**
+3. **Start development environment**
 
 ```bash
 # Start both frontend and backend
@@ -247,7 +241,6 @@ pnpm build
 
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
-   
 2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
    - [ ] **ZKP1**: Prove that a JSON file is in proper format
      - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files
