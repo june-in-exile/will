@@ -262,7 +262,7 @@ contract TestamentFactoryIntegrationTest is Test {
         assertEq(testamentFactory.testaments(tv.cid), testamentAddress);
     }
 
-    function _getProofDataFromEnvArrays() public returns (ProofData memory) {
+    function _getProofDataFromEnvArrays() public view returns (ProofData memory) {
         uint256[] memory paArray = vm.envUint("PA_ARRAY", ",");
         require(paArray.length == 2, "PA_ARRAY must have exactly 2 elements");
 
