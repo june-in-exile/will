@@ -89,12 +89,12 @@ typechain-types/
 # =============================================================================
 # ZERO-KNOWLEDGE PROOFS
 # =============================================================================
-circuits/build/
-circuits/keys/
-circuits/*.zkey
+circuits/*_cpp
+circuits/*_js
+circuits/*.ptau
 circuits/*.wtns
-circuits/*.r1cs
-circuits/*.sym
+circuits/*.json
+circuits/*.sol
 contracts/src/Groth16Verifier.sol
 
 # =============================================================================
