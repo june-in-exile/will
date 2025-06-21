@@ -20,7 +20,8 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil sync_groth16verifier_and_proof build test
+init: sync_anvil sync_groth16verifier_and_proof build
+	@make test
 	@pnpm typechain
 
 # -------------- Environment Variables ------------------
