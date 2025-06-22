@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol";
 
-contract Testament {
+contract Will {
     IPermit2 public immutable permit2;
 
     struct Estate {
@@ -21,11 +21,11 @@ contract Testament {
     // Can be removed since the nonce brings the same effect
     bool public executed = false;
 
-    event TestamentExecuted();
+    event WillExecuted();
 
     error OnlyExecutor();
     error AlreadyExecuted();
-    
+
     error Permit2AddressZero();
     error TestatorAddressZero();
     error ExecutorAddressZero();
@@ -108,6 +108,6 @@ contract Testament {
         );
 
         executed = true;
-        emit TestamentExecuted();
+        emit WillExecuted();
     }
 }

@@ -8,10 +8,10 @@ export const NETWORKS = {
 
 export const CONTRACT_ADDRESSES = {
   [NETWORKS.ETHEREUM]: {
-    TESTAMENT_FACTORY: "0x...",
+    WILL_FACTORY: "0x...",
   },
   [NETWORKS.SEPOLIA]: {
-    TESTAMENT_FACTORY: "0x...",
+    WILL_FACTORY: "0x...",
   },
 } as const;
 

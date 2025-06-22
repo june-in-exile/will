@@ -32,10 +32,10 @@ interface Estate {
   beneficiary: string;
 }
 
-interface TestamentData {
+interface WillData {
   testator: string;
   estates: Estate[];
-  testament: string;
+  will: string;
 }
 
 interface PermittedToken {
@@ -56,7 +56,7 @@ interface SignatureInfo {
   signature: string;
 }
 
-interface SignedTestamentData extends TestamentData {
+interface SignedWillData extends WillData {
   signature: SignatureInfo;
 }
 
@@ -104,9 +104,9 @@ function validateEnvironment(): EnvironmentVariables {
  * Validate file existence
  */
 function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.testament.addressed)) {
+  if (!existsSync(PATHS_CONFIG.will.addressed)) {
     throw new Error(
-      `Addressed testament file does not exist: ${PATHS_CONFIG.testament.addressed}`
+      `Addressed will file does not exist: ${PATHS_CONFIG.will.addressed}`
     );
   }
 }
@@ -157,47 +157,39 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
 }
 
 /**
- * Read and validate testament data
+ * Read and validate will data
  */
-function readTestamentData(): TestamentData {
+function readWillData(): WillData {
   try {
-    console.log(chalk.blue("Reading addressed testament data..."));
-    const testamentContent = readFileSync(
-      PATHS_CONFIG.testament.addressed,
-      "utf8"
-    );
-    const testamentJson: TestamentData = JSON.parse(testamentContent);
+    console.log(chalk.blue("Reading addressed will data..."));
+    const willContent = readFileSync(PATHS_CONFIG.will.addressed, "utf8");
+    const willJson: WillData = JSON.parse(willContent);
 
     // Validate required fields
-    const requiredFields: (keyof TestamentData)[] = [
-      "testament",
-      "estates",
-      "testator",
-    ];
+    const requiredFields: (keyof WillData)[] = ["will", "estates", "testator"];
     for (const field of requiredFields) {
-      if (!testamentJson[field]) {
+      if (!willJson[field]) {
         throw new Error(`Missing required field: ${field}`);
       }
     }
 
-    // Validate testament address
-    if (!ethers.isAddress(testamentJson.testament)) {
-      throw new Error(`Invalid testament address: ${testamentJson.testament}`);
+    // Validate will address
+    if (!ethers.isAddress(willJson.will)) {
+      throw new Error(`Invalid will address: ${willJson.will}`);
     }
 
     // Validate estates
     if (
-      !Array.isArray(testamentJson.estates) ||
-      testamentJson.estates.length <
-        VALIDATION_CONFIG.testament.minEstatesRequired
+      !Array.isArray(willJson.estates) ||
+      willJson.estates.length < VALIDATION_CONFIG.will.minEstatesRequired
     ) {
       throw new Error(
-        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.testament.minEstatesRequired})`
+        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.will.minEstatesRequired})`
       );
     }
 
     // Validate each estate
-    testamentJson.estates.forEach((estate, index) => {
+    willJson.estates.forEach((estate, index) => {
       const requiredEstateFields: (keyof Estate)[] = [
         "token",
         "amount",
@@ -231,14 +223,14 @@ function readTestamentData(): TestamentData {
       }
     });
 
-    console.log(chalk.green("✅ Testament data validated successfully"));
-    console.log(chalk.gray("Estates count:"), testamentJson.estates.length);
-    console.log(chalk.gray("Testament address:"), testamentJson.testament);
+    console.log(chalk.green("✅ Will data validated successfully"));
+    console.log(chalk.gray("Estates count:"), willJson.estates.length);
+    console.log(chalk.gray("Will address:"), willJson.will);
 
-    return testamentJson;
+    return willJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in testament file: ${error.message}`);
+      throw new Error(`Invalid JSON in will file: ${error.message}`);
     }
     throw error;
   }
@@ -281,7 +273,7 @@ function generateSecureNonce(): number {
  */
 function createPermitStructure(
   estates: Estate[],
-  testamentAddress: string,
+  willAddress: string,
   nonce: number,
   deadline: number
 ): Permit {
@@ -303,13 +295,13 @@ function createPermitStructure(
 
     const permit: Permit = {
       permitted,
-      spender: testamentAddress,
+      spender: willAddress,
       nonce,
       deadline,
     };
 
     console.log(chalk.green("✅ Permit structure created"));
-    console.log(chalk.gray("Spender (Testament):"), testamentAddress);
+    console.log(chalk.gray("Spender (Will):"), willAddress);
     console.log(chalk.gray("Permitted tokens:"), permitted.length);
 
     return permit;
@@ -358,19 +350,19 @@ async function signPermit(
 }
 
 /**
- * Save signed testament
+ * Save signed will
  */
-function saveSignedTestament(
-  testamentData: TestamentData,
+function saveSignedWill(
+  willData: WillData,
   nonce: number,
   deadline: number,
   signature: string
-): SignedTestamentData {
+): SignedWillData {
   try {
-    console.log(chalk.blue("Preparing signed testament..."));
+    console.log(chalk.blue("Preparing signed will..."));
 
-    const signedTestament = {
-      ...testamentData,
+    const signedWill = {
+      ...willData,
       signature: {
         nonce,
         deadline,
@@ -379,19 +371,19 @@ function saveSignedTestament(
     };
 
     writeFileSync(
-      PATHS_CONFIG.testament.signed,
-      JSON.stringify(signedTestament, null, 4)
+      PATHS_CONFIG.will.signed,
+      JSON.stringify(signedWill, null, 4)
     );
     console.log(
-      chalk.green("✅ Signed testament saved to:"),
-      PATHS_CONFIG.testament.signed
+      chalk.green("✅ Signed will saved to:"),
+      PATHS_CONFIG.will.signed
     );
 
-    return signedTestament;
+    return signedWill;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save signed testament: ${errorMessage}`);
+    throw new Error(`Failed to save signed will: ${errorMessage}`);
   }
 }
 
@@ -425,9 +417,9 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * Process testament signing workflow
+ * Process will signing workflow
  */
-async function processTestamentSigning(): Promise<ProcessResult> {
+async function processWillSigning(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
@@ -440,8 +432,8 @@ async function processTestamentSigning(): Promise<ProcessResult> {
     // Create and validate signer
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    // Read and validate testament data
-    const testamentData = readTestamentData();
+    // Read and validate will data
+    const willData = readWillData();
 
     // Generate signature parameters
     console.log(chalk.blue("Generating signature parameters..."));
@@ -458,8 +450,8 @@ async function processTestamentSigning(): Promise<ProcessResult> {
 
     // Create permit structure
     const permit = createPermitStructure(
-      testamentData.estates,
-      testamentData.testament,
+      willData.estates,
+      willData.will,
       nonce,
       deadline
     );
@@ -472,22 +464,22 @@ async function processTestamentSigning(): Promise<ProcessResult> {
       signer
     );
 
-    // Save signed testament
-    saveSignedTestament(testamentData, nonce, deadline, signature);
+    // Save signed will
+    saveSignedWill(willData, nonce, deadline, signature);
 
     // Update environment variables
     await updateEnvironmentVariables(nonce, deadline, signature);
 
     console.log(
-      chalk.green.bold("\n🎉 Testament signing process completed successfully!")
+      chalk.green.bold("\n🎉 Will signing process completed successfully!")
     );
 
     return {
       nonce,
       deadline,
       signature,
-      estatesCount: testamentData.estates.length,
-      outputPath: PATHS_CONFIG.testament.signed,
+      estatesCount: willData.estates.length,
+      outputPath: PATHS_CONFIG.will.signed,
       signerAddress: await signer.getAddress(),
       chainId: network.chainId.toString(),
       success: true,
@@ -496,7 +488,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      chalk.red("Error during testament signing process:"),
+      chalk.red("Error during will signing process:"),
       errorMessage
     );
     throw error;
@@ -508,11 +500,9 @@ async function processTestamentSigning(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(
-      chalk.cyan("\n=== Testament EIP-712 Signature Generation ===\n")
-    );
+    console.log(chalk.cyan("\n=== Will EIP-712 Signature Generation ===\n"));
 
-    const result = await processTestamentSigning();
+    const result = await processWillSigning();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {

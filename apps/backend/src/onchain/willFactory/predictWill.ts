@@ -1,10 +1,6 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config";
 import { updateEnvVariable } from "@shared/utils/env";
-import {
-  Estate,
-  TestamentFactory,
-  TestamentFactory__factory,
-} from "@shared/types";
+import { Estate, WillFactory, WillFactory__factory } from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
@@ -16,16 +12,16 @@ config({ path: PATHS_CONFIG.env });
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT_FACTORY: string;
+  WILL_FACTORY: string;
 }
 
-interface TestamentData {
+interface WillData {
   testator: string;
   estates: Estate[];
 }
 
-interface AddressedTestament extends TestamentData {
-  testament: string;
+interface AddressedWill extends WillData {
+  will: string;
   salt: number;
   timestamp: string;
   metadata: {
@@ -46,26 +42,26 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTAMENT_FACTORY } = process.env;
+  const { WILL_FACTORY } = process.env;
 
-  if (!TESTAMENT_FACTORY) {
-    throw new Error("Environment variable TESTAMENT_FACTORY is not set");
+  if (!WILL_FACTORY) {
+    throw new Error("Environment variable WILL_FACTORY is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT_FACTORY)) {
-    throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY}`);
+  if (!ethers.isAddress(WILL_FACTORY)) {
+    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
   }
 
-  return { TESTAMENT_FACTORY };
+  return { WILL_FACTORY };
 }
 
 /**
  * Validate file existence
  */
 function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.testament.formatted)) {
+  if (!existsSync(PATHS_CONFIG.will.formatted)) {
     throw new Error(
-      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`
+      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`
     );
   }
 }
@@ -115,32 +111,29 @@ function generateSecureSalt(timestamp: number = Date.now()): number {
 }
 
 /**
- * Read and validate testament data
+ * Read and validate will data
  */
-function readTestamentData(): TestamentData {
+function readWillData(): WillData {
   try {
-    console.log(chalk.blue("Reading formatted testament data..."));
-    const testamentContent = readFileSync(
-      PATHS_CONFIG.testament.formatted,
-      "utf8"
-    );
-    const testamentJson: TestamentData = JSON.parse(testamentContent);
+    console.log(chalk.blue("Reading formatted will data..."));
+    const willContent = readFileSync(PATHS_CONFIG.will.formatted, "utf8");
+    const willJson: WillData = JSON.parse(willContent);
 
     // Validate required fields
-    if (!testamentJson.testator) {
+    if (!willJson.testator) {
       throw new Error("Missing required field: testator");
     }
 
-    if (!testamentJson.estates || !Array.isArray(testamentJson.estates)) {
+    if (!willJson.estates || !Array.isArray(willJson.estates)) {
       throw new Error("Missing or invalid estates array");
     }
 
-    if (testamentJson.estates.length === 0) {
+    if (willJson.estates.length === 0) {
       throw new Error("Estates array cannot be empty");
     }
 
     // Validate estate structure
-    testamentJson.estates.forEach((estate, index) => {
+    willJson.estates.forEach((estate, index) => {
       const requiredFields: (keyof Estate)[] = [
         "beneficiary",
         "token",
@@ -168,11 +161,11 @@ function readTestamentData(): TestamentData {
       }
     });
 
-    console.log(chalk.green("✅ Testament data validated successfully"));
-    return testamentJson;
+    console.log(chalk.green("✅ Will data validated successfully"));
+    return willJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in testament file: ${error.message}`);
+      throw new Error(`Invalid JSON in will file: ${error.message}`);
     }
     throw error;
   }
@@ -184,14 +177,11 @@ function readTestamentData(): TestamentData {
 async function createContractInstance(
   factoryAddress: string,
   provider: JsonRpcProvider
-): Promise<TestamentFactory> {
+): Promise<WillFactory> {
   try {
-    console.log(chalk.blue("Loading testament factory contract..."));
+    console.log(chalk.blue("Loading will factory contract..."));
 
-    const contract = TestamentFactory__factory.connect(
-      factoryAddress,
-      provider
-    );
+    const contract = WillFactory__factory.connect(factoryAddress, provider);
 
     // Validate contract exists at address
     const code = await provider.getCode(factoryAddress);
@@ -199,7 +189,7 @@ async function createContractInstance(
       throw new Error(`No contract found at address: ${factoryAddress}`);
     }
 
-    console.log(chalk.green("✅ Testament factory contract loaded"));
+    console.log(chalk.green("✅ Will factory contract loaded"));
     return contract;
   } catch (error) {
     const errorMessage =
@@ -209,22 +199,22 @@ async function createContractInstance(
 }
 
 /**
- * Predict testament address
+ * Predict will address
  */
-async function predictTestamentAddress(
-  contract: TestamentFactory,
+async function predictWillAddress(
+  contract: WillFactory,
   testator: string,
   estates: Estate[],
   salt: number
 ): Promise<string> {
   try {
-    console.log(chalk.blue("Predicting testament address..."));
+    console.log(chalk.blue("Predicting will address..."));
     console.log(chalk.gray("Parameters:"));
     console.log(chalk.gray("- Testator:"), testator);
     console.log(chalk.gray("- Estates count:"), estates.length);
     console.log(chalk.gray("- Salt:"), salt);
 
-    const predictedAddress = await contract.predictTestament(
+    const predictedAddress = await contract.predictWill(
       testator,
       estates,
       salt
@@ -235,53 +225,53 @@ async function predictTestamentAddress(
     }
 
     console.log(
-      chalk.green("✅ Testament address predicted:"),
+      chalk.green("✅ Will address predicted:"),
       chalk.white(predictedAddress)
     );
     return predictedAddress;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to predict testament address: ${errorMessage}`);
+    throw new Error(`Failed to predict will address: ${errorMessage}`);
   }
 }
 
 /**
- * Save addressed testament
+ * Save addressed will
  */
-function saveAddressedTestament(
-  testamentData: TestamentData,
+function saveAddressedWill(
+  willData: WillData,
   salt: number,
   predictedAddress: string
-): AddressedTestament {
+): AddressedWill {
   try {
-    console.log(chalk.blue("Preparing addressed testament..."));
+    console.log(chalk.blue("Preparing addressed will..."));
 
-    const addressedTestament: AddressedTestament = {
-      ...testamentData,
+    const addressedWill: AddressedWill = {
+      ...willData,
       salt: salt,
-      testament: predictedAddress,
+      will: predictedAddress,
       timestamp: new Date().toISOString(),
       metadata: {
         predictedAt: Date.now(),
-        estatesCount: testamentData.estates.length,
+        estatesCount: willData.estates.length,
       },
     };
 
     writeFileSync(
-      PATHS_CONFIG.testament.addressed,
-      JSON.stringify(addressedTestament, null, 4)
+      PATHS_CONFIG.will.addressed,
+      JSON.stringify(addressedWill, null, 4)
     );
     console.log(
-      chalk.green("✅ Addressed testament saved to:"),
-      PATHS_CONFIG.testament.addressed
+      chalk.green("✅ Addressed will saved to:"),
+      PATHS_CONFIG.will.addressed
     );
 
-    return addressedTestament;
+    return addressedWill;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save addressed testament: ${errorMessage}`);
+    throw new Error(`Failed to save addressed will: ${errorMessage}`);
   }
 }
 
@@ -297,9 +287,9 @@ async function updateEnvironmentVariables(
     console.log(chalk.blue("Updating environment variables..."));
 
     const updates: Array<[string, string]> = [
-      // Testament contract info
+      // Will contract info
       ["SALT", salt.toString()],
-      ["TESTAMENT", predictedAddress],
+      ["WILL", predictedAddress],
     ];
 
     // Add estate-specific variables
@@ -327,87 +317,82 @@ async function updateEnvironmentVariables(
 /**
  * List the contract's information
  */
-async function getContractInfo(contract: TestamentFactory): Promise<void> {
+async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, uploadCIDVerifier, createTestamentVerifier] =
-      await Promise.all([
+    const [executor, uploadCIDVerifier, createWillVerifier] = await Promise.all(
+      [
         contract.executor(),
         contract.uploadCIDVerifier(),
-        contract.createTestamentVerifier(),
-      ]);
+        contract.createWillVerifier(),
+      ]
+    );
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
     console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createTestamentVerifier);
+    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
   } catch (error) {
     console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
   }
 }
 
 /**
- * Process testament addressing workflow
+ * Process will addressing workflow
  */
-async function processTestamentAddressing(): Promise<ProcessResult> {
+async function processWillAddressing(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTAMENT_FACTORY } = validateEnvironment();
+    const { WILL_FACTORY } = validateEnvironment();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateRpcConnection(provider);
 
     // Create contract instance
-    const contract = await createContractInstance(TESTAMENT_FACTORY, provider);
+    const contract = await createContractInstance(WILL_FACTORY, provider);
 
     // Get contract information
     await getContractInfo(contract);
 
-    // Read and validate testament data
-    const testamentData = readTestamentData();
+    // Read and validate will data
+    const willData = readWillData();
 
     // Generate salt
     const salt = generateSecureSalt();
 
-    // Predict testament address
-    const predictedAddress = await predictTestamentAddress(
+    // Predict will address
+    const predictedAddress = await predictWillAddress(
       contract,
-      testamentData.testator,
-      testamentData.estates,
+      willData.testator,
+      willData.estates,
       salt
     );
 
-    // Save addressed testament
-    saveAddressedTestament(testamentData, salt, predictedAddress);
+    // Save addressed will
+    saveAddressedWill(willData, salt, predictedAddress);
 
     // Update environment variables
-    await updateEnvironmentVariables(
-      testamentData.estates,
-      salt,
-      predictedAddress
-    );
+    await updateEnvironmentVariables(willData.estates, salt, predictedAddress);
 
     console.log(
-      chalk.green.bold(
-        "\n🎉 Testament addressing process completed successfully!"
-      )
+      chalk.green.bold("\n🎉 Will addressing process completed successfully!")
     );
 
     return {
       predictedAddress,
       salt,
-      estatesCount: testamentData.estates.length,
-      outputPath: PATHS_CONFIG.testament.addressed,
+      estatesCount: willData.estates.length,
+      outputPath: PATHS_CONFIG.will.addressed,
       success: true,
     };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      chalk.red("Error during testament addressing process:"),
+      chalk.red("Error during will addressing process:"),
       errorMessage
     );
     throw error;
@@ -420,10 +405,10 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Testament Address Prediction & Environment Setup ===\n")
+      chalk.cyan("\n=== Will Address Prediction & Environment Setup ===\n")
     );
 
-    const result = await processTestamentAddressing();
+    const result = await processWillAddressing();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);

@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "src/Testament.sol";
+import "src/Will.sol";
 import "src/Groth16Verifier.sol";
 import "src/JSONCIDVerifier.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-contract TestamentFactory {
+contract WillFactory {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
     Groth16Verifier public uploadCIDVerifier;
-    Groth16Verifier public createTestamentVerifier;
+    Groth16Verifier public createWillVerifier;
     JSONCIDVerifier public jsonCidVerifier;
     address public permit2;
     address public executor;
 
     mapping(string => uint256) private _testatorValidateTimes;
     mapping(string => uint256) private _executorValidateTimes;
-    mapping(string => address) public testaments;
+    mapping(string => address) public wills;
 
-    event TestamentCreated(
+    event WillCreated(
         string indexed cid,
         address indexed testator,
-        address testament
+        address will
     );
     event CIDUploaded(string indexed cid, uint256 timestamp);
     event CIDNotarized(string indexed cid, uint256 timestamp);
@@ -36,18 +36,18 @@ contract TestamentFactory {
     error DecryptionProofInvalid();
     error CIDNotValidatedByTestator(string cid);
     error CIDNotValidatedByExecutor(string cid);
-    error TestamentAlreadyExists(string cid, address existingTestament);
-    error TestamentAddressInconsistent(address predicted, address actual);
+    error WillAlreadyExists(string cid, address existingWill);
+    error WillAddressInconsistent(address predicted, address actual);
 
     constructor(
         address _uploadCIDVerifier,
-        address _createTestamentVerifier,
+        address _createWillVerifier,
         address _jsonCidVerifier,
         address _executor,
         address _permit2
     ) {
         uploadCIDVerifier = Groth16Verifier(_uploadCIDVerifier);
-        createTestamentVerifier = Groth16Verifier(_createTestamentVerifier);
+        createWillVerifier = Groth16Verifier(_createWillVerifier);
         jsonCidVerifier = JSONCIDVerifier(_jsonCidVerifier);
         executor = _executor;
         permit2 = _permit2;
@@ -86,10 +86,10 @@ contract TestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JSONCIDVerifier.JsonObject memory _testament,
+        JSONCIDVerifier.JsonObject memory _will,
         string calldata _cid
     ) external {
-        bool isValid = jsonCidVerifier.verifyCID(_testament, _cid);
+        bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
         if (!isValid) revert JSONCIDInvalid(_cid);
 
@@ -121,13 +121,13 @@ contract TestamentFactory {
         emit CIDNotarized(_cid, block.timestamp);
     }
 
-    function predictTestament(
+    function predictWill(
         address _testator,
-        Testament.Estate[] calldata estates,
+        Will.Estate[] calldata estates,
         uint256 _salt
     ) public view returns (address) {
         bytes memory bytecode = abi.encodePacked(
-            type(Testament).creationCode,
+            type(Will).creationCode,
             abi.encode(permit2, _testator, executor, estates)
         );
 
@@ -143,15 +143,15 @@ contract TestamentFactory {
         return address(uint160(uint256(hash)));
     }
 
-    function createTestament(
+    function createWill(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JSONCIDVerifier.JsonObject memory _testament,
+        JSONCIDVerifier.JsonObject memory _will,
         string calldata _cid,
         address _testator,
-        Testament.Estate[] calldata _estates,
+        Will.Estate[] calldata _estates,
         uint256 _salt
     ) external returns (address) {
         if (_testatorValidateTimes[_cid] == 0)
@@ -159,30 +159,27 @@ contract TestamentFactory {
         if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid])
             revert CIDNotValidatedByExecutor(_cid);
 
-        bool isValid = jsonCidVerifier.verifyCID(_testament, _cid);
+        bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
         if (!isValid) revert JSONCIDInvalid(_cid);
-        if (!createTestamentVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!createWillVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
-        if (testaments[_cid] != address(0))
-            revert TestamentAlreadyExists(_cid, testaments[_cid]);
+        if (wills[_cid] != address(0))
+            revert WillAlreadyExists(_cid, wills[_cid]);
 
-        Testament testament = new Testament{salt: bytes32(_salt)}(
+        Will will = new Will{salt: bytes32(_salt)}(
             permit2,
             _testator,
             executor,
             _estates
         );
-        address predictedAddress = predictTestament(_testator, _estates, _salt);
-        if (address(testament) != predictedAddress)
-            revert TestamentAddressInconsistent(
-                predictedAddress,
-                address(testament)
-            );
+        address predictedAddress = predictWill(_testator, _estates, _salt);
+        if (address(will) != predictedAddress)
+            revert WillAddressInconsistent(predictedAddress, address(will));
 
-        testaments[_cid] = address(testament);
-        emit TestamentCreated(_cid, _testator, address(testament));
+        wills[_cid] = address(will);
+        emit WillCreated(_cid, _testator, address(will));
 
-        return address(testament);
+        return address(will);
     }
 }

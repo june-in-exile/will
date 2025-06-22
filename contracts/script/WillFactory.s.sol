@@ -2,19 +2,19 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {TestamentFactory} from "src/TestamentFactory.sol";
+import {WillFactory} from "src/WillFactory.sol";
 
-contract TestamentFactoryScript is Script {
-    TestamentFactory public testamentFactory;
+contract WillFactoryScript is Script {
+    WillFactory public willFactory;
     address private _uploadCIDVerifier;
-    address private _createTestamentVerifier;
+    address private _createWillVerifier;
     address private _jsonCidVerifier;
     address private _executor;
     address private _permit2;
 
     constructor() {
         _uploadCIDVerifier = vm.envAddress("UPLOAD_CID_VERIFIER");
-        _createTestamentVerifier = vm.envAddress("CREATE_TESTAMENT_VERIFIER");
+        _createWillVerifier = vm.envAddress("CREATE_WILL_VERIFIER");
         _jsonCidVerifier = vm.envAddress("JSON_CID_VERIFIER");
         _executor = vm.envAddress("EXECUTOR");
         _permit2 = vm.envAddress("PERMIT2");
@@ -25,9 +25,9 @@ contract TestamentFactoryScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        testamentFactory = new TestamentFactory(
+        willFactory = new WillFactory(
             _uploadCIDVerifier,
-            _createTestamentVerifier,
+            _createWillVerifier,
             _jsonCidVerifier,
             _executor,
             _permit2

@@ -11,7 +11,7 @@ app.use(express.json());
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    message: "Testament backend is running",
+    message: "Will backend is running",
   });
 });
 

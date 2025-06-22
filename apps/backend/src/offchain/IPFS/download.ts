@@ -40,7 +40,7 @@ function validateEnvironment(): EnvironmentVariables {
 
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(ALGORITHM)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
+      `Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
     );
   }
 
@@ -50,7 +50,7 @@ function validateEnvironment(): EnvironmentVariables {
 /**
  * Decrypt JSON data
  */
-function decryptTestament(encryptedData: EncryptedData): string {
+function decryptWill(encryptedData: EncryptedData): string {
   try {
     const { ALGORITHM } = validateEnvironment();
 
@@ -75,10 +75,10 @@ function decryptTestament(encryptedData: EncryptedData): string {
     }
 
     // Save decrypted result
-    writeFileSync(PATHS_CONFIG.testament.decrypted, plaintext);
+    writeFileSync(PATHS_CONFIG.will.decrypted, plaintext);
     console.log(
-      chalk.green("Testament successfully decrypted and saved to:"),
-      PATHS_CONFIG.testament.decrypted,
+      chalk.green("Will successfully decrypted and saved to:"),
+      PATHS_CONFIG.will.decrypted
     );
 
     return plaintext;
@@ -95,26 +95,23 @@ function decryptTestament(encryptedData: EncryptedData): string {
  */
 async function decryptFromLocalFile(): Promise<string> {
   try {
-    if (!existsSync(PATHS_CONFIG.testament.encrypted)) {
+    if (!existsSync(PATHS_CONFIG.will.encrypted)) {
       throw new Error(
-        `Encrypted file does not exist: ${PATHS_CONFIG.testament.encrypted}`,
+        `Encrypted file does not exist: ${PATHS_CONFIG.will.encrypted}`
       );
     }
 
     console.log(chalk.blue("Reading encrypted data from local file..."));
-    const encryptedContent = readFileSync(
-      PATHS_CONFIG.testament.encrypted,
-      "utf8",
-    );
+    const encryptedContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
     const encryptedData = JSON.parse(encryptedContent);
 
-    return decryptTestament(encryptedData);
+    return decryptWill(encryptedData);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Failed to decrypt from local file:"),
-      errorMessage,
+      errorMessage
     );
     throw error;
   }
@@ -142,7 +139,7 @@ async function decryptFromIPFS(): Promise<string> {
     console.log(chalk.blue("Downloading encrypted data from IPFS..."));
 
     const encryptedData: EncryptedData = await j.get(cid);
-    return decryptTestament(encryptedData);
+    return decryptWill(encryptedData);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -159,7 +156,7 @@ async function decryptFromIPFS(): Promise<string> {
           stopError instanceof Error ? stopError.message : "Unknown error";
         console.warn(
           chalk.yellow("Warning occurred while stopping Helia instance:"),
-          stopErrorMessage,
+          stopErrorMessage
         );
       }
     }

@@ -3,12 +3,12 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
-import "src/TestamentFactory.sol";
-import "src/Testament.sol";
+import "src/WillFactory.sol";
+import "src/Will.sol";
 import "mock/MockContracts.sol";
 
-contract TestamentFactoryUnitTest is Test {
-    TestamentFactory factory;
+contract WillFactoryUnitTest is Test {
+    WillFactory factory;
     MockGroth16Verifier mockuploadCIDVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJSONCIDVerifier mockJsonCidVerifier;
@@ -28,7 +28,7 @@ contract TestamentFactoryUnitTest is Test {
 
     uint256 salt = 12345;
 
-    JSONCIDVerifier.JsonObject testamentJson;
+    JSONCIDVerifier.JsonObject willJson;
     string cid = "cid";
 
     uint256[2] pA = [1, 2];
@@ -36,7 +36,7 @@ contract TestamentFactoryUnitTest is Test {
     uint256[2] pC = [7, 8];
     uint256[1] pubSignals = [9];
 
-    Testament.Estate[] estates;
+    Will.Estate[] estates;
 
     function setUp() public {
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
@@ -46,7 +46,7 @@ contract TestamentFactoryUnitTest is Test {
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJsonCidVerifier = new MockJSONCIDVerifier();
 
-        factory = new TestamentFactory(
+        factory = new WillFactory(
             address(mockuploadCIDVerifier),
             address(mockDecryptionVerifier),
             address(mockJsonCidVerifier),
@@ -55,7 +55,7 @@ contract TestamentFactoryUnitTest is Test {
         );
 
         estates.push(
-            Testament.Estate({
+            Will.Estate({
                 beneficiary: beneficiary0,
                 token: token0,
                 amount: amount0
@@ -63,7 +63,7 @@ contract TestamentFactoryUnitTest is Test {
         );
 
         estates.push(
-            Testament.Estate({
+            Will.Estate({
                 beneficiary: beneficiary1,
                 token: token1,
                 amount: amount1
@@ -76,10 +76,7 @@ contract TestamentFactoryUnitTest is Test {
         string[] memory values = new string[](1);
         values[0] = "12345";
 
-        testamentJson = JSONCIDVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        willJson = JSONCIDVerifier.JsonObject({keys: keys, values: values});
     }
 
     function test_Constructor() public view {
@@ -88,7 +85,7 @@ contract TestamentFactoryUnitTest is Test {
             address(mockuploadCIDVerifier)
         );
         assertEq(
-            address(factory.createTestamentVerifier()),
+            address(factory.createWillVerifier()),
             address(mockDecryptionVerifier)
         );
         assertEq(
@@ -105,9 +102,9 @@ contract TestamentFactoryUnitTest is Test {
 
         uint256 expectedTimestamp = block.timestamp;
         vm.expectEmit(false, false, false, false);
-        emit TestamentFactory.CIDUploaded(cid, expectedTimestamp);
+        emit WillFactory.CIDUploaded(cid, expectedTimestamp);
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.prank(executor);
         assertEq(factory.testatorValidateTimes(cid), block.timestamp);
@@ -118,31 +115,31 @@ contract TestamentFactoryUnitTest is Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.JSONCIDInvalid.selector,
+                WillFactory.JSONCIDInvalid.selector,
                 cid,
                 "Invalid format"
             )
         );
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
     }
 
     function test_UploadCID_TestatorProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(false);
 
-        vm.expectRevert(TestamentFactory.TestatorProofInvalid.selector);
+        vm.expectRevert(WillFactory.TestatorProofInvalid.selector);
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
     }
 
     function test_NotarizeCID_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(true);
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectEmit(true, false, false, true);
-        emit TestamentFactory.CIDNotarized(cid, block.timestamp);
+        emit WillFactory.CIDNotarized(cid, block.timestamp);
 
         bytes memory executorSignature = _executorSign(cid);
         factory.notarizeCID(cid, executorSignature);
@@ -157,7 +154,7 @@ contract TestamentFactoryUnitTest is Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.CIDNotValidatedByTestator.selector,
+                WillFactory.CIDNotValidatedByTestator.selector,
                 cid
             )
         );
@@ -165,10 +162,10 @@ contract TestamentFactoryUnitTest is Test {
         factory.notarizeCID(cid, signature);
     }
 
-    function test_CreateTestament_Success() public {
+    function test_CreateWill_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(true);
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
 
@@ -177,45 +174,41 @@ contract TestamentFactoryUnitTest is Test {
 
         mockDecryptionVerifier.setShouldReturnTrue(true);
 
-        address predictedAddress = factory.predictTestament(
-            testator,
-            estates,
-            salt
-        );
+        address predictedAddress = factory.predictWill(testator, estates, salt);
 
         vm.expectEmit(true, true, false, true);
-        emit TestamentFactory.TestamentCreated(cid, testator, predictedAddress);
+        emit WillFactory.WillCreated(cid, testator, predictedAddress);
 
-        address testamentAddress = factory.createTestament(
+        address willAddress = factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
             salt
         );
 
-        assertEq(factory.testaments(cid), testamentAddress);
-        assertEq(testamentAddress, predictedAddress);
+        assertEq(factory.wills(cid), willAddress);
+        assertEq(willAddress, predictedAddress);
     }
 
-    function test_CreateTestament_CIDNotValidatedByTestator() public {
+    function test_CreateWill_CIDNotValidatedByTestator() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.CIDNotValidatedByTestator.selector,
+                WillFactory.CIDNotValidatedByTestator.selector,
                 cid
             )
         );
 
-        factory.createTestament(
+        factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
@@ -223,24 +216,24 @@ contract TestamentFactoryUnitTest is Test {
         );
     }
 
-    function test_CreateTestament_CIDNotValidatedByExecutor() public {
+    function test_CreateWill_CIDNotValidatedByExecutor() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(true);
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.CIDNotValidatedByExecutor.selector,
+                WillFactory.CIDNotValidatedByExecutor.selector,
                 cid
             )
         );
 
-        factory.createTestament(
+        factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
@@ -248,10 +241,10 @@ contract TestamentFactoryUnitTest is Test {
         );
     }
 
-    function test_CreateTestament_DecryptionProofInvalid() public {
+    function test_CreateWill_DecryptionProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(true);
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
 
@@ -260,14 +253,14 @@ contract TestamentFactoryUnitTest is Test {
 
         mockDecryptionVerifier.setShouldReturnTrue(false);
 
-        vm.expectRevert(TestamentFactory.DecryptionProofInvalid.selector);
+        vm.expectRevert(WillFactory.DecryptionProofInvalid.selector);
 
-        factory.createTestament(
+        factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
@@ -275,46 +268,46 @@ contract TestamentFactoryUnitTest is Test {
         );
     }
 
-    function test_CreateTestament_TestamentAlreadyExists() public {
+    function test_CreateWill_WillAlreadyExists() public {
         // Upload and notarize CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockuploadCIDVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
 
         bytes memory executorSignature = _executorSign(cid);
         factory.notarizeCID(cid, executorSignature);
 
-        // Create first testament
-        address firstTestament = factory.createTestament(
+        // Create first will
+        address firstWill = factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
             salt
         );
 
-        // Try to create second testament with same CID
+        // Try to create second will with same CID
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.TestamentAlreadyExists.selector,
+                WillFactory.WillAlreadyExists.selector,
                 cid,
-                firstTestament
+                firstWill
             )
         );
 
-        factory.createTestament(
+        factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson,
+            willJson,
             cid,
             testator,
             estates,
@@ -322,18 +315,18 @@ contract TestamentFactoryUnitTest is Test {
         );
     }
 
-    function test_CreateTestament_DifferentSalts() public {
+    function test_CreateWill_DifferentSalts() public {
         uint256 salt1 = 13579;
         uint256 salt2 = 24680;
 
-        // Different salts result in different testaments
+        // Different salts result in different wills
         string[] memory keys1 = new string[](1);
         keys1[0] = "salt";
 
         string[] memory values1 = new string[](1);
         values1[0] = "13579";
 
-        JSONCIDVerifier.JsonObject memory testamentJson1 = JSONCIDVerifier
+        JSONCIDVerifier.JsonObject memory willJson1 = JSONCIDVerifier
             .JsonObject({keys: keys1, values: values1});
 
         string[] memory keys2 = new string[](1);
@@ -342,10 +335,10 @@ contract TestamentFactoryUnitTest is Test {
         string[] memory values2 = new string[](1);
         values2[0] = "24680";
 
-        JSONCIDVerifier.JsonObject memory testamentJson2 = JSONCIDVerifier
+        JSONCIDVerifier.JsonObject memory willJson2 = JSONCIDVerifier
             .JsonObject({keys: keys2, values: values2});
 
-        // Different testaments result in different cids
+        // Different wills result in different cids
         string memory cid1 = "cid1";
         string memory cid2 = "cid2";
 
@@ -353,52 +346,52 @@ contract TestamentFactoryUnitTest is Test {
         mockuploadCIDVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
 
-        // Create first testament
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid1);
+        // Create first will
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid1);
         vm.warp(block.timestamp + 1);
 
         bytes memory signature1 = _executorSign(cid1);
         factory.notarizeCID(cid1, signature1);
         vm.warp(block.timestamp + 1);
 
-        address testamentContract1 = factory.createTestament(
+        address willContract1 = factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson1,
+            willJson1,
             cid1,
             testator,
             estates,
             salt1
         );
 
-        // Create second testament
+        // Create second will
         vm.warp(block.timestamp + 1);
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid2);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid2);
         vm.warp(block.timestamp + 1);
 
         bytes memory signature2 = _executorSign(cid2);
         factory.notarizeCID(cid2, signature2);
         vm.warp(block.timestamp + 1);
 
-        address testamentContract2 = factory.createTestament(
+        address willContract2 = factory.createWill(
             pA,
             pB,
             pC,
             pubSignals,
-            testamentJson2,
+            willJson2,
             cid2,
             testator,
             estates,
             salt2
         );
 
-        // Verify both testaments exist and are different
-        assertEq(factory.testaments(cid1), testamentContract1);
-        assertEq(factory.testaments(cid2), testamentContract2);
-        assertTrue(testamentContract1 != testamentContract2);
+        // Verify both wills exist and are different
+        assertEq(factory.wills(cid1), willContract1);
+        assertEq(factory.wills(cid2), willContract2);
+        assertTrue(willContract1 != willContract2);
     }
 
     function _executorSign(

@@ -3,12 +3,12 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
-import "src/TestamentFactory.sol";
-import "src/Testament.sol";
+import "src/WillFactory.sol";
+import "src/Will.sol";
 import "mock/MockContracts.sol";
 
-contract TestamentFactoryFuzzTest is Test {
-    TestamentFactory factory;
+contract WillFactoryFuzzTest is Test {
+    WillFactory factory;
     MockGroth16Verifier mockuploadCIDVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJSONCIDVerifier mockJSONCIDVerifier;
@@ -16,14 +16,14 @@ contract TestamentFactoryFuzzTest is Test {
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
 
-    JSONCIDVerifier.JsonObject testamentJson;
+    JSONCIDVerifier.JsonObject willJson;
 
     function setUp() public {
         mockuploadCIDVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJSONCIDVerifier = new MockJSONCIDVerifier();
 
-        factory = new TestamentFactory(
+        factory = new WillFactory(
             address(mockuploadCIDVerifier),
             address(mockDecryptionVerifier),
             address(mockJSONCIDVerifier),
@@ -37,13 +37,10 @@ contract TestamentFactoryFuzzTest is Test {
         string[] memory values = new string[](1);
         values[0] = "12345";
 
-        testamentJson = JSONCIDVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        willJson = JSONCIDVerifier.JsonObject({keys: keys, values: values});
     }
 
-    function test_PredictTestament_DeterministicOutput(
+    function test_PredictWill_DeterministicOutput(
         address testator,
         uint256 salt,
         address token,
@@ -54,20 +51,20 @@ contract TestamentFactoryFuzzTest is Test {
         vm.assume(beneficiary != address(0));
         vm.assume(token != address(0));
 
-        Testament.Estate[] memory estates = new Testament.Estate[](1);
-        estates[0] = Testament.Estate({
+        Will.Estate[] memory estates = new Will.Estate[](1);
+        estates[0] = Will.Estate({
             token: token,
             amount: amount,
             beneficiary: beneficiary
         });
 
-        address predicted1 = factory.predictTestament(testator, estates, salt);
-        address predicted2 = factory.predictTestament(testator, estates, salt);
+        address predicted1 = factory.predictWill(testator, estates, salt);
+        address predicted2 = factory.predictWill(testator, estates, salt);
 
         assertEq(predicted1, predicted2);
     }
 
-    function test_PredictTestament_DifferentSalts(
+    function test_PredictWill_DifferentSalts(
         address testator,
         uint256 salt1,
         uint256 salt2,
@@ -80,15 +77,15 @@ contract TestamentFactoryFuzzTest is Test {
         vm.assume(token != address(0));
         vm.assume(salt1 != salt2);
 
-        Testament.Estate[] memory estates = new Testament.Estate[](1);
-        estates[0] = Testament.Estate({
+        Will.Estate[] memory estates = new Will.Estate[](1);
+        estates[0] = Will.Estate({
             token: token,
             amount: amount,
             beneficiary: beneficiary
         });
 
-        address predicted1 = factory.predictTestament(testator, estates, salt1);
-        address predicted2 = factory.predictTestament(testator, estates, salt2);
+        address predicted1 = factory.predictWill(testator, estates, salt1);
+        address predicted2 = factory.predictWill(testator, estates, salt2);
 
         assertTrue(predicted1 != predicted2);
     }
@@ -111,9 +108,9 @@ contract TestamentFactoryFuzzTest is Test {
         uint256[2] memory pC = [uint256(7), uint256(8)];
         uint256[1] memory pubSignals = [uint256(9)];
 
-        factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
+        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
 
-        vm.expectRevert(TestamentFactory.ExecutorSignatureInvalid.selector);
+        vm.expectRevert(WillFactory.ExecutorSignatureInvalid.selector);
         factory.notarizeCID(cid, invalidSignature);
     }
 
@@ -127,7 +124,7 @@ contract TestamentFactoryFuzzTest is Test {
         vm.prank(unauthorizedCaller);
         vm.expectRevert(
             abi.encodeWithSelector(
-                TestamentFactory.UnauthorizedCaller.selector,
+                WillFactory.UnauthorizedCaller.selector,
                 unauthorizedCaller,
                 executor
             )

@@ -1,11 +1,11 @@
-# Web3 Testament System
+# Web3 Will System
 
-A blockchain-based testament management system that utilizes Permit2, CREATE2, Zero-Knowledge Proofs (ZKP), and IPFS to handle on-chain estates left by testators.
+A blockchain-based will management system that utilizes Permit2, CREATE2, Zero-Knowledge Proofs (ZKP), and IPFS to handle on-chain estates left by testators.
 
 ## 🏗️ Project Architecture
 
 ```
-testament-project/
+will-project/
 ├── apps/
 │   ├── frontend/          # React + Vite frontend application
 │   └── backend/           # Node.js + Express backend API
@@ -43,8 +43,8 @@ brew install circom
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/june-in-exile/testament.git
-cd testament
+git clone https://github.com/june-in-exile/will.git
+cd will
 ```
 
 2. **Install dependencies & generate ZKP & build smart contracts**
@@ -167,7 +167,6 @@ The other fileds would be automatically updated during the execution.
 - **Development Framework**: Foundry
 - **Testing**: Forge
 - **Deployment**: Forge Script
-- **Standards**: ERC-721 (Testament NFT)
 - **Features**: CREATE2, Permit2 integration
 
 ### Zero-Knowledge Circuits (Circom)
@@ -214,9 +213,11 @@ pnpm deps:update
 
 ```bash
 # Complete reset
+pnpm clean
 pnpm deps:clean
 cd contracts && forge clean
 cd circuits && make clean
+cd apps/backend && make clean
 pnpm install
 pnpm build
 ```
@@ -242,10 +243,10 @@ pnpm build
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
 2. **Complete ZKP circuits**
-   - [ ] **decryption_zkp**: prove that `signed_testament == decrypt(ciphertext, key, iv, authTag)` without exposing the decryption key.
-   - [ ] **format_zkp**: prove that `signed_testament` is in the proper format without exposing its content. 
-   - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_testament`.
-   - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_testament`.
+   - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing the decryption key.
+   - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content. 
+   - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_will`.
+   - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_will`.
 3. **Integrate Pinata** for reliable IPFS pinning
 4. **Implement Permit2** token approval flow
 5. **Add comprehensive testing**

@@ -4,13 +4,13 @@ import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { validatePrivateKey } from "@shared/utils/format";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
-import { Testament, Testament__factory } from "@shared/types";
+import { Will, Will__factory } from "@shared/types";
 import { config } from "dotenv";
 import chalk from "chalk";
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT: string;
+  WILL: string;
   EXECUTOR_PRIVATE_KEY: string;
   NONCE: string;
   DEADLINE: string;
@@ -23,7 +23,7 @@ interface Estate {
   amount: bigint;
 }
 
-interface TestamentInfo {
+interface WillInfo {
   testator: string;
   executor: string;
   executed: boolean;
@@ -32,7 +32,7 @@ interface TestamentInfo {
 
 interface SignatureTransferResult {
   transactionHash: string;
-  testamentAddress: string;
+  willAddress: string;
   timestamp: number;
   gasUsed: bigint;
   success: boolean;
@@ -43,16 +43,11 @@ interface SignatureTransferResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const {
-    TESTAMENT,
-    EXECUTOR_PRIVATE_KEY,
-    NONCE,
-    DEADLINE,
-    PERMIT2_SIGNATURE,
-  } = process.env;
+  const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
+    process.env;
 
-  if (!TESTAMENT) {
-    throw new Error("Environment variable TESTAMENT is not set");
+  if (!WILL) {
+    throw new Error("Environment variable WILL is not set");
   }
 
   if (!EXECUTOR_PRIVATE_KEY) {
@@ -71,8 +66,8 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable PERMIT2_SIGNATURE is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT)) {
-    throw new Error(`Invalid testament address: ${TESTAMENT}`);
+  if (!ethers.isAddress(WILL)) {
+    throw new Error(`Invalid will address: ${WILL}`);
   }
 
   if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
@@ -118,7 +113,7 @@ function validateEnvironment(): EnvironmentVariables {
   }
 
   return {
-    TESTAMENT,
+    WILL,
     EXECUTOR_PRIVATE_KEY,
     NONCE,
     DEADLINE,
@@ -165,43 +160,41 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
 }
 
 /**
- * Create testament contract instance with validation
+ * Create will contract instance with validation
  */
-async function createTestamentContract(
-  testamentAddress: string,
+async function createWillContract(
+  willAddress: string,
   wallet: Wallet
-): Promise<Testament> {
+): Promise<Will> {
   try {
-    console.log(chalk.blue("Loading testament contract..."));
+    console.log(chalk.blue("Loading will contract..."));
 
     if (!wallet.provider) {
       throw new Error("Wallet provider is null");
     }
 
-    const code = await wallet.provider.getCode(testamentAddress);
+    const code = await wallet.provider.getCode(willAddress);
     if (code === "0x") {
-      throw new Error(`No contract found at address: ${testamentAddress}`);
+      throw new Error(`No contract found at address: ${willAddress}`);
     }
 
-    const contract = Testament__factory.connect(testamentAddress, wallet);
+    const contract = Will__factory.connect(willAddress, wallet);
 
-    console.log(chalk.green("✅ Testament contract loaded"));
+    console.log(chalk.green("✅ Will contract loaded"));
     return contract;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(
-      `Failed to create testament contract instance: ${errorMessage}`
-    );
+    throw new Error(`Failed to create will contract instance: ${errorMessage}`);
   }
 }
 
 /**
- * Fetch testament information
+ * Fetch will information
  */
-async function getTestamentInfo(contract: Testament): Promise<TestamentInfo> {
+async function getWillInfo(contract: Will): Promise<WillInfo> {
   try {
-    console.log(chalk.blue("Fetching testament information..."));
+    console.log(chalk.blue("Fetching will information..."));
 
     const [testator, executor, executed, estates] = await Promise.all([
       contract.testator(),
@@ -216,7 +209,7 @@ async function getTestamentInfo(contract: Testament): Promise<TestamentInfo> {
       amount: estate.amount,
     }));
 
-    console.log(chalk.green("✅ Testament information retrieved"));
+    console.log(chalk.green("✅ Will information retrieved"));
 
     return {
       testator,
@@ -227,7 +220,7 @@ async function getTestamentInfo(contract: Testament): Promise<TestamentInfo> {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to fetch testament info: ${errorMessage}`);
+    throw new Error(`Failed to fetch will info: ${errorMessage}`);
   }
 }
 
@@ -235,26 +228,26 @@ async function getTestamentInfo(contract: Testament): Promise<TestamentInfo> {
  * Validate execution prerequisites
  */
 function validateExecutionPrerequisites(
-  testamentInfo: TestamentInfo,
+  willInfo: WillInfo,
   executorAddress: string
 ): void {
   console.log(chalk.blue("Validating execution prerequisites..."));
 
   // Check if caller is the executor
-  if (executorAddress.toLowerCase() !== testamentInfo.executor.toLowerCase()) {
+  if (executorAddress.toLowerCase() !== willInfo.executor.toLowerCase()) {
     throw new Error(
-      `Only executor can call this function. Expected: ${testamentInfo.executor}, Got: ${executorAddress}`
+      `Only executor can call this function. Expected: ${willInfo.executor}, Got: ${executorAddress}`
     );
   }
 
-  // Check if testament has already been executed
-  if (testamentInfo.executed) {
-    throw new Error("Testament has already been executed");
+  // Check if will has already been executed
+  if (willInfo.executed) {
+    throw new Error("Will has already been executed");
   }
 
   // Check if there are estates to transfer
-  if (testamentInfo.estates.length === 0) {
-    throw new Error("No estates found in testament");
+  if (willInfo.estates.length === 0) {
+    throw new Error("No estates found in will");
   }
 
   console.log(chalk.green("✅ Execution prerequisites validated"));
@@ -264,25 +257,25 @@ function validateExecutionPrerequisites(
  * Print signature transfer details
  */
 function printSignatureTransferDetails(
-  testamentInfo: TestamentInfo,
+  willInfo: WillInfo,
   nonce: string,
   deadline: string,
   signature: string
 ): void {
   console.log(chalk.cyan("\n=== Signature Transfer Details ==="));
 
-  // Print Testament Info
-  console.log(chalk.blue("\n🏛️  Testament Information:"));
-  console.log(chalk.gray("- Testator:"), chalk.white(testamentInfo.testator));
-  console.log(chalk.gray("- Executor:"), chalk.white(testamentInfo.executor));
+  // Print Will Info
+  console.log(chalk.blue("\n🏛️  Will Information:"));
+  console.log(chalk.gray("- Testator:"), chalk.white(willInfo.testator));
+  console.log(chalk.gray("- Executor:"), chalk.white(willInfo.executor));
   console.log(
     chalk.gray("- Executed:"),
-    chalk.white(testamentInfo.executed.toString())
+    chalk.white(willInfo.executed.toString())
   );
 
   // Print Estates
   console.log(chalk.blue("\n💰 Estates to Transfer:"));
-  testamentInfo.estates.forEach((estate, index) => {
+  willInfo.estates.forEach((estate, index) => {
     console.log(chalk.gray(`  Estate ${index}:`));
     console.log(
       chalk.gray("    - Beneficiary:"),
@@ -312,8 +305,8 @@ function printSignatureTransferDetails(
  * Execute signatureTransferToBeneficiaries transaction
  */
 async function executeSignatureTransfer(
-  contract: Testament,
-  testamentInfo: TestamentInfo,
+  contract: Will,
+  willInfo: WillInfo,
   nonce: string,
   deadline: string,
   signature: string,
@@ -325,10 +318,10 @@ async function executeSignatureTransfer(
     );
 
     // Print detailed transfer information
-    printSignatureTransferDetails(testamentInfo, nonce, deadline, signature);
+    printSignatureTransferDetails(willInfo, nonce, deadline, signature);
 
     // Validate execution prerequisites
-    validateExecutionPrerequisites(testamentInfo, executorAddress);
+    validateExecutionPrerequisites(willInfo, executorAddress);
 
     // Convert string parameters to appropriate types
     const nonceBigInt = BigInt(nonce);
@@ -371,31 +364,31 @@ async function executeSignatureTransfer(
     console.log(chalk.gray("Block number:"), receipt.blockNumber);
     console.log(chalk.gray("Gas used:"), receipt.gasUsed.toString());
 
-    // Check for TestamentExecuted event
-    const testamentExecutedEvent = receipt.logs.find((log: ethers.Log) => {
+    // Check for WillExecuted event
+    const willExecutedEvent = receipt.logs.find((log: ethers.Log) => {
       try {
         const parsed = contract.interface.parseLog(log);
-        return parsed?.name === "TestamentExecuted";
+        return parsed?.name === "WillExecuted";
       } catch {
         return false;
       }
     });
 
-    if (testamentExecutedEvent) {
-      console.log(chalk.green("🎉 Testament executed successfully!"));
+    if (willExecutedEvent) {
+      console.log(chalk.green("🎉 Will executed successfully!"));
     } else {
       console.warn(
-        chalk.yellow("⚠️  Warning: TestamentExecuted event not found in logs")
+        chalk.yellow("⚠️  Warning: WillExecuted event not found in logs")
       );
     }
 
     return {
       transactionHash: receipt.hash,
-      testamentAddress: await contract.getAddress(),
+      willAddress: await contract.getAddress(),
       timestamp: Date.now(),
       gasUsed: receipt.gasUsed,
       success: true,
-      estateCount: testamentInfo.estates.length,
+      estateCount: willInfo.estates.length,
     };
   } catch (error) {
     const errorMessage =
@@ -416,8 +409,8 @@ async function updateEnvironmentVariables(
     console.log(chalk.blue("Updating environment variables..."));
 
     const updates: Array<[string, string]> = [
-      ["EXECUTE_TESTAMENT_TX_HASH", result.transactionHash],
-      ["EXECUTE_TESTAMENT_TIMESTAMP", result.timestamp.toString()],
+      ["EXECUTE_WILL_TX_HASH", result.transactionHash],
+      ["EXECUTE_WILL_TIMESTAMP", result.timestamp.toString()],
     ];
 
     // Execute all updates in parallel
@@ -437,19 +430,19 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * Verify testament execution status
+ * Verify will execution status
  */
-async function verifyTestamentExecution(contract: Testament): Promise<void> {
+async function verifyWillExecution(contract: Will): Promise<void> {
   try {
-    console.log(chalk.blue("Verifying testament execution status..."));
+    console.log(chalk.blue("Verifying will execution status..."));
 
     const executed = await contract.executed();
 
     if (executed) {
-      console.log(chalk.green("✅ Testament execution confirmed on-chain"));
+      console.log(chalk.green("✅ Will execution confirmed on-chain"));
     } else {
       console.warn(
-        chalk.yellow("⚠️  Warning: Testament execution status not updated")
+        chalk.yellow("⚠️  Warning: Will execution status not updated")
       );
     }
   } catch (error) {
@@ -466,13 +459,8 @@ async function verifyTestamentExecution(contract: Testament): Promise<void> {
 async function processSignatureTransfer(): Promise<SignatureTransferResult> {
   try {
     // Validate prerequisites
-    const {
-      TESTAMENT,
-      EXECUTOR_PRIVATE_KEY,
-      NONCE,
-      DEADLINE,
-      PERMIT2_SIGNATURE,
-    } = validateEnvironment();
+    const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
+      validateEnvironment();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -481,16 +469,16 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    // Create testament contract instance
-    const contract = await createTestamentContract(TESTAMENT, wallet);
+    // Create will contract instance
+    const contract = await createWillContract(WILL, wallet);
 
-    // Get testament information
-    const testamentInfo = await getTestamentInfo(contract);
+    // Get will information
+    const willInfo = await getWillInfo(contract);
 
     // Execute signature transfer
     const result = await executeSignatureTransfer(
       contract,
-      testamentInfo,
+      willInfo,
       NONCE,
       DEADLINE,
       PERMIT2_SIGNATURE,
@@ -498,15 +486,13 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     );
 
     // Verify execution
-    await verifyTestamentExecution(contract);
+    await verifyWillExecution(contract);
 
     // Update environment
     await updateEnvironmentVariables(result);
 
     console.log(
-      chalk.green.bold(
-        "\n🎉 Testament execution process completed successfully!"
-      )
+      chalk.green.bold("\n🎉 Will execution process completed successfully!")
     );
     console.log(
       chalk.green.bold(
@@ -519,7 +505,7 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      chalk.red("Error during testament execution process:"),
+      chalk.red("Error during will execution process:"),
       errorMessage
     );
     throw error;
@@ -536,7 +522,7 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"));
     console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- Testament Address:"), result.testamentAddress);
+    console.log(chalk.gray("- Will Address:"), result.willAddress);
     console.log(chalk.gray("- Estates Transferred:"), result.estateCount);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {

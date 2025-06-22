@@ -3,14 +3,14 @@ pragma solidity ^0.8.17;
 
 import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
 
-interface ITestament {
+interface IWill {
     struct Estate {
         address beneficiary;
         address token;
         uint256 amount;
     }
 
-    event TestamentExecuted();
+    event WillExecuted();
 
     error OnlyExecutor();
     error AlreadyExecuted();

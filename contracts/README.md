@@ -48,29 +48,29 @@
    make deploy_jsonCidVerifier
    ```
 
-5. Deploy `TestamentFactory.sol`.
+5. Deploy `WillFactory.sol`.
 
    Check the deployment
 
    > ```sh
    > make uploadCIDVerifier
-   > make createTestamentVerifier
+   > make createWillVerifier
    > make executor
    > ```
 
-   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `UPLOAD_CID_VERIFIER`, `CREATE_TESTAMENT_VERIFIER` in the `.env` are set. Then, execute the instruction.
+   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `UPLOAD_CID_VERIFIER`, `CREATE_WILL_VERIFIER` in the `.env` are set. Then, execute the instruction.
 
    ```sh
-   make deploy_testamentFactory
+   make deploy_willFactory
    ```
 
 ## Execution
 
-### Phase1: Encrypt & Upload Testament
+### Phase1: Encrypt & Upload Will
 
-1. Follow the [backend's](../apps/backend/) "Phase1: Encrypt & Upload Testament" instructions to predict the address, generate the signature, encrypt the testament, and upload it to IPFS.
+1. Follow the [backend's](../apps/backend/) "Phase1: Encrypt & Upload Will" instructions to predict the address, generate the signature, encrypt the will, and upload it to IPFS.
 
-2. Upload the `CID` to the TestamentFactory contract.
+2. Upload the `CID` to the WillFactory contract.
 
    ```sh
    make uploadCID
@@ -84,9 +84,9 @@
 
 ### Phase2: Probation
 
-1. Follow the [backend's](../apps/backend/) "Phase2: Probation" instructions to doownload the testament from the IPFS, decrypt it, and sign the cid as the executor.
+1. Follow the [backend's](../apps/backend/) "Phase2: Probation" instructions to doownload the will from the IPFS, decrypt it, and sign the cid as the executor.
 
-2. Notarize the `CID` in the TestamentFactory contract.
+2. Notarize the `CID` in the WillFactory contract.
 
    ```sh
    make notarizeCID
@@ -98,31 +98,31 @@
    > make executorValidateTime
    > ```
 
-### Phase3: Decrypt & Execute Testament
+### Phase3: Decrypt & Execute Will
 
-1. Deploy `Testament.sol`.
+1. Deploy `Will.sol`.
 
    ```sh
-   make createTestament
+   make createWill
    ```
 
    > Check
    >
    > ```sh
    > make permit2
-   > make testament
+   > make will
    > make testator
    > make estate0
    > make estate1
    > make executed_before
    > ```
 
-2. (Arbitrum Sepolia only) Verify `Testament.sol`.
+2. (Arbitrum Sepolia only) Verify `Will.sol`.
 
-   Check the contract on https://sepolia.arbiscan.io/address/<TESTAMENT>. If it's not verified yet, run the following command to verify it.
+   Check the contract on https://sepolia.arbiscan.io/address/<WILL>. If it's not verified yet, run the following command to verify it.
 
    ```sh
-   make verify_testament
+   make verify_will
    ```
 
 3. Teansfer the tokens from the testator to the beneficiary.

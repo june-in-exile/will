@@ -9,7 +9,7 @@ const modulePath = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(modulePath, "../.env") });
 
 /**
- * Unified Configuration for Testament Application
+ * Unified Configuration for Will Application
  * Centralizes all configuration constants and settings
  */
 
@@ -144,7 +144,7 @@ interface BasePathsConfig {
   contracts: string;
 }
 
-interface TestamentPathsConfig {
+interface WillPathsConfig {
   raw: string;
   formatted: string;
   addressed: string;
@@ -161,7 +161,7 @@ interface CircuitsPathsConfig {
 interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
-  testamentFactory: string;
+  willFactory: string;
 }
 
 interface CryptoPathsConfig {
@@ -171,7 +171,7 @@ interface CryptoPathsConfig {
 
 interface PathsConfig {
   base: BasePathsConfig;
-  testament: TestamentPathsConfig;
+  will: WillPathsConfig;
   circuits: CircuitsPathsConfig;
   env: string;
   contracts: ContractPathsConfig;
@@ -184,11 +184,11 @@ interface FileValidationConfig {
   encoding: string;
 }
 
-interface TestamentValidationConfig {
+interface WillValidationConfig {
   minEstatesRequired: number;
   maxEstatesAllowed: number;
   requiredFields: {
-    testament: string[];
+    will: string[];
     estate: string[];
   };
 }
@@ -205,7 +205,7 @@ interface AmountValidationConfig {
 
 interface ValidationConfig {
   files: FileValidationConfig;
-  testament: TestamentValidationConfig;
+  will: WillValidationConfig;
   ethereum: EthereumValidationConfig;
   amounts: AmountValidationConfig;
 }
@@ -349,7 +349,7 @@ const NODE_ENV: string = process.env.NODE_ENV || "development";
 // GENERAL APPLICATION CONFIG
 // ================================
 export const APP_CONFIG: AppConfig = {
-  name: "Testament Application",
+  name: "Will Application",
   version: "1.0.0",
   environment: NODE_ENV,
   useAnvil: USE_ANVIL,
@@ -557,26 +557,14 @@ export const PATHS_CONFIG: PathsConfig = {
     contracts: resolve(modulePath, "../contracts"),
   },
 
-  // Testament files
-  testament: {
-    raw: resolve(modulePath, "../apps/backend/testament/1_raw.json"),
-    formatted: resolve(
-      modulePath,
-      "../apps/backend/testament/2_formatted.json"
-    ),
-    addressed: resolve(
-      modulePath,
-      "../apps/backend/testament/3_addressed.json"
-    ),
-    signed: resolve(modulePath, "../apps/backend/testament/4_signed.json"),
-    encrypted: resolve(
-      modulePath,
-      "../apps/backend/testament/5_encrypted.json"
-    ),
-    decrypted: resolve(
-      modulePath,
-      "../apps/backend/testament/6_decrypted.json"
-    ),
+  // Will files
+  will: {
+    raw: resolve(modulePath, "../apps/backend/will/1_raw.json"),
+    formatted: resolve(modulePath, "../apps/backend/will/2_formatted.json"),
+    addressed: resolve(modulePath, "../apps/backend/will/3_addressed.json"),
+    signed: resolve(modulePath, "../apps/backend/will/4_signed.json"),
+    encrypted: resolve(modulePath, "../apps/backend/will/5_encrypted.json"),
+    decrypted: resolve(modulePath, "../apps/backend/will/6_decrypted.json"),
   },
 
   // ZKP files
@@ -592,9 +580,9 @@ export const PATHS_CONFIG: PathsConfig = {
   contracts: {
     broadcastDir: resolve(modulePath, "../contracts/broadcast"),
     outDir: resolve(modulePath, "../contracts/out"),
-    testamentFactory: resolve(
+    willFactory: resolve(
       modulePath,
-      "../contracts/out/TestamentFactory.sol/TestamentFactory.json"
+      "../contracts/out/WillFactory.sol/WillFactory.json"
     ),
   },
 
@@ -616,12 +604,12 @@ export const VALIDATION_CONFIG: ValidationConfig = {
     encoding: "utf8",
   },
 
-  // Testament validation
-  testament: {
+  // Will validation
+  will: {
     minEstatesRequired: 1,
     maxEstatesAllowed: 100,
     requiredFields: {
-      testament: ["testator", "estates"],
+      will: ["testator", "estates"],
       estate: ["beneficiary", "token", "amount"],
     },
   },
@@ -763,9 +751,9 @@ export const ENV_CONFIG: EnvConfig = {
   required: [
     "PERMIT2",
     "UPLOAD_CID_VERIFIER",
-    "CREATE_TESTAMENT_VERIFIER",
+    "CREATE_WILL_VERIFIER",
     "JSON_CID_VERIFIER",
-    "TESTAMENT_FACTORY",
+    "WILL_FACTORY",
     "TESTATOR_PRIVATE_KEY",
     "EXECUTOR_PRIVATE_KEY",
     "EXECUTOR",
@@ -781,9 +769,9 @@ export const ENV_CONFIG: EnvConfig = {
   validation: {
     PERMIT2: /^0x[0-9a-fA-F]{40}$/,
     UPLOAD_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    CREATE_TESTAMENT_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    CREATE_WILL_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
     JSON_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    TESTAMENT_FACTORY: /^0x[0-9a-fA-F]{40}$/,
+    WILL_FACTORY: /^0x[0-9a-fA-F]{40}$/,
     TESTATOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR: /^0x[0-9a-fA-F]{40}$/,

@@ -1,6 +1,6 @@
 # Backend Usage Guide
 
-This guide explains how to use the backend components of the Testament system for encrypting, uploading, and managing testament files.
+This guide explains how to use the backend components of the Will system for encrypting, uploading, and managing will files.
 
 ## Prerequisites
 
@@ -9,25 +9,25 @@ This guide explains how to use the backend components of the Testament system fo
 
 ## Initialization
 
-Reset environment variables and remove old testament files:
+Reset environment variables and remove old will files:
 
 ```sh
-make init
+make clean
 ```
 
-## Phase 1: Encrypt & Upload Testament
+## Phase 1: Encrypt & Upload Will
 
-### Step 1: Create Testament Content
+### Step 1: Create Will Content
 
-Store the testament in [`testament/1_plaintext.txt`](testament/1_plaintext.txt).
+Store the will in [`will/1_plaintext.txt`](will/1_plaintext.txt).
 
-The testament should contain:
+The will should contain:
 
 - [ ] The testator's wallet address
 - [ ] The beneficiary's wallet address (multiple beneficiaries support planned)
 - [ ] ERC20 tokens and corresponding amounts to be transferred
 
-**Example testament:**
+**Example will:**
 
 ```
 After my death, I would like to transfer 5 USDC and 10 LINK to my son.
@@ -35,12 +35,12 @@ My wallet is 0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc.
 My son's wallet 0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c.
 ```
 
-### Step 2: Format Testament (In Development)
+### Step 2: Format Will (In Development)
 
-Format the plaintext testament into a JSON file:
+Format the plaintext will into a JSON file:
 
 - **Required `.env` fields**: None
-- **Output**: [`testament/2_formatted.json`](testament/2_formatted.json)
+- **Output**: [`will/2_formatted.json`](will/2_formatted.json)
 
 _Note: This step is currently under development._
 
@@ -54,17 +54,17 @@ make approve-permit
 
 - **Note**: If you've completed this approval before, you can skip to the next step.
 
-### Step 4: Predict Testament Address
+### Step 4: Predict Will Address
 
-Generate the testament contract address based on the formatted testament:
+Generate the will contract address based on the formatted will:
 
 ```sh
 make predict-address
 ```
 
-- **Output**: [`testament/3_addressed.json`](testament/3_addressed.json)
+- **Output**: [`will/3_addressed.json`](will/3_addressed.json)
 - **Updates**: The following `.env` variables are automatically updated:
-  - `SALT`, `TESTAMENT`
+  - `SALT`, `WILL`
   - `BENEFICIARY<ID>`, `TOKEN<ID>`, `AMOUNT<ID>`
 
 ### Step 5: Generate Permit2 Signature
@@ -75,26 +75,26 @@ Create the signature for [Permit2 SignatureTransfer function](https://docs.unisw
 make generate-signature
 ```
 
-- **Output**: [`testament/4_signed.json`](testament/4_signed.json)
+- **Output**: [`will/4_signed.json`](will/4_signed.json)
 - **Updates**: The following `.env` variables are automatically updated:
   - `NONCE`, `DEADLINE`, `PERMIT2_SIGNATURE`
 
-### Step 6: Encrypt Testament
+### Step 6: Encrypt Will
 
-Encrypt the signed testament with a randomly generated secret key:
+Encrypt the signed will with a randomly generated secret key:
 
 ```sh
-make encrypt-testament
+make encrypt-will
 ```
 
-- **Output**: [`testament/5_encrypted.json`](testament/5_encrypted.json) (base64 encoded)
+- **Output**: [`will/5_encrypted.json`](will/5_encrypted.json) (base64 encoded)
 
 ### Step 7: Upload to IPFS
 
-Upload the encrypted testament to IPFS:
+Upload the encrypted will to IPFS:
 
 ```sh
-make upload-testament
+make upload-will
 ```
 
 - **Updates**: The following `.env` variables are automatically updated:
@@ -102,7 +102,7 @@ make upload-testament
 
 ### Step 8: Upload CID
 
-Upload the CID to `testamentFactory.sol`:
+Upload the CID to `willFactory.sol`:
 
 ```sh
 make upload-cid
@@ -116,17 +116,17 @@ make upload-cid
 
 ### Step 1: Download and Decrypt
 
-Download the testament from IPFS and decrypt it:
+Download the will from IPFS and decrypt it:
 
 ```sh
-make download-and-decrypt-testament
+make download-and-decrypt-will
 ```
 
-- **Output**: [`testament/6_decrypted.json`](testament/6_decrypted.json)
+- **Output**: [`will/6_decrypted.json`](will/6_decrypted.json)
 
 ### Step 2: Executor Signature
 
-The executor signs the CID to authorize testament execution:
+The executor signs the CID to authorize will execution:
 
 ```sh
 make sign-cid
@@ -137,7 +137,7 @@ make sign-cid
 
 ### Step 3: Notarize CID
 
-The exeutor notarize the CID on `testamentFactory.sol`:
+The exeutor notarize the CID on `willFactory.sol`:
 
 ```sh
 make notarize-cid
@@ -147,41 +147,41 @@ make notarize-cid
   - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
 
 
-## Phase 3: Decrypt & Execute Testament
+## Phase 3: Decrypt & Execute Will
 
-### Step 1: Create Testament
+### Step 1: Create Will
 
-The exeutor create a new `Testament.sol` through the `testamentFactory.sol`:
+The exeutor create a new `Will.sol` through the `willFactory.sol`:
 
 ```sh
-make create-testament
+make create-will
 ```
 
 - **Updates**: The following `.env` variables are automatically updated:
-  - `CREATE_TESTAMENT_TX_HASH`, `CREATE_TESTAMENT_TIMESTAMP`
+  - `CREATE_WILL_TX_HASH`, `CREATE_WILL_TIMESTAMP`
 
 ### Step 2: Transfer Estates
 
-The exeutor executes the `Testament.sol` and transfer the estates from the testator to the beneifciaries:
+The exeutor executes the `Will.sol` and transfer the estates from the testator to the beneifciaries:
 
 ```sh
 make signature-transfer
 ```
 
 - **Updates**: The following `.env` variables are automatically updated:
-  - `EXECUTE_TESTAMENT_TX_HASH`, `EXECUTE_TESTAMENT_TIMESTAMP`
+  - `EXECUTE_WILL_TX_HASH`, `EXECUTE_WILL_TIMESTAMP`
 
 
 ## File Structure
 
-The testament processing creates the following files in sequence:
+The will processing creates the following files in sequence:
 
 ```
-testament/
-├── 1_plaintext.txt      # Original testament content
+will/
+├── 1_plaintext.txt      # Original will content
 ├── 2_formatted.json     # Structured JSON format
-├── 3_addressed.json     # Testament with contract address
-├── 4_signed.json        # Testament with Permit2 signature
-├── 5_encrypted.json     # Encrypted testament (base64)
-└── 6_decrypted.json     # Decrypted testament for verification
+├── 3_addressed.json     # Will with contract address
+├── 4_signed.json        # Will with Permit2 signature
+├── 5_encrypted.json     # Encrypted will (base64)
+└── 6_decrypted.json     # Decrypted will for verification
 ```

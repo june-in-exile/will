@@ -64,7 +64,7 @@ interface Estate {
   beneficiary?: string;
 }
 
-interface TestamentData {
+interface WillData {
   estates: Estate[];
 }
 
@@ -101,9 +101,9 @@ function validateEnvironment(): EnvironmentVariables {
  * Validate file existence
  */
 function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.testament.formatted)) {
+  if (!existsSync(PATHS_CONFIG.will.formatted)) {
     throw new Error(
-      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`
+      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`
     );
   }
 }
@@ -165,28 +165,25 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
 }
 
 /**
- * Read and validate testament data
+ * Read and validate will data
  */
-function readTestamentData(): TestamentData {
+function readWillData(): WillData {
   try {
-    console.log(chalk.blue("Reading formatted testament data..."));
-    const testamentContent = readFileSync(
-      PATHS_CONFIG.testament.formatted,
-      "utf8"
-    );
-    const testamentJson: TestamentData = JSON.parse(testamentContent);
+    console.log(chalk.blue("Reading formatted will data..."));
+    const willContent = readFileSync(PATHS_CONFIG.will.formatted, "utf8");
+    const willJson: WillData = JSON.parse(willContent);
 
     // Validate required fields
-    if (!testamentJson.estates || !Array.isArray(testamentJson.estates)) {
+    if (!willJson.estates || !Array.isArray(willJson.estates)) {
       throw new Error("Missing or invalid estates array");
     }
 
-    if (testamentJson.estates.length === 0) {
+    if (willJson.estates.length === 0) {
       throw new Error("Estates array cannot be empty");
     }
 
     // Validate each estate
-    testamentJson.estates.forEach((estate, index) => {
+    willJson.estates.forEach((estate, index) => {
       if (!estate.token) {
         throw new Error(`Missing token address in estate ${index}`);
       }
@@ -209,13 +206,13 @@ function readTestamentData(): TestamentData {
       }
     });
 
-    console.log(chalk.green("✅ Testament data validated successfully"));
-    console.log(chalk.gray("Estates count:"), testamentJson.estates.length);
+    console.log(chalk.green("✅ Will data validated successfully"));
+    console.log(chalk.gray("Estates count:"), willJson.estates.length);
 
-    return testamentJson;
+    return willJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in testament file: ${error.message}`);
+      throw new Error(`Invalid JSON in will file: ${error.message}`);
     }
     throw error;
   }
@@ -531,11 +528,11 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
     // Create and validate signer
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    // Read and validate testament data
-    const testamentData = readTestamentData();
+    // Read and validate will data
+    const willData = readWillData();
 
     // Extract unique tokens
-    const { tokens } = extractUniqueTokens(testamentData.estates);
+    const { tokens } = extractUniqueTokens(willData.estates);
 
     if (tokens.length === 0) {
       console.log(chalk.yellow("⚠️ No tokens found to approve"));

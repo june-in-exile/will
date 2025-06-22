@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "src/Testament.sol";
+import "src/Will.sol";
 
-interface ITestamentFactory {
-    event TestamentCreated(
+interface IWillFactory {
+    event WillCreated(
         string indexed cid,
         address indexed testator,
-        address testament
+        address will
     );
     event CIDUploaded(string indexed cid, uint256 timestamp);
     event CIDNotarized(string indexed cid, uint256 timestamp);
@@ -19,18 +19,18 @@ interface ITestamentFactory {
     error DecryptionProofInvalid();
     error CIDNotValidatedByTestator(string cid);
     error CIDNotValidatedByExecutor(string cid);
-    error TestamentAlreadyExists(string cid, address existingTestament);
-    error TestamentAddressInconsistent(address predicted, address actual);
+    error WillAlreadyExists(string cid, address existingWill);
+    error WillAddressInconsistent(address predicted, address actual);
 
     function uploadCIDVerifier() external view returns (address);
 
     function executorVerifier() external view returns (address);
 
-    function createTestamentVerifier() external view returns (address);
+    function createWillVerifier() external view returns (address);
 
     function executor() external view returns (address);
 
-    function testaments(string calldata cid) external view returns (address);
+    function wills(string calldata cid) external view returns (address);
 
     function testatorValidateTimes(
         string calldata _cid
@@ -40,9 +40,9 @@ interface ITestamentFactory {
         string calldata _cid
     ) external view returns (uint256);
 
-    function predictTestament(
+    function predictWill(
         address _testator,
-        Testament.Estate[] calldata estates,
+        Will.Estate[] calldata estates,
         uint256 _salt
     ) external view returns (address);
 
@@ -51,7 +51,7 @@ interface ITestamentFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        string memory _testament,
+        string memory _will,
         string calldata _cid
     ) external;
 
@@ -60,15 +60,15 @@ interface ITestamentFactory {
         bytes memory _signature
     ) external;
 
-    function createTestament(
+    function createWill(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        string memory _testament,
+        string memory _will,
         string calldata _cid,
         address _testator,
-        Testament.Estate[] calldata _estates,
+        Will.Estate[] calldata _estates,
         uint256 _salt
     ) external returns (address);
 }

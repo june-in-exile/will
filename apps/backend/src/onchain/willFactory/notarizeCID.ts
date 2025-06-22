@@ -2,7 +2,7 @@ import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { validatePrivateKey, validateCIDv1 } from "@shared/utils/format";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
-import { TestamentFactory, TestamentFactory__factory } from "@shared/types";
+import { WillFactory, WillFactory__factory } from "@shared/types";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -11,7 +11,7 @@ config({ path: PATHS_CONFIG.env });
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT_FACTORY: string;
+  WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
   EXECUTOR_SIGNATURE: string;
@@ -29,11 +29,11 @@ interface NotarizeResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTAMENT_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
+  const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
     process.env;
 
-  if (!TESTAMENT_FACTORY) {
-    throw new Error("Environment variable TESTAMENT_FACTORY is not set");
+  if (!WILL_FACTORY) {
+    throw new Error("Environment variable WILL_FACTORY is not set");
   }
 
   if (!EXECUTOR_PRIVATE_KEY) {
@@ -48,8 +48,8 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable EXECUTOR_SIGNATURE is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT_FACTORY)) {
-    throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY}`);
+  if (!ethers.isAddress(WILL_FACTORY)) {
+    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
   }
 
   if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
@@ -73,7 +73,7 @@ function validateEnvironment(): EnvironmentVariables {
   }
 
   return {
-    TESTAMENT_FACTORY,
+    WILL_FACTORY,
     EXECUTOR_PRIVATE_KEY,
     CID,
     EXECUTOR_SIGNATURE,
@@ -124,11 +124,11 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
 async function createContractInstance(
   factoryAddress: string,
   wallet: Wallet
-): Promise<TestamentFactory> {
+): Promise<WillFactory> {
   try {
-    console.log(chalk.blue("Loading testament factory contract..."));
+    console.log(chalk.blue("Loading will factory contract..."));
 
-    const contract = TestamentFactory__factory.connect(factoryAddress, wallet);
+    const contract = WillFactory__factory.connect(factoryAddress, wallet);
 
     if (!wallet.provider) {
       throw new Error("Wallet provider is null");
@@ -138,7 +138,7 @@ async function createContractInstance(
       throw new Error(`No contract found at address: ${factoryAddress}`);
     }
 
-    console.log(chalk.green("✅ Testament factory contract loaded"));
+    console.log(chalk.green("✅ Will factory contract loaded"));
     return contract;
   } catch (error) {
     const errorMessage =
@@ -151,7 +151,7 @@ async function createContractInstance(
  * Validate CID status before notarization
  */
 async function validateCIDStatus(
-  contract: TestamentFactory,
+  contract: WillFactory,
   cid: string
 ): Promise<void> {
   try {
@@ -192,7 +192,7 @@ async function validateCIDStatus(
  * Verify executor signature before transaction
  */
 async function verifyExecutorSignature(
-  contract: TestamentFactory,
+  contract: WillFactory,
   cid: string,
   signature: string
 ): Promise<void> {
@@ -233,7 +233,7 @@ function printNotarizationDetails(cid: string, signature: string): void {
  * Execute notarizeCID transaction
  */
 async function executeNotarizeCID(
-  contract: TestamentFactory,
+  contract: WillFactory,
   cid: string,
   signature: string
 ): Promise<NotarizeResult> {
@@ -323,26 +323,22 @@ async function updateEnvironmentVariables(
 /**
  * Get contract information
  */
-async function getContractInfo(contract: TestamentFactory): Promise<void> {
+async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [
-      executor,
-      uploadCIDVerifier,
-      createTestamentVerifier,
-      jsonCidVerifier,
-    ] = await Promise.all([
-      contract.executor(),
-      contract.uploadCIDVerifier(),
-      contract.createTestamentVerifier(),
-      contract.jsonCidVerifier(),
-    ]);
+    const [executor, uploadCIDVerifier, createWillVerifier, jsonCidVerifier] =
+      await Promise.all([
+        contract.executor(),
+        contract.uploadCIDVerifier(),
+        contract.createWillVerifier(),
+        contract.jsonCidVerifier(),
+      ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
     console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createTestamentVerifier);
+    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
     console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
   } catch (error) {
     console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
@@ -355,7 +351,7 @@ async function getContractInfo(contract: TestamentFactory): Promise<void> {
 async function processNotarizeCID(): Promise<NotarizeResult> {
   try {
     // Validate prerequisites
-    const { TESTAMENT_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
       validateEnvironment();
 
     // Initialize provider and validate connection
@@ -366,7 +362,7 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create contract instance
-    const contract = await createContractInstance(TESTAMENT_FACTORY, wallet);
+    const contract = await createContractInstance(WILL_FACTORY, wallet);
 
     // Get contract information
     await getContractInfo(contract);

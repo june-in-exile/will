@@ -193,7 +193,7 @@ async function main(): Promise<void> {
     );
     console.error(
       chalk.gray(
-        `📝 For example: pnpm exec tsx ${process.argv[1]} TESTAMENT_FACTORY TestamentFactory 31337`
+        `📝 For example: pnpm exec tsx ${process.argv[1]} WILL_FACTORY WillFactory 31337`
       )
     );
     process.exit(1);

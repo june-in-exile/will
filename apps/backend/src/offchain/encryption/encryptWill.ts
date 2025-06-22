@@ -33,7 +33,7 @@ interface EncryptionResult {
   authTag: Buffer;
 }
 
-interface EncryptedTestament {
+interface EncryptedWill {
   algorithm: string;
   iv: string;
   authTag: string;
@@ -64,7 +64,7 @@ function validateEnvironment(): EnvironmentVariables {
 
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(ALGORITHM)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
+      `Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
     );
   }
 
@@ -75,9 +75,9 @@ function validateEnvironment(): EnvironmentVariables {
  * Validate file existence
  */
 function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.testament.signed)) {
+  if (!existsSync(PATHS_CONFIG.will.signed)) {
     throw new Error(
-      `Signed testament file does not exist: ${PATHS_CONFIG.testament.signed}`,
+      `Signed will file does not exist: ${PATHS_CONFIG.will.signed}`
     );
   }
 }
@@ -98,13 +98,13 @@ function generateEncryptionParams(): EncryptionParams {
 }
 
 /**
- * Encrypt testament data
+ * Encrypt will data
  */
-function encryptTestament(
-  testamentData: string,
+function encryptWill(
+  willData: string,
   algorithm: string,
   key: Buffer,
-  iv: Buffer,
+  iv: Buffer
 ): EncryptionResult {
   console.log(chalk.blue(`Encrypting with ${algorithm}...`));
 
@@ -112,10 +112,10 @@ function encryptTestament(
 
   switch (algorithm) {
     case AES_256_GCM:
-      ({ ciphertext, authTag } = aes256gcmEncrypt(testamentData, key, iv));
+      ({ ciphertext, authTag } = aes256gcmEncrypt(willData, key, iv));
       break;
     case CHACHA20_POLY1305:
-      ({ ciphertext, authTag } = chacha20Encrypt(testamentData, key, iv));
+      ({ ciphertext, authTag } = chacha20Encrypt(willData, key, iv));
       break;
     default:
       throw new Error(`Unsupported encryption algorithm: ${algorithm}`);
@@ -128,8 +128,8 @@ function encryptTestament(
  * Save encrypted data to file
  */
 function saveEncryptedData(
-  encryptedData: EncryptedTestament,
-  filePath: string,
+  encryptedData: EncryptedWill,
+  filePath: string
 ): void {
   try {
     writeFileSync(filePath, JSON.stringify(encryptedData, null, 4));
@@ -202,31 +202,26 @@ function saveEncryptedData(
 // }
 
 /**
- * Process testament encryption with ZK proof
+ * Process will encryption with ZK proof
  */
-async function processTestamentEncryption(): Promise<ProcessResult> {
+async function processWillEncryption(): Promise<ProcessResult> {
   try {
     // Validate environment and files
     const { ALGORITHM } = validateEnvironment();
     validateFiles();
 
-    // Read testament data
-    console.log(chalk.blue("Reading signed testament..."));
-    const testamentData = readFileSync(PATHS_CONFIG.testament.signed, "utf8");
+    // Read will data
+    console.log(chalk.blue("Reading signed will..."));
+    const willData = readFileSync(PATHS_CONFIG.will.signed, "utf8");
 
     // Generate encryption parameters
     const { key, iv, ivBase64 } = generateEncryptionParams();
 
-    // Encrypt the testament
-    const { ciphertext, authTag } = encryptTestament(
-      testamentData,
-      ALGORITHM,
-      key,
-      iv,
-    );
+    // Encrypt the will
+    const { ciphertext, authTag } = encryptWill(willData, ALGORITHM, key, iv);
 
     // Prepare encrypted data structure
-    const encryptedTestament: EncryptedTestament = {
+    const encryptedWill: EncryptedWill = {
       algorithm: ALGORITHM,
       iv: ivBase64,
       authTag: authTag.toString("base64"),
@@ -234,20 +229,20 @@ async function processTestamentEncryption(): Promise<ProcessResult> {
       timestamp: new Date().toISOString(),
     };
 
-    console.log(chalk.gray("Encrypted testament structure:"));
+    console.log(chalk.gray("Encrypted will structure:"));
     console.log(
       JSON.stringify(
         {
-          ...encryptedTestament,
-          ciphertext: encryptedTestament.ciphertext.substring(0, 50) + "...",
+          ...encryptedWill,
+          ciphertext: encryptedWill.ciphertext.substring(0, 50) + "...",
         },
         null,
-        2,
-      ),
+        2
+      )
     );
 
     // Save encrypted data
-    saveEncryptedData(encryptedTestament, PATHS_CONFIG.testament.encrypted);
+    saveEncryptedData(encryptedWill, PATHS_CONFIG.will.encrypted);
 
     // Generate and verify zero-knowledge proof
     // await generateAndVerifyProof(
@@ -255,13 +250,13 @@ async function processTestamentEncryption(): Promise<ProcessResult> {
     //     key,
     //     ciphertext,
     //     iv,
-    //     testamentData.length
+    //     willData.length
     // );
 
-    // console.log(chalk.green.bold('✅ Testament encryption and ZK proof generation completed successfully!'));
+    // console.log(chalk.green.bold('✅ Will encryption and ZK proof generation completed successfully!'));
 
     return {
-      encryptedPath: PATHS_CONFIG.testament.encrypted,
+      encryptedPath: PATHS_CONFIG.will.encrypted,
       algorithm: ALGORITHM,
       success: true,
     };
@@ -269,8 +264,8 @@ async function processTestamentEncryption(): Promise<ProcessResult> {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     console.error(
-      chalk.red("Error during testament encryption process:"),
-      errorMessage,
+      chalk.red("Error during will encryption process:"),
+      errorMessage
     );
     throw error;
   }
@@ -282,10 +277,10 @@ async function processTestamentEncryption(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Testament Encryption & ZK Proof Generation ===\n"),
+      chalk.cyan("\n=== Will Encryption & ZK Proof Generation ===\n")
     );
 
-    const result = await processTestamentEncryption();
+    const result = await processWillEncryption();
 
     console.log(chalk.green.bold("✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);

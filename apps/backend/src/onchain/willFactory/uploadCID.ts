@@ -9,8 +9,8 @@ import {
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
-  TestamentFactory,
-  TestamentFactory__factory,
+  WillFactory,
+  WillFactory__factory,
   JSONCIDVerifier,
   ProofData,
 } from "@shared/types";
@@ -22,12 +22,12 @@ config({ path: PATHS_CONFIG.env });
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT_FACTORY: string;
+  WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
 }
 
-interface EncryptedTestamentData {
+interface EncryptedWillData {
   algorithm: string;
   iv: string;
   authTag: string;
@@ -37,7 +37,7 @@ interface EncryptedTestamentData {
 
 interface UploadCIDData {
   proof: ProofData;
-  testament: JSONCIDVerifier.JsonObjectStruct;
+  will: JSONCIDVerifier.JsonObjectStruct;
   cid: string;
 }
 
@@ -53,10 +53,10 @@ interface UploadResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTAMENT_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = process.env;
+  const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = process.env;
 
-  if (!TESTAMENT_FACTORY) {
-    throw new Error("Environment variable TESTAMENT_FACTORY is not set");
+  if (!WILL_FACTORY) {
+    throw new Error("Environment variable WILL_FACTORY is not set");
   }
 
   if (!EXECUTOR_PRIVATE_KEY) {
@@ -67,8 +67,8 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable CID is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT_FACTORY)) {
-    throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY}`);
+  if (!ethers.isAddress(WILL_FACTORY)) {
+    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
   }
 
   if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
@@ -79,7 +79,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid CID v1 format");
   }
 
-  return { TESTAMENT_FACTORY, EXECUTOR_PRIVATE_KEY, CID };
+  return { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID };
 }
 
 /**
@@ -89,7 +89,7 @@ function validateFiles(): void {
   const requiredFiles = [
     PATHS_CONFIG.circuits.proof,
     PATHS_CONFIG.circuits.public,
-    PATHS_CONFIG.testament.encrypted,
+    PATHS_CONFIG.will.encrypted,
   ];
 
   for (const filePath of requiredFiles) {
@@ -141,9 +141,9 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
  * Validate required fields
  */
 function validateRequiredFields(
-  testament: Partial<EncryptedTestamentData>
-): asserts testament is EncryptedTestamentData {
-  const REQUIRED_FIELDS: (keyof EncryptedTestamentData)[] = [
+  will: Partial<EncryptedWillData>
+): asserts will is EncryptedWillData {
+  const REQUIRED_FIELDS: (keyof EncryptedWillData)[] = [
     "algorithm",
     "iv",
     "authTag",
@@ -152,7 +152,7 @@ function validateRequiredFields(
   ] as const;
 
   for (const field of REQUIRED_FIELDS) {
-    if (!testament[field]) {
+    if (!will[field]) {
       throw new Error(`Missing required field: ${field}`);
     }
   }
@@ -161,43 +161,34 @@ function validateRequiredFields(
 /**
  * Validate business rules
  */
-function validateTestamentBusinessRules(
-  encryptedTestament: EncryptedTestamentData
-): void {
+function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   // Validate encryption algorithm
-  if (
-    !CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedTestament.algorithm)
-  ) {
+  if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedWill.algorithm)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${encryptedTestament.algorithm}`
+      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`
     );
   }
 
   // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
-  if (encryptedTestament.iv.length < 12) {
+  if (encryptedWill.iv.length < 12) {
     throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedTestament.iv.length}`
+      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`
     );
   }
 
   // Validate timestamp format
-  const timestamp = new Date(encryptedTestament.timestamp);
+  const timestamp = new Date(encryptedWill.timestamp);
   if (isNaN(timestamp.getTime())) {
-    throw new Error(
-      `Invalid timestamp format: ${encryptedTestament.timestamp}`
-    );
+    throw new Error(`Invalid timestamp format: ${encryptedWill.timestamp}`);
   }
 
   // Validate authTag is Base64
-  if (!validateBase64(encryptedTestament.authTag)) {
+  if (!validateBase64(encryptedWill.authTag)) {
     throw new Error("AuthTag must be valid Base64");
   }
 
   // Validate ciphertext is not empty
-  if (
-    !encryptedTestament.ciphertext ||
-    encryptedTestament.ciphertext.length === 0
-  ) {
+  if (!encryptedWill.ciphertext || encryptedWill.ciphertext.length === 0) {
     throw new Error("Ciphertext cannot be empty");
   }
 
@@ -206,48 +197,43 @@ function validateTestamentBusinessRules(
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   if (timestamp < oneYearAgo) {
     console.warn(
-      chalk.yellow("⚠️  Warning: Testament timestamp is older than 1 year")
+      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year")
     );
   }
 }
 
 /**
- * Read testament JSON data
+ * Read will JSON data
  */
-function readTestamentData(): EncryptedTestamentData {
+function readWillData(): EncryptedWillData {
   try {
-    console.log(chalk.blue("Reading encrypted testament JSON data..."));
-    const testamentContent = readFileSync(
-      PATHS_CONFIG.testament.encrypted,
-      "utf8"
-    );
-    const encryptedTestamentJson = JSON.parse(
-      testamentContent
-    ) as EncryptedTestamentData;
+    console.log(chalk.blue("Reading encrypted will JSON data..."));
+    const willContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
+    const encryptedWillJson = JSON.parse(willContent) as EncryptedWillData;
 
-    validateRequiredFields(encryptedTestamentJson);
+    validateRequiredFields(encryptedWillJson);
 
-    validateTestamentBusinessRules(encryptedTestamentJson);
+    validateWillBusinessRules(encryptedWillJson);
 
-    console.log(chalk.green("✅ Testament JSON data validated successfully"));
-    return encryptedTestamentJson;
+    console.log(chalk.green("✅ Will JSON data validated successfully"));
+    return encryptedWillJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in testament file: ${error.message}`);
+      throw new Error(`Invalid JSON in will file: ${error.message}`);
     }
     throw error;
   }
 }
 
 /**
- * Convert testament data to JsonObject format
+ * Convert will data to JsonObject format
  */
 function convertToJsonObject(
-  encryptedTestamentData: EncryptedTestamentData
+  encryptedWillData: EncryptedWillData
 ): JSONCIDVerifier.JsonObjectStruct {
   try {
     console.log(
-      chalk.blue("Converting encrypted testament data to JsonObject format...")
+      chalk.blue("Converting encrypted will data to JsonObject format...")
     );
 
     const keys: string[] = [];
@@ -255,31 +241,29 @@ function convertToJsonObject(
 
     // Add encryption metadata
     keys.push("algorithm");
-    values.push(encryptedTestamentData.algorithm);
+    values.push(encryptedWillData.algorithm);
 
     keys.push("iv");
-    values.push(encryptedTestamentData.iv);
+    values.push(encryptedWillData.iv);
 
     keys.push("authTag");
-    values.push(encryptedTestamentData.authTag);
+    values.push(encryptedWillData.authTag);
 
     keys.push("ciphertext");
-    values.push(encryptedTestamentData.ciphertext);
+    values.push(encryptedWillData.ciphertext);
 
     keys.push("timestamp");
-    values.push(encryptedTestamentData.timestamp);
+    values.push(encryptedWillData.timestamp);
 
     console.log(
-      chalk.green("✅ Encrypted testament data converted to JsonObject format")
+      chalk.green("✅ Encrypted will data converted to JsonObject format")
     );
 
     return { keys, values };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(
-      `Failed to convert encrypted testament data: ${errorMessage}`
-    );
+    throw new Error(`Failed to convert encrypted will data: ${errorMessage}`);
   }
 }
 
@@ -289,11 +273,11 @@ function convertToJsonObject(
 async function createContractInstance(
   factoryAddress: string,
   wallet: Wallet
-): Promise<TestamentFactory> {
+): Promise<WillFactory> {
   try {
-    console.log(chalk.blue("Loading testament factory contract..."));
+    console.log(chalk.blue("Loading will factory contract..."));
 
-    const contract = TestamentFactory__factory.connect(factoryAddress, wallet);
+    const contract = WillFactory__factory.connect(factoryAddress, wallet);
 
     if (!wallet.provider) {
       throw new Error("Wallet provider is null");
@@ -303,7 +287,7 @@ async function createContractInstance(
       throw new Error(`No contract found at address: ${factoryAddress}`);
     }
 
-    console.log(chalk.green("✅ Testament factory contract loaded"));
+    console.log(chalk.green("✅ Will factory contract loaded"));
     return contract;
   } catch (error) {
     const errorMessage =
@@ -361,10 +345,10 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
     chalk.white(uploadData.proof.pubSignals[0].toString())
   );
 
-  // Print Testament Data
-  console.log(chalk.blue("\n📝 Excrypted Testament Keys & Values:"));
-  uploadData.testament.keys.forEach((key, index) => {
-    const value = uploadData.testament.values[index];
+  // Print Will Data
+  console.log(chalk.blue("\n📝 Excrypted Will Keys & Values:"));
+  uploadData.will.keys.forEach((key, index) => {
+    const value = uploadData.will.values[index];
     console.log(
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
@@ -380,7 +364,7 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
  * Execute uploadCID transaction
  */
 async function executeUploadCID(
-  contract: TestamentFactory,
+  contract: WillFactory,
   uploadData: UploadCIDData
 ): Promise<UploadResult> {
   try {
@@ -395,7 +379,7 @@ async function executeUploadCID(
       uploadData.proof.pB,
       uploadData.proof.pC,
       uploadData.proof.pubSignals,
-      uploadData.testament,
+      uploadData.will,
       uploadData.cid
     );
 
@@ -407,7 +391,7 @@ async function executeUploadCID(
       uploadData.proof.pB,
       uploadData.proof.pC,
       uploadData.proof.pubSignals,
-      uploadData.testament,
+      uploadData.will,
       uploadData.cid,
       {
         gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
@@ -476,26 +460,22 @@ async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
 /**
  * List the contract's information
  */
-async function getContractInfo(contract: TestamentFactory): Promise<void> {
+async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [
-      executor,
-      uploadCIDVerifier,
-      createTestamentVerifier,
-      jsonCidVerifier,
-    ] = await Promise.all([
-      contract.executor(),
-      contract.uploadCIDVerifier(),
-      contract.createTestamentVerifier(),
-      contract.jsonCidVerifier(),
-    ]);
+    const [executor, uploadCIDVerifier, createWillVerifier, jsonCidVerifier] =
+      await Promise.all([
+        contract.executor(),
+        contract.uploadCIDVerifier(),
+        contract.createWillVerifier(),
+        contract.jsonCidVerifier(),
+      ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
     console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createTestamentVerifier);
+    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
     console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
   } catch (error) {
     console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
@@ -509,8 +489,7 @@ async function processUploadCID(): Promise<UploadResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTAMENT_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
-      validateEnvironment();
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = validateEnvironment();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -520,21 +499,21 @@ async function processUploadCID(): Promise<UploadResult> {
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create contract instance
-    const contract = await createContractInstance(TESTAMENT_FACTORY, wallet);
+    const contract = await createContractInstance(WILL_FACTORY, wallet);
 
     // Get contract information
     await getContractInfo(contract);
 
     // Read required data
     const proof: ProofData = readProof();
-    const testamentData: EncryptedTestamentData = readTestamentData();
-    const testament: JSONCIDVerifier.JsonObjectStruct =
-      convertToJsonObject(testamentData);
+    const willData: EncryptedWillData = readWillData();
+    const will: JSONCIDVerifier.JsonObjectStruct =
+      convertToJsonObject(willData);
 
     // Execute upload
     const result = await executeUploadCID(contract, {
       proof,
-      testament,
+      will,
       cid: CID,
     });
 
