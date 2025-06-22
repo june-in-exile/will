@@ -20,14 +20,12 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil sync_groth16verifier_and_proof build
-	@make test
-	@pnpm typechain
+init: sync_anvil build test sync_typechain
 
 # -------------- Environment Variables ------------------
 
 reset_address:
-	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PERMIT2_VERIFIER_ADDRESS DECRYPTION_VERIFIER_ADDRESS JSON_CID_VERIFIER_ADDRESS TESTAMENT_FACTORY_ADDRESS
+	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_TESTAMENT_VERIFIER JSON_CID_VERIFIER TESTAMENT_FACTORY
 
 sync_anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
@@ -36,12 +34,15 @@ sync_groth16verifier_and_proof:
 	@cp ../circuits/verifier.sol ./src/Groth16Verifier.sol
 	@pnpm exec tsx ../shared/utils/env/syncProof.ts
 
+sync_typechain:
+	@pnpm typechain
+
 # ----------------- CICD Commands -----------------------
 
 build:
 	@forge build
 
-test:	
+test: sync_groth16verifier_and_proof
 	@forge test --match-path "test/*"
 
 # --------------- Conditional Deployment ----------------
@@ -52,8 +53,8 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_groth16verifier_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts PERMIT2_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts DECRYPTION_VERIFIER_ADDRESS Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_TESTAMENT_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy_jsonCidVerifier:
 ifeq ($(USE_ANVIL),true)
@@ -61,7 +62,7 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_jsonCidVerifier_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER_ADDRESS JSONCIDVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
 
 deploy_testamentFactory:
 ifeq ($(USE_ANVIL),true)
@@ -69,7 +70,7 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_testamentFactory_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts TESTAMENT_FACTORY_ADDRESS TestamentFactory $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts TESTAMENT_FACTORY TestamentFactory $(CHAIN_ID)
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 
@@ -129,7 +130,7 @@ deploy_testamentFactory_to_forked_arb_sepolia:
 # ---------------- Call Groth16 Verifier ----------------
 
 groth16verify_on_chain:
-	@cast call $(PERMIT2_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(UPLOAD_CID_VERIFIER) --rpc-url $(RPC_URL) \
 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
 		$(PA) $(PB) $(PC) $(PUBSIGNALS)
 	@echo "$(YELLOW)Expect: true$(RESET)"
@@ -140,13 +141,13 @@ EXAMPLE_JSON_OBJ := '(["algorithm","iv","authTag","ciphertext","timestamp"],["ae
 EXAMPLE_CID := 'bagaaieraxixnqlxvscc7b4v6d5gpl3wwig6okfftz62xtle32tdzlewerepa'
 
 jsoncidverify_on_chain:
-	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(JSON_CID_VERIFIER) --rpc-url $(RPC_URL) \
 		"verifyCID((string[],string[]),string)(bool)" \
 		$(EXAMPLE_JSON_OBJ) $(EXAMPLE_CID)
 	@echo "$(YELLOW)Expect: true$(RESET)"
 
 generateCIDString:
-	@cast call $(JSON_CID_VERIFIER_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(JSON_CID_VERIFIER) --rpc-url $(RPC_URL) \
 		"generateCIDString((string[],string[]))(string)" \
 		$(EXAMPLE_JSON_OBJ)
 	@echo "$(YELLOW)Expect: $(EXAMPLE_CID)$(RESET)"
@@ -155,23 +156,23 @@ generateCIDString:
 
 # ----------------------- Read --------------------------
 
-testatorVerifier:
-	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
-		"testatorVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(PERMIT2_VERIFIER_ADDRESS)$(RESET)"
+uploadCIDVerifier:
+	@cast call $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
+		"uploadCIDVerifier()(address)"
+	@echo "$(YELLOW)Expect: $(UPLOAD_CID_VERIFIER)$(RESET)"
 
-decryptionVerifier:
-	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
-		"decryptionVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(DECRYPTION_VERIFIER_ADDRESS)$(RESET)"
+createTestamentVerifier:
+	@cast call $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
+		"createTestamentVerifier()(address)"
+	@echo "$(YELLOW)Expect: $(CREATE_TESTAMENT_VERIFIER)$(RESET)"
 
 executor:
-	@cast call $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"executor()(address)"
 	@echo "$(YELLOW)Expect: $(EXECUTOR)$(RESET)"
 
 testatorValidateTime:
-	@cast call --from $(EXECUTOR) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR) $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"testatorValidateTimes(string)(uint256)" \
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
@@ -179,7 +180,7 @@ testatorValidateTime:
 	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCID$(RESET)"
 
 executorValidateTime:
-	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"executorValidateTimes(string)(uint256)" \
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
@@ -187,31 +188,31 @@ executorValidateTime:
 	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCID$(RESET)"
 
 testament:
-	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"testaments(string)(address)" \
 		$(CID)
-	@echo "$(YELLOW)Expect: $(TESTAMENT_ADDRESS)$(RESET)"
+	@echo "$(YELLOW)Expect: $(TESTAMENT)$(RESET)"
 
 predictTestament:
-	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR)  $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"predictTestament(address,(address,address,uint256)[],uint256)(address)" \
 		$(TESTATOR) $(ESTATES) $(SALT)
-	@echo "$(YELLOW)Expect: $(TESTAMENT_ADDRESS)$(RESET)"
+	@echo "$(YELLOW)Expect: $(TESTAMENT)$(RESET)"
 
 # ----------------------- Write -------------------------
 
 # uploadCID:
-# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 # 		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
 # 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
 
 notarizeCID:
-	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 		"notarizeCID(string,bytes)" \
 		$(CID) $(EXECUTOR_SIGNATURE)
 
 # createTestament:
-# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY_ADDRESS) --rpc-url $(RPC_URL) \
+# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_FACTORY) --rpc-url $(RPC_URL) \
 # 		"createTestament(uint[2],uint[2][2],uint[2],uint[1],bytes,string,address,(address,address,uint256)[],uint256)(address)" \
 # 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
 	
@@ -221,31 +222,31 @@ verify_testament:
 	forge verify-contract \
 		--chain-id $(ARB_SEPOLIA_CHAIN_ID) \
 		--constructor-args $$(cast abi-encode "constructor(address,address,address,(address,address,uint256)[])" \
-			"$(PERMIT2_ADDRESS)" \
+			"$(PERMIT2)" \
 			"$(TESTATOR)" \
 			"$(EXECUTOR)" \
 			$(ESTATES)) \
 		--verifier etherscan \
 		--etherscan-api-key ${ARBSCAN_API_KEY} \
 		--watch \
-		$(TESTAMENT_ADDRESS) \
+		$(TESTAMENT) \
 		src/Testament.sol:Testament
 
 # --------------------- Testament -----------------------
 # ----------------------- Read --------------------------
 
 permit2:
-	@cast call $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(TESTAMENT) --rpc-url $(RPC_URL) \
 		"permit2()(address)"
 	@echo "$(YELLOW)Expect: 0x000000000022D473030F116dDEE9F6B43aC78BA3$(RESET)"
 
 testator:
-	@cast call $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(TESTAMENT) --rpc-url $(RPC_URL) \
 		"testator()(address)"
 	@echo "$(YELLOW)Expect: $(TESTATOR)$(RESET)"
 
 estates:
-	@cast call $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(TESTAMENT) --rpc-url $(RPC_URL) \
 		"estates(uint256)(address,address,uint256)" \
 		$(ESTATE_INDEX)
 
@@ -258,7 +259,7 @@ estate1:
 	@echo "$(YELLOW)Expect:\n$(BENEFICIARY1)\n$(TOKEN1)\n$(AMOUNT1)$(RESET)"
 
 executed:
-	@cast call $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast call $(TESTAMENT) --rpc-url $(RPC_URL) \
 		"executed()(bool)"
 
 executed_before:
@@ -272,7 +273,7 @@ executed_after:
 # ----------------------- Write -------------------------
 		
 signatureTransferToBeneficiaries:
-	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT_ADDRESS) --rpc-url $(RPC_URL) \
+	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(TESTAMENT) --rpc-url $(RPC_URL) \
 		"signatureTransferToBeneficiaries(uint256,uint256,bytes)()" \
 		$(NONCE) $(DEADLINE) $(PERMIT2_SIGNATURE)
 

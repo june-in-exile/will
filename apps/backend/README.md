@@ -64,7 +64,7 @@ make predict-address
 
 - **Output**: [`testament/3_addressed.json`](testament/3_addressed.json)
 - **Updates**: The following `.env` variables are automatically updated:
-  - `SALT`, `TESTAMENT_ADDRESS`
+  - `SALT`, `TESTAMENT`
   - `BENEFICIARY<ID>`, `TOKEN<ID>`, `AMOUNT<ID>`
 
 ### Step 5: Generate Permit2 Signature
@@ -149,7 +149,7 @@ The system automatically manages the following `.env` variables during the proce
 ### Testament Lifecycle
 
 - `SALT`: CREATE2 salt for contract deployment
-- `TESTAMENT_ADDRESS`: Predicted contract address
+- `TESTAMENT`: Predicted contract address
 - `NONCE`, `DEADLINE`: Permit2 parameters
 - `PERMIT2_SIGNATURE`: Testator's authorization signature
 - `CID`: IPFS storage identifiers
@@ -165,7 +165,7 @@ The system automatically manages the following `.env` variables during the proce
 
 3. **Signature Generation Fails**: Verify that `TESTATOR_PRIVATE_KEY` is set correctly (without 0x prefix).
 
-4. **Testament Address Prediction Fails**: Check that `TESTAMENT_FACTORY_ADDRESS` is deployed and accessible.
+4. **Testament Address Prediction Fails**: Check that `TESTAMENT_FACTORY` is deployed and accessible.
 
 ### Verification Commands
 
@@ -174,7 +174,7 @@ The system automatically manages the following `.env` variables during the proce
 ipfs id
 
 # Verify environment variables
-echo $TESTAMENT_FACTORY_ADDRESS
+echo $TESTAMENT_FACTORY
 
 # Check testament files
 ls -la testament/

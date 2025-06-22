@@ -10,8 +10,8 @@ import "src/JSONCIDVerifier.sol";
 
 contract TestamentFactoryIntegrationTest is Test {
     TestamentFactory testamentFactory;
-    Groth16Verifier testatorVerifier;
-    Groth16Verifier decryptionVerifier;
+    Groth16Verifier uploadCIDVerifier;
+    Groth16Verifier createTestamentVerifier;
     JSONCIDVerifier jsonCidVerifier;
 
     address executor;
@@ -39,16 +39,16 @@ contract TestamentFactoryIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        testatorVerifier = new Groth16Verifier();
-        decryptionVerifier = new Groth16Verifier();
+        uploadCIDVerifier = new Groth16Verifier();
+        createTestamentVerifier = new Groth16Verifier();
         jsonCidVerifier = new JSONCIDVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
         permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
         testamentFactory = new TestamentFactory(
-            address(testatorVerifier),
-            address(decryptionVerifier),
+            address(uploadCIDVerifier),
+            address(createTestamentVerifier),
             address(jsonCidVerifier),
             executor,
             permit2
@@ -262,7 +262,11 @@ contract TestamentFactoryIntegrationTest is Test {
         assertEq(testamentFactory.testaments(tv.cid), testamentAddress);
     }
 
-    function _getProofDataFromEnvArrays() public view returns (ProofData memory) {
+    function _getProofDataFromEnvArrays()
+        public
+        view
+        returns (ProofData memory)
+    {
         uint256[] memory paArray = vm.envUint("PA_ARRAY", ",");
         require(paArray.length == 2, "PA_ARRAY must have exactly 2 elements");
 

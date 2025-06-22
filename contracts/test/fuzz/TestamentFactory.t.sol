@@ -9,7 +9,7 @@ import "mock/MockContracts.sol";
 
 contract TestamentFactoryFuzzTest is Test {
     TestamentFactory factory;
-    MockGroth16Verifier mockTestatorVerifier;
+    MockGroth16Verifier mockuploadCIDVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJSONCIDVerifier mockJSONCIDVerifier;
 
@@ -19,12 +19,12 @@ contract TestamentFactoryFuzzTest is Test {
     JSONCIDVerifier.JsonObject testamentJson;
 
     function setUp() public {
-        mockTestatorVerifier = new MockGroth16Verifier();
+        mockuploadCIDVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJSONCIDVerifier = new MockJSONCIDVerifier();
 
         factory = new TestamentFactory(
-            address(mockTestatorVerifier),
+            address(mockuploadCIDVerifier),
             address(mockDecryptionVerifier),
             address(mockJSONCIDVerifier),
             executor,
@@ -101,7 +101,7 @@ contract TestamentFactoryFuzzTest is Test {
         vm.assume(invalidSignature.length > 0);
 
         mockJSONCIDVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [

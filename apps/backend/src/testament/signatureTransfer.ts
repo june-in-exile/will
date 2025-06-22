@@ -10,7 +10,7 @@ import chalk from "chalk";
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT_ADDRESS: string;
+  TESTAMENT: string;
   EXECUTOR_PRIVATE_KEY: string;
   NONCE: string;
   DEADLINE: string;
@@ -44,15 +44,15 @@ interface SignatureTransferResult {
  */
 function validateEnvironment(): EnvironmentVariables {
   const {
-    TESTAMENT_ADDRESS,
+    TESTAMENT,
     EXECUTOR_PRIVATE_KEY,
     NONCE,
     DEADLINE,
     PERMIT2_SIGNATURE,
   } = process.env;
 
-  if (!TESTAMENT_ADDRESS) {
-    throw new Error("Environment variable TESTAMENT_ADDRESS is not set");
+  if (!TESTAMENT) {
+    throw new Error("Environment variable TESTAMENT is not set");
   }
 
   if (!EXECUTOR_PRIVATE_KEY) {
@@ -71,8 +71,8 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable PERMIT2_SIGNATURE is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT_ADDRESS)) {
-    throw new Error(`Invalid testament address: ${TESTAMENT_ADDRESS}`);
+  if (!ethers.isAddress(TESTAMENT)) {
+    throw new Error(`Invalid testament address: ${TESTAMENT}`);
   }
 
   if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
@@ -118,7 +118,7 @@ function validateEnvironment(): EnvironmentVariables {
   }
 
   return {
-    TESTAMENT_ADDRESS,
+    TESTAMENT,
     EXECUTOR_PRIVATE_KEY,
     NONCE,
     DEADLINE,
@@ -467,7 +467,7 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
   try {
     // Validate prerequisites
     const {
-      TESTAMENT_ADDRESS,
+      TESTAMENT,
       EXECUTOR_PRIVATE_KEY,
       NONCE,
       DEADLINE,
@@ -482,7 +482,7 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create testament contract instance
-    const contract = await createTestamentContract(TESTAMENT_ADDRESS, wallet);
+    const contract = await createTestamentContract(TESTAMENT, wallet);
 
     // Get testament information
     const testamentInfo = await getTestamentInfo(contract);

@@ -20,7 +20,7 @@ const permit2SDK = require("@uniswap/permit2-sdk");
 // Type definitions
 interface EnvironmentVariables {
   TESTATOR_PRIVATE_KEY: string;
-  PERMIT2_ADDRESS: string;
+  PERMIT2: string;
 }
 
 interface TokenInfo {
@@ -72,7 +72,7 @@ interface TestamentData {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS } = process.env;
+  const { TESTATOR_PRIVATE_KEY, PERMIT2 } = process.env;
 
   if (!TESTATOR_PRIVATE_KEY) {
     throw new Error("Environment variable TESTATOR_PRIVATE_KEY is not set");
@@ -85,16 +85,16 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid private key format");
   }
 
-  const permit2Address = PERMIT2_ADDRESS || permit2SDK.PERMIT2_ADDRESS;
+  const permit2Address = PERMIT2 || permit2SDK.PERMIT2;
   if (!permit2Address) {
-    throw new Error("PERMIT2_ADDRESS not found in environment or SDK");
+    throw new Error("PERMIT2 not found in environment or SDK");
   }
 
   if (!ethers.isAddress(permit2Address)) {
-    throw new Error(`Invalid PERMIT2_ADDRESS: ${permit2Address}`);
+    throw new Error(`Invalid PERMIT2: ${permit2Address}`);
   }
 
-  return { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS: permit2Address };
+  return { TESTATOR_PRIVATE_KEY, PERMIT2: permit2Address };
 }
 
 /**
@@ -103,7 +103,7 @@ function validateEnvironment(): EnvironmentVariables {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.testament.formatted)) {
     throw new Error(
-      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`,
+      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`
     );
   }
 }
@@ -113,7 +113,7 @@ function validateFiles(): void {
  */
 async function createSigner(
   privateKey: string,
-  provider: JsonRpcProvider,
+  provider: JsonRpcProvider
 ): Promise<Wallet> {
   try {
     console.log(chalk.blue("Initializing signer..."));
@@ -127,7 +127,7 @@ async function createSigner(
 
     if (balance === 0n) {
       console.warn(
-        chalk.yellow("⚠️ Warning: Signer has zero balance for gas fees"),
+        chalk.yellow("⚠️ Warning: Signer has zero balance for gas fees")
       );
     }
 
@@ -153,7 +153,7 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
     console.log(
       chalk.gray("Gas price:"),
       ethers.formatUnits(gasPrice.gasPrice || 0n, "gwei"),
-      "gwei",
+      "gwei"
     );
 
     return network;
@@ -172,7 +172,7 @@ function readTestamentData(): TestamentData {
     console.log(chalk.blue("Reading formatted testament data..."));
     const testamentContent = readFileSync(
       PATHS_CONFIG.testament.formatted,
-      "utf8",
+      "utf8"
     );
     const testamentJson: TestamentData = JSON.parse(testamentContent);
 
@@ -193,7 +193,7 @@ function readTestamentData(): TestamentData {
 
       if (!ethers.isAddress(estate.token)) {
         throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
+          `Invalid token address in estate ${index}: ${estate.token}`
         );
       }
 
@@ -254,7 +254,7 @@ function extractUniqueTokens(estates: Estate[]): {
   tokens.forEach((token) => {
     const details = tokenDetails.get(token.toLowerCase())!;
     console.log(
-      chalk.gray(`- ${token} (used in estates: ${details.estates.join(", ")})`),
+      chalk.gray(`- ${token} (used in estates: ${details.estates.join(", ")})`)
     );
   });
 
@@ -266,13 +266,13 @@ function extractUniqueTokens(estates: Estate[]): {
  */
 async function getTokenInfo(
   tokenAddress: string,
-  signer: Wallet,
+  signer: Wallet
 ): Promise<TokenInfo> {
   try {
     const tokenContract = new ethers.Contract(
       tokenAddress,
       APPROVAL_CONFIG.tokenAbi,
-      signer,
+      signer
     );
 
     const [name, symbol, decimals] = await Promise.all([
@@ -288,8 +288,8 @@ async function getTokenInfo(
     console.warn(
       chalk.yellow(
         `⚠️ Could not fetch token info for ${tokenAddress}:`,
-        errorMessage,
-      ),
+        errorMessage
+      )
     );
     return { name: "Unknown", symbol: "UNKNOWN", decimals: 18 };
   }
@@ -302,17 +302,17 @@ async function checkCurrentAllowance(
   tokenAddress: string,
   ownerAddress: string,
   spenderAddress: string,
-  signer: Wallet,
+  signer: Wallet
 ): Promise<bigint> {
   try {
     const tokenContract = new ethers.Contract(
       tokenAddress,
       APPROVAL_CONFIG.tokenAbi,
-      signer,
+      signer
     );
     const allowance = await tokenContract.allowance(
       ownerAddress,
-      spenderAddress,
+      spenderAddress
     );
     return allowance;
   } catch (error) {
@@ -321,8 +321,8 @@ async function checkCurrentAllowance(
     console.warn(
       chalk.yellow(
         `⚠️ Could not check allowance for ${tokenAddress}:`,
-        errorMessage,
-      ),
+        errorMessage
+      )
     );
     return 0n;
   }
@@ -335,7 +335,7 @@ async function approveToken(
   tokenAddress: string,
   spenderAddress: string,
   signer: Wallet,
-  retryCount: number = 0,
+  retryCount: number = 0
 ): Promise<ApprovalResult> {
   try {
     console.log(chalk.blue(`Approving token ${tokenAddress} for Permit2...`));
@@ -350,14 +350,12 @@ async function approveToken(
       tokenAddress,
       ownerAddress,
       spenderAddress,
-      signer,
+      signer
     );
 
     if (currentAllowance >= ethers.MaxUint256 / 2n) {
       console.log(
-        chalk.green(
-          `✅ Token ${tokenAddress} already has sufficient allowance`,
-        ),
+        chalk.green(`✅ Token ${tokenAddress} already has sufficient allowance`)
       );
       return { success: true, txHash: null, alreadyApproved: true };
     }
@@ -366,7 +364,7 @@ async function approveToken(
     const tokenContract = new ethers.Contract(
       tokenAddress,
       APPROVAL_CONFIG.tokenAbi,
-      signer,
+      signer
     );
 
     // Estimate gas
@@ -374,7 +372,7 @@ async function approveToken(
     try {
       const estimatedGas = await tokenContract.approve.estimateGas(
         spenderAddress,
-        ethers.MaxUint256,
+        ethers.MaxUint256
       );
       gasLimit =
         (estimatedGas *
@@ -385,7 +383,7 @@ async function approveToken(
         error instanceof Error ? error.message : "Unknown error";
       console.error(
         chalk.red(`❌ Error estimating gas, using default limit:`),
-        errorMessage,
+        errorMessage
       );
       gasLimit = 100000n; // Default gas limit for approvals
     }
@@ -397,7 +395,7 @@ async function approveToken(
 
     console.log(
       chalk.gray(`Approval transaction sent for ${tokenAddress}:`),
-      chalk.white(tx.hash),
+      chalk.white(tx.hash)
     );
 
     // Wait for confirmation
@@ -406,8 +404,8 @@ async function approveToken(
     if (receipt!.status === 1) {
       console.log(
         chalk.green(
-          `✅ Approval confirmed for ${tokenAddress} (${tokenInfo.symbol})`,
-        ),
+          `✅ Approval confirmed for ${tokenAddress} (${tokenInfo.symbol})`
+        )
       );
       return { success: true, txHash: tx.hash, alreadyApproved: false };
     } else {
@@ -418,20 +416,20 @@ async function approveToken(
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red(`❌ Error approving token ${tokenAddress}:`),
-      errorMessage,
+      errorMessage
     );
 
     // Retry logic
     if (retryCount < APPROVAL_CONFIG.maxRetries) {
       console.log(
         chalk.yellow(
-          `⚠️ Retrying approval for ${tokenAddress} (attempt ${retryCount + 1}/${APPROVAL_CONFIG.maxRetries})...`,
-        ),
+          `⚠️ Retrying approval for ${tokenAddress} (attempt ${retryCount + 1}/${APPROVAL_CONFIG.maxRetries})...`
+        )
       );
 
       // Wait before retry
       await new Promise((resolve) =>
-        setTimeout(resolve, APPROVAL_CONFIG.retryDelay),
+        setTimeout(resolve, APPROVAL_CONFIG.retryDelay)
       );
 
       return approveToken(tokenAddress, spenderAddress, signer, retryCount + 1);
@@ -452,7 +450,7 @@ async function approveToken(
 async function processTokenApprovals(
   tokens: string[],
   spenderAddress: string,
-  signer: Wallet,
+  signer: Wallet
 ): Promise<TokenApprovalSummary> {
   console.log(chalk.blue("\n🔐 Starting token approval process..."));
 
@@ -524,7 +522,7 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS } = validateEnvironment();
+    const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironment();
 
     // Initialize provider and validate network
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -550,7 +548,7 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
         failed: 0,
         results: [],
         allSuccessful: true,
-        permit2Address: PERMIT2_ADDRESS,
+        permit2Address: PERMIT2,
         signerAddress: await signer.getAddress(),
       };
     }
@@ -558,25 +556,25 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
     // Process approvals
     const approvalResults = await processTokenApprovals(
       tokens,
-      PERMIT2_ADDRESS,
-      signer,
+      PERMIT2,
+      signer
     );
 
     if (approvalResults.allSuccessful) {
       console.log(
-        chalk.green.bold("\n🎉 All token approvals completed successfully!"),
+        chalk.green.bold("\n🎉 All token approvals completed successfully!")
       );
     } else {
       console.log(
         chalk.yellow.bold(
-          "\n⚠️ Some token approvals failed. Please check the logs above.",
-        ),
+          "\n⚠️ Some token approvals failed. Please check the logs above."
+        )
       );
     }
 
     return {
       ...approvalResults,
-      permit2Address: PERMIT2_ADDRESS,
+      permit2Address: PERMIT2,
       signerAddress: await signer.getAddress(),
       success: true,
     };
@@ -585,7 +583,7 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during token approval process:"),
-      errorMessage,
+      errorMessage
     );
     throw error;
   }
@@ -613,7 +611,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      errorMessage
     );
 
     // Log stack trace in development mode

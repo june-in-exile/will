@@ -22,11 +22,11 @@ interface ITestamentFactory {
     error TestamentAlreadyExists(string cid, address existingTestament);
     error TestamentAddressInconsistent(address predicted, address actual);
 
-    function testatorVerifier() external view returns (address);
+    function uploadCIDVerifier() external view returns (address);
 
     function executorVerifier() external view returns (address);
 
-    function decryptionVerifier() external view returns (address);
+    function createTestamentVerifier() external view returns (address);
 
     function executor() external view returns (address);
 

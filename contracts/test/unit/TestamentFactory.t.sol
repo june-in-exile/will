@@ -9,7 +9,7 @@ import "mock/MockContracts.sol";
 
 contract TestamentFactoryUnitTest is Test {
     TestamentFactory factory;
-    MockGroth16Verifier mockTestatorVerifier;
+    MockGroth16Verifier mockuploadCIDVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJSONCIDVerifier mockJsonCidVerifier;
 
@@ -42,12 +42,12 @@ contract TestamentFactoryUnitTest is Test {
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
         executor = vm.addr(executorPrivateKey);
 
-        mockTestatorVerifier = new MockGroth16Verifier();
+        mockuploadCIDVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJsonCidVerifier = new MockJSONCIDVerifier();
 
         factory = new TestamentFactory(
-            address(mockTestatorVerifier),
+            address(mockuploadCIDVerifier),
             address(mockDecryptionVerifier),
             address(mockJsonCidVerifier),
             executor,
@@ -84,11 +84,11 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_Constructor() public view {
         assertEq(
-            address(factory.testatorVerifier()),
-            address(mockTestatorVerifier)
+            address(factory.uploadCIDVerifier()),
+            address(mockuploadCIDVerifier)
         );
         assertEq(
-            address(factory.decryptionVerifier()),
+            address(factory.createTestamentVerifier()),
             address(mockDecryptionVerifier)
         );
         assertEq(
@@ -101,7 +101,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_UploadCID_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
 
         uint256 expectedTimestamp = block.timestamp;
         vm.expectEmit(false, false, false, false);
@@ -129,7 +129,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_UploadCID_TestatorProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(false);
+        mockuploadCIDVerifier.setShouldReturnTrue(false);
 
         vm.expectRevert(TestamentFactory.TestatorProofInvalid.selector);
 
@@ -138,7 +138,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_NotarizeCID_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         vm.expectEmit(true, false, false, true);
@@ -167,7 +167,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_CreateTestament_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -225,7 +225,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_CreateTestament_CIDNotValidatedByExecutor() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         vm.expectRevert(
@@ -250,7 +250,7 @@ contract TestamentFactoryUnitTest is Test {
 
     function test_CreateTestament_DecryptionProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -278,7 +278,7 @@ contract TestamentFactoryUnitTest is Test {
     function test_CreateTestament_TestamentAlreadyExists() public {
         // Upload and notarize CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
         factory.uploadCID(pA, pB, pC, pubSignals, testamentJson, cid);
 
@@ -350,7 +350,7 @@ contract TestamentFactoryUnitTest is Test {
         string memory cid2 = "cid2";
 
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockTestatorVerifier.setShouldReturnTrue(true);
+        mockuploadCIDVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
 
         // Create first testament

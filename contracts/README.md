@@ -53,12 +53,12 @@
    Check the deployment
 
    > ```sh
-   > make testatorVerifier
-   > make decryptionVerifier
+   > make uploadCIDVerifier
+   > make createTestamentVerifier
    > make executor
    > ```
 
-   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER_ADDRESS`, `PERMIT2_VERIFIER_ADDRESS`, `DECRYPTION_VERIFIER_ADDRESS` in the `.env` are set. Then, execute the instruction.
+   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `UPLOAD_CID_VERIFIER`, `CREATE_TESTAMENT_VERIFIER` in the `.env` are set. Then, execute the instruction.
 
    ```sh
    make deploy_testamentFactory
@@ -119,7 +119,7 @@
 
 2. (Arbitrum Sepolia only) Verify `Testament.sol`.
 
-   Check the contract on https://sepolia.arbiscan.io/address/<TESTAMENT_ADDRESS>. If it's not verified yet, run the following command to verify it.
+   Check the contract on https://sepolia.arbiscan.io/address/<TESTAMENT>. If it's not verified yet, run the following command to verify it.
 
    ```sh
    make verify_testament

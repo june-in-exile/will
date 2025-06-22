@@ -11,8 +11,8 @@ contract TestamentFactory {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    Groth16Verifier public testatorVerifier;
-    Groth16Verifier public decryptionVerifier;
+    Groth16Verifier public uploadCIDVerifier;
+    Groth16Verifier public createTestamentVerifier;
     JSONCIDVerifier public jsonCidVerifier;
     address public permit2;
     address public executor;
@@ -40,14 +40,14 @@ contract TestamentFactory {
     error TestamentAddressInconsistent(address predicted, address actual);
 
     constructor(
-        address _testatorVerifier,
-        address _decryptionVerifier,
+        address _uploadCIDVerifier,
+        address _createTestamentVerifier,
         address _jsonCidVerifier,
         address _executor,
         address _permit2
     ) {
-        testatorVerifier = Groth16Verifier(_testatorVerifier);
-        decryptionVerifier = Groth16Verifier(_decryptionVerifier);
+        uploadCIDVerifier = Groth16Verifier(_uploadCIDVerifier);
+        createTestamentVerifier = Groth16Verifier(_createTestamentVerifier);
         jsonCidVerifier = JSONCIDVerifier(_jsonCidVerifier);
         executor = _executor;
         permit2 = _permit2;
@@ -93,7 +93,7 @@ contract TestamentFactory {
 
         if (!isValid) revert JSONCIDInvalid(_cid);
 
-        if (!testatorVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!uploadCIDVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
 
         _testatorValidateTimes[_cid] = block.timestamp;
@@ -162,7 +162,7 @@ contract TestamentFactory {
         bool isValid = jsonCidVerifier.verifyCID(_testament, _cid);
 
         if (!isValid) revert JSONCIDInvalid(_cid);
-        if (!decryptionVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!createTestamentVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (testaments[_cid] != address(0))
             revert TestamentAlreadyExists(_cid, testaments[_cid]);

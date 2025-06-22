@@ -4,7 +4,7 @@ all: init phase1 phase2 phase3
 
 init:
 	@echo "Resetting environment variables..."
-	@pnpm exec tsx ../../shared/utils/env/resetEnvVariable.ts SALT TESTAMENT_ADDRESS \
+	@pnpm exec tsx ../../shared/utils/env/resetEnvVariable.ts SALT TESTAMENT \
         BENEFICIARY0 TOKEN0 AMOUNT0 \
         BENEFICIARY1 TOKEN1 AMOUNT1 \
         NONCE DEADLINE PERMIT2_SIGNATURE \

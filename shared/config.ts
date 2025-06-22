@@ -562,20 +562,20 @@ export const PATHS_CONFIG: PathsConfig = {
     raw: resolve(modulePath, "../apps/backend/testament/1_raw.json"),
     formatted: resolve(
       modulePath,
-      "../apps/backend/testament/2_formatted.json",
+      "../apps/backend/testament/2_formatted.json"
     ),
     addressed: resolve(
       modulePath,
-      "../apps/backend/testament/3_addressed.json",
+      "../apps/backend/testament/3_addressed.json"
     ),
     signed: resolve(modulePath, "../apps/backend/testament/4_signed.json"),
     encrypted: resolve(
       modulePath,
-      "../apps/backend/testament/5_encrypted.json",
+      "../apps/backend/testament/5_encrypted.json"
     ),
     decrypted: resolve(
       modulePath,
-      "../apps/backend/testament/6_decrypted.json",
+      "../apps/backend/testament/6_decrypted.json"
     ),
   },
 
@@ -594,7 +594,7 @@ export const PATHS_CONFIG: PathsConfig = {
     outDir: resolve(modulePath, "../contracts/out"),
     testamentFactory: resolve(
       modulePath,
-      "../contracts/out/TestamentFactory.sol/TestamentFactory.json",
+      "../contracts/out/TestamentFactory.sol/TestamentFactory.json"
     ),
   },
 
@@ -680,7 +680,7 @@ export const ERROR_CONFIG: ErrorConfig = {
 // ================================
 export const PERMIT2_CONFIG: Permit2Config = {
   // Contract addresses
-  address: process.env.PERMIT2_ADDRESS,
+  address: process.env.PERMIT2,
 
   // Default duration
   defaultDuration: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
@@ -761,11 +761,11 @@ export const LOGGING_CONFIG: LoggingConfig = {
 export const ENV_CONFIG: EnvConfig = {
   // Required environment variables
   required: [
-    "PERMIT2_ADDRESS",
-    "PERMIT2_VERIFIER_ADDRESS",
-    "DECRYPTION_VERIFIER_ADDRESS",
-    "JSON_CID_VERIFIER_ADDRESS",
-    "TESTAMENT_FACTORY_ADDRESS",
+    "PERMIT2",
+    "UPLOAD_CID_VERIFIER",
+    "CREATE_TESTAMENT_VERIFIER",
+    "JSON_CID_VERIFIER",
+    "TESTAMENT_FACTORY",
     "TESTATOR_PRIVATE_KEY",
     "EXECUTOR_PRIVATE_KEY",
     "EXECUTOR",
@@ -779,11 +779,11 @@ export const ENV_CONFIG: EnvConfig = {
 
   // Validation patterns
   validation: {
-    PERMIT2_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
-    PERMIT2_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
-    DECRYPTION_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
-    JSON_CID_VERIFIER_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
-    TESTAMENT_FACTORY_ADDRESS: /^0x[0-9a-fA-F]{40}$/,
+    PERMIT2: /^0x[0-9a-fA-F]{40}$/,
+    UPLOAD_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    CREATE_TESTAMENT_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    JSON_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    TESTAMENT_FACTORY: /^0x[0-9a-fA-F]{40}$/,
     TESTATOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
     EXECUTOR: /^0x[0-9a-fA-F]{40}$/,
@@ -840,7 +840,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
 
     if (missing.length > 0) {
       throw new Error(
-        `Missing required environment variables: ${missing.join(", ")}`,
+        `Missing required environment variables: ${missing.join(", ")}`
       );
     }
 
@@ -849,7 +849,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       const value = process.env[key];
       if (value && !pattern.test(value)) {
         throw new Error(
-          `Invalid format for environment variable ${key}: ${value}`,
+          `Invalid format for environment variable ${key}: ${value}`
         );
       }
     }

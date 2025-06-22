@@ -241,11 +241,11 @@ pnpm build
 
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
-2. **Complete ZKP circuits** (ZKP1, ZKP2, ZKP3)
-   - [ ] **ZKP1**: Prove that a JSON file is in proper format
-     - [ ] Contains "nonce", "deadline", and "signature" fields that can pass Permit2 verification when combined with other fields in the JSON files
-   - [ ] **ZKP2**: Prove that a JSON file can be encrypted into given ciphertext with given IV
-   - [ ] **ZKP3**: Prove that the former two JSON files are identical
+2. **Complete ZKP circuits**
+   - [ ] **decryption_zkp**: prove that `signed_testament == decrypt(ciphertext, key, iv, authTag)` without exposing the decryption key.
+   - [ ] **format_zkp**: prove that `signed_testament` is in the proper format without exposing its content. 
+   - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_testament`.
+   - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_testament`.
 3. **Integrate Pinata** for reliable IPFS pinning
 4. **Implement Permit2** token approval flow
 5. **Add comprehensive testing**

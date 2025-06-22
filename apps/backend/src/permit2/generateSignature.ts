@@ -23,7 +23,7 @@ const { SignatureTransfer } = permit2SDK;
 // Type definitions
 interface EnvironmentVariables {
   TESTATOR_PRIVATE_KEY: string;
-  PERMIT2_ADDRESS: string;
+  PERMIT2: string;
 }
 
 interface Estate {
@@ -75,7 +75,7 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS } = process.env;
+  const { TESTATOR_PRIVATE_KEY, PERMIT2 } = process.env;
 
   if (!TESTATOR_PRIVATE_KEY) {
     throw new Error("Environment variable TESTATOR_PRIVATE_KEY is not set");
@@ -88,16 +88,16 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid private key format");
   }
 
-  const permit2Address = PERMIT2_ADDRESS || permit2SDK.PERMIT2_ADDRESS;
+  const permit2Address = PERMIT2 || permit2SDK.PERMIT2;
   if (!permit2Address) {
-    throw new Error("PERMIT2_ADDRESS not found in environment or SDK");
+    throw new Error("PERMIT2 not found in environment or SDK");
   }
 
   if (!ethers.isAddress(permit2Address)) {
-    throw new Error(`Invalid PERMIT2_ADDRESS: ${permit2Address}`);
+    throw new Error(`Invalid PERMIT2: ${permit2Address}`);
   }
 
-  return { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS: permit2Address };
+  return { TESTATOR_PRIVATE_KEY, PERMIT2: permit2Address };
 }
 
 /**
@@ -106,7 +106,7 @@ function validateEnvironment(): EnvironmentVariables {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.testament.addressed)) {
     throw new Error(
-      `Addressed testament file does not exist: ${PATHS_CONFIG.testament.addressed}`,
+      `Addressed testament file does not exist: ${PATHS_CONFIG.testament.addressed}`
     );
   }
 }
@@ -116,7 +116,7 @@ function validateFiles(): void {
  */
 async function createSigner(
   privateKey: string,
-  provider: JsonRpcProvider,
+  provider: JsonRpcProvider
 ): Promise<Wallet> {
   try {
     console.log(chalk.blue("Initializing signer..."));
@@ -164,7 +164,7 @@ function readTestamentData(): TestamentData {
     console.log(chalk.blue("Reading addressed testament data..."));
     const testamentContent = readFileSync(
       PATHS_CONFIG.testament.addressed,
-      "utf8",
+      "utf8"
     );
     const testamentJson: TestamentData = JSON.parse(testamentContent);
 
@@ -192,7 +192,7 @@ function readTestamentData(): TestamentData {
         VALIDATION_CONFIG.testament.minEstatesRequired
     ) {
       throw new Error(
-        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.testament.minEstatesRequired})`,
+        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.testament.minEstatesRequired})`
       );
     }
 
@@ -206,20 +206,20 @@ function readTestamentData(): TestamentData {
       for (const field of requiredEstateFields) {
         if (!estate[field]) {
           throw new Error(
-            `Missing required field '${field}' in estate ${index}`,
+            `Missing required field '${field}' in estate ${index}`
           );
         }
       }
 
       if (!ethers.isAddress(estate.token)) {
         throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
+          `Invalid token address in estate ${index}: ${estate.token}`
         );
       }
 
       if (!ethers.isAddress(estate.beneficiary)) {
         throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
+          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`
         );
       }
 
@@ -248,14 +248,14 @@ function readTestamentData(): TestamentData {
  * Calculate deadline timestamp
  */
 function calculateDeadline(
-  durationMs: number = PERMIT2_CONFIG.defaultDuration,
+  durationMs: number = PERMIT2_CONFIG.defaultDuration
 ): number {
   const endTimeMs = Date.now() + durationMs;
   const endTimeSeconds = Math.floor(endTimeMs / 1000);
 
   console.log(
     chalk.gray("Signature valid until:"),
-    new Date(endTimeMs).toISOString(),
+    new Date(endTimeMs).toISOString()
   );
   return endTimeSeconds;
 }
@@ -283,7 +283,7 @@ function createPermitStructure(
   estates: Estate[],
   testamentAddress: string,
   nonce: number,
-  deadline: number,
+  deadline: number
 ): Permit {
   try {
     console.log(chalk.blue("Creating permit structure..."));
@@ -327,7 +327,7 @@ async function signPermit(
   permit: Permit,
   permit2Address: string,
   chainId: bigint,
-  signer: Wallet,
+  signer: Wallet
 ): Promise<string> {
   try {
     console.log(chalk.blue("Generating EIP-712 signature..."));
@@ -335,7 +335,7 @@ async function signPermit(
     const { domain, types, values } = SignatureTransfer.getPermitData(
       permit,
       permit2Address,
-      chainId,
+      chainId
     );
 
     console.log(chalk.gray("Domain:"), domain.name, `(v${domain.version})`);
@@ -346,7 +346,7 @@ async function signPermit(
     console.log(chalk.green("✅ Signature generated successfully"));
     console.log(
       chalk.gray("Signature:"),
-      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`,
+      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`
     );
 
     return signature;
@@ -364,7 +364,7 @@ function saveSignedTestament(
   testamentData: TestamentData,
   nonce: number,
   deadline: number,
-  signature: string,
+  signature: string
 ): SignedTestamentData {
   try {
     console.log(chalk.blue("Preparing signed testament..."));
@@ -380,11 +380,11 @@ function saveSignedTestament(
 
     writeFileSync(
       PATHS_CONFIG.testament.signed,
-      JSON.stringify(signedTestament, null, 4),
+      JSON.stringify(signedTestament, null, 4)
     );
     console.log(
       chalk.green("✅ Signed testament saved to:"),
-      PATHS_CONFIG.testament.signed,
+      PATHS_CONFIG.testament.signed
     );
 
     return signedTestament;
@@ -401,7 +401,7 @@ function saveSignedTestament(
 async function updateEnvironmentVariables(
   nonce: number,
   deadline: number,
-  signature: string,
+  signature: string
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -413,7 +413,7 @@ async function updateEnvironmentVariables(
     ];
 
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
+      updates.map(([key, value]) => updateEnvVariable(key, value))
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -431,7 +431,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTATOR_PRIVATE_KEY, PERMIT2_ADDRESS } = validateEnvironment();
+    const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironment();
 
     // Initialize provider and validate network
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -453,7 +453,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
     console.log(chalk.gray("- Deadline:"), deadline);
     console.log(
       chalk.gray("- Valid until:"),
-      new Date(deadline * 1000).toISOString(),
+      new Date(deadline * 1000).toISOString()
     );
 
     // Create permit structure
@@ -461,15 +461,15 @@ async function processTestamentSigning(): Promise<ProcessResult> {
       testamentData.estates,
       testamentData.testament,
       nonce,
-      deadline,
+      deadline
     );
 
     // Sign the permit
     const signature = await signPermit(
       permit,
-      PERMIT2_ADDRESS,
+      PERMIT2,
       network.chainId,
-      signer,
+      signer
     );
 
     // Save signed testament
@@ -479,9 +479,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
     await updateEnvironmentVariables(nonce, deadline, signature);
 
     console.log(
-      chalk.green.bold(
-        "\n🎉 Testament signing process completed successfully!",
-      ),
+      chalk.green.bold("\n🎉 Testament signing process completed successfully!")
     );
 
     return {
@@ -499,7 +497,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during testament signing process:"),
-      errorMessage,
+      errorMessage
     );
     throw error;
   }
@@ -511,7 +509,7 @@ async function processTestamentSigning(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Testament EIP-712 Signature Generation ===\n"),
+      chalk.cyan("\n=== Testament EIP-712 Signature Generation ===\n")
     );
 
     const result = await processTestamentSigning();
@@ -526,7 +524,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      errorMessage
     );
 
     // Log stack trace in development mode

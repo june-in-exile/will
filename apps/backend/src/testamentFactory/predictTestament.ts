@@ -3,7 +3,7 @@ import { updateEnvVariable } from "@shared/utils/env";
 import {
   Estate,
   TestamentFactory,
-  TestamentFactory__factory
+  TestamentFactory__factory,
 } from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
@@ -16,7 +16,7 @@ config({ path: PATHS_CONFIG.env });
 
 // Type definitions
 interface EnvironmentVariables {
-  TESTAMENT_FACTORY_ADDRESS: string;
+  TESTAMENT_FACTORY: string;
 }
 
 interface TestamentData {
@@ -46,21 +46,17 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironment(): EnvironmentVariables {
-  const { TESTAMENT_FACTORY_ADDRESS } = process.env;
+  const { TESTAMENT_FACTORY } = process.env;
 
-  if (!TESTAMENT_FACTORY_ADDRESS) {
-    throw new Error(
-      "Environment variable TESTAMENT_FACTORY_ADDRESS is not set",
-    );
+  if (!TESTAMENT_FACTORY) {
+    throw new Error("Environment variable TESTAMENT_FACTORY is not set");
   }
 
-  if (!ethers.isAddress(TESTAMENT_FACTORY_ADDRESS)) {
-    throw new Error(
-      `Invalid testament factory address: ${TESTAMENT_FACTORY_ADDRESS}`,
-    );
+  if (!ethers.isAddress(TESTAMENT_FACTORY)) {
+    throw new Error(`Invalid testament factory address: ${TESTAMENT_FACTORY}`);
   }
 
-  return { TESTAMENT_FACTORY_ADDRESS };
+  return { TESTAMENT_FACTORY };
 }
 
 /**
@@ -69,7 +65,7 @@ function validateEnvironment(): EnvironmentVariables {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.testament.formatted)) {
     throw new Error(
-      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`,
+      `Formatted testament file does not exist: ${PATHS_CONFIG.testament.formatted}`
     );
   }
 }
@@ -78,7 +74,7 @@ function validateFiles(): void {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider,
+  provider: JsonRpcProvider
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -86,7 +82,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`,
+      `(Chain ID: ${network.chainId})`
     );
     return network;
   } catch (error) {
@@ -126,7 +122,7 @@ function readTestamentData(): TestamentData {
     console.log(chalk.blue("Reading formatted testament data..."));
     const testamentContent = readFileSync(
       PATHS_CONFIG.testament.formatted,
-      "utf8",
+      "utf8"
     );
     const testamentJson: TestamentData = JSON.parse(testamentContent);
 
@@ -153,7 +149,7 @@ function readTestamentData(): TestamentData {
       for (const field of requiredFields) {
         if (!estate[field]) {
           throw new Error(
-            `Missing required field '${field}' in estate ${index}`,
+            `Missing required field '${field}' in estate ${index}`
           );
         }
       }
@@ -161,13 +157,13 @@ function readTestamentData(): TestamentData {
       // Validate addresses
       if (!ethers.isAddress(estate.beneficiary)) {
         throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
+          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`
         );
       }
 
       if (!ethers.isAddress(estate.token)) {
         throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
+          `Invalid token address in estate ${index}: ${estate.token}`
         );
       }
     });
@@ -187,14 +183,14 @@ function readTestamentData(): TestamentData {
  */
 async function createContractInstance(
   factoryAddress: string,
-  provider: JsonRpcProvider,
+  provider: JsonRpcProvider
 ): Promise<TestamentFactory> {
   try {
     console.log(chalk.blue("Loading testament factory contract..."));
 
     const contract = TestamentFactory__factory.connect(
       factoryAddress,
-      provider,
+      provider
     );
 
     // Validate contract exists at address
@@ -219,7 +215,7 @@ async function predictTestamentAddress(
   contract: TestamentFactory,
   testator: string,
   estates: Estate[],
-  salt: number,
+  salt: number
 ): Promise<string> {
   try {
     console.log(chalk.blue("Predicting testament address..."));
@@ -231,7 +227,7 @@ async function predictTestamentAddress(
     const predictedAddress = await contract.predictTestament(
       testator,
       estates,
-      salt,
+      salt
     );
 
     if (!ethers.isAddress(predictedAddress)) {
@@ -240,7 +236,7 @@ async function predictTestamentAddress(
 
     console.log(
       chalk.green("✅ Testament address predicted:"),
-      chalk.white(predictedAddress),
+      chalk.white(predictedAddress)
     );
     return predictedAddress;
   } catch (error) {
@@ -256,7 +252,7 @@ async function predictTestamentAddress(
 function saveAddressedTestament(
   testamentData: TestamentData,
   salt: number,
-  predictedAddress: string,
+  predictedAddress: string
 ): AddressedTestament {
   try {
     console.log(chalk.blue("Preparing addressed testament..."));
@@ -274,11 +270,11 @@ function saveAddressedTestament(
 
     writeFileSync(
       PATHS_CONFIG.testament.addressed,
-      JSON.stringify(addressedTestament, null, 4),
+      JSON.stringify(addressedTestament, null, 4)
     );
     console.log(
       chalk.green("✅ Addressed testament saved to:"),
-      PATHS_CONFIG.testament.addressed,
+      PATHS_CONFIG.testament.addressed
     );
 
     return addressedTestament;
@@ -295,7 +291,7 @@ function saveAddressedTestament(
 async function updateEnvironmentVariables(
   estates: Estate[],
   salt: number,
-  predictedAddress: string,
+  predictedAddress: string
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -303,7 +299,7 @@ async function updateEnvironmentVariables(
     const updates: Array<[string, string]> = [
       // Testament contract info
       ["SALT", salt.toString()],
-      ["TESTAMENT_ADDRESS", predictedAddress],
+      ["TESTAMENT", predictedAddress],
     ];
 
     // Add estate-specific variables
@@ -311,13 +307,13 @@ async function updateEnvironmentVariables(
       updates.push(
         [`BENEFICIARY${index}`, estate.beneficiary.toString()],
         [`TOKEN${index}`, estate.token.toString()],
-        [`AMOUNT${index}`, estate.amount.toString()],
+        [`AMOUNT${index}`, estate.amount.toString()]
       );
     });
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
+      updates.map(([key, value]) => updateEnvVariable(key, value))
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -335,16 +331,17 @@ async function getContractInfo(contract: TestamentFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, testatorVerifier, decryptionVerifier] = await Promise.all([
-      contract.executor(),
-      contract.testatorVerifier(),
-      contract.decryptionVerifier(),
-    ]);
+    const [executor, uploadCIDVerifier, createTestamentVerifier] =
+      await Promise.all([
+        contract.executor(),
+        contract.uploadCIDVerifier(),
+        contract.createTestamentVerifier(),
+      ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), testatorVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), decryptionVerifier);
+    console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
+    console.log(chalk.gray("- Decryption Verifier:"), createTestamentVerifier);
   } catch (error) {
     console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
   }
@@ -357,17 +354,14 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTAMENT_FACTORY_ADDRESS } = validateEnvironment();
+    const { TESTAMENT_FACTORY } = validateEnvironment();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateRpcConnection(provider);
 
     // Create contract instance
-    const contract = await createContractInstance(
-      TESTAMENT_FACTORY_ADDRESS,
-      provider,
-    );
+    const contract = await createContractInstance(TESTAMENT_FACTORY, provider);
 
     // Get contract information
     await getContractInfo(contract);
@@ -383,7 +377,7 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
       contract,
       testamentData.testator,
       testamentData.estates,
-      salt,
+      salt
     );
 
     // Save addressed testament
@@ -393,13 +387,13 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
     await updateEnvironmentVariables(
       testamentData.estates,
       salt,
-      predictedAddress,
+      predictedAddress
     );
 
     console.log(
       chalk.green.bold(
-        "\n🎉 Testament addressing process completed successfully!",
-      ),
+        "\n🎉 Testament addressing process completed successfully!"
+      )
     );
 
     return {
@@ -414,7 +408,7 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during testament addressing process:"),
-      errorMessage,
+      errorMessage
     );
     throw error;
   }
@@ -426,9 +420,7 @@ async function processTestamentAddressing(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan(
-        "\n=== Testament Address Prediction & Environment Setup ===\n",
-      ),
+      chalk.cyan("\n=== Testament Address Prediction & Environment Setup ===\n")
     );
 
     const result = await processTestamentAddressing();
@@ -440,7 +432,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      errorMessage
     );
 
     // Log stack trace in development mode
