@@ -100,6 +100,18 @@ make upload-testament
 - **Updates**: The following `.env` variables are automatically updated:
   - `CID` (IPFS Content Identifier)
 
+### Step 8: Upload CID
+
+Upload the CID to `testamentFactory.sol`:
+
+```sh
+make upload-cid
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `UPLOAD_TX_HASH`, `UPLOAD_TIMESTAMP`
+
+
 ## Phase 2: Probation
 
 ### Step 1: Download and Decrypt
@@ -120,7 +132,45 @@ The executor signs the CID to authorize testament execution:
 make sign-cid
 ```
 
-- **Updates**: The `EXECUTOR_SIGNATURE` variable in `.env` is updated
+- **Updates**: The following `.env` variables are automatically updated:
+  - `EXECUTOR_SIGNATURE`
+
+### Step 3: Notarize CID
+
+The exeutor notarize the CID on `testamentFactory.sol`:
+
+```sh
+make notarize-cid
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
+
+
+## Phase 3: Decrypt & Execute Testament
+
+### Step 1: Create Testament
+
+The exeutor create a new `Testament.sol` through the `testamentFactory.sol`:
+
+```sh
+make create-testament
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `CREATE_TESTAMENT_TX_HASH`, `CREATE_TESTAMENT_TIMESTAMP`
+
+### Step 2: Transfer Estates
+
+The exeutor executes the `Testament.sol` and transfer the estates from the testator to the beneifciaries:
+
+```sh
+make signature-transfer
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `EXECUTE_TESTAMENT_TX_HASH`, `EXECUTE_TESTAMENT_TIMESTAMP`
+
 
 ## File Structure
 
@@ -134,48 +184,4 @@ testament/
 ├── 4_signed.json        # Testament with Permit2 signature
 ├── 5_encrypted.json     # Encrypted testament (base64)
 └── 6_decrypted.json     # Decrypted testament for verification
-```
-
-## Environment Variables
-
-The system automatically manages the following `.env` variables during the process:
-
-### Estate Configuration
-
-- `BENEFICIARY<ID>`: Beneficiary wallet addresses
-- `TOKEN<ID>`: Token contract addresses
-- `AMOUNT<ID>`: Transfer amounts
-
-### Testament Lifecycle
-
-- `SALT`: CREATE2 salt for contract deployment
-- `TESTAMENT`: Predicted contract address
-- `NONCE`, `DEADLINE`: Permit2 parameters
-- `PERMIT2_SIGNATURE`: Testator's authorization signature
-- `CID`: IPFS storage identifiers
-- `EXECUTOR_SIGNATURE`: Executor's authorization signature
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Permit2 Approval Fails**: You may have already approved the tokens. Check your transaction history or skip to the next step.
-
-2. **IPFS Upload Fails**: Ensure your IPFS daemon is running and `PINATA_JWT` is correctly configured.
-
-3. **Signature Generation Fails**: Verify that `TESTATOR_PRIVATE_KEY` is set correctly (without 0x prefix).
-
-4. **Testament Address Prediction Fails**: Check that `TESTAMENT_FACTORY` is deployed and accessible.
-
-### Verification Commands
-
-```sh
-# Check if IPFS daemon is running
-ipfs id
-
-# Verify environment variables
-echo $TESTAMENT_FACTORY
-
-# Check testament files
-ls -la testament/
 ```
