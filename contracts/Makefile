@@ -20,7 +20,7 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil build sync_typechain
+init: sync_anvil sync_groth16verifier_and_proof build sync_typechain
 
 # ------------- Synchronization Commands ----------------
 
@@ -67,8 +67,6 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_groth16verifier_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy_jsonCidVerifier:
 ifeq ($(USE_ANVIL),true)
@@ -76,7 +74,6 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_jsonCidVerifier_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
 
 deploy_willFactory:
 ifeq ($(USE_ANVIL),true)
@@ -84,7 +81,13 @@ ifeq ($(USE_ANVIL),true)
 else
 	@make deploy_willFactory_to_arb_sepolia
 endif
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
+
+deploy:
+ifeq ($(USE_ANVIL),true)
+	@make deploy_to_forked_arb_sepolia
+else
+	@make deploy_to_arb_sepolia
+endif
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 
@@ -96,6 +99,8 @@ deploy_groth16verifier_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy_jsonCidVerifier_to_arb_sepolia:
 	@forge script \
@@ -105,6 +110,7 @@ deploy_jsonCidVerifier_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
 
 deploy_willFactory_to_arb_sepolia:
 	@forge script \
@@ -114,6 +120,9 @@ deploy_willFactory_to_arb_sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
     	--private-key $(MY_PRIVATE_KEY) \
     	script/WillFactory.s.sol:WillFactoryScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
+
+deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerifier_to_arb_sepolia deploy_willFactory_to_arb_sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
@@ -126,6 +135,8 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy_jsonCidVerifier_to_forked_arb_sepolia:
 	@forge script \
@@ -133,13 +144,17 @@ deploy_jsonCidVerifier_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
 
 deploy_willFactory_to_forked_arb_sepolia:
-	forge script \
+	@forge script \
     	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
     	--private-key $(MY_PRIVATE_KEY) \
-    	script/WillFactory.s.sol:WillFactoryScript \
+    	script/WillFactory.s.sol:WillFactoryScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
+
+deploy_to_forked_arb_sepolia: deploy_groth16verifier_to_forked_arb_sepolia deploy_jsonCidVerifier_to_forked_arb_sepolia deploy_willFactory_to_forked_arb_sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
 
