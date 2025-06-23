@@ -189,7 +189,7 @@ circom decryption.circom --r1cs --wasm --sym
 
 # 2. 生成見證
 cd decryption_js
-node generate_witness.js decryption.wasm ../input.json ../witness.wtns
+node generate_witness.js decryption.wasm ../input.json ../../witness.wtns
 cd ../..
 
 # 3. 如果成功，繼續設置可信設定
