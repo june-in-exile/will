@@ -243,7 +243,7 @@ pnpm build
 1. **Fix Bugs**
    - [ ] The cpp circom compilation doesn't work.
 2. **Complete ZKP circuits**
-   - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing the decryption key.
+   - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.
    - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content. 
    - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_will`.
    - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_will`.

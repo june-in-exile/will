@@ -89,15 +89,13 @@ typechain-types/
 # =============================================================================
 # ZERO-KNOWLEDGE PROOFS
 # =============================================================================
-circuits/*_cpp/
-circuits/*_js/
-circuits/*.zkey
-circuits/*.r1cs
-circuits/*.sym
-circuits/*.ptau
-circuits/*.json
-circuits/*.sol
-circuits/*.wtns
+circuits/*
+!circuits/README.md
+!circuits/Makefile
+!circuits/*.circom
+!circuits/package.json
+!circuits/package-lock.json
+
 contracts/src/Groth16Verifier.sol
 
 # =============================================================================
