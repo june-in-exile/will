@@ -241,6 +241,7 @@ pnpm build
 ## 🎯 Next Steps
 
 1. **Fix Bugs**
+   - [ ] Merge encrypt and upload.
    - [ ] The cpp circom compilation doesn't work.
 2. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.

@@ -1,7 +1,7 @@
 import { CID } from "multiformats/cid";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as json from "multiformats/codecs/json";
-import { toHex } from "../format";
+import { uint8ArrayToHex } from "../format";
 import * as fs from "fs";
 import chalk from "chalk";
 
@@ -164,9 +164,9 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {
       json: jsonData,
-      jsonBytes: toHex(bytes),
-      multihash: toHex(digest.bytes),
-      cidBytes: toHex(cid.bytes),
+      jsonBytes: uint8ArrayToHex(bytes),
+      multihash: uint8ArrayToHex(digest.bytes),
+      cidBytes: uint8ArrayToHex(cid.bytes),
       cid: cid.toString(),
     });
   } catch (error) {

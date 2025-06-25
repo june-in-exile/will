@@ -1,4 +1,3 @@
-import { HexString } from "ethers/lib.commonjs/utils/data.js";
 import { CRYPTO_CONFIG } from "../config.js";
 
 // Input types for hashing functions
@@ -33,22 +32,6 @@ export interface SignatureConfig {
 export interface EncryptionResult {
   ciphertext: Buffer;
   authTag: Buffer;
-}
-
-export interface EncryptedWillStorage {
-  algorithm: SupportedAlgorithm;
-  iv: HexString;
-  authTag: HexString;
-  ciphertext: HexString;
-  timestamp: string;
-}
-
-export interface EncryptedWillRuntime {
-  algorithm: SupportedAlgorithm;
-  iv: Uint8Array; // Runtime format with actual Uint8Arrays
-  authTag: Uint8Array; // Runtime format with actual Uint8Arrays
-  ciphertext: Uint8Array; // Runtime format with actual Uint8Arrays
-  timestamp: bigint;
 }
 
 export interface HashValidationResult {

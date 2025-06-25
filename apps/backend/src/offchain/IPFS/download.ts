@@ -56,7 +56,7 @@ function decryptWill(encryptedData: EncryptedData): string {
 
     // Convert data format
     const ciphertext = Buffer.from(encryptedData.ciphertext, "base64");
-    const key = Buffer.from(getDecryptionKey(), "base64");
+    const key = getDecryptionKey();
     const iv = Buffer.from(encryptedData.iv, "base64");
     const authTag = Buffer.from(encryptedData.authTag, "base64");
 

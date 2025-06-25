@@ -4,12 +4,11 @@ import { existsSync, readFileSync } from "fs";
 import type { AuthenticatedDecipher } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
-import { HexString } from "ethers/lib.commonjs/utils/data";
 
 /**
  * Validate key file existence and format
  */
-function validateKeyFile(keyPath: string): HexString {
+function validateKeyFile(keyPath: string): Buffer {
   if (!existsSync(keyPath)) {
     throw new Error(`Encryption key file not found: ${keyPath}`);
   }
@@ -21,15 +20,15 @@ function validateKeyFile(keyPath: string): HexString {
       throw new Error("Key file is empty");
     }
 
-    // Validate hex format
-    const keyBuffer = Buffer.from(keyContent, "hex");
+    // Validate base64 format
+    const keyBuffer = Buffer.from(keyContent, "base64");
     if (keyBuffer.length !== CRYPTO_CONFIG.keySize) {
       throw new Error(
         `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${keyBuffer.length} bytes`,
       );
     }
 
-    return keyContent;
+    return keyBuffer;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -184,12 +183,11 @@ function performDecryption(
 /**
  * Get decryption key with validation
  */
-export function getDecryptionKey(): string {
+export function getDecryptionKey(): Buffer {
   try {
-    const key = validateKeyFile(PATHS_CONFIG.crypto.keyFile);
+    const keyBuffer = validateKeyFile(PATHS_CONFIG.crypto.keyFile);
 
     // Additional security check - ensure key is not obviously weak
-    const keyBuffer = Buffer.from(key, "hex");
     const isAllZeros = keyBuffer.every((byte) => byte === 0);
     const isAllOnes = keyBuffer.every((byte) => byte === 255);
 
@@ -199,7 +197,7 @@ export function getDecryptionKey(): string {
       );
     }
 
-    return key;
+    return keyBuffer;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

@@ -5,7 +5,6 @@ import { config } from "dotenv";
 import type { AuthenticatedCipher, EncryptionResult } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
-import { HexString } from "ethers/lib.commonjs/utils/data";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
@@ -105,23 +104,21 @@ function generateSecureRandomBytes(size: number, purpose: string): Buffer {
 /**
  * Validate and create key file securely
  */
-function createSecureKeyFile(keyPath: string, keyBuffer: Buffer): HexString {
+function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
   try {
-    const keyHex: HexString = keyBuffer.toString("hex");
+    const keyBase64 = keyBuffer.toString("base64");
 
     // Validate hex encoding
-    const decodedKey = Buffer.from(keyHex, "hex");
+    const decodedKey = Buffer.from(keyBase64, "base64");
     if (!decodedKey.equals(keyBuffer)) {
       throw new Error("Key encoding/decoding validation failed");
     }
 
     // Write with restricted permissions (if supported)
-    writeFileSync(keyPath, keyHex);
+    writeFileSync(keyPath, keyBase64);
 
     console.log(chalk.green("✅ New encryption key generated and saved"));
     console.log(chalk.yellow("⚠️ Keep this key file secure and backed up!"));
-
-    return keyHex;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -175,7 +172,7 @@ function performEncryption(
 /**
  * Get or generate encryption key with validation
  */
-export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): HexString {
+export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
   try {
     // Validate size parameter
     if (size !== CRYPTO_CONFIG.keySize) {
@@ -185,7 +182,8 @@ export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): HexStrin
     }
 
     const keyBuffer = generateSecureRandomBytes(size, "encryption key");
-    return createSecureKeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
+    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
+    return keyBuffer;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -198,7 +196,7 @@ export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): HexStrin
  */
 export function getInitializationVector(
   size: number = CRYPTO_CONFIG.ivSize,
-): HexString {
+): Buffer {
   try {
     // Validate size parameter
     if (size !== CRYPTO_CONFIG.ivSize) {
@@ -207,12 +205,7 @@ export function getInitializationVector(
       );
     }
 
-    let ivHex: HexString;
-
-    const ivBuffer = generateSecureRandomBytes(size, "initialization vector");
-    ivHex = ivBuffer.toString("hex");
-
-    return ivHex;
+    return generateSecureRandomBytes(size, "initialization vector");
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

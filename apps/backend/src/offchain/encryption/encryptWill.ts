@@ -1,10 +1,11 @@
-import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
 import {
   getEncryptionKey,
   getInitializationVector,
   aes256gcmEncrypt,
   chacha20Encrypt,
 } from "@shared/utils/crypto";
+import { Base64String } from "@shared/types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
@@ -23,8 +24,6 @@ interface EnvironmentVariables {
 interface EncryptionParams {
   key: Buffer;
   iv: Buffer;
-  keyBase64: string;
-  ivBase64: string;
 }
 
 interface EncryptionResult {
@@ -34,9 +33,9 @@ interface EncryptionResult {
 
 interface EncryptedWill {
   algorithm: string;
-  iv: string;
-  authTag: string;
-  ciphertext: string;
+  iv: Base64String;
+  authTag: Base64String;
+  ciphertext: Base64String;
   timestamp: string;
 }
 
@@ -81,14 +80,12 @@ function validateFiles(): void {
  */
 function generateEncryptionParams(): EncryptionParams {
   console.log(chalk.blue("Generating encryption key..."));
-  const keyHex = getEncryptionKey(CRYPTO_CONFIG.keySize);
-  const key = Buffer.from(keyHex, "hex");
+  const key = getEncryptionKey(CRYPTO_CONFIG.keySize);
 
   console.log(chalk.blue("Generating initialization vector..."));
-  const ivHex = getInitializationVector(CRYPTO_CONFIG.ivSize);
-  const iv = Buffer.from(ivHex, "hex");
+  const iv = getInitializationVector(CRYPTO_CONFIG.ivSize);
 
-  return { key, iv, keyBase64: keyHex, ivBase64: ivHex };
+  return { key, iv };
 }
 
 /**
@@ -149,7 +146,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
     const willData = readFileSync(PATHS_CONFIG.will.signed, "utf8");
 
     // Generate encryption parameters
-    const { key, iv, ivBase64 } = generateEncryptionParams();
+    const { key, iv } = generateEncryptionParams();
 
     // Encrypt the will
     const { ciphertext, authTag } = encryptWill(willData, ALGORITHM, key, iv);
@@ -157,7 +154,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
     // Prepare encrypted data structure
     const encryptedWill: EncryptedWill = {
       algorithm: ALGORITHM,
-      iv: ivBase64,
+      iv: iv.toString("base64"),
       authTag: authTag.toString("base64"),
       ciphertext: ciphertext.toString("base64"),
       timestamp: new Date().toISOString(),
@@ -177,17 +174,6 @@ async function processWillEncryption(): Promise<ProcessResult> {
 
     // Save encrypted data
     saveEncryptedData(encryptedWill, PATHS_CONFIG.will.encrypted);
-
-    // Generate and verify zero-knowledge proof
-    // await generateAndVerifyProof(
-    //     ALGORITHM,
-    //     key,
-    //     ciphertext,
-    //     iv,
-    //     willData.length
-    // );
-
-    // console.log(chalk.green.bold('✅ Will encryption and ZK proof generation completed successfully!'));
 
     return {
       encryptedPath: PATHS_CONFIG.will.encrypted,
