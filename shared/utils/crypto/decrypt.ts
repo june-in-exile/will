@@ -4,11 +4,12 @@ import { existsSync, readFileSync } from "fs";
 import type { AuthenticatedDecipher } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
+import { HexString } from "ethers/lib.commonjs/utils/data";
 
 /**
  * Validate key file existence and format
  */
-function validateKeyFile(keyPath: string): string {
+function validateKeyFile(keyPath: string): HexString {
   if (!existsSync(keyPath)) {
     throw new Error(`Encryption key file not found: ${keyPath}`);
   }
@@ -20,8 +21,8 @@ function validateKeyFile(keyPath: string): string {
       throw new Error("Key file is empty");
     }
 
-    // Validate base64 format
-    const keyBuffer = Buffer.from(keyContent, "base64");
+    // Validate hex format
+    const keyBuffer = Buffer.from(keyContent, "hex");
     if (keyBuffer.length !== CRYPTO_CONFIG.keySize) {
       throw new Error(
         `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${keyBuffer.length} bytes`,
@@ -188,7 +189,7 @@ export function getDecryptionKey(): string {
     const key = validateKeyFile(PATHS_CONFIG.crypto.keyFile);
 
     // Additional security check - ensure key is not obviously weak
-    const keyBuffer = Buffer.from(key, "base64");
+    const keyBuffer = Buffer.from(key, "hex");
     const isAllZeros = keyBuffer.every((byte) => byte === 0);
     const isAllOnes = keyBuffer.every((byte) => byte === 255);
 

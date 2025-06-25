@@ -87,14 +87,14 @@ function validateFiles(): void {
  */
 function generateEncryptionParams(): EncryptionParams {
   console.log(chalk.blue("Generating encryption key..."));
-  const keyBase64 = getEncryptionKey(CRYPTO_CONFIG.keySize);
-  const key = Buffer.from(keyBase64, "base64");
+  const keyHex = getEncryptionKey(CRYPTO_CONFIG.keySize);
+  const key = Buffer.from(keyHex, "hex");
 
   console.log(chalk.blue("Generating initialization vector..."));
-  const ivBase64 = getInitializationVector(CRYPTO_CONFIG.ivSize);
-  const iv = Buffer.from(ivBase64, "base64");
+  const ivHex = getInitializationVector(CRYPTO_CONFIG.ivSize);
+  const iv = Buffer.from(ivHex, "hex");
 
-  return { key, iv, keyBase64, ivBase64 };
+  return { key, iv, keyBase64: keyHex, ivBase64: ivHex };
 }
 
 /**
