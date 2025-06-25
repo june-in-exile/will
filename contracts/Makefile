@@ -20,21 +20,20 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil sync_groth16verifier_and_proof build sync_typechain
+init: sync_anvil sync_proof build sync_typechain
 
 # ------------- Synchronization Commands ----------------
 
 sync_anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 
-sync_groth16verifier_and_proof:
-	@cp ../circuits/verifier.sol ./src/Groth16Verifier.sol
+sync_proof:
 	@pnpm exec tsx ../shared/utils/env/syncProof.ts
 
 sync_typechain: build
 	@pnpm typechain
 
-sync: sync_anvil sync_groth16verifier_and_proof sync_typechain
+sync: sync_anvil sync_proof sync_typechain
 
 # ---------------- Clean Commands -----------------------
 
@@ -53,10 +52,10 @@ clean: clean_address clean_groth16verifier_and_proof clean_typechain
 
 # ----------------- CICD Commands -----------------------
 
-build: sync_groth16verifier_and_proof
+build: sync_proof
 	@forge build
 
-test: build sync_groth16verifier_and_proof
+test: build sync_proof
 	@forge test --match-path "test/*"
 
 # --------------- Conditional Deployment ----------------

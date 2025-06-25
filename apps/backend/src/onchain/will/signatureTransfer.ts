@@ -3,7 +3,7 @@ config({ path: PATHS_CONFIG.env });
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { validatePrivateKey } from "@shared/utils/format";
-import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
+import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
 import { Will, Will__factory } from "@shared/types";
 import { config } from "dotenv";
 import chalk from "chalk";
@@ -38,6 +38,28 @@ interface SignatureTransferResult {
   success: boolean;
   estateCount: number;
 }
+
+interface TokenBalance {
+  address: string;
+  tokenAddress: string;
+  balance: bigint;
+  formattedBalance: string;
+  symbol: string;
+  decimals: number;
+}
+
+interface BalanceSnapshot {
+  timestamp: number;
+  balances: TokenBalance[];
+}
+
+// ERC20 ABI for token operations
+const ERC20_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function name() view returns (string)"
+];
 
 /**
  * Validate environment variables
@@ -222,6 +244,174 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to fetch will info: ${errorMessage}`);
   }
+}
+
+/**
+ * Get token balance for a specific address and token
+ */
+async function getTokenBalance(
+  provider: JsonRpcProvider,
+  tokenAddress: string,
+  holderAddress: string
+): Promise<TokenBalance> {
+  try {
+    const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
+
+    const [balance, symbol, decimals] = await Promise.all([
+      tokenContract.balanceOf(holderAddress),
+      tokenContract.symbol().catch(() => "UNKNOWN"),
+      tokenContract.decimals().catch(() => 18)
+    ]);
+
+    const formattedBalance = ethers.formatUnits(balance, decimals);
+
+    return {
+      address: holderAddress,
+      tokenAddress,
+      balance,
+      formattedBalance,
+      symbol,
+      decimals
+    };
+  } catch (error) {
+    console.warn(
+      chalk.yellow(`Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`),
+      error instanceof Error ? error.message : "Unknown error"
+    );
+
+    return {
+      address: holderAddress,
+      tokenAddress,
+      balance: 0n,
+      formattedBalance: "0",
+      symbol: "ERROR",
+      decimals: 18
+    };
+  }
+}
+
+/**
+ * Check balances for all relevant addresses and tokens
+ */
+async function checkTokenBalances(
+  provider: JsonRpcProvider,
+  willInfo: WillInfo
+): Promise<BalanceSnapshot> {
+  try {
+    console.log(chalk.blue("Checking token balances..."));
+
+    const balances: TokenBalance[] = [];
+    const uniqueTokens = [...new Set(willInfo.estates.map(estate => estate.token))];
+    const allAddresses = [willInfo.testator, willInfo.executor, ...willInfo.estates.map(estate => estate.beneficiary)];
+    const uniqueAddresses = [...new Set(allAddresses)];
+
+    // Check balances for all combinations of addresses and tokens
+    for (const tokenAddress of uniqueTokens) {
+      for (const address of uniqueAddresses) {
+        const balance = await getTokenBalance(provider, tokenAddress, address);
+        balances.push(balance);
+      }
+    }
+
+    console.log(chalk.green(`✅ Checked balances for ${balances.length} address-token pairs`));
+
+    return {
+      timestamp: Date.now(),
+      balances
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to check token balances: ${errorMessage}`);
+  }
+}
+
+/**
+ * Print balance snapshot
+ */
+function printBalanceSnapshot(snapshot: BalanceSnapshot, title: string, willInfo: WillInfo): void {
+  console.log(chalk.cyan(`\n=== ${title} ===`));
+  console.log(chalk.gray("Timestamp:"), new Date(snapshot.timestamp).toISOString());
+
+  // Group balances by token
+  const balancesByToken = snapshot.balances.reduce((acc, balance) => {
+    if (!acc[balance.tokenAddress]) {
+      acc[balance.tokenAddress] = [];
+    }
+    acc[balance.tokenAddress].push(balance);
+    return acc;
+  }, {} as Record<string, TokenBalance[]>);
+
+  Object.entries(balancesByToken).forEach(([tokenAddress, balances]) => {
+    const symbol = balances[0]?.symbol || "UNKNOWN";
+    console.log(chalk.blue(`\n💰 Token: ${symbol} (${tokenAddress})`));
+
+    balances.forEach(balance => {
+      const addressType = balance.address.toLowerCase() === willInfo.testator.toLowerCase() ? "Testator" :
+        balance.address.toLowerCase() === willInfo.executor.toLowerCase() ? "Executor" :
+          "Beneficiary";
+
+      console.log(
+        chalk.gray(`  ${addressType} (${balance.address.slice(0, 6)}...${balance.address.slice(-4)}):`),
+        chalk.white(`${balance.formattedBalance} ${balance.symbol}`)
+      );
+    });
+  });
+
+  console.log(chalk.cyan(`=== End of ${title} ===\n`));
+}
+
+/**
+ * Compare balance snapshots and print differences
+ */
+function compareBalanceSnapshots(
+  beforeSnapshot: BalanceSnapshot,
+  afterSnapshot: BalanceSnapshot,
+  willInfo: WillInfo
+): void {
+  console.log(chalk.cyan("\n=== Balance Changes Summary ==="));
+
+  const beforeMap = new Map(
+    beforeSnapshot.balances.map(b => [`${b.address}-${b.tokenAddress}`, b])
+  );
+
+  const afterMap = new Map(
+    afterSnapshot.balances.map(b => [`${b.address}-${b.tokenAddress}`, b])
+  );
+
+  let hasChanges = false;
+
+  for (const [key, afterBalance] of afterMap) {
+    const beforeBalance = beforeMap.get(key);
+    if (!beforeBalance) continue;
+
+    const difference = afterBalance.balance - beforeBalance.balance;
+    if (difference !== 0n) {
+      hasChanges = true;
+      const addressType = afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase() ? "Testator" :
+        afterBalance.address.toLowerCase() === willInfo.executor.toLowerCase() ? "Executor" :
+          "Beneficiary";
+
+      const formattedDifference = ethers.formatUnits(
+        difference < 0n ? -difference : difference,
+        afterBalance.decimals
+      );
+
+      const changeColor = difference > 0n ? chalk.green : chalk.red;
+      const changeSymbol = difference > 0n ? "+" : "-";
+
+      console.log(
+        chalk.gray(`${addressType} (${afterBalance.address.slice(0, 6)}...${afterBalance.address.slice(-4)}):`),
+        chalk.gray(`${afterBalance.symbol}`),
+        changeColor(`${changeSymbol}${formattedDifference}`)
+      );
+    }
+  }
+
+  if (!hasChanges) {
+    console.log(chalk.yellow("No balance changes detected"));
+  }
+
+  console.log(chalk.cyan("=== End of Balance Changes Summary ===\n"));
 }
 
 /**
@@ -475,6 +665,11 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     // Get will information
     const willInfo = await getWillInfo(contract);
 
+    // Check balances before execution
+    console.log(chalk.magenta.bold("\n🔍 Checking balances before execution..."));
+    const beforeSnapshot = await checkTokenBalances(provider, willInfo);
+    printBalanceSnapshot(beforeSnapshot, "Token Balances Before Execution", willInfo);
+
     // Execute signature transfer
     const result = await executeSignatureTransfer(
       contract,
@@ -484,6 +679,14 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
       PERMIT2_SIGNATURE,
       wallet.address
     );
+
+    // Check balances after execution
+    console.log(chalk.magenta.bold("\n🔍 Checking balances after execution..."));
+    const afterSnapshot = await checkTokenBalances(provider, willInfo);
+    printBalanceSnapshot(afterSnapshot, "Token Balances After Execution", willInfo);
+
+    // Compare and show differences
+    compareBalanceSnapshots(beforeSnapshot, afterSnapshot, willInfo);
 
     // Verify execution
     await verifyWillExecution(contract);
