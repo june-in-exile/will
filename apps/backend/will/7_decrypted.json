@@ -1,0 +1,27 @@
+{
+    "testator": "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
+    "estates": [
+        {
+            "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
+            "token": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+            "amount": 1000
+        },
+        {
+            "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
+            "token": "0xb1D4538B4571d411F07960EF2838Ce337FE1E80E",
+            "amount": 5000000
+        }
+    ],
+    "salt": 7716644570890135,
+    "will": "0xF1DEAC86816b985cd8D4b77d8b8A4fC3C9D10Bc7",
+    "timestamp": "2025-06-25T16:54:39.666Z",
+    "metadata": {
+        "predictedAt": 1750870479666,
+        "estatesCount": 2
+    },
+    "signature": {
+        "nonce": 18731793392238,
+        "deadline": 1782406506,
+        "signature": "0xe9390ebc452a4c8ed1fc01bc73835e1f3d6fcacb582ef3d449f9e43f95441e97607d20c66024e41cee8dc2ce32f910240b509c5dd39a51c51fb4c605bbcce3d01c"
+    }
+}

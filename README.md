@@ -136,12 +136,6 @@ Fill in the fields required to interact with IPFS:
 PINATA_JWT=YOUR_PINATA_JWT_TOKEN
 ```
 
-Choose an encryption algorithm:
-
-```bash
-ALGORITHM=<aes-256-gcm|chacha20-poly1305>
-```
-
 The other fileds would be automatically updated during the execution.
 
 ## 🏗️ System Architecture
@@ -241,7 +235,7 @@ pnpm build
 ## 🎯 Next Steps
 
 1. **Fix Bugs**
-   - [ ] Merge encrypt and upload.
+   - [ ] Saerate download and decrypt.
    - [ ] The cpp circom compilation doesn't work.
 2. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.

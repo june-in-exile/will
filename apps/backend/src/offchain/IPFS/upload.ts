@@ -72,7 +72,7 @@ export function readWillData(): EncryptedWillData {
       }
     }
 
-    console.log(chalk.gray("Will data structure validated"));
+    console.log(chalk.green("✅ Will data structure validated"));
     return willJson;
   } catch (error) {
     if (error instanceof SyntaxError) {

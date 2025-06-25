@@ -224,8 +224,6 @@ function readWillData(): WillData {
     });
 
     console.log(chalk.green("✅ Will data validated successfully"));
-    console.log(chalk.gray("Estates count:"), willJson.estates.length);
-    console.log(chalk.gray("Will address:"), willJson.will);
 
     return willJson;
   } catch (error) {

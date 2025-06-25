@@ -2,6 +2,7 @@ import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { config } from "dotenv";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
+import type { SupportedAlgorithm } from "types";
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
@@ -67,6 +68,7 @@ interface NetworkConfig {
 
 interface CryptoConfig {
   supportedAlgorithms: string[];
+  algorithm: SupportedAlgorithm;
   keySize: number;
   ivSize: number;
   authTagSize: number;
@@ -150,6 +152,7 @@ interface WillPathsConfig {
   addressed: string;
   signed: string;
   encrypted: string;
+  downloaded: string;
   decrypted: string;
 }
 
@@ -418,6 +421,9 @@ export const CRYPTO_CONFIG: CryptoConfig = {
   // Supported algorithms
   supportedAlgorithms: [AES_256_GCM, CHACHA20_POLY1305],
 
+  // Current algorithm
+  algorithm: AES_256_GCM,
+
   // Key and IV sizes
   keySize: 32, // 256 bits
   ivSize: 12, // 96 bits
@@ -564,7 +570,8 @@ export const PATHS_CONFIG: PathsConfig = {
     addressed: resolve(modulePath, "../apps/backend/will/3_addressed.json"),
     signed: resolve(modulePath, "../apps/backend/will/4_signed.json"),
     encrypted: resolve(modulePath, "../apps/backend/will/5_encrypted.json"),
-    decrypted: resolve(modulePath, "../apps/backend/will/6_decrypted.json"),
+    downloaded: resolve(modulePath, "../apps/backend/will/6_downloaded.json"),
+    decrypted: resolve(modulePath, "../apps/backend/will/7_decrypted.json"),
   },
 
   // ZKP files

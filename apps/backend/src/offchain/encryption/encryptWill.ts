@@ -17,10 +17,6 @@ const modulePath = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(modulePath, "../.env") });
 
 // Type definitions
-interface EnvironmentVariables {
-  ALGORITHM: string;
-}
-
 interface EncryptionParams {
   key: Buffer;
   iv: Buffer;
@@ -43,25 +39,6 @@ interface ProcessResult {
   encryptedPath: string;
   algorithm: string;
   success: boolean;
-}
-
-/**
- * Validate environment variables
- */
-function validateEnvironment(): EnvironmentVariables {
-  const { ALGORITHM } = process.env;
-
-  if (!ALGORITHM) {
-    throw new Error("Environment variable ALGORITHM is not set");
-  }
-
-  if (!CRYPTO_CONFIG.supportedAlgorithms.includes(ALGORITHM)) {
-    throw new Error(
-      `Unsupported encryption algorithm: ${ALGORITHM}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
-    );
-  }
-
-  return { ALGORITHM };
 }
 
 /**
@@ -119,12 +96,11 @@ function encryptWill(
  * Save encrypted data to file
  */
 function saveEncryptedData(
-  encryptedData: EncryptedWill,
-  filePath: string
+  encryptedData: EncryptedWill
 ): void {
   try {
-    writeFileSync(filePath, JSON.stringify(encryptedData, null, 4));
-    console.log(chalk.green("Encrypted data saved to:"), filePath);
+    writeFileSync(PATHS_CONFIG.will.encrypted, JSON.stringify(encryptedData, null, 4));
+    console.log(chalk.green("Encrypted data saved to:"), PATHS_CONFIG.will.encrypted);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -133,12 +109,11 @@ function saveEncryptedData(
 }
 
 /**
- * Process will encryption with ZK proof
+ * Process will encryption
  */
 async function processWillEncryption(): Promise<ProcessResult> {
   try {
-    // Validate environment and files
-    const { ALGORITHM } = validateEnvironment();
+    // Validate files
     validateFiles();
 
     // Read will data
@@ -149,11 +124,11 @@ async function processWillEncryption(): Promise<ProcessResult> {
     const { key, iv } = generateEncryptionParams();
 
     // Encrypt the will
-    const { ciphertext, authTag } = encryptWill(willData, ALGORITHM, key, iv);
+    const { ciphertext, authTag } = encryptWill(willData, CRYPTO_CONFIG.algorithm, key, iv);
 
     // Prepare encrypted data structure
     const encryptedWill: EncryptedWill = {
-      algorithm: ALGORITHM,
+      algorithm: CRYPTO_CONFIG.algorithm,
       iv: iv.toString("base64"),
       authTag: authTag.toString("base64"),
       ciphertext: ciphertext.toString("base64"),
@@ -173,11 +148,15 @@ async function processWillEncryption(): Promise<ProcessResult> {
     );
 
     // Save encrypted data
-    saveEncryptedData(encryptedWill, PATHS_CONFIG.will.encrypted);
+    saveEncryptedData(encryptedWill);
+
+    console.log(
+      chalk.green.bold("\n🎉 Will encryption process completed successfully!")
+    );
 
     return {
       encryptedPath: PATHS_CONFIG.will.encrypted,
-      algorithm: ALGORITHM,
+      algorithm: CRYPTO_CONFIG.algorithm,
       success: true,
     };
   } catch (error) {
@@ -197,12 +176,12 @@ async function processWillEncryption(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Will Encryption & ZK Proof Generation ===\n")
+      chalk.cyan("\n=== Will Encryption ===\n")
     );
 
     const result = await processWillEncryption();
 
-    console.log(chalk.green.bold("✅ Process completed successfully!"));
+    console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
     const errorMessage =

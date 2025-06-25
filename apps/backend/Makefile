@@ -33,7 +33,7 @@ approve-permit:
 predict-address:
 	@pnpm exec tsx src/onchain/willFactory/predictWill.ts
 
-generate-signature:
+sign-transfer:
 	@pnpm exec tsx src/offchain/signature/transfer.ts
 
 encrypt-will:
@@ -51,11 +51,14 @@ submit-proof:
 
 phase2: download-and-decrypt-will sign-cid notarize-cid
 
-download-and-decrypt-will:
+download-data:
 	@pnpm exec tsx src/offchain/IPFS/download.ts
 
-download-and-decrypt-will-test:
-	@pnpm exec tsx src/offchain/IPFS/download.ts --test
+decrypt-data:
+	@pnpm exec tsx src/offchain/encryption/decryptData.ts
+
+decrypt-data-test:
+	@pnpm exec tsx src/offchain/encryption/decryptData.ts --test
 
 hash-will:
 	@pnpm exec tsx ../../shared/utils/hash/cid.ts --path './will/5_encrypted.json'
