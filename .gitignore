@@ -73,7 +73,8 @@ Thumbs.db
 apps/backend/will/3_addressed.json
 apps/backend/will/4_signed.json
 apps/backend/will/5_encrypted.json
-apps/backend/will/6_decrypted.json
+apps/backend/will/6_downloaded.json
+apps/backend/will/7_decrypted.json
 
 # =============================================================================
 # BLOCKCHAIN & SMART CONTRACTS
