@@ -1,4 +1,5 @@
-import { PATHS_CONFIG, IPFS_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG, IPFS_CONFIG } from "@shared/config";
+import { SupportedAlgorithm } from "@shared/types";
 import { updateEnvVariable } from "@shared/utils/env";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
@@ -11,8 +12,6 @@ import chalk from "chalk";
 const execPromise = promisify(exec);
 
 // Type definitions
-type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
-
 interface EncryptedWillData {
   algorithm: SupportedAlgorithm;
   iv: string;
