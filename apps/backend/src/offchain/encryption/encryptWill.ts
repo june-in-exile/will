@@ -1,5 +1,4 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
-// import { generateProof, verifyProof, makeLocalSnarkJsZkOperator } from '@reclaimprotocol/circom-symmetric-crypto';
 import {
   getEncryptionKey,
   getInitializationVector,
@@ -40,11 +39,6 @@ interface EncryptedWill {
   ciphertext: string;
   timestamp: string;
 }
-
-// interface ZkProofResult {
-//     proofJson: any;
-//     plaintext: Uint8Array;
-// }
 
 interface ProcessResult {
   encryptedPath: string;
@@ -140,66 +134,6 @@ function saveEncryptedData(
     throw new Error(`Failed to save encrypted data: ${errorMessage}`);
   }
 }
-
-/**
- * Generate and verify zero-knowledge proof
- */
-// async function generateAndVerifyProof(
-//     algorithm: string,
-//     key: Buffer,
-//     ciphertext: Buffer,
-//     iv: Buffer,
-//     originalDataLength: number
-// ): Promise<ZkProofResult> {
-//     let operator: any;
-
-//     try {
-//         console.log(chalk.blue('Initializing ZK operator...'));
-//         operator = await makeLocalSnarkJsZkOperator(algorithm);
-
-//         console.log(chalk.blue('Generating zero-knowledge proof...'));
-//         const {
-//             proofJson,
-//             plaintext,
-//         } = await generateProof({
-//             algorithm,
-//             privateInput: { key },
-//             publicInput: { ciphertext, iv, offset: 0 },
-//             operator,
-//         });
-
-//         // Verify the plaintext matches original data
-//         const plaintextBuffer = plaintext.slice(0, originalDataLength);
-//         const recoveredText = Buffer.from(plaintextBuffer).toString();
-
-//         console.log(chalk.gray('Recovered plaintext preview:'), recoveredText.substring(0, 100) + '...');
-
-//         // Verify the proof
-//         console.log(chalk.blue('Verifying proof...'));
-//         await verifyProof({
-//             proof: {
-//                 proofJson,
-//                 plaintext,
-//                 algorithm
-//             },
-//             publicInput: {
-//                 ciphertext,
-//                 iv,
-//                 offset: 0
-//             },
-//             operator
-//         });
-
-//         console.log(chalk.green('✅ Proof verified successfully'));
-
-//         return { proofJson, plaintext };
-
-//     } catch (error) {
-//         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-//         console.error(chalk.red('Error in ZK proof generation/verification:'), errorMessage);
-//         throw error;
-//     }
-// }
 
 /**
  * Process will encryption with ZK proof
