@@ -5,7 +5,8 @@ import {
   aes256gcmEncrypt,
   chacha20Encrypt,
 } from "@shared/utils/crypto";
-import { Base64String } from "@shared/types";
+import { validateEthereumAddress, validateSignature } from "@shared/utils/format"
+import { EncryptedData } from "@shared/types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
@@ -27,18 +28,37 @@ interface EncryptionResult {
   authTag: Buffer;
 }
 
-interface EncryptedWill {
-  algorithm: string;
-  iv: Base64String;
-  authTag: Base64String;
-  ciphertext: Base64String;
-  timestamp: string;
-}
-
 interface ProcessResult {
   encryptedPath: string;
   algorithm: string;
   success: boolean;
+}
+
+interface SignedWillData {
+  testator: string;
+  estates: Estate[];
+  salt: number;
+  will: string;
+  timestamp: string;
+  metadata: Metadata;
+  signature: Signature;
+}
+
+interface Estate {
+  beneficiary: string;
+  token: string;
+  amount: bigint;
+}
+
+interface Metadata {
+  predictedAt: number;
+  estatesCount: number;
+}
+
+interface Signature {
+  nonce: number;
+  deadline: number;
+  signature: string;
 }
 
 /**
@@ -49,6 +69,151 @@ function validateFiles(): void {
     throw new Error(
       `Signed will file does not exist: ${PATHS_CONFIG.will.signed}`
     );
+  }
+}
+
+/**
+ * Read and validate signed will data
+ */
+function readSignedWillData(): SignedWillData {
+  try {
+    console.log(chalk.blue("Reading signed will data..."));
+    const willContent = readFileSync(PATHS_CONFIG.will.signed, "utf8");
+    const willJson: SignedWillData = JSON.parse(willContent);
+
+    // Validate required fields
+    const requiredFields: (keyof SignedWillData)[] = ["testator", "estates", "salt", "will", "timestamp", "metadata", "signature"];
+    for (const field of requiredFields) {
+      if (willJson[field] === undefined || willJson[field] === null) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+
+    // Validate testator address
+    if (!validateEthereumAddress(willJson.testator)) {
+      throw new Error(`Invalid testator address format: ${willJson.testator}`);
+    }
+
+    // Validate will address
+    if (!validateEthereumAddress(willJson.will)) {
+      throw new Error(`Invalid will address format: ${willJson.will}`);
+    }
+
+    // Validate salt is a positive number
+    if (typeof willJson.salt !== 'number' || willJson.salt <= 0) {
+      throw new Error(`Invalid salt value: ${willJson.salt}`);
+    }
+
+    // Validate timestamp format (ISO 8601)
+    const timestamp = new Date(willJson.timestamp);
+    if (isNaN(timestamp.getTime())) {
+      throw new Error(`Invalid timestamp format: ${willJson.timestamp}`);
+    }
+
+    // Validate timestamp is not in the future (with 1 minute tolerance)
+    if (timestamp > new Date(Date.now() + 60000)) {
+      throw new Error(`Timestamp cannot be in the future: ${willJson.timestamp}`);
+    }
+
+    // Validate estates array
+    if (!Array.isArray(willJson.estates) || willJson.estates.length === 0) {
+      throw new Error("Estates array must be non-empty");
+    }
+
+    // Validate each estate
+    willJson.estates.forEach((estate, index) => {
+      const requiredEstateFields: (keyof Estate)[] = ["beneficiary", "token", "amount"];
+
+      for (const field of requiredEstateFields) {
+        if (estate[field] === undefined || estate[field] === null) {
+          throw new Error(`Missing required field '${field}' in estate ${index}`);
+        }
+      }
+
+      // Validate beneficiary address
+      if (!validateEthereumAddress(estate.beneficiary)) {
+        throw new Error(`Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`);
+      }
+
+      // Validate token address
+      if (!validateEthereumAddress(estate.token)) {
+        throw new Error(`Invalid token address in estate ${index}: ${estate.token}`);
+      }
+
+      // Validate amount is a positive number
+      if (typeof estate.amount !== 'number' || estate.amount <= 0) {
+        throw new Error(`Invalid amount in estate ${index}: ${estate.amount} (must be a positive number)`);
+      }
+
+      // Validate amount is an integer (no decimals for token amounts)
+      if (!Number.isInteger(estate.amount)) {
+        throw new Error(`Amount must be an integer in estate ${index}: ${estate.amount}`);
+      }
+    });
+
+    // Validate metadata
+    if (!willJson.metadata || typeof willJson.metadata !== 'object') {
+      throw new Error("Metadata must be an object");
+    }
+
+    const requiredMetadataFields: (keyof Metadata)[] = ["predictedAt", "estatesCount"];
+    for (const field of requiredMetadataFields) {
+      if (typeof willJson.metadata[field] !== 'number') {
+        throw new Error(`Invalid metadata field '${field}': must be a number`);
+      }
+    }
+
+    // Validate metadata consistency
+    if (willJson.metadata.estatesCount !== willJson.estates.length) {
+      throw new Error(
+        `Metadata estates count (${willJson.metadata.estatesCount}) does not match actual estates count (${willJson.estates.length})`
+      );
+    }
+
+    // Validate predictedAt timestamp
+    if (willJson.metadata.predictedAt <= 0) {
+      throw new Error(`Invalid predictedAt timestamp: ${willJson.metadata.predictedAt}`);
+    }
+
+    // Validate signature object
+    if (!willJson.signature || typeof willJson.signature !== 'object') {
+      throw new Error("Signature must be an object");
+    }
+
+    const requiredSignatureFields: (keyof Signature)[] = ["nonce", "deadline", "signature"];
+    for (const field of requiredSignatureFields) {
+      if (willJson.signature[field] === undefined || willJson.signature[field] === null) {
+        throw new Error(`Missing required signature field: ${field}`);
+      }
+    }
+
+    // Validate signature fields
+    if (typeof willJson.signature.nonce !== 'number' || willJson.signature.nonce <= 0) {
+      throw new Error(`Invalid nonce: ${willJson.signature.nonce}`);
+    }
+
+    if (typeof willJson.signature.deadline !== 'number' || willJson.signature.deadline <= 0) {
+      throw new Error(`Invalid deadline: ${willJson.signature.deadline}`);
+    }
+
+    if (!validateSignature(willJson.signature.signature)) {
+      throw new Error(`Invalid signature format: ${willJson.signature.signature}`);
+    }
+
+    // Validate deadline is in the future
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    if (willJson.signature.deadline <= currentTimestamp) {
+      throw new Error(`Signature deadline has expired: ${willJson.signature.deadline}`);
+    }
+
+    console.log(chalk.green("✅ Signed will data validated successfully"));
+    
+    return willJson;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`Invalid JSON in signed will file: ${error.message}`);
+    }
+    throw error;
   }
 }
 
@@ -96,7 +261,7 @@ function encryptWill(
  * Save encrypted data to file
  */
 function saveEncryptedData(
-  encryptedData: EncryptedWill
+  encryptedData: EncryptedData
 ): void {
   try {
     writeFileSync(PATHS_CONFIG.will.encrypted, JSON.stringify(encryptedData, null, 4));
@@ -115,19 +280,19 @@ async function processWillEncryption(): Promise<ProcessResult> {
   try {
     // Validate files
     validateFiles();
-
-    // Read will data
-    console.log(chalk.blue("Reading signed will..."));
-    const willData = readFileSync(PATHS_CONFIG.will.signed, "utf8");
+    
+    // Read and validate signed will data
+    const signedWillData = readSignedWillData();
+    const willDataString = JSON.stringify(signedWillData);
 
     // Generate encryption parameters
     const { key, iv } = generateEncryptionParams();
 
     // Encrypt the will
-    const { ciphertext, authTag } = encryptWill(willData, CRYPTO_CONFIG.algorithm, key, iv);
+    const { ciphertext, authTag } = encryptWill(willDataString, CRYPTO_CONFIG.algorithm, key, iv);
 
     // Prepare encrypted data structure
-    const encryptedWill: EncryptedWill = {
+    const encryptedWill: EncryptedData = {
       algorithm: CRYPTO_CONFIG.algorithm,
       iv: iv.toString("base64"),
       authTag: authTag.toString("base64"),

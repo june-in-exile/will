@@ -25,7 +25,7 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit predict-address generate-signature encrypt-will upload-will upload-cid
+phase1: approve-permit predict-address sign-transfer encrypt-will upload-will upload-cid submit-proof
 
 approve-permit:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
@@ -49,7 +49,7 @@ submit-proof:
 	@pnpm exec tsx src/onchain/groth16Verifier/submitProof.ts
 
 
-phase2: download-and-decrypt-will sign-cid notarize-cid
+phase2: download-data decrypt-data sign-cid notarize-cid
 
 download-data:
 	@pnpm exec tsx src/offchain/IPFS/download.ts

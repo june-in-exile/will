@@ -1,4 +1,5 @@
-import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@shared/config";
+import { validateCIDv1, validateEthereumAddress, validatePrivateKey } from "@shared/utils/format"
 import { signString, verify } from "@shared/utils/crypto";
 import { updateEnvVariable } from "@shared/utils/env";
 import { config } from "dotenv";
@@ -41,110 +42,19 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable EXECUTOR is not set");
   }
 
+  if (!validateCIDv1(CID)) {
+    throw new Error("Invalid CID v1 format");
+  }
+
+  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
+    throw new Error("Invalid private key format");
+  }
+
+  if (!validateEthereumAddress(EXECUTOR)) {
+    throw new Error("Invalid executor address");
+  }
+
   return { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR };
-}
-
-/**
- * Validate CID format
- */
-function validateCid(cid: string): boolean {
-  try {
-    // Basic CID validation
-    if (typeof cid !== "string") {
-      throw new Error("CID must be a string");
-    }
-
-    if (
-      cid.length < SIGNATURE_CONFIG.cid.minLength ||
-      cid.length > SIGNATURE_CONFIG.cid.maxLength
-    ) {
-      throw new Error(
-        `CID length must be between ${SIGNATURE_CONFIG.cid.minLength} and ${SIGNATURE_CONFIG.cid.maxLength} characters`,
-      );
-    }
-
-    // Check if CID starts with expected prefixes (Qm for v0, b for v1 base32, etc.)
-    const validPrefixes = ["Qm", "b", "z", "f", "u"];
-    const hasValidPrefix = validPrefixes.some((prefix) =>
-      cid.startsWith(prefix),
-    );
-
-    if (!hasValidPrefix) {
-      console.warn(
-        chalk.yellow("⚠️ CID does not start with common IPFS prefixes"),
-      );
-    }
-
-    console.log(chalk.green("✅ CID format validated"));
-    console.log(chalk.gray("CID:"), chalk.white(cid));
-    console.log(chalk.gray("Length:"), cid.length);
-
-    return true;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Invalid CID format: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate private key format
- */
-function validatePrivateKey(privateKey: string): string {
-  try {
-    // Remove 0x prefix if present
-    const cleanKey = privateKey.startsWith("0x")
-      ? privateKey.slice(2)
-      : privateKey;
-
-    if (cleanKey.length !== SIGNATURE_CONFIG.privateKeyLength) {
-      throw new Error(
-        `Private key must be ${SIGNATURE_CONFIG.privateKeyLength} characters (32 bytes) in hex format`,
-      );
-    }
-
-    // Check if it's valid hex
-    if (!/^[0-9a-fA-F]+$/.test(cleanKey)) {
-      throw new Error("Private key must be in hexadecimal format");
-    }
-
-    console.log(chalk.green("✅ Private key format validated"));
-
-    return cleanKey;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Invalid private key format: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate executor address format
- */
-function validateExecutorAddress(address: string): boolean {
-  try {
-    // Basic Ethereum address validation
-    if (typeof address !== "string") {
-      throw new Error("Executor address must be a string");
-    }
-
-    // Check if it looks like an Ethereum address
-    const addressRegex = /^0x[0-9a-fA-F]{40}$/;
-    if (!addressRegex.test(address)) {
-      throw new Error(
-        "Executor address must be a valid Ethereum address (0x followed by 40 hex characters)",
-      );
-    }
-
-    console.log(chalk.green("✅ Executor address validated"));
-    console.log(chalk.gray("Executor:"), chalk.white(address));
-
-    return true;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Invalid executor address: ${errorMessage}`);
-  }
 }
 
 /**
@@ -267,16 +177,14 @@ async function processCidSigning(): Promise<ProcessResult> {
     // Validate environment variables
     const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = validateEnvironment();
 
-    // Validate inputs
-    validateCid(CID);
-    const cleanPrivateKey = validatePrivateKey(EXECUTOR_PRIVATE_KEY);
-    validateExecutorAddress(EXECUTOR);
-
     console.log(chalk.cyan("\n🔐 Starting CID signing process..."));
     console.log(chalk.gray("CID to sign:"), CID);
     console.log(chalk.gray("Executor address:"), EXECUTOR);
 
     // Generate signature with retry mechanism
+    const cleanPrivateKey = EXECUTOR_PRIVATE_KEY.startsWith("0x")
+      ? EXECUTOR_PRIVATE_KEY.slice(2)
+      : EXECUTOR_PRIVATE_KEY;
     const signature = await signCidWithRetry(CID, cleanPrivateKey);
 
     // Verify signature

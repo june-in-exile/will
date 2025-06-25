@@ -50,14 +50,14 @@ interface Permit {
   deadline: number;
 }
 
-interface SignatureInfo {
+interface Signature {
   nonce: number;
   deadline: number;
   signature: string;
 }
 
-interface SignedWillData extends WillData {
-  signature: SignatureInfo;
+export interface SignedWillData extends WillData {
+  signature: Signature;
 }
 
 interface ProcessResult {

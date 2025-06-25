@@ -3,6 +3,7 @@ import { updateEnvVariable } from "@shared/utils/env";
 import { readProof } from "@shared/utils/read";
 import {
   validateBase64,
+  validateEthereumAddress,
   validatePrivateKey,
   validateCIDv1,
 } from "@shared/utils/format";
@@ -67,7 +68,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable CID is not set");
   }
 
-  if (!ethers.isAddress(WILL_FACTORY)) {
+  if (!validateEthereumAddress(WILL_FACTORY)) {
     throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
   }
 

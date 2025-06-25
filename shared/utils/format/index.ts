@@ -1,4 +1,4 @@
 export * from "./arrayToEnv";
 export * from "./cid";
 export * from "./encoding";
-export * from "./privateKey";
+export * from "./wallet";

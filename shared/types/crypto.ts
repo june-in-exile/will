@@ -1,4 +1,5 @@
 import { CRYPTO_CONFIG } from "../config.js";
+import { Base64String } from "./encoding.js";
 
 // Input types for hashing functions
 export type HashableInput = string | number | boolean | object;
@@ -12,6 +13,14 @@ export interface EncryptionConfig {
   ivSize: number;
   supportedAlgorithms: string[];
   maxPlaintextSize: number;
+}
+
+export interface EncryptedData {
+  algorithm: string;
+  iv: Base64String;
+  authTag: Base64String;
+  ciphertext: Base64String;
+  timestamp: string;
 }
 
 export interface HashConfig {

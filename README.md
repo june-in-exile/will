@@ -235,11 +235,12 @@ pnpm build
 ## 🎯 Next Steps
 
 1. **Fix Bugs**
-   - [ ] Saerate download and decrypt.
    - [ ] The cpp circom compilation doesn't work.
+   - [ ] Unify the types in backend.
+   - [ ] Refactor.
 2. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.
-   - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content. 
+   - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content.
    - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_will`.
    - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_will`.
 3. **Integrate Pinata** for reliable IPFS pinning
