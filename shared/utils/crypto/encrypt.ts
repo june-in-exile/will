@@ -2,20 +2,12 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
 import { randomBytes, createCipheriv } from "crypto";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";
-import type { AuthenticatedCipher, EncryptionResult } from "../../types";
+import type { EncryptionArgs, AuthenticatedCipher, EncryptionResult } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EncryptionArgs {
-  algorithm: string;
-  plaintext?: string;
-  key?: Buffer;
-  iv?: Buffer;
-}
 
 /**
  * Parse command line arguments to extract encryption parameters

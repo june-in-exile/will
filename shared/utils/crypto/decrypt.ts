@@ -1,9 +1,107 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
 import { createDecipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
-import type { AuthenticatedDecipher } from "../../types";
+import type { DecryptionArgs, AuthenticatedDecipher } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
+
+/**
+ * Parse command line arguments to extract decryption parameters
+ * Supports --algorithm, --ciphertext, --key, --iv, and --authTag flags
+ * Validates algorithm and ensures all required parameters are provided
+ * @returns Object containing decryption parameters
+ * @throws Error if invalid arguments or missing required parameters
+ */
+function parseArgs(): DecryptionArgs {
+  const args = process.argv.slice(2);
+  const result: DecryptionArgs = {
+    algorithm: AES_256_GCM, // Default algorithm
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--algorithm" && i + 1 < args.length) {
+      const algorithm = args[i + 1];
+      if (algorithm !== AES_256_GCM && algorithm !== CHACHA20_POLY1305) {
+        throw new Error(
+          `Invalid algorithm: ${algorithm}. Must be either '${AES_256_GCM}' or '${CHACHA20_POLY1305}'`
+        );
+      }
+      result.algorithm = algorithm;
+      console.log(chalk.blue("Using algorithm:"), algorithm);
+    } else if (args[i] === "--ciphertext" && i + 1 < args.length) {
+      try {
+        result.ciphertext = Buffer.from(args[i + 1], "base64");
+        console.log(chalk.blue("Ciphertext provided:"), chalk.gray(`${result.ciphertext.length} bytes`));
+      } catch (error) {
+        throw new Error(`Invalid ciphertext format. Ciphertext must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    } else if (args[i] === "--key" && i + 1 < args.length) {
+      try {
+        result.key = Buffer.from(args[i + 1], "base64");
+        console.log(chalk.blue("Using provided key"));
+      } catch (error) {
+        throw new Error(`Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    } else if (args[i] === "--iv" && i + 1 < args.length) {
+      try {
+        result.iv = Buffer.from(args[i + 1], "base64");
+        console.log(chalk.blue("Using provided IV"));
+      } catch (error) {
+        throw new Error(`Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    } else if (args[i] === "--authTag" && i + 1 < args.length) {
+      try {
+        result.authTag = Buffer.from(args[i + 1], "base64");
+        console.log(chalk.blue("Using provided auth tag"));
+      } catch (error) {
+        throw new Error(`Invalid auth tag format. Auth tag must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    }
+  }
+
+  // Validate required parameters
+  const missingParams: string[] = [];
+  if (!result.ciphertext) missingParams.push("--ciphertext");
+  if (!result.key) missingParams.push("--key");
+  if (!result.iv) missingParams.push("--iv");
+  if (!result.authTag) missingParams.push("--authTag");
+
+  if (missingParams.length > 0) {
+    throw new Error(`Missing required parameters: ${missingParams.join(", ")} must be specified`);
+  }
+
+  return result;
+}
+
+/**
+ * Display usage information for the script
+ */
+function showUsage(): void {
+  console.log(chalk.cyan("\n=== Usage Information ===\n"));
+  console.log(
+    chalk.white(
+      "This script decrypts ciphertext using AES-256-GCM or ChaCha20-Poly1305 algorithms:\n"
+    )
+  );
+
+  console.log(chalk.yellow("Basic usage:"));
+  console.log(chalk.gray('   pnpm exec tsx decrypt.ts --ciphertext "base64..." --key "base64..." --iv "base64..." --authTag "base64..."'));
+
+  console.log(chalk.yellow("\nWith specific algorithm:"));
+  console.log(chalk.gray('   pnpm exec tsx decrypt.ts --algorithm chacha20-poly1305 --ciphertext "..." --key "..." --iv "..." --authTag "..."'));
+
+  console.log(chalk.white("\nParameters:"));
+  console.log(chalk.cyan("  --algorithm") + chalk.gray("     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]"));
+  console.log(chalk.cyan("  --ciphertext") + chalk.gray("    Base64-encoded ciphertext to decrypt [required]"));
+  console.log(chalk.cyan("  --key") + chalk.gray("          Base64-encoded decryption key [required]"));
+  console.log(chalk.cyan("  --iv") + chalk.gray("           Base64-encoded initialization vector [required]"));
+  console.log(chalk.cyan("  --authTag") + chalk.gray("      Base64-encoded authentication tag [required]"));
+
+  console.log(chalk.red("\nImportant:"));
+  console.log(chalk.red("• All parameters (--ciphertext, --key, --iv, --authTag) are required"));
+  console.log(chalk.red("• All input values must be valid base64-encoded strings"));
+  console.log(chalk.red("• The algorithm must match the one used for encryption"));
+}
 
 /**
  * Validate key file existence and format
@@ -242,4 +340,91 @@ export function chacha20Decrypt(
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`ChaCha20-Poly1305 decryption failed: ${errorMessage}`);
   }
+}
+
+/**
+ * Main function that orchestrates the entire decryption process
+ * 1. Parses command line arguments
+ * 2. Validates all required parameters
+ * 3. Performs decryption using specified algorithm
+ * 4. Displays formatted results
+ *
+ * @returns Promise that resolves when process completes successfully
+ * @throws Error if any step in the process fails
+ */
+async function main(): Promise<void> {
+  try {
+    console.log(chalk.cyan("\n=== Decryption Process ===\n"));
+
+    // Parse command line arguments
+    const { algorithm, ciphertext, key, iv, authTag } = parseArgs();
+
+    // Validate all parameters are present (redundant check but good for clarity)
+    if (!ciphertext || !key || !iv || !authTag) {
+      throw new Error("All decryption parameters are required");
+    }
+
+    // Perform decryption
+    console.log(chalk.blue("🔓 Performing decryption..."));
+    let plaintext: string;
+
+    if (algorithm === AES_256_GCM) {
+      plaintext = aes256gcmDecrypt(ciphertext, key, iv, authTag);
+    } else if (algorithm === CHACHA20_POLY1305) {
+      plaintext = chacha20Decrypt(ciphertext, key, iv, authTag);
+    } else {
+      throw new Error(`Unsupported algorithm: ${algorithm}`);
+    }
+
+    // Display results
+    console.log(chalk.green.bold("\n✅ Decryption completed successfully!\n"));
+
+    console.log(chalk.cyan("Algorithm:"), chalk.white(algorithm));
+    console.log(chalk.cyan("Ciphertext(base64):"), chalk.white(ciphertext.toString("base64")));
+    console.log(chalk.cyan("Key(base64):"), chalk.white(key.toString("base64")));
+    console.log(chalk.cyan("IV(base64):"), chalk.white(iv.toString("base64")));
+    console.log(chalk.cyan("AuthTag(base64):"), chalk.white(authTag.toString("base64")));
+    console.log();
+    console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
+
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error(
+      chalk.red.bold("\n❌ Decryption failed:"),
+      errorMessage,
+    );
+
+    // Show usage information for argument-related errors
+    if (
+      errorMessage.includes("--algorithm") ||
+      errorMessage.includes("--ciphertext") ||
+      errorMessage.includes("--key") ||
+      errorMessage.includes("--iv") ||
+      errorMessage.includes("--authTag") ||
+      errorMessage.includes("Missing required parameters") ||
+      errorMessage.includes("Invalid algorithm") ||
+      errorMessage.includes("must be specified")
+    ) {
+      showUsage();
+    }
+
+    // Log stack trace in development mode
+    if (process.env.NODE_ENV === "development" && error instanceof Error) {
+      console.error(chalk.gray("Stack trace:"), error.stack);
+    }
+
+    process.exit(1);
+  }
+}
+
+// Check: is this file being executed directly or imported?
+if (import.meta.url === new URL(process.argv[1], "file:").href) {
+  // Only run when executed directly
+  main().catch((error: Error) => {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    process.exit(1);
+  });
 }

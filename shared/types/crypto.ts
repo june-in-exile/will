@@ -8,6 +8,22 @@ export type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
 export type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
 
 // Configuration interfaces
+
+export interface EncryptionArgs {
+  algorithm: string;
+  plaintext?: string;
+  key?: Buffer;
+  iv?: Buffer;
+}
+
+export interface DecryptionArgs {
+  algorithm: string;
+  ciphertext?: Buffer;
+  key?: Buffer;
+  iv?: Buffer;
+  authTag?: Buffer;
+}
+
 export interface EncryptionConfig {
   keySize: number;
   ivSize: number;
