@@ -54,16 +54,16 @@ submit-proof:
 	@pnpm exec tsx src/onchain/groth16Verifier/submitProof.ts
 
 
-phase2: download-data decrypt-data sign-cid notarize-cid
+phase2: download-data decrypt-will sign-cid notarize-cid
 
-download-data:
+download-will:
 	@pnpm exec tsx src/offchain/IPFS/download.ts
 
-decrypt-data:
-	@pnpm exec tsx src/offchain/encryption/decryptData.ts
+decrypt-will:
+	@pnpm exec tsx src/offchain/encryption/decryptWill.ts
 
-decrypt-data-test:
-	@pnpm exec tsx src/offchain/encryption/decryptData.ts --test
+decrypt-will-test:
+	@pnpm exec tsx src/offchain/encryption/decryptWill.ts --test
 
 hash-will:
 	@pnpm exec tsx ../../shared/utils/hash/cid.ts --path './will/5_encrypted.json'

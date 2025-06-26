@@ -17,7 +17,7 @@ interface EnvironmentVariables {
   CID: string;
 }
 
-interface DownloadedData {
+interface DownloadedWill {
   algorithm: SupportedAlgorithm;
   ciphertext: Base64String;
   iv: Base64String;
@@ -26,7 +26,7 @@ interface DownloadedData {
 }
 
 interface DownloadResult {
-  downloaded: DownloadedData;
+  downloaded: DownloadedWill;
   success: boolean;
   error?: string;
   stage?: string;
@@ -42,7 +42,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable CID is not set");
   }
 
-  if (!validateCIDv1) { 
+  if (!validateCIDv1) {
     throw new Error("Environment variable CID is not set");
   }
 
@@ -50,23 +50,23 @@ function validateEnvironment(): EnvironmentVariables {
 }
 
 /**
- * Save downloaded data to file
+ * Save downloaded will to file
  */
-function saveDownloadedData(
-  downloadedData: DownloadedData
+function saveDownloadedWill(
+  downloadedWill: DownloadedWill
 ): void {
   try {
-    writeFileSync(PATHS_CONFIG.will.downloaded, JSON.stringify(downloadedData, null, 4));
-    console.log(chalk.green("✅ Downloaded data saved to:"), PATHS_CONFIG.will.downloaded);
+    writeFileSync(PATHS_CONFIG.will.downloaded, JSON.stringify(downloadedWill, null, 4));
+    console.log(chalk.green("✅ Downloaded will saved to:"), PATHS_CONFIG.will.downloaded);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save downloaded data: ${errorMessage}`);
+    throw new Error(`Failed to save downloaded will: ${errorMessage}`);
   }
 }
 
 /**
- * Download encrypted data from IPFS and save to local file
+ * Download encrypted will from IPFS and save to local file
  */
 async function processIPFSDownload(): Promise<DownloadResult> {
   let helia: Helia | undefined;
@@ -81,19 +81,19 @@ async function processIPFSDownload(): Promise<DownloadResult> {
 
     const cid = CID.parse(cidString);
     console.log(chalk.blue("CID:"), cid.toString());
-    console.log(chalk.blue("Downloading data from IPFS..."));
+    console.log(chalk.blue("Downloading will from IPFS..."));
 
-    const downloadedData: DownloadedData = await j.get(cid);
+    const downloadedWill: DownloadedWill = await j.get(cid);
 
-    // Save downloaded data
-    saveDownloadedData(downloadedData);
+    // Save downloaded will
+    saveDownloadedWill(downloadedWill);
 
     console.log(
       chalk.green.bold("\n🎉 IPFS download process completed successfully!")
     );
 
     return {
-      downloaded: downloadedData,
+      downloaded: downloadedWill,
       success: true,
     };
   } catch (error) {

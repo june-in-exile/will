@@ -6,7 +6,7 @@ import {
   chacha20Encrypt,
 } from "@shared/utils/crypto";
 import { validateEthereumAddress, validateSignature } from "@shared/utils/format"
-import { EncryptedData } from "@shared/types";
+import { EncryptedWill } from "@shared/types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
@@ -34,7 +34,7 @@ interface ProcessResult {
   success: boolean;
 }
 
-interface SignedWillData {
+interface SignedWill {
   testator: string;
   estates: Estate[];
   salt: number;
@@ -73,16 +73,16 @@ function validateFiles(): void {
 }
 
 /**
- * Read and validate signed will data
+ * Read and validate signed will
  */
-function readSignedWillData(): SignedWillData {
+function readSignedWill(): SignedWill {
   try {
-    console.log(chalk.blue("Reading signed will data..."));
+    console.log(chalk.blue("Reading signed will..."));
     const willContent = readFileSync(PATHS_CONFIG.will.signed, "utf8");
-    const willJson: SignedWillData = JSON.parse(willContent);
+    const willJson: SignedWill = JSON.parse(willContent);
 
     // Validate required fields
-    const requiredFields: (keyof SignedWillData)[] = ["testator", "estates", "salt", "will", "timestamp", "metadata", "signature"];
+    const requiredFields: (keyof SignedWill)[] = ["testator", "estates", "salt", "will", "timestamp", "metadata", "signature"];
     for (const field of requiredFields) {
       if (willJson[field] === undefined || willJson[field] === null) {
         throw new Error(`Missing required field: ${field}`);
@@ -206,8 +206,8 @@ function readSignedWillData(): SignedWillData {
       throw new Error(`Signature deadline has expired: ${willJson.signature.deadline}`);
     }
 
-    console.log(chalk.green("✅ Signed will data validated successfully"));
-    
+    console.log(chalk.green("✅ Signed will validated successfully"));
+
     return willJson;
   } catch (error) {
     if (error instanceof SyntaxError) {
@@ -231,10 +231,10 @@ function generateEncryptionParams(): EncryptionParams {
 }
 
 /**
- * Encrypt will data
+ * Encrypt will
  */
 function encryptWill(
-  willData: string,
+  will: string,
   algorithm: string,
   key: Buffer,
   iv: Buffer
@@ -245,10 +245,10 @@ function encryptWill(
 
   switch (algorithm) {
     case AES_256_GCM:
-      ({ ciphertext, authTag } = aes256gcmEncrypt(willData, key, iv));
+      ({ ciphertext, authTag } = aes256gcmEncrypt(will, key, iv));
       break;
     case CHACHA20_POLY1305:
-      ({ ciphertext, authTag } = chacha20Encrypt(willData, key, iv));
+      ({ ciphertext, authTag } = chacha20Encrypt(will, key, iv));
       break;
     default:
       throw new Error(`Unsupported encryption algorithm: ${algorithm}`);
@@ -258,18 +258,18 @@ function encryptWill(
 }
 
 /**
- * Save encrypted data to file
+ * Save encrypted will to file
  */
-function saveEncryptedData(
-  encryptedData: EncryptedData
+function saveEncryptedWill(
+  encryptedWill: EncryptedWill
 ): void {
   try {
-    writeFileSync(PATHS_CONFIG.will.encrypted, JSON.stringify(encryptedData, null, 4));
-    console.log(chalk.green("Encrypted data saved to:"), PATHS_CONFIG.will.encrypted);
+    writeFileSync(PATHS_CONFIG.will.encrypted, JSON.stringify(encryptedWill, null, 4));
+    console.log(chalk.green("Encrypted will saved to:"), PATHS_CONFIG.will.encrypted);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save encrypted data: ${errorMessage}`);
+    throw new Error(`Failed to save encrypted will: ${errorMessage}`);
   }
 }
 
@@ -280,19 +280,19 @@ async function processWillEncryption(): Promise<ProcessResult> {
   try {
     // Validate files
     validateFiles();
-    
-    // Read and validate signed will data
-    const signedWillData = readSignedWillData();
-    const willDataString = JSON.stringify(signedWillData);
+
+    // Read and validate signed will
+    const signedWill = readSignedWill();
+    const willString = JSON.stringify(signedWill);
 
     // Generate encryption parameters
     const { key, iv } = generateEncryptionParams();
 
     // Encrypt the will
-    const { ciphertext, authTag } = encryptWill(willDataString, CRYPTO_CONFIG.algorithm, key, iv);
+    const { ciphertext, authTag } = encryptWill(willString, CRYPTO_CONFIG.algorithm, key, iv);
 
-    // Prepare encrypted data structure
-    const encryptedWill: EncryptedData = {
+    // Prepare encrypted will structure
+    const encryptedWill: EncryptedWill = {
       algorithm: CRYPTO_CONFIG.algorithm,
       iv: iv.toString("base64"),
       authTag: authTag.toString("base64"),
@@ -312,8 +312,8 @@ async function processWillEncryption(): Promise<ProcessResult> {
       )
     );
 
-    // Save encrypted data
-    saveEncryptedData(encryptedWill);
+    // Save encrypted will
+    saveEncryptedWill(encryptedWill);
 
     console.log(
       chalk.green.bold("\n🎉 Will encryption process completed successfully!")

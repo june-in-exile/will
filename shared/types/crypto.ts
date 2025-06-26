@@ -15,7 +15,7 @@ export interface EncryptionConfig {
   maxPlaintextSize: number;
 }
 
-export interface EncryptedData {
+export interface EncryptedWill {
   algorithm: string;
   iv: Base64String;
   authTag: Base64String;

@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/crypto";
-import { EncryptedData } from "@shared/types";
+import { EncryptedWill } from "@shared/types";
 import {
     getDecryptionKey,
     aes256gcmDecrypt,
@@ -33,14 +33,14 @@ function validateFiles(filePath: string): void {
     }
 }
 
-function readEncryptedData(filePath: string): EncryptedData {
+function readEncryptedWill(filePath: string): EncryptedWill {
     try {
-        console.log(chalk.blue("Reading encrypted will data..."));
+        console.log(chalk.blue("Reading encrypted will..."));
         const encryptedContent = readFileSync(filePath, "utf8");
-        const encryptedJson: EncryptedData = JSON.parse(encryptedContent);
+        const encryptedJson: EncryptedWill = JSON.parse(encryptedContent);
 
         // Validate required fields
-        const requiredFields: (keyof EncryptedData)[] = ["algorithm", "iv", "authTag", "ciphertext", "timestamp"];
+        const requiredFields: (keyof EncryptedWill)[] = ["algorithm", "iv", "authTag", "ciphertext", "timestamp"];
         for (const field of requiredFields) {
             if (!encryptedJson[field]) {
                 throw new Error(`Missing required field: ${field}`);
@@ -55,7 +55,7 @@ function readEncryptedData(filePath: string): EncryptedData {
         }
 
         // Validate Base64 strings
-        const base64Fields: (keyof Pick<EncryptedData, "iv" | "authTag" | "ciphertext">)[] = ["iv", "authTag", "ciphertext"];
+        const base64Fields: (keyof Pick<EncryptedWill, "iv" | "authTag" | "ciphertext">)[] = ["iv", "authTag", "ciphertext"];
         for (const field of base64Fields) {
             if (!validateBase64(encryptedJson[field])) {
                 throw new Error(`Invalid Base64 format for field: ${field}`);
@@ -81,7 +81,7 @@ function readEncryptedData(filePath: string): EncryptedData {
             throw new Error("Ciphertext cannot be empty");
         }
 
-        console.log(chalk.green("✅ Encrypted data validated successfully"));
+        console.log(chalk.green("✅ Encrypted will validated successfully"));
 
         return encryptedJson;
     } catch (error) {
@@ -91,17 +91,17 @@ function readEncryptedData(filePath: string): EncryptedData {
         throw error;
     }
 }
-  
+
 /**
  * Decrypt JSON data
  */
-function decryptWill(encryptedData: EncryptedData): string {
+function decryptWill(encryptedWill: EncryptedWill): string {
     try {
         // Convert data format
-        const ciphertext = Buffer.from(encryptedData.ciphertext, "base64");
+        const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
         const key = getDecryptionKey();
-        const iv = Buffer.from(encryptedData.iv, "base64");
-        const authTag = Buffer.from(encryptedData.authTag, "base64");
+        const iv = Buffer.from(encryptedWill.iv, "base64");
+        const authTag = Buffer.from(encryptedWill.authTag, "base64");
 
         console.log(chalk.blue(`Decrypting with ${CRYPTO_CONFIG.algorithm} algorithm...`));
 
@@ -127,41 +127,41 @@ function decryptWill(encryptedData: EncryptedData): string {
 }
 
 /**
- * Save encrypted data to file
+ * Save decrypted will to file
  */
-function saveDecryptedData(
-    decryptedData: string
+function saveDecryptedWill(
+    decryptedWill: string
 ): void {
     try {
-        writeFileSync(PATHS_CONFIG.will.decrypted, decryptedData);
-        console.log(chalk.green("✅ Decrypted data saved to:"), PATHS_CONFIG.will.decrypted);
+        writeFileSync(PATHS_CONFIG.will.decrypted, decryptedWill);
+        console.log(chalk.green("✅ Decrypted will saved to:"), PATHS_CONFIG.will.decrypted);
     } catch (error) {
         const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
-        throw new Error(`Failed to save decrypted data: ${errorMessage}`);
+        throw new Error(`Failed to save decrypted will: ${errorMessage}`);
     }
 }
 
 /**
  * Process will decryption
  */
-async function processDataDecryption(isTestMode: boolean): Promise<ProcessResult> {
+async function processWillDecryption(isTestMode: boolean): Promise<ProcessResult> {
     try {
         const filePath = (isTestMode) ? PATHS_CONFIG.will.encrypted : PATHS_CONFIG.will.downloaded;
 
         // Validate prerequisites
         validateFiles(filePath);
 
-        // Read and validate encrypted data
-        const encryptedData = readEncryptedData(filePath);
+        // Read and validate encrypted will
+        const encryptedWill = readEncryptedWill(filePath);
 
-        const dcryptedData = decryptWill(encryptedData);
+        const dcryptedWill = decryptWill(encryptedWill);
 
-        // Save decrypted data
-        saveDecryptedData(dcryptedData);
+        // Save decrypted will
+        saveDecryptedWill(dcryptedWill);
 
         console.log(
-            chalk.green.bold("\n🎉 Data decryption process completed successfully!")
+            chalk.green.bold("\n🎉 Will decryption process completed successfully!")
         );
 
         return {
@@ -173,7 +173,7 @@ async function processDataDecryption(isTestMode: boolean): Promise<ProcessResult
         const errorMessage =
             error instanceof Error ? error.message : "Unknown error";
         console.error(
-            chalk.red("Error during data decryption process:"),
+            chalk.red("Error during will decryption process:"),
             errorMessage
         );
         throw error;
@@ -192,7 +192,7 @@ async function main(): Promise<void> {
             console.log(chalk.cyan("\n=== Production Mode: Decrypt from IPFS File ===\n"));
         }
 
-        const result = await processDataDecryption(isTestMode);
+        const result = await processWillDecryption(isTestMode);
 
         console.log(chalk.green.bold("✅ Process completed successfully!"));
         console.log(chalk.gray("Results:"), result);
