@@ -10,29 +10,29 @@ export type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[numb
 // Configuration interfaces
 
 export interface EncryptionArgs {
-  algorithm: string;
-  plaintext?: string;
-  key?: Buffer;
-  iv?: Buffer;
+  algorithm: SupportedAlgorithm;
+  plaintext: Buffer;
+  key: Buffer;
+  iv: Buffer;
 }
 
 export interface DecryptionArgs {
-  algorithm: string;
-  ciphertext?: Buffer;
-  key?: Buffer;
-  iv?: Buffer;
-  authTag?: Buffer;
+  algorithm: SupportedAlgorithm;
+  ciphertext: Buffer;
+  key: Buffer;
+  iv: Buffer;
+  authTag: Buffer;
 }
 
 export interface EncryptionConfig {
   keySize: number;
   ivSize: number;
-  supportedAlgorithms: string[];
+  supportedAlgorithms: SupportedAlgorithm[];
   maxPlaintextSize: number;
 }
 
 export interface EncryptedWill {
-  algorithm: string;
+  algorithm: SupportedAlgorithm;
   iv: Base64String;
   authTag: Base64String;
   ciphertext: Base64String;
@@ -55,8 +55,8 @@ export interface SignatureConfig {
 
 // Result interfaces
 export interface EncryptionResult {
-  ciphertext: Buffer;
-  authTag: Buffer;
+  ciphertext: Base64String;
+  authTag: Base64String;
 }
 
 export interface HashValidationResult {

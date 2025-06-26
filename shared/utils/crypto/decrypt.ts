@@ -1,7 +1,7 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
 import { createDecipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
-import type { DecryptionArgs, AuthenticatedDecipher } from "../../types";
+import type { DecryptionArgs, AuthenticatedDecipher, SupportedAlgorithm } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
 import chalk from "chalk";
 
@@ -14,7 +14,7 @@ import chalk from "chalk";
  */
 function parseArgs(): DecryptionArgs {
   const args = process.argv.slice(2);
-  const result: DecryptionArgs = {
+  const parsed: Partial<DecryptionArgs> = {
     algorithm: AES_256_GCM, // Default algorithm
   };
 
@@ -26,32 +26,32 @@ function parseArgs(): DecryptionArgs {
           `Invalid algorithm: ${algorithm}. Must be either '${AES_256_GCM}' or '${CHACHA20_POLY1305}'`
         );
       }
-      result.algorithm = algorithm;
+      parsed.algorithm = algorithm;
       console.log(chalk.blue("Using algorithm:"), algorithm);
     } else if (args[i] === "--ciphertext" && i + 1 < args.length) {
       try {
-        result.ciphertext = Buffer.from(args[i + 1], "base64");
-        console.log(chalk.blue("Ciphertext provided:"), chalk.gray(`${result.ciphertext.length} bytes`));
+        parsed.ciphertext = Buffer.from(args[i + 1], "base64");
+        console.log(chalk.blue("Ciphertext provided:"), chalk.gray(`${parsed.ciphertext.length} bytes`));
       } catch (error) {
         throw new Error(`Invalid ciphertext format. Ciphertext must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } else if (args[i] === "--key" && i + 1 < args.length) {
       try {
-        result.key = Buffer.from(args[i + 1], "base64");
+        parsed.key = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided key"));
       } catch (error) {
         throw new Error(`Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } else if (args[i] === "--iv" && i + 1 < args.length) {
       try {
-        result.iv = Buffer.from(args[i + 1], "base64");
+        parsed.iv = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided IV"));
       } catch (error) {
         throw new Error(`Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } else if (args[i] === "--authTag" && i + 1 < args.length) {
       try {
-        result.authTag = Buffer.from(args[i + 1], "base64");
+        parsed.authTag = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided auth tag"));
       } catch (error) {
         throw new Error(`Invalid auth tag format. Auth tag must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -61,16 +61,16 @@ function parseArgs(): DecryptionArgs {
 
   // Validate required parameters
   const missingParams: string[] = [];
-  if (!result.ciphertext) missingParams.push("--ciphertext");
-  if (!result.key) missingParams.push("--key");
-  if (!result.iv) missingParams.push("--iv");
-  if (!result.authTag) missingParams.push("--authTag");
+  if (!parsed.ciphertext) missingParams.push("--ciphertext");
+  if (!parsed.key) missingParams.push("--key");
+  if (!parsed.iv) missingParams.push("--iv");
+  if (!parsed.authTag) missingParams.push("--authTag");
 
   if (missingParams.length > 0) {
     throw new Error(`Missing required parameters: ${missingParams.join(", ")} must be specified`);
   }
 
-  return result;
+  return parsed as DecryptionArgs;
 }
 
 /**
@@ -141,11 +141,11 @@ function validateKeyFile(keyPath: string): Buffer {
  * Validate decryption parameters
  */
 function validateDecryptionParams(
+  algorithm: SupportedAlgorithm,
   ciphertext: Buffer,
   key: Buffer,
   iv: Buffer,
   authTag: Buffer,
-  algorithm: string,
 ): void {
   // Validate algorithm
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
@@ -208,8 +208,8 @@ function validateDecryptionParams(
 /**
  * Generic decryption function with comprehensive validation
  */
-function decrypt(
-  algorithm: string,
+export function decrypt(
+  algorithm: SupportedAlgorithm,
   ciphertext: Buffer,
   key: Buffer,
   iv: Buffer,
@@ -217,7 +217,7 @@ function decrypt(
 ): Buffer {
   try {
     // Validate all parameters
-    validateDecryptionParams(ciphertext, key, iv, authTag, algorithm);
+    validateDecryptionParams(algorithm, ciphertext, key, iv, authTag);
 
     // Create decipher
     const decipher = createDecipheriv(
@@ -293,68 +293,6 @@ export function getDecryptionKey(): Buffer {
 }
 
 /**
- * AES-256-GCM decryption with enhanced validation
- */
-export function aes256gcmDecrypt(
-  ciphertext: Buffer,
-  key: Buffer,
-  iv: Buffer,
-  authTag: Buffer,
-): string {
-  try {
-    const plaintextBuffer = decrypt(AES_256_GCM, ciphertext, key, iv, authTag);
-
-    // Convert Buffer to string with error handling
-    try {
-      return plaintextBuffer.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
-    } catch (encodingError) {
-      const errorMessage =
-        encodingError instanceof Error
-          ? encodingError.message
-          : "Unknown encoding error";
-      throw new Error(
-        `Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`,
-      );
-    }
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`AES-256-GCM decryption failed: ${errorMessage}`);
-  }
-}
-
-/**
- * ChaCha20-Poly1305 decryption with enhanced validation
- */
-export function chacha20Decrypt(
-  ciphertext: Buffer,
-  key: Buffer,
-  iv: Buffer,
-  authTag: Buffer,
-): string {
-  try {
-    const plaintextBuffer = decrypt(CHACHA20_POLY1305, ciphertext, key, iv, authTag);
-
-    // Convert Buffer to string with error handling
-    try {
-      return plaintextBuffer.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
-    } catch (encodingError) {
-      const errorMessage =
-        encodingError instanceof Error
-          ? encodingError.message
-          : "Unknown encoding error";
-      throw new Error(
-        `Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`,
-      );
-    }
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`ChaCha20-Poly1305 decryption failed: ${errorMessage}`);
-  }
-}
-
-/**
  * Main function that orchestrates the entire decryption process
  * 1. Parses command line arguments
  * 2. Validates all required parameters
@@ -371,22 +309,10 @@ async function main(): Promise<void> {
     // Parse command line arguments
     const { algorithm, ciphertext, key, iv, authTag } = parseArgs();
 
-    // Validate all parameters are present (redundant check but good for clarity)
-    if (!ciphertext || !key || !iv || !authTag) {
-      throw new Error("All decryption parameters are required");
-    }
-
     // Perform decryption
     console.log(chalk.blue("🔓 Performing decryption..."));
-    let plaintext: string;
-
-    if (algorithm === AES_256_GCM) {
-      plaintext = aes256gcmDecrypt(ciphertext, key, iv, authTag);
-    } else if (algorithm === CHACHA20_POLY1305) {
-      plaintext = chacha20Decrypt(ciphertext, key, iv, authTag);
-    } else {
-      throw new Error(`Unsupported algorithm: ${algorithm}`);
-    }
+    const plaintextBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
+    const plaintext = plaintextBuffer.toString(CRYPTO_CONFIG.plaintextEncoding);
 
     // Display results
     console.log(chalk.green.bold("\n✅ Decryption completed successfully!\n"));

@@ -1,13 +1,11 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
 import {
-  getEncryptionKey,
-  getInitializationVector,
-  aes256gcmEncrypt,
-  chacha20Encrypt,
+  generateEncryptionKey,
+  generateInitializationVector,
+  encrypt,
 } from "@shared/utils/crypto";
 import { validateEthereumAddress, validateSignature } from "@shared/utils/format"
-import { EncryptedWill } from "@shared/types";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
+import { Base64String, EncryptionArgs, EncryptedWill, SupportedAlgorithm } from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -18,19 +16,9 @@ const modulePath = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(modulePath, "../.env") });
 
 // Type definitions
-interface EncryptionParams {
-  key: Buffer;
-  iv: Buffer;
-}
-
-interface EncryptionResult {
-  ciphertext: Buffer;
-  authTag: Buffer;
-}
-
 interface ProcessResult {
   encryptedPath: string;
-  algorithm: string;
+  algorithm: SupportedAlgorithm;
   success: boolean;
 }
 
@@ -220,41 +208,19 @@ function readSignedWill(): SignedWill {
 /**
  * Generate encryption keys and IV
  */
-function generateEncryptionParams(): EncryptionParams {
-  console.log(chalk.blue("Generating encryption key..."));
-  const key = getEncryptionKey(CRYPTO_CONFIG.keySize);
+function getEncryptionArgs(): EncryptionArgs {
+  const algorithm = CRYPTO_CONFIG.algorithm;
 
-  console.log(chalk.blue("Generating initialization vector..."));
-  const iv = getInitializationVector(CRYPTO_CONFIG.ivSize);
+  validateFiles();
+  const signedWill = readSignedWill();
+  const signedWillString = JSON.stringify(signedWill);
+  const plaintext = Buffer.from(signedWillString, CRYPTO_CONFIG.plaintextEncoding);
 
-  return { key, iv };
-}
+  const key = generateEncryptionKey(CRYPTO_CONFIG.keySize);
 
-/**
- * Encrypt will
- */
-function encryptWill(
-  will: string,
-  algorithm: string,
-  key: Buffer,
-  iv: Buffer
-): EncryptionResult {
-  console.log(chalk.blue(`Encrypting with ${algorithm}...`));
+  const iv = generateInitializationVector(CRYPTO_CONFIG.ivSize);
 
-  let ciphertext: Buffer, authTag: Buffer;
-
-  switch (algorithm) {
-    case AES_256_GCM:
-      ({ ciphertext, authTag } = aes256gcmEncrypt(will, key, iv));
-      break;
-    case CHACHA20_POLY1305:
-      ({ ciphertext, authTag } = chacha20Encrypt(will, key, iv));
-      break;
-    default:
-      throw new Error(`Unsupported encryption algorithm: ${algorithm}`);
-  }
-
-  return { ciphertext, authTag };
+  return { algorithm, plaintext, key, iv };
 }
 
 /**
@@ -278,25 +244,19 @@ function saveEncryptedWill(
  */
 async function processWillEncryption(): Promise<ProcessResult> {
   try {
-    // Validate files
-    validateFiles();
-
-    // Read and validate signed will
-    const signedWill = readSignedWill();
-    const willString = JSON.stringify(signedWill);
-
-    // Generate encryption parameters
-    const { key, iv } = generateEncryptionParams();
+    // Get encryption parameters
+    const { algorithm, plaintext: will, key, iv } = getEncryptionArgs();
 
     // Encrypt the will
-    const { ciphertext, authTag } = encryptWill(willString, CRYPTO_CONFIG.algorithm, key, iv);
+    console.log(chalk.blue(`Encrypting with ${algorithm}...`));
+    const { ciphertext, authTag } = encrypt(algorithm, will, key, iv);
 
     // Prepare encrypted will structure
     const encryptedWill: EncryptedWill = {
-      algorithm: CRYPTO_CONFIG.algorithm,
-      iv: iv.toString("base64"),
-      authTag: authTag.toString("base64"),
-      ciphertext: ciphertext.toString("base64"),
+      algorithm: algorithm,
+      iv: Base64String.fromBuffer(iv),
+      authTag: Base64String.fromBuffer(authTag),
+      ciphertext: Base64String.fromBuffer(ciphertext),
       timestamp: new Date().toISOString(),
     };
 

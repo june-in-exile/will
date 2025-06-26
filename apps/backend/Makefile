@@ -68,8 +68,8 @@ download-will:
 decrypt-will:
 	@pnpm exec tsx src/offchain/encryption/decryptWill.ts
 
-decrypt-will-test:
-	@pnpm exec tsx src/offchain/encryption/decryptWill.ts --test
+decrypt-will-local:
+	@pnpm exec tsx src/offchain/encryption/decryptWill.ts --local
 
 decrypt-data:
 	@pnpm exec tsx ../../shared/utils/crypto/decrypt.ts \

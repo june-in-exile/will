@@ -2,10 +2,10 @@ import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { readProof } from "@shared/utils/read";
 import {
-  validateBase64,
   validatePrivateKey,
   validateCIDv1,
 } from "@shared/utils/format";
+import { Base64String, SupportedAlgorithm } from "@shared/types"
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
@@ -36,7 +36,7 @@ interface Estate {
 }
 
 interface EncryptedWillData {
-  algorithm: string;
+  algorithm: SupportedAlgorithm;
   iv: string;
   authTag: string;
   ciphertext: string;
@@ -276,7 +276,7 @@ function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   }
 
   // Validate authTag is Base64
-  if (!validateBase64(encryptedWill.authTag)) {
+  if (!Base64String.isValid(encryptedWill.authTag)) {
     throw new Error("AuthTag must be valid Base64");
   }
 

@@ -1,9 +1,10 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
 import { randomBytes, createCipheriv } from "crypto";
+import { Base64String } from "../../types";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";
-import type { EncryptionArgs, AuthenticatedCipher, EncryptionResult } from "../../types";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
+import type { EncryptionArgs, AuthenticatedCipher, EncryptionResult, SupportedAlgorithm } from "../../types";
+import { AES_256_GCM } from "../../constants";
 import chalk from "chalk";
 
 // Load environment configuration
@@ -18,7 +19,7 @@ config({ path: PATHS_CONFIG.env });
  */
 function parseArgs(): EncryptionArgs {
   const args = process.argv.slice(2);
-  const result: EncryptionArgs = {
+  const parsed: Partial<EncryptionArgs> = {
     algorithm: AES_256_GCM, // Default algorithm
   };
 
@@ -30,21 +31,22 @@ function parseArgs(): EncryptionArgs {
           `Unsupported encryption algorithm: ${algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
         );
       }
-      result.algorithm = algorithm;
+      parsed.algorithm = algorithm as SupportedAlgorithm;
       console.log(chalk.blue("Using algorithm:"), algorithm);
     } else if (args[i] === "--plaintext" && i + 1 < args.length) {
-      result.plaintext = args[i + 1];
-      console.log(chalk.blue("Plaintext provided:"), chalk.gray(result.plaintext.substring(0, 50) + (result.plaintext.length > 50 ? "..." : "")));
+      const plaintext = args[i + 1];
+      console.log(chalk.blue("Plaintext provided:"), chalk.gray(plaintext.substring(0, 50) + (plaintext.length > 50 ? "..." : "")));
+      parsed.plaintext = Buffer.from(plaintext, CRYPTO_CONFIG.plaintextEncoding);
     } else if (args[i] === "--key" && i + 1 < args.length) {
       try {
-        result.key = Buffer.from(args[i + 1], "base64");
+        parsed.key = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided key"));
       } catch (error) {
         throw new Error(`Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     } else if (args[i] === "--iv" && i + 1 < args.length) {
       try {
-        result.iv = Buffer.from(args[i + 1], "base64");
+        parsed.iv = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided IV"));
       } catch (error) {
         throw new Error(`Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -53,11 +55,27 @@ function parseArgs(): EncryptionArgs {
   }
 
   // Validate required parameters
-  if (!result.plaintext) {
+  if (!parsed.plaintext) {
     throw new Error("Missing required parameter: --plaintext must be specified");
   }
 
-  return result;
+  if (!parsed.algorithm || !parsed.plaintext) {
+    throw new Error("Missing required parameters");
+  }
+
+  // generate the missing key
+  if (!parsed.key) {
+    parsed.key = generateEncryptionKey();
+    console.log(chalk.blue("🔑 Generated new encryption key"));
+  }
+
+  // generate the missing iv
+  if (!parsed.iv) {
+    parsed.iv = generateInitializationVector();
+    console.log(chalk.blue("🎲 Generated new initialization vector"));
+  }
+
+  return parsed as EncryptionArgs;;
 }
 
 /**
@@ -95,7 +113,7 @@ function showUsage(): void {
  * Validate encryption parameters
  */
 function validateEncryptionParams(
-  algorithm: string,
+  algorithm: SupportedAlgorithm,
   plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
@@ -207,13 +225,14 @@ function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
 /**
  * Generic encryption function with comprehensive validation
  */
-function encrypt(
-  algorithm: string,
+export function encrypt(
+  algorithm: SupportedAlgorithm,
   plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
-): EncryptionResult {
+): {ciphertext: Buffer, authTag: Buffer} {
   try {
+    // Validate inputs
     validateEncryptionParams(algorithm, plaintext, key, iv);
 
     // Create cipher
@@ -233,7 +252,7 @@ function encrypt(
       throw new Error("Encryption failed to generate auth tag");
     }
 
-    return { ciphertext, authTag };
+    return { ciphertext, authTag};
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -244,8 +263,10 @@ function encrypt(
 /**
  * Get or generate encryption key with validation
  */
-export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
+export function generateEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
   try {
+    console.log(chalk.blue("🔑 Generating new encryption key..."));
+
     // Validate size parameter
     if (size !== CRYPTO_CONFIG.keySize) {
       throw new Error(
@@ -254,7 +275,9 @@ export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
     }
 
     const keyBuffer = generateSecureRandomBytes(size, "encryption key");
-    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
+
+    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);;
+
     return keyBuffer;
   } catch (error) {
     const errorMessage =
@@ -266,10 +289,12 @@ export function getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
 /**
  * Get or generate initialization vector with validation
  */
-export function getInitializationVector(
+export function generateInitializationVector(
   size: number = CRYPTO_CONFIG.ivSize,
 ): Buffer {
   try {
+    console.log(chalk.blue("🎲 Generating new initialization vector..."));
+
     // Validate size parameter
     if (size !== CRYPTO_CONFIG.ivSize) {
       throw new Error(
@@ -282,44 +307,6 @@ export function getInitializationVector(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to get initialization vector: ${errorMessage}`);
-  }
-}
-
-/**
- * AES-256-GCM encryption with enhanced validation
- */
-export function aes256gcmEncrypt(
-  plaintext: string,
-  key: Buffer,
-  iv: Buffer,
-): EncryptionResult {
-  try {
-    // Convert plaintext string to Buffer
-    const plaintextBuffer = Buffer.from(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding);
-    return encrypt(AES_256_GCM, plaintextBuffer, key, iv);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`AES-256-GCM encryption failed: ${errorMessage}`);
-  }
-}
-
-/**
- * ChaCha20-Poly1305 encryption with enhanced validation
- */
-export function chacha20Encrypt(
-  plaintext: string,
-  key: Buffer,
-  iv: Buffer,
-): EncryptionResult {
-  try {
-    // Convert plaintext string to Buffer
-    const plaintextBuffer = Buffer.from(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding);
-    return encrypt(CHACHA20_POLY1305, plaintextBuffer, key, iv);
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`ChaCha20-Poly1305 encryption failed: ${errorMessage}`);
   }
 }
 
@@ -338,50 +325,22 @@ async function main(): Promise<void> {
     console.log(chalk.cyan("\n=== Encryption Process ===\n"));
 
     // Parse command line arguments
-    const { algorithm, plaintext, key: providedKey, iv: providedIv } = parseArgs();
-
-    // Generate key if not provided
-    let key: Buffer;
-    if (providedKey) {
-      key = providedKey;
-      console.log(chalk.green("✅ Using provided key"));
-    } else {
-      console.log(chalk.blue("🔑 Generating new encryption key..."));
-      key = getEncryptionKey();
-    }
-
-    // Generate IV if not provided
-    let iv: Buffer;
-    if (providedIv) {
-      iv = providedIv;
-      console.log(chalk.green("✅ Using provided IV"));
-    } else {
-      console.log(chalk.blue("🎲 Generating new initialization vector..."));
-      iv = getInitializationVector();
-    }
+    const { algorithm, plaintext, key, iv } = parseArgs();
 
     // Perform encryption
     console.log(chalk.blue("🔐 Performing encryption..."));
-    let result: EncryptionResult;
-
-    if (algorithm === AES_256_GCM) {
-      result = aes256gcmEncrypt(plaintext!, key, iv);
-    } else if (algorithm === CHACHA20_POLY1305) {
-      result = chacha20Encrypt(plaintext!, key, iv);
-    } else {
-      throw new Error(`Unsupported algorithm: ${algorithm}`);
-    }
+    const result = encrypt(algorithm, plaintext, key, iv);
 
     // Display results
     console.log(chalk.green.bold("\n✅ Encryption completed successfully!\n"));
 
     console.log(chalk.cyan("Algorithm:"), chalk.white(algorithm));
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
-    console.log(chalk.cyan("Key(base64):"), chalk.white(key.toString("base64")));
-    console.log(chalk.cyan("IV(base64):"), chalk.white(iv.toString("base64")));
+    console.log(chalk.cyan("Key(base64):"), chalk.white(Base64String.fromBuffer(key)));
+    console.log(chalk.cyan("IV(base64):"), chalk.white(Base64String.fromBuffer(iv)));
     console.log();
-    console.log(chalk.cyan("Ciphertext(base64):"), chalk.white(result.ciphertext.toString("base64")));
-    console.log(chalk.cyan("AuthTag(base64):"), chalk.white(result.authTag.toString("base64")));
+    console.log(chalk.cyan("Ciphertext(base64):"), chalk.white(Base64String.fromBuffer(result.ciphertext)));
+    console.log(chalk.cyan("AuthTag(base64):"), chalk.white(Base64String.fromBuffer(result.authTag)));
 
   } catch (error) {
     const errorMessage =

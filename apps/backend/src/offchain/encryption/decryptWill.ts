@@ -1,12 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/crypto";
-import { EncryptedWill } from "@shared/types";
+import { Base64String, DecryptionArgs, EncryptedWill, SupportedAlgorithm } from "@shared/types";
 import {
     getDecryptionKey,
-    aes256gcmDecrypt,
-    chacha20Decrypt,
+    decrypt,
 } from "@shared/utils/crypto";
-import { validateBase64 } from "@shared/utils/format";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -18,7 +15,7 @@ config({ path: resolve(modulePath, "../.env") });
 
 interface ProcessResult {
     decryptedPath: string;
-    algorithm: string;
+    algorithm: SupportedAlgorithm;
     success: boolean;
 }
 
@@ -50,14 +47,14 @@ function readEncryptedWill(filePath: string): EncryptedWill {
         // Validate algorithm
         if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedJson.algorithm)) {
             throw new Error(
-                `Unsupported encryption algorithm: ${encryptedJson.algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
+                `Unsupported decryption algorithm: ${encryptedJson.algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
             );
         }
 
         // Validate Base64 strings
         const base64Fields: (keyof Pick<EncryptedWill, "iv" | "authTag" | "ciphertext">)[] = ["iv", "authTag", "ciphertext"];
         for (const field of base64Fields) {
-            if (!validateBase64(encryptedJson[field])) {
+            if (!Base64String.isValid(encryptedJson[field])) {
                 throw new Error(`Invalid Base64 format for field: ${field}`);
             }
         }
@@ -93,37 +90,19 @@ function readEncryptedWill(filePath: string): EncryptedWill {
 }
 
 /**
- * Decrypt JSON data
+ * Get decryption arguments
  */
-function decryptWill(encryptedWill: EncryptedWill): string {
-    try {
-        // Convert data format
-        const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
-        const key = getDecryptionKey();
-        const iv = Buffer.from(encryptedWill.iv, "base64");
-        const authTag = Buffer.from(encryptedWill.authTag, "base64");
+function getDecryptionArgs(filePath: string): DecryptionArgs {
+    validateFiles(filePath);
+    const encryptedWill = readEncryptedWill(filePath);
 
-        console.log(chalk.blue(`Decrypting with ${CRYPTO_CONFIG.algorithm} algorithm...`));
+    const algorithm: SupportedAlgorithm = encryptedWill.algorithm;
+    const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
+    const key = getDecryptionKey();
+    const iv = Buffer.from(encryptedWill.iv, "base64");
+    const authTag = Buffer.from(encryptedWill.authTag, "base64");
 
-        let plaintext;
-        switch (CRYPTO_CONFIG.algorithm) {
-            case AES_256_GCM:
-                plaintext = aes256gcmDecrypt(ciphertext, key, iv, authTag);
-                break;
-            case CHACHA20_POLY1305:
-                plaintext = chacha20Decrypt(ciphertext, key, iv, authTag);
-                break;
-            default:
-                throw new Error(`Unsupported encryption algorithm: ${CRYPTO_CONFIG.algorithm}`);
-        }
-
-        return plaintext;
-    } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
-        console.error(chalk.red("Error occurred during decryption:"), errorMessage);
-        throw error;
-    }
+    return { algorithm, ciphertext, key, iv, authTag };
 }
 
 /**
@@ -149,13 +128,15 @@ async function processWillDecryption(isTestMode: boolean): Promise<ProcessResult
     try {
         const filePath = (isTestMode) ? PATHS_CONFIG.will.encrypted : PATHS_CONFIG.will.downloaded;
 
-        // Validate prerequisites
-        validateFiles(filePath);
+        // Get decryption parameters
+        const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(filePath);
 
-        // Read and validate encrypted will
-        const encryptedWill = readEncryptedWill(filePath);
+        console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
+        const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
+        const dcryptedWill = dcryptedWillBuffer.toString(CRYPTO_CONFIG.cyphertextEncoding);;
 
-        const dcryptedWill = decryptWill(encryptedWill);
+        console.log(chalk.gray("Decrypted will structure:"));
+        console.log(dcryptedWill);
 
         // Save decrypted will
         saveDecryptedWill(dcryptedWill);
@@ -185,7 +166,7 @@ async function processWillDecryption(isTestMode: boolean): Promise<ProcessResult
  */
 async function main(): Promise<void> {
     try {
-        const isTestMode = process.argv.includes("--test");
+        const isTestMode = process.argv.includes("--local");
         if (isTestMode) {
             console.log(chalk.cyan("\n=== Test Mode: Decrypt from Local File ===\n"));
         } else {

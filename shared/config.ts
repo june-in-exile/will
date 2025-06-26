@@ -3,6 +3,7 @@ import { dirname, resolve } from "path";
 import { config } from "dotenv";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
 import type { SupportedAlgorithm } from "types";
+import type { Encoding } from "crypto";
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 
@@ -74,8 +75,8 @@ interface CryptoConfig {
   authTagSize: number;
   maxPlaintextSize: number;
   maxCiphertextSize: number;
-  inputEncoding: string;
-  outputEncoding: string;
+  plaintextEncoding: Encoding;
+  cyphertextEncoding: Encoding;
   paths: {
     keyFile: string;
   };
@@ -434,8 +435,8 @@ export const CRYPTO_CONFIG: CryptoConfig = {
   maxCiphertextSize: 10 * 1024 * 1024, // 10MB
 
   // Encodings
-  inputEncoding: "utf8",
-  outputEncoding: "utf8",
+  plaintextEncoding: "utf8",
+  cyphertextEncoding: "base64",
 
   // File paths (relative to utils/crypto/)
   paths: {

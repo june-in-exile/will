@@ -48,15 +48,6 @@ export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   return a.every((val, idx) => val === b[idx]);
 }
 
-
-export function validateBase64(str: string): boolean {
-  try {
-    return btoa(atob(str)) === str;
-  } catch {
-    return false;
-  }
-}
-
 export function uint8ArrayToArray(uint8Array: Uint8Array): number[] {
   return Array.from(uint8Array);
 }
