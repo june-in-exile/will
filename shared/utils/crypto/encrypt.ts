@@ -3,7 +3,7 @@ import { randomBytes, createCipheriv } from "crypto";
 import { Base64String } from "../../types";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";
-import type { EncryptionArgs, AuthenticatedCipher, EncryptionResult, SupportedAlgorithm } from "../../types";
+import type { EncryptionArgs, AuthenticatedCipher, SupportedAlgorithm } from "../../types";
 import { AES_256_GCM } from "../../constants";
 import chalk from "chalk";
 
@@ -230,7 +230,7 @@ export function encrypt(
   plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
-): {ciphertext: Buffer, authTag: Buffer} {
+): { ciphertext: Buffer, authTag: Buffer } {
   try {
     // Validate inputs
     validateEncryptionParams(algorithm, plaintext, key, iv);
@@ -252,7 +252,7 @@ export function encrypt(
       throw new Error("Encryption failed to generate auth tag");
     }
 
-    return { ciphertext, authTag};
+    return { ciphertext, authTag };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
