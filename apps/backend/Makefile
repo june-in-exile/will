@@ -39,6 +39,11 @@ sign-transfer:
 encrypt-will:
 	@pnpm exec tsx src/offchain/encryption/encryptWill.ts
 
+encrypt-data:
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts --plaintext "Hello, World!"
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts --algorithm chacha20-poly1305 --plaintext "Secret message"
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts  --plaintext "Text" --key "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=" --iv "YjgZJzfIXjAYvwt/"
+
 upload-will:
 	@pnpm exec tsx src/offchain/IPFS/upload.ts
 
