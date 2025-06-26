@@ -230,11 +230,8 @@ function performDecryption(
     decipher.setAuthTag(authTag);
 
     // Perform decryption
-    const chunks: Buffer[] = [];
-    chunks.push(decipher.update(ciphertext));
-    chunks.push(decipher.final());
-
-    const plaintext = Buffer.concat(chunks);
+    let plaintext = decipher.update(ciphertext);
+    plaintext = Buffer.concat([plaintext, decipher.final()]);
 
     // Validate result
     if (plaintext.length === 0) {

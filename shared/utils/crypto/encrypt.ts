@@ -225,13 +225,8 @@ function performEncryption(
     const cipher = createCipheriv(algorithm, key, iv) as AuthenticatedCipher;
 
     // Perform encryption
-    const chunks: Buffer[] = [];
-    chunks.push(
-      cipher.update(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding),
-    );
-    chunks.push(cipher.final());
-
-    const ciphertext = Buffer.concat(chunks);
+    let ciphertext = cipher.update(plaintext);
+    ciphertext = Buffer.concat([ciphertext, cipher.final()]);
     const authTag = cipher.getAuthTag();
 
     // Validate results
