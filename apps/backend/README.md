@@ -111,20 +111,29 @@ make upload-cid
 - **Updates**: The following `.env` variables are automatically updated:
   - `UPLOAD_TX_HASH`, `UPLOAD_TIMESTAMP`
 
-
 ## Phase 2: Probation
 
-### Step 1: Download and Decrypt
+### Step 1: Download
 
-Download the will from IPFS and decrypt it:
+Download the will from IPFS
 
 ```sh
-make download-and-decrypt-will
+make download-will
 ```
 
-- **Output**: [`will/6_decrypted.json`](will/6_decrypted.json)
+- **Output**: [`will/6_downloaded.json`](will/6_downloaded.json)
 
-### Step 2: Executor Signature
+### Step 2: Decrypt
+
+Decrypt the will
+
+```sh
+make decrypt-will
+```
+
+- **Output**: [`will/7_decrypted.json`](will/7_decrypted.json)
+
+### Step 3: Executor Signature
 
 The executor signs the CID to authorize will execution:
 
@@ -145,7 +154,6 @@ make notarize-cid
 
 - **Updates**: The following `.env` variables are automatically updated:
   - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
-
 
 ## Phase 3: Decrypt & Execute Will
 
@@ -171,7 +179,6 @@ make signature-transfer
 - **Updates**: The following `.env` variables are automatically updated:
   - `EXECUTE_WILL_TX_HASH`, `EXECUTE_WILL_TIMESTAMP`
 
-
 ## File Structure
 
 The will processing creates the following files in sequence:
@@ -183,5 +190,6 @@ will/
 ├── 3_addressed.json     # Will with contract address
 ├── 4_signed.json        # Will with Permit2 signature
 ├── 5_encrypted.json     # Encrypted will (base64)
-└── 6_decrypted.json     # Decrypted will for verification
+├── 6_downloaded.json    # Downloaded will from IPFS
+└── 7_decrypted.json     # Will from decrypted content
 ```
