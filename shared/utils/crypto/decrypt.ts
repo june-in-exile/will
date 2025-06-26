@@ -208,13 +208,13 @@ function validateDecryptionParams(
 /**
  * Generic decryption function with comprehensive validation
  */
-function performDecryption(
+function decrypt(
   algorithm: string,
   ciphertext: Buffer,
   key: Buffer,
   iv: Buffer,
   authTag: Buffer,
-): string {
+): Buffer {
   try {
     // Validate all parameters
     validateDecryptionParams(ciphertext, key, iv, authTag, algorithm);
@@ -238,18 +238,7 @@ function performDecryption(
       throw new Error("Decryption resulted in empty plaintext");
     }
 
-    // Convert to string with error handling
-    try {
-      return plaintext.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
-    } catch (encodingError) {
-      const errorMessage =
-        encodingError instanceof Error
-          ? encodingError.message
-          : "Unknown encoding error";
-      throw new Error(
-        `Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`,
-      );
-    }
+    return plaintext;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -313,7 +302,20 @@ export function aes256gcmDecrypt(
   authTag: Buffer,
 ): string {
   try {
-    return performDecryption(AES_256_GCM, ciphertext, key, iv, authTag);
+    const plaintextBuffer = decrypt(AES_256_GCM, ciphertext, key, iv, authTag);
+
+    // Convert Buffer to string with error handling
+    try {
+      return plaintextBuffer.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
+    } catch (encodingError) {
+      const errorMessage =
+        encodingError instanceof Error
+          ? encodingError.message
+          : "Unknown encoding error";
+      throw new Error(
+        `Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`,
+      );
+    }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -331,7 +333,20 @@ export function chacha20Decrypt(
   authTag: Buffer,
 ): string {
   try {
-    return performDecryption(CHACHA20_POLY1305, ciphertext, key, iv, authTag);
+    const plaintextBuffer = decrypt(CHACHA20_POLY1305, ciphertext, key, iv, authTag);
+
+    // Convert Buffer to string with error handling
+    try {
+      return plaintextBuffer.toString(CRYPTO_CONFIG.outputEncoding as BufferEncoding);
+    } catch (encodingError) {
+      const errorMessage =
+        encodingError instanceof Error
+          ? encodingError.message
+          : "Unknown encoding error";
+      throw new Error(
+        `Failed to decode plaintext as ${CRYPTO_CONFIG.outputEncoding}: ${errorMessage}`,
+      );
+    }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

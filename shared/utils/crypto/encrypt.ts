@@ -95,10 +95,10 @@ function showUsage(): void {
  * Validate encryption parameters
  */
 function validateEncryptionParams(
-  plaintext: string,
+  algorithm: string,
+  plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
-  algorithm: string,
 ): void {
   // Validate algorithm
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
@@ -108,21 +108,17 @@ function validateEncryptionParams(
   }
 
   // Validate plaintext
-  if (typeof plaintext !== "string") {
-    throw new Error("Plaintext must be a string");
+  if (!Buffer.isBuffer(plaintext)) {
+    throw new Error("Plaintext must be a Buffer");
   }
 
   if (plaintext.length === 0) {
     throw new Error("Plaintext cannot be empty");
   }
 
-  const plaintextBytes = Buffer.byteLength(
-    plaintext,
-    CRYPTO_CONFIG.inputEncoding as BufferEncoding,
-  );
-  if (plaintextBytes > CRYPTO_CONFIG.maxPlaintextSize) {
+  if (plaintext.length > CRYPTO_CONFIG.maxPlaintextSize) {
     throw new Error(
-      `Plaintext too large: ${plaintextBytes} bytes (max: ${CRYPTO_CONFIG.maxPlaintextSize} bytes)`,
+      `Plaintext too large: ${plaintext.length} bytes (max: ${CRYPTO_CONFIG.maxPlaintextSize} bytes)`,
     );
   }
 
@@ -211,15 +207,14 @@ function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
 /**
  * Generic encryption function with comprehensive validation
  */
-function performEncryption(
+function encrypt(
   algorithm: string,
-  plaintext: string,
+  plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
 ): EncryptionResult {
   try {
-    // Validate all parameters
-    validateEncryptionParams(plaintext, key, iv, algorithm);
+    validateEncryptionParams(algorithm, plaintext, key, iv);
 
     // Create cipher
     const cipher = createCipheriv(algorithm, key, iv) as AuthenticatedCipher;
@@ -299,7 +294,9 @@ export function aes256gcmEncrypt(
   iv: Buffer,
 ): EncryptionResult {
   try {
-    return performEncryption(AES_256_GCM, plaintext, key, iv);
+    // Convert plaintext string to Buffer
+    const plaintextBuffer = Buffer.from(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding);
+    return encrypt(AES_256_GCM, plaintextBuffer, key, iv);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -316,7 +313,9 @@ export function chacha20Encrypt(
   iv: Buffer,
 ): EncryptionResult {
   try {
-    return performEncryption(CHACHA20_POLY1305, plaintext, key, iv);
+    // Convert plaintext string to Buffer
+    const plaintextBuffer = Buffer.from(plaintext, CRYPTO_CONFIG.inputEncoding as BufferEncoding);
+    return encrypt(CHACHA20_POLY1305, plaintextBuffer, key, iv);
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";

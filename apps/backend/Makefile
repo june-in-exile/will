@@ -60,7 +60,7 @@ submit-proof:
 	@pnpm exec tsx src/onchain/groth16Verifier/submitProof.ts
 
 
-phase2: download-data decrypt-will sign-cid notarize-cid
+phase2: download-will decrypt-will sign-cid notarize-cid
 
 download-will:
 	@pnpm exec tsx src/offchain/IPFS/download.ts
