@@ -577,8 +577,8 @@ export const PATHS_CONFIG: PathsConfig = {
 
   // ZKP files
   zkp: {
-    proof: resolve(modulePath, "../zkp/proof.json"),
-    public: resolve(modulePath, "../zkp/public.json"),
+    proof: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/proof.json"),
+    public: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/public.json"),
   },
 
   // Environment files
