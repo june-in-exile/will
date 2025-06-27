@@ -9,7 +9,7 @@ CONTRACT := $(DIR)/contracts
 
 PTAU := ./circuits/shared/keys
 
-all: trusted_setup_general compile input witness trusted_setup_specific prove verify solidity generate_call
+all: trusted-setup-general compile input witness trusted-setup-specific prove verify solidity generate-call
 
 clean:
 	@for circuit_dir in circuits/*/; do \
@@ -17,12 +17,12 @@ clean:
 		find "$$circuit_dir" -maxdepth 1 -type f ! -name "*.circom" -delete; \
 		find "$$circuit_dir" -maxdepth 1 -type d ! -name "$$(basename "$$circuit_dir")" ! -name "components" -exec rm -rf {} + 2>/dev/null || true; \
 	done
-
-clean_circuit:
+	
+clean-circuit:
 	@echo "Cleaning $(CIRCUIT)..."
 	@find $(DIR) -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true
 	@find $(DIR) -maxdepth 1 -type d ! -name $(CIRCUIT) ! -name "components" -exec rm -rf {} + 2>/dev/null || true
-	@echo "$(CIRCUIT) cleaned!"; \
+	@echo "$(CIRCUIT) cleaned!"
 
 clean-%:
 	@echo "Cleaning $*..."
@@ -34,7 +34,7 @@ clean-%:
 		echo "Error: circuits/$* not exists"; \
 	fi
 
-trusted_setup_general:
+trusted-setup-general:
 	mkdir -p $(PTAU)
 	@if [ ! -f $(PTAU)/pot12_final.ptau ]; then \
 		cd $(PTAU); \
@@ -55,7 +55,7 @@ input:
 witness:
 	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUT)/example.json $(BUILD)/witness.wtns
 
-trusted_setup_specific:
+trusted-setup-specific:
 	mkdir -p $(ZKEY)
 	snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU)/pot12_final.ptau $(ZKEY)/$(CIRCUIT)_0000.zkey
 	snarkjs zkey contribute $(ZKEY)/$(CIRCUIT)_0000.zkey $(ZKEY)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
@@ -72,5 +72,5 @@ solidity:
 	mkdir -p $(CONTRACT)
 	snarkjs zkey export solidityverifier $(ZKEY)/$(CIRCUIT)_0001.zkey $(CONTRACT)/verifier.sol
 
-generate_call:
+generate-call:
 	snarkjs generatecall $(PROOF)/public.json $(PROOF)/proof.json
