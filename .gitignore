@@ -90,19 +90,12 @@ typechain-types/
 # =============================================================================
 # ZERO-KNOWLEDGE PROOFS
 # =============================================================================
-# zkp/*
-# !zkp/README.md
-# !zkp/Makefile
-# !zkp/*.circom
-# !zkp/package.json
-# !zkp/package-lock.json
 zkp/circuits/*/build
-zkp/circuits/*/keys/*
-!zkp/circuits/*/keys/verification_key.json
+zkp/circuits/*/input/*
+!zkp/circuits/*/input/example.json
 
-zkp/circuits/*/proofs/*
-
-contracts/src/Groth16Verifier.sol
+zkp/circuits/*/keys/*.zkey
+zkp/circuits/*/proofs
 
 # =============================================================================
 # IPFS & STORAGE

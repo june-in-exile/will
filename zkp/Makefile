@@ -7,17 +7,32 @@ ZKEY := $(DIR)/keys
 PROOF := $(DIR)/proofs
 CONTRACT := $(DIR)/contracts
 
-PTAU := ./shared/keys
-
+PTAU := ./circuits/shared/keys
 
 all: trusted_setup_general compile input witness trusted_setup_specific prove verify solidity generate_call
 
 clean:
-	find . -maxdepth 1 -type f ! -name "README.md" ! -name "Makefile" ! -name "*.circom" ! -name "package*.json" -delete
-	find . -maxdepth 1 -type d ! -name "." -exec rm -rf {} +
+	@for circuit_dir in circuits/*/; do \
+		[ -d "$$circuit_dir" ] && [ "$$(basename "$$circuit_dir")" != "shared" ] || continue; \
+		find "$$circuit_dir" -maxdepth 1 -type f ! -name "*.circom" -delete; \
+		find "$$circuit_dir" -maxdepth 1 -type d ! -name "$$(basename "$$circuit_dir")" ! -name "components" -exec rm -rf {} + 2>/dev/null || true; \
+	done
 
-clean_specific:
-	rm -rf $(BUILD) $(INPUT) $(ZKEY) $(PROOF) $(CONTRACT)
+clean_circuit:
+	@echo "Cleaning $(CIRCUIT)..."
+	@find $(DIR) -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true
+	@find $(DIR) -maxdepth 1 -type d ! -name $(CIRCUIT) ! -name "components" -exec rm -rf {} + 2>/dev/null || true
+	@echo "$(CIRCUIT) cleaned!"; \
+
+clean-%:
+	@echo "Cleaning $*..."
+	@if [ -d "circuits/$*" ]; then \
+		find circuits/$*/ -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true; \
+		find circuits/$*/ -maxdepth 1 -type d ! -name "$*" ! -name "components" -exec rm -rf {} + 2>/dev/null || true; \
+		echo "$* cleaned!"; \
+	else \
+		echo "Error: circuits/$* not exists"; \
+	fi
 
 trusted_setup_general:
 	mkdir -p $(PTAU)
@@ -26,8 +41,8 @@ trusted_setup_general:
 		snarkjs powersoftau new bn128 12 pot12_0000.ptau -v; \
 		snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v; \
 		snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v; \
+		snarkjs powersoftau truncate; \
 	fi
-# snarkjs powersoftau truncate; \
 
 compile:
 	mkdir -p $(BUILD)
@@ -35,10 +50,10 @@ compile:
 	
 input:
 	mkdir -p $(INPUT)
-	echo "{\"a\": \"3\", \"b\": \"11\"}" > $(INPUT)/input.json
+	echo "{\"a\": \"3\", \"b\": \"11\"}" > $(INPUT)/example.json
 
 witness:
-	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUT)/input.json $(BUILD)/witness.wtns
+	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUT)/example.json $(BUILD)/witness.wtns
 
 trusted_setup_specific:
 	mkdir -p $(ZKEY)
