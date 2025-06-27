@@ -2,13 +2,13 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "src/JSONCIDVerifier.sol";
+import "src/JsonCidVerifier.sol";
 
-contract JSONCIDVerifierFuzzTest is Test {
-    JSONCIDVerifier verifier;
+contract JsonCidVerifierFuzzTest is Test {
+    JsonCidVerifier verifier;
 
     function setUp() public {
-        verifier = new JSONCIDVerifier();
+        verifier = new JsonCidVerifier();
     }
 
     // =============================================================================
@@ -43,7 +43,7 @@ contract JSONCIDVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });
@@ -85,14 +85,14 @@ contract JSONCIDVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(i));
         }
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                JSONCIDVerifier.LengthMismatch.selector,
+                JsonCidVerifier.LengthMismatch.selector,
                 keys.length,
                 values.length
             )
@@ -113,8 +113,8 @@ contract JSONCIDVerifierFuzzTest is Test {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
-        JSONCIDVerifier.JsonValue[]
-            memory typedValues = new JSONCIDVerifier.JsonValue[](arrayLength);
+        JsonCidVerifier.JsonValue[]
+            memory typedValues = new JsonCidVerifier.JsonValue[](arrayLength);
 
         for (uint256 i = 0; i < arrayLength; i++) {
             // Generate keys
@@ -150,13 +150,13 @@ contract JSONCIDVerifierFuzzTest is Test {
                 value = "";
             }
 
-            typedValues[i] = JSONCIDVerifier.JsonValue({
+            typedValues[i] = JsonCidVerifier.JsonValue({
                 value: value,
-                valueType: JSONCIDVerifier.JsonValueType(valueType)
+                valueType: JsonCidVerifier.JsonValueType(valueType)
             });
         }
 
-        JSONCIDVerifier.TypedJsonObject memory jsonObj = JSONCIDVerifier
+        JsonCidVerifier.TypedJsonObject memory jsonObj = JsonCidVerifier
             .TypedJsonObject({keys: keys, values: typedValues});
 
         string memory result = verifier.buildStandardizedJson(jsonObj);
@@ -202,7 +202,7 @@ contract JSONCIDVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });
@@ -245,7 +245,7 @@ contract JSONCIDVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });
@@ -325,7 +325,7 @@ contract JSONCIDVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(i));
         }
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });
@@ -352,7 +352,7 @@ contract JSONCIDVerifierFuzzTest is Test {
         keys[0] = "test";
         values[0] = string(abi.encodePacked(specialChar));
 
-        JSONCIDVerifier.JsonObject memory jsonObj = JSONCIDVerifier.JsonObject({
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
             keys: keys,
             values: values
         });

@@ -3,7 +3,7 @@ import { updateEnvVariable } from "@shared/utils/env";
 import { readProof } from "@shared/utils/read";
 import {
   validatePrivateKey,
-  validateCIDv1,
+  validateCidv1,
 } from "@shared/utils/format";
 import { Base64String, SupportedAlgorithm } from "@shared/types"
 import { readFileSync, existsSync } from "fs";
@@ -11,7 +11,7 @@ import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
   WillFactory,
   WillFactory__factory,
-  JSONCIDVerifier,
+  JsonCidVerifier,
   ProofData,
 } from "@shared/types";
 import { config } from "dotenv";
@@ -45,7 +45,7 @@ interface EncryptedWillData {
 
 interface CreateWillData {
   proof: ProofData;
-  will: JSONCIDVerifier.JsonObjectStruct;
+  will: JsonCidVerifier.JsonObjectStruct;
   cid: string;
   testator: string;
   estates: Estate[];
@@ -96,7 +96,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid private key format");
   }
 
-  if (!validateCIDv1(CID)) {
+  if (!validateCidv1(CID)) {
     throw new Error("Invalid CID v1 format");
   }
 
@@ -180,8 +180,8 @@ function parseEstatesFromEnvironment(): Estate[] {
  */
 function validateFiles(): void {
   const requiredFiles = [
-    PATHS_CONFIG.zkp.proof,
-    PATHS_CONFIG.zkp.public,
+    PATHS_CONFIG.zkp.multiplier2.proof,
+    PATHS_CONFIG.zkp.multiplier2.public,
     PATHS_CONFIG.will.encrypted,
   ];
 
@@ -323,7 +323,7 @@ function readWillData(): EncryptedWillData {
  */
 function convertToJsonObject(
   encryptedWillData: EncryptedWillData
-): JSONCIDVerifier.JsonObjectStruct {
+): JsonCidVerifier.JsonObjectStruct {
   try {
     console.log(
       chalk.blue("Converting encrypted will data to JsonObject format...")
@@ -392,7 +392,7 @@ async function createContractInstance(
 /**
  * Validate CID prerequisites
  */
-async function validateCIDPrerequisites(
+async function validateCidPrerequisites(
   contract: WillFactory,
   cid: string
 ): Promise<void> {
@@ -403,7 +403,7 @@ async function validateCIDPrerequisites(
     const testatorValidateTime = await contract.testatorValidateTimes(cid);
     if (testatorValidateTime === 0n) {
       throw new Error(
-        `CID ${cid} has not been validated by testator. Please run uploadCID first.`
+        `CID ${cid} has not been validated by testator. Please run uploadCid first.`
       );
     }
 
@@ -411,7 +411,7 @@ async function validateCIDPrerequisites(
     const executorValidateTime = await contract.executorValidateTimes(cid);
     if (executorValidateTime <= testatorValidateTime) {
       throw new Error(
-        `CID ${cid} has not been notarized by executor or was notarized before testator validation. Please run notarizeCID first.`
+        `CID ${cid} has not been notarized by executor or was notarized before testator validation. Please run notarizeCid first.`
       );
     }
 
@@ -613,7 +613,7 @@ async function executeCreateWill(
     printCreateWillData(createData);
 
     // Validate CID prerequisites
-    await validateCIDPrerequisites(contract, createData.cid);
+    await validateCidPrerequisites(contract, createData.cid);
 
     // Validate estate business rules
     validateEstateBusinessRules(createData.estates, createData.testator);
@@ -762,17 +762,17 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, uploadCIDVerifier, createWillVerifier, jsonCidVerifier] =
+    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
       await Promise.all([
         contract.executor(),
-        contract.uploadCIDVerifier(),
+        contract.uploadCidVerifier(),
         contract.createWillVerifier(),
         contract.jsonCidVerifier(),
       ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
+    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
     console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
     console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
   } catch (error) {
@@ -817,7 +817,7 @@ async function processCreateWill(): Promise<CreateWillResult> {
     // Read required data
     const proof: ProofData = readProof();
     const willData: EncryptedWillData = readWillData();
-    const will: JSONCIDVerifier.JsonObjectStruct =
+    const will: JsonCidVerifier.JsonObjectStruct =
       convertToJsonObject(willData);
 
     // Execute will creation

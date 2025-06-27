@@ -71,7 +71,6 @@ verify:
 solidity:
 	mkdir -p $(CONTRACT)
 	snarkjs zkey export solidityverifier $(ZKEY)/$(CIRCUIT)_0001.zkey $(CONTRACT)/verifier.sol
-	cp $(CONTRACT)/verifier.sol ../contracts/src/Groth16Verifier.sol
 
 generate_call:
 	snarkjs generatecall $(PROOF)/public.json $(PROOF)/proof.json

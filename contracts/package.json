@@ -7,8 +7,9 @@
     "typechain": "^8.3.2"
   },
   "scripts": {
-    "clean": "forge clean && rm -rf node_modules",
-    "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'"
+    "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'",
+    "build": "make build",
+    "clean": "make clean"
   },
   "lint-staged": {
     "*.sol": [

@@ -1,8 +1,8 @@
+import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
+import type { SupportedAlgorithm } from "./types";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { config } from "dotenv";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
-import type { SupportedAlgorithm } from "types";
 import type { Encoding } from "crypto";
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
@@ -157,14 +157,24 @@ interface WillPathsConfig {
   decrypted: string;
 }
 
-interface ZkpPathsConfig {
+interface ZkpCircuitsPathsConfig {
+  verifier: string;
   proof: string;
   public: string;
+}
+
+interface ZkpPathsConfig {
+  uploadCid: ZkpCircuitsPathsConfig;
+  createWill: ZkpCircuitsPathsConfig;
+  multiplier2: ZkpCircuitsPathsConfig;
 }
 
 interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
+  groth16Verifier: string;
+  jsonCidVerifier: string;
+  will: string;
   willFactory: string;
 }
 
@@ -577,8 +587,21 @@ export const PATHS_CONFIG: PathsConfig = {
 
   // ZKP files
   zkp: {
-    proof: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/proof.json"),
-    public: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/public.json"),
+    uploadCid: {
+      verifier: resolve(modulePath, "../zkp/circuits/uploadCid/contracts/verifier.sol"),
+      proof: resolve(modulePath, "../zkp/circuits/uploadCid/proofs/proof.json"),
+      public: resolve(modulePath, "../zkp/circuits/uploadCid/proofs/public.json"),
+    },
+    createWill: {
+      verifier: resolve(modulePath, "../zkp/circuits/createWill/contracts/verifier.sol"),
+      proof: resolve(modulePath, "../zkp/circuits/createWill/proofs/proof.json"),
+      public: resolve(modulePath, "../zkp/circuits/createWill/proofs/public.json"),
+    },
+    multiplier2: {
+      verifier: resolve(modulePath, "../zkp/circuits/multiplier2/contracts/verifier.sol"),
+      proof: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/proof.json"),
+      public: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/public.json"),
+    }
   },
 
   // Environment files
@@ -588,10 +611,10 @@ export const PATHS_CONFIG: PathsConfig = {
   contracts: {
     broadcastDir: resolve(modulePath, "../contracts/broadcast"),
     outDir: resolve(modulePath, "../contracts/out"),
-    willFactory: resolve(
-      modulePath,
-      "../contracts/out/WillFactory.sol/WillFactory.json"
-    ),
+    groth16Verifier: resolve(modulePath, "../contracts/src/Groth16Verifier.sol"),
+    jsonCidVerifier: resolve(modulePath, "../contracts/src/JsonCidVerifier.sol"),
+    will: resolve(modulePath, "../contracts/src/Will.sol"),
+    willFactory: resolve(modulePath, "../contracts/src/WillFactory.sol"),
   },
 
   // Crypto keys

@@ -3,7 +3,7 @@ pragma solidity ^0.8.24;
 
 import "src/Will.sol";
 import "src/Groth16Verifier.sol";
-import "src/JSONCIDVerifier.sol";
+import "src/JsonCidVerifier.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
@@ -11,9 +11,9 @@ contract WillFactory {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    Groth16Verifier public uploadCIDVerifier;
+    Groth16Verifier public uploadCidVerifier;
     Groth16Verifier public createWillVerifier;
-    JSONCIDVerifier public jsonCidVerifier;
+    JsonCidVerifier public jsonCidVerifier;
     address public permit2;
     address public executor;
 
@@ -30,7 +30,7 @@ contract WillFactory {
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
-    error JSONCIDInvalid(string cid);
+    error JsonCidInvalid(string cid);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
@@ -40,15 +40,15 @@ contract WillFactory {
     error WillAddressInconsistent(address predicted, address actual);
 
     constructor(
-        address _uploadCIDVerifier,
+        address _uploadCidVerifier,
         address _createWillVerifier,
         address _jsonCidVerifier,
         address _executor,
         address _permit2
     ) {
-        uploadCIDVerifier = Groth16Verifier(_uploadCIDVerifier);
+        uploadCidVerifier = Groth16Verifier(_uploadCidVerifier);
         createWillVerifier = Groth16Verifier(_createWillVerifier);
-        jsonCidVerifier = JSONCIDVerifier(_jsonCidVerifier);
+        jsonCidVerifier = JsonCidVerifier(_jsonCidVerifier);
         executor = _executor;
         permit2 = _permit2;
     }
@@ -81,26 +81,26 @@ contract WillFactory {
         return _executorValidateTimes[_cid];
     }
 
-    function uploadCID(
+    function uploadCid(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JSONCIDVerifier.JsonObject memory _will,
+        JsonCidVerifier.JsonObject memory _will,
         string calldata _cid
     ) external {
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
-        if (!isValid) revert JSONCIDInvalid(_cid);
+        if (!isValid) revert JsonCidInvalid(_cid);
 
-        if (!uploadCIDVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!uploadCidVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
 
         _testatorValidateTimes[_cid] = block.timestamp;
         emit CIDUploaded(_cid, block.timestamp);
     }
 
-    function notarizeCID(
+    function notarizeCid(
         string calldata _cid,
         bytes memory _signature
     ) external {
@@ -148,7 +148,7 @@ contract WillFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JSONCIDVerifier.JsonObject memory _will,
+        JsonCidVerifier.JsonObject memory _will,
         string calldata _cid,
         address _testator,
         Will.Estate[] calldata _estates,
@@ -161,7 +161,7 @@ contract WillFactory {
 
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
-        if (!isValid) revert JSONCIDInvalid(_cid);
+        if (!isValid) revert JsonCidInvalid(_cid);
         if (!createWillVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (wills[_cid] != address(0))

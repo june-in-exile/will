@@ -4,7 +4,7 @@ import { readProof } from "@shared/utils/read";
 import {
   validateEthereumAddress,
   validatePrivateKey,
-  validateCIDv1,
+  validateCidv1,
 } from "@shared/utils/format";
 import { Base64String, SupportedAlgorithm } from "@shared/types"
 import { readFileSync, existsSync } from "fs";
@@ -12,7 +12,7 @@ import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
   WillFactory,
   WillFactory__factory,
-  JSONCIDVerifier,
+  JsonCidVerifier,
   ProofData,
 } from "@shared/types";
 import { config } from "dotenv";
@@ -38,7 +38,7 @@ interface EncryptedWillData {
 
 interface UploadCIDData {
   proof: ProofData;
-  will: JSONCIDVerifier.JsonObjectStruct;
+  will: JsonCidVerifier.JsonObjectStruct;
   cid: string;
 }
 
@@ -76,7 +76,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid private key format");
   }
 
-  if (!validateCIDv1(CID)) {
+  if (!validateCidv1(CID)) {
     throw new Error("Invalid CID v1 format");
   }
 
@@ -88,8 +88,9 @@ function validateEnvironment(): EnvironmentVariables {
  */
 function validateFiles(): void {
   const requiredFiles = [
-    PATHS_CONFIG.zkp.proof,
-    PATHS_CONFIG.zkp.public,
+    PATHS_CONFIG.zkp.multiplier2.verifier,
+    PATHS_CONFIG.zkp.multiplier2.proof,
+    PATHS_CONFIG.zkp.multiplier2.public,
     PATHS_CONFIG.will.encrypted,
   ];
 
@@ -231,7 +232,7 @@ function readWillData(): EncryptedWillData {
  */
 function convertToJsonObject(
   encryptedWillData: EncryptedWillData
-): JSONCIDVerifier.JsonObjectStruct {
+): JsonCidVerifier.JsonObjectStruct {
   try {
     console.log(
       chalk.blue("Converting encrypted will data to JsonObject format...")
@@ -362,20 +363,20 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
 }
 
 /**
- * Execute uploadCID transaction
+ * Execute uploadCid transaction
  */
 async function executeUploadCID(
   contract: WillFactory,
   uploadData: UploadCIDData
 ): Promise<UploadResult> {
   try {
-    console.log(chalk.blue("Executing uploadCID transaction..."));
+    console.log(chalk.blue("Executing uploadCid transaction..."));
 
     // Print detailed upload data information
     printUploadCIDData(uploadData);
 
     // Estimate gas
-    const gasEstimate = await contract.uploadCID.estimateGas(
+    const gasEstimate = await contract.uploadCid.estimateGas(
       uploadData.proof.pA,
       uploadData.proof.pB,
       uploadData.proof.pC,
@@ -387,7 +388,7 @@ async function executeUploadCID(
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
 
     // Execute transaction
-    const tx = await contract.uploadCID(
+    const tx = await contract.uploadCid(
       uploadData.proof.pA,
       uploadData.proof.pB,
       uploadData.proof.pC,
@@ -426,7 +427,7 @@ async function executeUploadCID(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute uploadCID: ${errorMessage}`);
+    throw new Error(`Failed to execute uploadCid: ${errorMessage}`);
   }
 }
 
@@ -465,17 +466,17 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, uploadCIDVerifier, createWillVerifier, jsonCidVerifier] =
+    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
       await Promise.all([
         contract.executor(),
-        contract.uploadCIDVerifier(),
+        contract.uploadCidVerifier(),
         contract.createWillVerifier(),
         contract.jsonCidVerifier(),
       ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
+    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
     console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
     console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
   } catch (error) {
@@ -508,7 +509,7 @@ async function processUploadCID(): Promise<UploadResult> {
     // Read required data
     const proof: ProofData = readProof();
     const willData: EncryptedWillData = readWillData();
-    const will: JSONCIDVerifier.JsonObjectStruct =
+    const will: JsonCidVerifier.JsonObjectStruct =
       convertToJsonObject(willData);
 
     // Execute upload

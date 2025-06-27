@@ -52,10 +52,10 @@ encrypt-data:
 # PgG52g==
 
 upload-will:
-	@pnpm exec tsx src/offchain/IPFS/upload.ts
+	@pnpm exec tsx src/offchain/ipfs/upload.ts
 
 upload-cid:
-	@pnpm exec tsx src/onchain/willFactory/uploadCID.ts
+	@pnpm exec tsx src/onchain/willFactory/uploadCid.ts
 
 submit-proof:
 	@pnpm exec tsx src/onchain/groth16Verifier/submitProof.ts
@@ -64,7 +64,7 @@ submit-proof:
 phase2: download-will decrypt-will sign-cid notarize-cid
 
 download-will:
-	@pnpm exec tsx src/offchain/IPFS/download.ts
+	@pnpm exec tsx src/offchain/ipfs/download.ts
 
 decrypt-will:
 	@pnpm exec tsx src/offchain/encryption/decryptWill.ts
@@ -112,7 +112,7 @@ sign-cid:
 	@pnpm exec tsx src/offchain/signature/cid.ts
 
 notarize-cid:
-	@pnpm exec tsx src/onchain/willFactory/notarizeCID.ts
+	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
 phase3: create-will signature-transfer

@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 /**
- * @title IJSONCIDVerifier
+ * @title IJsonCidVerifier
  * @dev Interface for verifying that JSON corresponds to its IPFS CID using json codec
  */
-interface IJSONCIDVerifier {
+interface IJsonCidVerifier {
     // =============================================================================
     // ERRORS
     // =============================================================================

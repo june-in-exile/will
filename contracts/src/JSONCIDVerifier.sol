@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 /**
- * @title JSONCIDVerifier
+ * @title JsonCidVerifier
  * @dev A contract for verifying that JSON corresponds to its IPFS CID using json codec
  * @notice This contract verifies JSON against its IPFS CID v1 representation with json codec
  */
-contract JSONCIDVerifier {
+contract JsonCidVerifier {
     error LengthMismatch(uint256 keyLength, uint256 valueLength);
     error EmptyJSONObject();
     struct JsonObject {

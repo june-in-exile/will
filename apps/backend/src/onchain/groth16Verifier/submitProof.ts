@@ -64,8 +64,8 @@ function validateEnvironment(): EnvironmentVariables {
  */
 function validateFiles(): void {
   const requiredFiles = [
-    PATHS_CONFIG.zkp.proof,
-    PATHS_CONFIG.zkp.public,
+    PATHS_CONFIG.zkp.multiplier2.proof,
+    PATHS_CONFIG.zkp.multiplier2.public,
   ];
 
   for (const filePath of requiredFiles) {

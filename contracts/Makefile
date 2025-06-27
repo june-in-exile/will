@@ -20,20 +20,17 @@ endif
 
 # ----------------- Initialization ----------------------	
 
-init: sync_anvil sync_proof build sync_typechain
+init: sync_anvil sync_groth16verifier_and_proof build
 
 # ------------- Synchronization Commands ----------------
 
 sync_anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 
-sync_proof:
-	@pnpm exec tsx ../shared/utils/env/syncProof.ts
+sync_groth16verifier_and_proof:
+	@pnpm exec tsx ../shared/utils/env/syncZkp.ts	
 
-sync_typechain: build
-	@pnpm typechain
-
-sync: sync_anvil sync_proof sync_typechain
+sync: sync_anvil sync_groth16verifier_and_proof
 
 # ---------------- Clean Commands -----------------------
 
@@ -49,13 +46,15 @@ clean_typechain:
 
 clean: clean_address clean_groth16verifier_and_proof clean_typechain
 	@forge clean
+	@rm -rf cached broadcast
 
 # ----------------- CICD Commands -----------------------
 
-build: sync_proof
+build: sync_groth16verifier_and_proof
 	@forge build
+	@pnpm typechain
 
-test: build sync_proof
+test: build sync_groth16verifier_and_proof
 	@forge test --match-path "test/*"
 
 # --------------- Conditional Deployment ----------------
@@ -81,7 +80,7 @@ else
 	@make deploy_willFactory_to_arb_sepolia
 endif
 
-deploy:
+deploy: build
 ifeq ($(USE_ANVIL),true)
 	@make deploy_to_forked_arb_sepolia
 else
@@ -108,8 +107,8 @@ deploy_jsonCidVerifier_to_arb_sepolia:
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
+		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
 deploy_willFactory_to_arb_sepolia:
 	@forge script \
@@ -121,7 +120,8 @@ deploy_willFactory_to_arb_sepolia:
     	script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerifier_to_arb_sepolia deploy_willFactory_to_arb_sepolia
+deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerifier_to_arb_sepolia
+	@make deploy_willFactory_to_arb_sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
@@ -142,8 +142,8 @@ deploy_jsonCidVerifier_to_forked_arb_sepolia:
 	 	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/JSONCIDVerifier.s.sol:JSONCIDVerifierScript
-	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JSONCIDVerifier $(CHAIN_ID)
+		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
+	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
 deploy_willFactory_to_forked_arb_sepolia:
 	@forge script \
@@ -153,7 +153,8 @@ deploy_willFactory_to_forked_arb_sepolia:
     	script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy_to_forked_arb_sepolia: deploy_groth16verifier_to_forked_arb_sepolia deploy_jsonCidVerifier_to_forked_arb_sepolia deploy_willFactory_to_forked_arb_sepolia
+deploy_to_forked_arb_sepolia: deploy_groth16verifier_to_forked_arb_sepolia deploy_jsonCidVerifier_to_forked_arb_sepolia
+	@make deploy_willFactory_to_forked_arb_sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
 
@@ -184,9 +185,9 @@ generateCIDString:
 
 # ----------------------- Read --------------------------
 
-uploadCIDVerifier:
+uploadCidVerifier:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"uploadCIDVerifier()(address)"
+		"uploadCidVerifier()(address)"
 	@echo "$(YELLOW)Expect: $(UPLOAD_CID_VERIFIER)$(RESET)"
 
 createWillVerifier:
@@ -205,7 +206,7 @@ testatorValidateTime:
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
-	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCID$(RESET)"
+	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCid$(RESET)"
 
 executorValidateTime:
 	@cast call --from $(EXECUTOR)  $(WILL_FACTORY) --rpc-url $(RPC_URL) \
@@ -213,7 +214,7 @@ executorValidateTime:
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
-	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCID$(RESET)"
+	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCid$(RESET)"
 
 will:
 	@cast call --from $(EXECUTOR)  $(WILL_FACTORY) --rpc-url $(RPC_URL) \
@@ -229,14 +230,14 @@ predictWill:
 
 # ----------------------- Write -------------------------
 
-# uploadCID:
+# uploadCid:
 # 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-# 		"uploadCID(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
+# 		"uploadCid(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
 # 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
 
-notarizeCID:
+notarizeCid:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"notarizeCID(string,bytes)" \
+		"notarizeCid(string,bytes)" \
 		$(CID) $(EXECUTOR_SIGNATURE)
 
 # createWill:

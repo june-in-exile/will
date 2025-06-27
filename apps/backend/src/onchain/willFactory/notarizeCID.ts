@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
-import { validatePrivateKey, validateCIDv1 } from "@shared/utils/format";
+import { validatePrivateKey, validateCidv1 } from "@shared/utils/format";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { WillFactory, WillFactory__factory } from "@shared/types";
 import { config } from "dotenv";
@@ -56,7 +56,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Invalid private key format");
   }
 
-  if (!validateCIDv1(CID)) {
+  if (!validateCidv1(CID)) {
     throw new Error("Invalid CID v1 format");
   }
 
@@ -150,7 +150,7 @@ async function createContractInstance(
 /**
  * Validate CID status before notarization
  */
-async function validateCIDStatus(
+async function validateCidStatus(
   contract: WillFactory,
   cid: string
 ): Promise<void> {
@@ -162,7 +162,7 @@ async function validateCIDStatus(
 
     if (testatorValidateTime === 0n) {
       throw new Error(
-        `CID ${cid} has not been validated by testator yet. Please run uploadCID first.`
+        `CID ${cid} has not been validated by testator yet. Please run uploadCid first.`
       );
     }
 
@@ -230,7 +230,7 @@ function printNotarizationDetails(cid: string, signature: string): void {
 }
 
 /**
- * Execute notarizeCID transaction
+ * Execute notarizeCid transaction
  */
 async function executeNotarizeCID(
   contract: WillFactory,
@@ -238,24 +238,24 @@ async function executeNotarizeCID(
   signature: string
 ): Promise<NotarizeResult> {
   try {
-    console.log(chalk.blue("Executing notarizeCID transaction..."));
+    console.log(chalk.blue("Executing notarizeCid transaction..."));
 
     // Print detailed notarization information
     printNotarizationDetails(cid, signature);
 
     // Validate CID status
-    await validateCIDStatus(contract, cid);
+    await validateCidStatus(contract, cid);
 
     // Verify signature before transaction
     await verifyExecutorSignature(contract, cid, signature);
 
     // Estimate gas
-    const gasEstimate = await contract.notarizeCID.estimateGas(cid, signature);
+    const gasEstimate = await contract.notarizeCid.estimateGas(cid, signature);
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
 
     // Execute transaction
-    const tx = await contract.notarizeCID(cid, signature, {
+    const tx = await contract.notarizeCid(cid, signature, {
       gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
     });
 
@@ -286,7 +286,7 @@ async function executeNotarizeCID(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute notarizeCID: ${errorMessage}`);
+    throw new Error(`Failed to execute notarizeCid: ${errorMessage}`);
   }
 }
 
@@ -327,17 +327,17 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, uploadCIDVerifier, createWillVerifier, jsonCidVerifier] =
+    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
       await Promise.all([
         contract.executor(),
-        contract.uploadCIDVerifier(),
+        contract.uploadCidVerifier(),
         contract.createWillVerifier(),
         contract.jsonCidVerifier(),
       ]);
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
+    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
     console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
     console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
   } catch (error) {

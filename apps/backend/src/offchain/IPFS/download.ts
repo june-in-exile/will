@@ -1,6 +1,6 @@
 import { PATHS_CONFIG } from "@shared/config";
 import { Base64String, SupportedAlgorithm } from "@shared/types";
-import { validateCIDv1 } from "@shared/utils/format";
+import { validateCidv1 } from "@shared/utils/format";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";
@@ -42,7 +42,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable CID is not set");
   }
 
-  if (!validateCIDv1) {
+  if (!validateCidv1) {
     throw new Error("Environment variable CID is not set");
   }
 

@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@shared/config";
-import { validateCIDv1, validateEthereumAddress, validatePrivateKey } from "@shared/utils/format"
+import { validateCidv1, validateEthereumAddress, validatePrivateKey } from "@shared/utils/format"
 import { signString, verify } from "@shared/utils/crypto";
 import { updateEnvVariable } from "@shared/utils/env";
 import { config } from "dotenv";
@@ -42,7 +42,7 @@ function validateEnvironment(): EnvironmentVariables {
     throw new Error("Environment variable EXECUTOR is not set");
   }
 
-  if (!validateCIDv1(CID)) {
+  if (!validateCidv1(CID)) {
     throw new Error("Invalid CID v1 format");
   }
 

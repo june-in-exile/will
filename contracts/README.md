@@ -34,7 +34,7 @@
    make deploy_groth16verifier
    ```
 
-4. Deploy `JSONCIDVerifier.sol`.
+4. Deploy `JsonCidVerifier.sol`.
 
    Check the deployment
 
@@ -53,7 +53,7 @@
    Check the deployment
 
    > ```sh
-   > make uploadCIDVerifier
+   > make uploadCidVerifier
    > make createWillVerifier
    > make executor
    > ```
@@ -73,7 +73,7 @@
 2. Upload the `CID` to the WillFactory contract.
 
    ```sh
-   make uploadCID
+   make uploadCid
    ```
 
    > Check
@@ -89,7 +89,7 @@
 2. Notarize the `CID` in the WillFactory contract.
 
    ```sh
-   make notarizeCID
+   make notarizeCid
    ```
 
    > Check

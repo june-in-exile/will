@@ -2,17 +2,17 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {JSONCIDVerifier} from "src/JSONCIDVerifier.sol";
+import {JsonCidVerifier} from "src/JsonCidVerifier.sol";
 
-contract JSONCIDVerifierScript is Script {
-    JSONCIDVerifier public jsonCidVerifier;
+contract JsonCidVerifierScript is Script {
+    JsonCidVerifier public jsonCidVerifier;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        jsonCidVerifier = new JSONCIDVerifier();
+        jsonCidVerifier = new JsonCidVerifier();
 
         vm.stopBroadcast();
     }

@@ -321,17 +321,17 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
   try {
     console.log(chalk.blue("Fetching contract information..."));
 
-    const [executor, uploadCIDVerifier, createWillVerifier] = await Promise.all(
+    const [executor, uploadCidVerifier, createWillVerifier] = await Promise.all(
       [
         contract.executor(),
-        contract.uploadCIDVerifier(),
+        contract.uploadCidVerifier(),
         contract.createWillVerifier(),
       ]
     );
 
     console.log(chalk.gray("Contract addresses:"));
     console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCIDVerifier);
+    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
     console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
   } catch (error) {
     console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);

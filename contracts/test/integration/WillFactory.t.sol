@@ -6,13 +6,13 @@ import "forge-std/Vm.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
 import "src/Groth16Verifier.sol";
-import "src/JSONCIDVerifier.sol";
+import "src/JsonCidVerifier.sol";
 
 contract WillFactoryIntegrationTest is Test {
     WillFactory willFactory;
-    Groth16Verifier uploadCIDVerifier;
+    Groth16Verifier uploadCidVerifier;
     Groth16Verifier createWillVerifier;
-    JSONCIDVerifier jsonCidVerifier;
+    JsonCidVerifier jsonCidVerifier;
 
     address executor;
     address permit2;
@@ -30,7 +30,7 @@ contract WillFactoryIntegrationTest is Test {
         address testator;
         Will.Estate[] estates;
         uint256 salt;
-        JSONCIDVerifier.JsonObject willJsonObj;
+        JsonCidVerifier.JsonObject willJsonObj;
         string cid;
         ProofData proof;
         bytes executorSignature;
@@ -39,15 +39,15 @@ contract WillFactoryIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        uploadCIDVerifier = new Groth16Verifier();
+        uploadCidVerifier = new Groth16Verifier();
         createWillVerifier = new Groth16Verifier();
-        jsonCidVerifier = new JSONCIDVerifier();
+        jsonCidVerifier = new JsonCidVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
         permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
         willFactory = new WillFactory(
-            address(uploadCIDVerifier),
+            address(uploadCidVerifier),
             address(createWillVerifier),
             address(jsonCidVerifier),
             executor,
@@ -59,7 +59,7 @@ contract WillFactoryIntegrationTest is Test {
 
     function _setupTestVectors() internal {
         {
-            JSONCIDVerifier.JsonObject memory willJsonObj;
+            JsonCidVerifier.JsonObject memory willJsonObj;
             willJsonObj.keys = new string[](5);
             willJsonObj.values = new string[](5);
             willJsonObj.keys[0] = "algorithm";
@@ -119,7 +119,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, true, false, true);
         emit WillFactory.CIDUploaded(tv.cid, block.timestamp);
 
-        willFactory.uploadCID(
+        willFactory.uploadCid(
             tv.proof.pA,
             tv.proof.pB,
             tv.proof.pC,
@@ -139,7 +139,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CIDNotarized(tv.cid, block.timestamp);
 
-        willFactory.notarizeCID(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         // Verify notarization
         vm.prank(executor);
@@ -188,7 +188,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Upload at time T
         uint256 startTime = block.timestamp;
-        willFactory.uploadCID(
+        willFactory.uploadCid(
             tv.proof.pA,
             tv.proof.pB,
             tv.proof.pC,
@@ -217,7 +217,7 @@ contract WillFactoryIntegrationTest is Test {
         );
 
         // Notarize at time T (same as upload) - should fail creation
-        willFactory.notarizeCID(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -239,7 +239,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Fast forward time and re-notarize - should succeed
         vm.warp(startTime + 100);
-        willFactory.notarizeCID(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         address willAddress = willFactory.createWill(
             tv.proof.pA,

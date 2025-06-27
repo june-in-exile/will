@@ -13,7 +13,7 @@ interface IWillFactory {
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
-    error JSONCIDInvalid(string cid, string reason);
+    error JsonCidInvalid(string cid, string reason);
     error TestatorProofInvalid();
     error ExecutorSignatureInvalid();
     error DecryptionProofInvalid();
@@ -22,7 +22,7 @@ interface IWillFactory {
     error WillAlreadyExists(string cid, address existingWill);
     error WillAddressInconsistent(address predicted, address actual);
 
-    function uploadCIDVerifier() external view returns (address);
+    function uploadCidVerifier() external view returns (address);
 
     function executorVerifier() external view returns (address);
 
@@ -46,7 +46,7 @@ interface IWillFactory {
         uint256 _salt
     ) external view returns (address);
 
-    function uploadCID(
+    function uploadCid(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
@@ -55,7 +55,7 @@ interface IWillFactory {
         string calldata _cid
     ) external;
 
-    function notarizeCID(
+    function notarizeCid(
         string calldata _cid,
         bytes memory _signature
     ) external;

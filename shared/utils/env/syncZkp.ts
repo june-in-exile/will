@@ -1,7 +1,10 @@
+import { PATHS_CONFIG } from "../../config"
 import { updateEnvVariable } from ".";
 import { readProof } from "../read";
 import { bigintArrayToEnvString } from "../format";
 import { ProofData } from "../../types/crypto";
+import { mkdir, copyFile } from "fs/promises";
+import { dirname } from "path";
 import chalk from "chalk";
 
 async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
@@ -27,11 +30,32 @@ async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
   }
 }
 
+async function copyVerifierContract(): Promise<void> {
+  try {
+    console.log(chalk.blue("Copying verifier contract..."));
+
+    const sourcePath = PATHS_CONFIG.zkp.multiplier2.verifier;
+    const destPath = PATHS_CONFIG.contracts.groth16Verifier;
+
+    const destDir = dirname(destPath);
+    await mkdir(destDir, { recursive: true });
+
+    await copyFile(sourcePath, destPath);
+
+    console.log(chalk.green(`✅ Verifier contract copied from ${sourcePath} to ${destPath}`));
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to copy verifier contract: ${errorMessage}`);
+  }
+}
+
 export async function main(): Promise<void> {
   try {
     console.log(
       chalk.cyan("\n=== Synchronizing Zero Knowledge Proof in .env file ===\n")
     );
+
+    await copyVerifierContract();
 
     const proof: ProofData = readProof();
 

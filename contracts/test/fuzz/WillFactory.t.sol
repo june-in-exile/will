@@ -9,24 +9,24 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryFuzzTest is Test {
     WillFactory factory;
-    MockGroth16Verifier mockuploadCIDVerifier;
+    MockGroth16Verifier mockuploadCidVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
-    MockJSONCIDVerifier mockJSONCIDVerifier;
+    MockJsonCidVerifier mockJsonCidVerifier;
 
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
 
-    JSONCIDVerifier.JsonObject willJson;
+    JsonCidVerifier.JsonObject willJson;
 
     function setUp() public {
-        mockuploadCIDVerifier = new MockGroth16Verifier();
+        mockuploadCidVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
-        mockJSONCIDVerifier = new MockJSONCIDVerifier();
+        mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
-            address(mockuploadCIDVerifier),
+            address(mockuploadCidVerifier),
             address(mockDecryptionVerifier),
-            address(mockJSONCIDVerifier),
+            address(mockJsonCidVerifier),
             executor,
             permit2
         );
@@ -37,7 +37,7 @@ contract WillFactoryFuzzTest is Test {
         string[] memory values = new string[](1);
         values[0] = "12345";
 
-        willJson = JSONCIDVerifier.JsonObject({keys: keys, values: values});
+        willJson = JsonCidVerifier.JsonObject({keys: keys, values: values});
     }
 
     function test_PredictWill_DeterministicOutput(
@@ -97,8 +97,8 @@ contract WillFactoryFuzzTest is Test {
         vm.assume(bytes(cid).length > 0);
         vm.assume(invalidSignature.length > 0);
 
-        mockJSONCIDVerifier.setShouldReturnTrue(true);
-        mockuploadCIDVerifier.setShouldReturnTrue(true);
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockuploadCidVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [
@@ -108,10 +108,10 @@ contract WillFactoryFuzzTest is Test {
         uint256[2] memory pC = [uint256(7), uint256(8)];
         uint256[1] memory pubSignals = [uint256(9)];
 
-        factory.uploadCID(pA, pB, pC, pubSignals, willJson, cid);
+        factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectRevert(WillFactory.ExecutorSignatureInvalid.selector);
-        factory.notarizeCID(cid, invalidSignature);
+        factory.notarizeCid(cid, invalidSignature);
     }
 
     function test_OnlyAuthorizedModifier(

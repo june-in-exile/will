@@ -2,20 +2,20 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
-import "src/JSONCIDVerifier.sol";
+import "src/JsonCidVerifier.sol";
 
 /**
- * @title JSONCIDVerifierIntegrationTest
+ * @title JsonCidVerifierIntegrationTest
  * @dev Integration tests that verify the complete workflow and real-world scenarios
  */
-contract JSONCIDVerifierIntegrationTest is Test {
-    JSONCIDVerifier verifier;
+contract JsonCidVerifierIntegrationTest is Test {
+    JsonCidVerifier verifier;
 
     // Known test vectors (generate these using your JavaScript implementation)
     struct TestVector {
         string name;
-        JSONCIDVerifier.JsonObject jsonObj;
-        JSONCIDVerifier.TypedJsonObject typedJsonObj;
+        JsonCidVerifier.JsonObject jsonObj;
+        JsonCidVerifier.TypedJsonObject typedJsonObj;
         string expectedCIDSimple;
         string expectedCIDTyped;
         string expectedJSON;
@@ -25,14 +25,14 @@ contract JSONCIDVerifierIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        verifier = new JSONCIDVerifier();
+        verifier = new JsonCidVerifier();
         _setupTestVectors();
     }
 
     function _setupTestVectors() internal {
         // Test Vector 1: Simple object
         {
-            JSONCIDVerifier.JsonObject memory simpleObj;
+            JsonCidVerifier.JsonObject memory simpleObj;
             simpleObj.keys = new string[](2);
             simpleObj.values = new string[](2);
             simpleObj.keys[0] = "name";
@@ -40,18 +40,18 @@ contract JSONCIDVerifierIntegrationTest is Test {
             simpleObj.values[0] = "Alice";
             simpleObj.values[1] = "30";
 
-            JSONCIDVerifier.TypedJsonObject memory typedObj;
+            JsonCidVerifier.TypedJsonObject memory typedObj;
             typedObj.keys = new string[](2);
-            typedObj.values = new JSONCIDVerifier.JsonValue[](2);
+            typedObj.values = new JsonCidVerifier.JsonValue[](2);
             typedObj.keys[0] = "name";
             typedObj.keys[1] = "age";
-            typedObj.values[0] = JSONCIDVerifier.JsonValue(
+            typedObj.values[0] = JsonCidVerifier.JsonValue(
                 "Alice",
-                JSONCIDVerifier.JsonValueType.STRING
+                JsonCidVerifier.JsonValueType.STRING
             );
-            typedObj.values[1] = JSONCIDVerifier.JsonValue(
+            typedObj.values[1] = JsonCidVerifier.JsonValue(
                 "30",
-                JSONCIDVerifier.JsonValueType.NUMBER
+                JsonCidVerifier.JsonValueType.NUMBER
             );
 
             // Note: The CIDs are Generated from JavaScript implementation
@@ -70,7 +70,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
 
         // Test Vector 2: Complex object with all types
         {
-            JSONCIDVerifier.JsonObject memory simpleObj;
+            JsonCidVerifier.JsonObject memory simpleObj;
             simpleObj.keys = new string[](4);
             simpleObj.values = new string[](4);
             simpleObj.keys[0] = "active";
@@ -82,28 +82,28 @@ contract JSONCIDVerifierIntegrationTest is Test {
             simpleObj.values[2] = "";
             simpleObj.values[3] = "test";
 
-            JSONCIDVerifier.TypedJsonObject memory typedObj;
+            JsonCidVerifier.TypedJsonObject memory typedObj;
             typedObj.keys = new string[](4);
-            typedObj.values = new JSONCIDVerifier.JsonValue[](4);
+            typedObj.values = new JsonCidVerifier.JsonValue[](4);
             typedObj.keys[0] = "active";
             typedObj.keys[1] = "count";
             typedObj.keys[2] = "data";
             typedObj.keys[3] = "name";
-            typedObj.values[0] = JSONCIDVerifier.JsonValue(
+            typedObj.values[0] = JsonCidVerifier.JsonValue(
                 "true",
-                JSONCIDVerifier.JsonValueType.BOOLEAN
+                JsonCidVerifier.JsonValueType.BOOLEAN
             );
-            typedObj.values[1] = JSONCIDVerifier.JsonValue(
+            typedObj.values[1] = JsonCidVerifier.JsonValue(
                 "42",
-                JSONCIDVerifier.JsonValueType.NUMBER
+                JsonCidVerifier.JsonValueType.NUMBER
             );
-            typedObj.values[2] = JSONCIDVerifier.JsonValue(
+            typedObj.values[2] = JsonCidVerifier.JsonValue(
                 "",
-                JSONCIDVerifier.JsonValueType.NULL
+                JsonCidVerifier.JsonValueType.NULL
             );
-            typedObj.values[3] = JSONCIDVerifier.JsonValue(
+            typedObj.values[3] = JsonCidVerifier.JsonValue(
                 "test",
-                JSONCIDVerifier.JsonValueType.STRING
+                JsonCidVerifier.JsonValueType.STRING
             );
 
             testVectors.push(
@@ -213,7 +213,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
 
     function test_realWorld_UserProfile() public view {
         // Simulate a user profile object
-        JSONCIDVerifier.JsonObject memory profile;
+        JsonCidVerifier.JsonObject memory profile;
         profile.keys = new string[](6);
         profile.values = new string[](6);
         profile.keys[0] = "email";
@@ -241,28 +241,28 @@ contract JSONCIDVerifierIntegrationTest is Test {
 
     function test_realWorld_APIResponse() public view {
         // Simulate an API response object
-        JSONCIDVerifier.TypedJsonObject memory response;
+        JsonCidVerifier.TypedJsonObject memory response;
         response.keys = new string[](4);
-        response.values = new JSONCIDVerifier.JsonValue[](4);
+        response.values = new JsonCidVerifier.JsonValue[](4);
         response.keys[0] = "data";
         response.keys[1] = "error";
         response.keys[2] = "status";
         response.keys[3] = "timestamp";
-        response.values[0] = JSONCIDVerifier.JsonValue(
+        response.values[0] = JsonCidVerifier.JsonValue(
             "user_data_here",
-            JSONCIDVerifier.JsonValueType.STRING
+            JsonCidVerifier.JsonValueType.STRING
         );
-        response.values[1] = JSONCIDVerifier.JsonValue(
+        response.values[1] = JsonCidVerifier.JsonValue(
             "",
-            JSONCIDVerifier.JsonValueType.NULL
+            JsonCidVerifier.JsonValueType.NULL
         );
-        response.values[2] = JSONCIDVerifier.JsonValue(
+        response.values[2] = JsonCidVerifier.JsonValue(
             "200",
-            JSONCIDVerifier.JsonValueType.NUMBER
+            JsonCidVerifier.JsonValueType.NUMBER
         );
-        response.values[3] = JSONCIDVerifier.JsonValue(
+        response.values[3] = JsonCidVerifier.JsonValue(
             "1640995200",
-            JSONCIDVerifier.JsonValueType.NUMBER
+            JsonCidVerifier.JsonValueType.NUMBER
         );
 
         string memory cid = verifier.generateCIDString(response);
@@ -277,33 +277,33 @@ contract JSONCIDVerifierIntegrationTest is Test {
 
     function test_realWorld_ConfigurationFile() public view {
         // Simulate a configuration file
-        JSONCIDVerifier.TypedJsonObject memory config;
+        JsonCidVerifier.TypedJsonObject memory config;
         config.keys = new string[](5);
-        config.values = new JSONCIDVerifier.JsonValue[](5);
+        config.values = new JsonCidVerifier.JsonValue[](5);
         config.keys[0] = "debug";
         config.keys[1] = "maxConnections";
         config.keys[2] = "serverName";
         config.keys[3] = "timeout";
         config.keys[4] = "version";
-        config.values[0] = JSONCIDVerifier.JsonValue(
+        config.values[0] = JsonCidVerifier.JsonValue(
             "false",
-            JSONCIDVerifier.JsonValueType.BOOLEAN
+            JsonCidVerifier.JsonValueType.BOOLEAN
         );
-        config.values[1] = JSONCIDVerifier.JsonValue(
+        config.values[1] = JsonCidVerifier.JsonValue(
             "100",
-            JSONCIDVerifier.JsonValueType.NUMBER
+            JsonCidVerifier.JsonValueType.NUMBER
         );
-        config.values[2] = JSONCIDVerifier.JsonValue(
+        config.values[2] = JsonCidVerifier.JsonValue(
             "prod-server-01",
-            JSONCIDVerifier.JsonValueType.STRING
+            JsonCidVerifier.JsonValueType.STRING
         );
-        config.values[3] = JSONCIDVerifier.JsonValue(
+        config.values[3] = JsonCidVerifier.JsonValue(
             "30",
-            JSONCIDVerifier.JsonValueType.NUMBER
+            JsonCidVerifier.JsonValueType.NUMBER
         );
-        config.values[4] = JSONCIDVerifier.JsonValue(
+        config.values[4] = JsonCidVerifier.JsonValue(
             "1.2.3",
-            JSONCIDVerifier.JsonValueType.STRING
+            JsonCidVerifier.JsonValueType.STRING
         );
 
         string memory cid = verifier.generateCIDString(config);
@@ -344,7 +344,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
         string memory originalCID = verifier.generateCIDString(tv.jsonObj);
 
         // Modify keys
-        JSONCIDVerifier.JsonObject memory modifiedObj = tv.jsonObj;
+        JsonCidVerifier.JsonObject memory modifiedObj = tv.jsonObj;
         modifiedObj.keys[0] = "modified_name";
 
         assertFalse(verifier.verifyCID(modifiedObj, originalCID));
@@ -374,7 +374,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
 
     function test_performance_LargeObject() public view {
         // Create a larger JSON object (20 fields)
-        JSONCIDVerifier.JsonObject memory largeObj;
+        JsonCidVerifier.JsonObject memory largeObj;
         largeObj.keys = new string[](20);
         largeObj.values = new string[](20);
 
@@ -421,7 +421,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
     // =============================================================================
 
     function test_edgeCase_SingleField() public view {
-        JSONCIDVerifier.JsonObject memory singleField;
+        JsonCidVerifier.JsonObject memory singleField;
         singleField.keys = new string[](1);
         singleField.values = new string[](1);
         singleField.keys[0] = "single";
@@ -435,7 +435,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
     }
 
     function test_edgeCase_EmptyStringValues() public view {
-        JSONCIDVerifier.JsonObject memory emptyValues;
+        JsonCidVerifier.JsonObject memory emptyValues;
         emptyValues.keys = new string[](2);
         emptyValues.values = new string[](2);
         emptyValues.keys[0] = "empty";
@@ -451,7 +451,7 @@ contract JSONCIDVerifierIntegrationTest is Test {
     }
 
     function test_edgeCase_SpecialCharacters() public view {
-        JSONCIDVerifier.JsonObject memory specialChars;
+        JsonCidVerifier.JsonObject memory specialChars;
         specialChars.keys = new string[](3);
         specialChars.values = new string[](3);
         specialChars.keys[0] = "numbers";
