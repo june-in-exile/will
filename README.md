@@ -10,7 +10,7 @@ will-project/
 │   ├── frontend/          # React + Vite frontend application
 │   └── backend/           # Node.js + Express backend API
 ├── contracts/             # Foundry smart contracts
-├── circuits/              # Circom zero-knowledge circuits
+├── zkp/                   # Circom zero-knowledge proofs
 ├── shared/                # Shared code (types, utilities, constants)
 └── package.json           # Root dependency management
 ```
@@ -163,7 +163,7 @@ The other fileds would be automatically updated during the execution.
 - **Deployment**: Forge Script
 - **Features**: CREATE2, Permit2 integration
 
-### Zero-Knowledge Circuits (Circom)
+### Zero-Knowledge Proofs (Circom)
 
 - **Circuit Language**: Circom
 - **Proving System**: Groth16
@@ -210,7 +210,7 @@ pnpm deps:update
 pnpm clean
 pnpm deps:clean
 cd contracts && forge clean
-cd circuits && make clean
+cd zkp && make clean
 cd apps/backend && make clean
 pnpm install
 pnpm build

@@ -10,9 +10,9 @@ export function readProof(): ProofData {
   try {
     console.log(chalk.blue("Reading testator proof data..."));
 
-    const proof = JSON.parse(readFileSync(PATHS_CONFIG.circuits.proof, "utf8"));
+    const proof = JSON.parse(readFileSync(PATHS_CONFIG.zkp.proof, "utf8"));
     const publicSignals = JSON.parse(
-      readFileSync(PATHS_CONFIG.circuits.public, "utf8"),
+      readFileSync(PATHS_CONFIG.zkp.public, "utf8"),
     );
 
     const proofData: ProofData = {

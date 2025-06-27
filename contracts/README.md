@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-1. Generate ZKP in [../circuits/](../circuits/).
+1. Generate ZKP in [../zkp/](../zkp/).
 
 ## Initialization
 

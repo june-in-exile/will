@@ -1,12 +1,12 @@
 {
-  "name": "circuits",
+  "name": "zkp",
   "version": "1.0.0",
-  "description": "1. Writing circuits.",
+  "description": "Zero Knowledge Proofs",
   "main": "index.js",
   "scripts": {
     "clean": "find . -maxdepth 1 -type f ! -name 'README.md' ! -name 'Makefile' ! -name '*.circom' ! -name 'package*.json' -delete && find . -maxdepth 1 -type d ! -name '.' -exec rm -rf {} +",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build" : "pnpm clean &&  make all"
+    "build": "pnpm clean &&  make all"
   },
   "keywords": [],
   "author": "",

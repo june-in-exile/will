@@ -90,12 +90,12 @@ typechain-types/
 # =============================================================================
 # ZERO-KNOWLEDGE PROOFS
 # =============================================================================
-circuits/*
-!circuits/README.md
-!circuits/Makefile
-!circuits/*.circom
-!circuits/package.json
-!circuits/package-lock.json
+zkp/*
+!zkp/README.md
+!zkp/Makefile
+!zkp/*.circom
+!zkp/package.json
+!zkp/package-lock.json
 
 contracts/src/Groth16Verifier.sol
 

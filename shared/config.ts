@@ -143,7 +143,7 @@ interface BasePathsConfig {
   root: string;
   backend: string;
   frontend: string;
-  circuits: string;
+  zkp: string;
   contracts: string;
 }
 
@@ -157,7 +157,7 @@ interface WillPathsConfig {
   decrypted: string;
 }
 
-interface CircuitsPathsConfig {
+interface ZkpPathsConfig {
   proof: string;
   public: string;
 }
@@ -176,7 +176,7 @@ interface CryptoPathsConfig {
 interface PathsConfig {
   base: BasePathsConfig;
   will: WillPathsConfig;
-  circuits: CircuitsPathsConfig;
+  zkp: ZkpPathsConfig;
   env: string;
   contracts: ContractPathsConfig;
   crypto: CryptoPathsConfig;
@@ -560,7 +560,7 @@ export const PATHS_CONFIG: PathsConfig = {
     root: resolve(modulePath, ".."),
     backend: resolve(modulePath, "../apps/backend"),
     frontend: resolve(modulePath, "../apps/frontend"),
-    circuits: resolve(modulePath, "../circuits"),
+    zkp: resolve(modulePath, "../zkp"),
     contracts: resolve(modulePath, "../contracts"),
   },
 
@@ -576,9 +576,9 @@ export const PATHS_CONFIG: PathsConfig = {
   },
 
   // ZKP files
-  circuits: {
-    proof: resolve(modulePath, "../circuits/proof.json"),
-    public: resolve(modulePath, "../circuits/public.json"),
+  zkp: {
+    proof: resolve(modulePath, "../zkp/proof.json"),
+    public: resolve(modulePath, "../zkp/public.json"),
   },
 
   // Environment files

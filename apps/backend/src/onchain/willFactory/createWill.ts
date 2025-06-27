@@ -180,8 +180,8 @@ function parseEstatesFromEnvironment(): Estate[] {
  */
 function validateFiles(): void {
   const requiredFiles = [
-    PATHS_CONFIG.circuits.proof,
-    PATHS_CONFIG.circuits.public,
+    PATHS_CONFIG.zkp.proof,
+    PATHS_CONFIG.zkp.public,
     PATHS_CONFIG.will.encrypted,
   ];
 
@@ -463,7 +463,7 @@ function validateEstateBusinessRules(
       const otherEstate = estates[j];
       if (
         estate.beneficiary.toLowerCase() ===
-          otherEstate.beneficiary.toLowerCase() &&
+        otherEstate.beneficiary.toLowerCase() &&
         estate.token.toLowerCase() === otherEstate.token.toLowerCase()
       ) {
         console.warn(
