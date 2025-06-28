@@ -1,7 +1,7 @@
-import { HASH_CONFIG } from "../../config";
+import { HASH_CONFIG } from "@shared/config";
+import type { HashableInput, ByteInput } from "@shared/types";
 import { ethers } from "ethers";
 import chalk from "chalk";
-import type { HashableInput, ByteInput } from "../../types";
 
 /**
  * Validate input message

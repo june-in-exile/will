@@ -1,6 +1,6 @@
-import { PATHS_CONFIG } from "../../config.js";
-import { existsSync, readFileSync, readdirSync, statSync } from "fs";
+import { PATHS_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "./updateEnvVariable.js";
+import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import chalk from "chalk";
 

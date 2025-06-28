@@ -46,7 +46,7 @@ clean_typechain:
 
 clean: clean_address clean_groth16verifier_and_proof clean_typechain
 	@forge clean
-	@rm -rf cached broadcast
+	@rm -rf cache broadcast
 
 # ----------------- CICD Commands -----------------------
 
@@ -126,7 +126,7 @@ deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerif
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
 fork:
-	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID)
+	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
 
 deploy_groth16verifier_to_forked_arb_sepolia:
 	@forge script \

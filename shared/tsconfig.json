@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "allowJs": true,
     "checkJs": false,
     "declaration": true, // generate .d.ts
@@ -20,7 +20,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@shared": ["."],
+      "@shared/*": ["./*"]
+    }
   },
   "include": ["**/*"],
   "exclude": ["node_modules", "dist"]

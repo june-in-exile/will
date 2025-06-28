@@ -1,5 +1,5 @@
-import { AES_256_GCM, CHACHA20_POLY1305 } from "./constants";
-import type { SupportedAlgorithm } from "./types";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
+import type { SupportedAlgorithm } from "@shared/types";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { config } from "dotenv";

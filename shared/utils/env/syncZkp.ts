@@ -1,8 +1,8 @@
-import { PATHS_CONFIG } from "../../config"
+import { PATHS_CONFIG } from "@shared/config"
 import { updateEnvVariable } from ".";
-import { readProof } from "../read";
-import { bigintArrayToEnvString } from "../format";
-import { ProofData } from "../../types/crypto";
+import { readProof } from "@shared/utils/read";
+import { bigintArrayToEnvString } from "@shared/utils/format";
+import { ProofData } from "@shared/types/crypto";
 import { mkdir, copyFile } from "fs/promises";
 import { dirname } from "path";
 import chalk from "chalk";

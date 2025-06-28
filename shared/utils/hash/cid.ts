@@ -1,7 +1,7 @@
+import { uint8ArrayToHex } from "@shared/utils/format";
 import { CID } from "multiformats/cid";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as json from "multiformats/codecs/json";
-import { uint8ArrayToHex } from "../format";
 import * as fs from "fs";
 import chalk from "chalk";
 

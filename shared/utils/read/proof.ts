@@ -1,5 +1,5 @@
-import { PATHS_CONFIG } from "../../config.js";
-import { ProofData } from "../../types";
+import { PATHS_CONFIG } from "@shared/config.js";
+import { ProofData } from "@shared/types";
 import { readFileSync } from "fs";
 import chalk from "chalk";
 
