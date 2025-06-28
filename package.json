@@ -15,6 +15,7 @@
     "build:contracts": "pnpm --filter contracts build",
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
+    "test:contracts": "pnpm --filter contracts test",
     "clean": "pnpm clean:zkp && pnpm clean:contracts && pnpm clean:backend && pnpm clean:frontend",
     "clean:zkp": "pnpm --filter zkp clean",
     "clean:contracts": "pnpm --filter contracts clean",
@@ -27,7 +28,7 @@
     "deps:update": "pnpm update --latest",
     "deps:audit": "pnpm audit --fix",
     "deps:clean": "rm -rf node_modules pnpm-lock.yaml && pnpm install",
-    "test": "cd contracts && make fork && make init && make deploy && cd ../apps/backend && make all"
+    "e2e": "cd contracts && make fork && make init && make deploy && cd ../apps/backend && make all"
   },
   "dependencies": {
     "@ethersproject/keccak256": "^5.8.0",
