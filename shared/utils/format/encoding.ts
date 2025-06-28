@@ -1,43 +1,43 @@
 export function hexToUint8Array(hex: string): Uint8Array {
   if (!validateHex(hex)) {
-    throw new Error('Invalid hex string');
+    throw new Error("Invalid hex string");
   }
 
-  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
 
-  const paddedHex = cleanHex.length % 2 === 0 ? cleanHex : '0' + cleanHex;
+  const paddedHex = cleanHex.length % 2 === 0 ? cleanHex : "0" + cleanHex;
 
   const matches = paddedHex.match(/.{1,2}/g);
   if (!matches) {
-    throw new Error('Failed to parse hex string');
+    throw new Error("Failed to parse hex string");
   }
 
-  return new Uint8Array(matches.map(byte => parseInt(byte, 16)));
+  return new Uint8Array(matches.map((byte) => parseInt(byte, 16)));
 }
 
 export function uint8ArrayToHex(
   uint8Array: Uint8Array,
   addPrefix: boolean = true,
-  uppercase: boolean = false
+  uppercase: boolean = false,
 ): string {
   if (!(uint8Array instanceof Uint8Array)) {
-    throw new Error('Input must be a Uint8Array');
+    throw new Error("Input must be a Uint8Array");
   }
 
   const hex = Array.from(uint8Array)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 
   const finalHex = uppercase ? hex.toUpperCase() : hex;
-  return addPrefix ? '0x' + finalHex : finalHex;
+  return addPrefix ? "0x" + finalHex : finalHex;
 }
 
 export function validateHex(hex: string): boolean {
-  if (typeof hex !== 'string') {
+  if (typeof hex !== "string") {
     return false;
   }
 
-  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
   return /^[0-9a-fA-F]*$/.test(cleanHex);
 }
 

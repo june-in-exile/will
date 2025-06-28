@@ -6,7 +6,7 @@ import {
   validatePrivateKey,
   validateCidv1,
 } from "@shared/utils/format";
-import { Base64String, type SupportedAlgorithm } from "@shared/types"
+import { Base64String, type SupportedAlgorithm } from "@shared/types";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
@@ -105,7 +105,7 @@ function validateFiles(): void {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -113,7 +113,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -143,7 +143,7 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
  * Validate required fields
  */
 function validateRequiredFields(
-  will: Partial<EncryptedWillData>
+  will: Partial<EncryptedWillData>,
 ): asserts will is EncryptedWillData {
   const REQUIRED_FIELDS: (keyof EncryptedWillData)[] = [
     "algorithm",
@@ -167,14 +167,14 @@ function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   // Validate encryption algorithm
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedWill.algorithm)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`
+      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`,
     );
   }
 
   // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
   if (encryptedWill.iv.length < 12) {
     throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`
+      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`,
     );
   }
 
@@ -199,7 +199,7 @@ function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   if (timestamp < oneYearAgo) {
     console.warn(
-      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year")
+      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year"),
     );
   }
 }
@@ -231,11 +231,11 @@ function readWillData(): EncryptedWillData {
  * Convert will data to JsonObject format
  */
 function convertToJsonObject(
-  encryptedWillData: EncryptedWillData
+  encryptedWillData: EncryptedWillData,
 ): JsonCidVerifier.JsonObjectStruct {
   try {
     console.log(
-      chalk.blue("Converting encrypted will data to JsonObject format...")
+      chalk.blue("Converting encrypted will data to JsonObject format..."),
     );
 
     const keys: string[] = [];
@@ -258,7 +258,7 @@ function convertToJsonObject(
     values.push(encryptedWillData.timestamp);
 
     console.log(
-      chalk.green("✅ Encrypted will data converted to JsonObject format")
+      chalk.green("✅ Encrypted will data converted to JsonObject format"),
     );
 
     return { keys, values };
@@ -274,7 +274,7 @@ function convertToJsonObject(
  */
 async function createContractInstance(
   factoryAddress: string,
-  wallet: Wallet
+  wallet: Wallet,
 ): Promise<WillFactory> {
   try {
     console.log(chalk.blue("Loading will factory contract..."));
@@ -312,39 +312,39 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
   console.log(chalk.blue("\n🔐 Proof Data:"));
   console.log(
     chalk.gray("- pA[0]:"),
-    chalk.white(uploadData.proof.pA[0].toString())
+    chalk.white(uploadData.proof.pA[0].toString()),
   );
   console.log(
     chalk.gray("- pA[1]:"),
-    chalk.white(uploadData.proof.pA[1].toString())
+    chalk.white(uploadData.proof.pA[1].toString()),
   );
   console.log(
     chalk.gray("- pB[0][0]:"),
-    chalk.white(uploadData.proof.pB[0][0].toString())
+    chalk.white(uploadData.proof.pB[0][0].toString()),
   );
   console.log(
     chalk.gray("- pB[0][1]:"),
-    chalk.white(uploadData.proof.pB[0][1].toString())
+    chalk.white(uploadData.proof.pB[0][1].toString()),
   );
   console.log(
     chalk.gray("- pB[1][0]:"),
-    chalk.white(uploadData.proof.pB[1][0].toString())
+    chalk.white(uploadData.proof.pB[1][0].toString()),
   );
   console.log(
     chalk.gray("- pB[1][1]:"),
-    chalk.white(uploadData.proof.pB[1][1].toString())
+    chalk.white(uploadData.proof.pB[1][1].toString()),
   );
   console.log(
     chalk.gray("- pC[0]:"),
-    chalk.white(uploadData.proof.pC[0].toString())
+    chalk.white(uploadData.proof.pC[0].toString()),
   );
   console.log(
     chalk.gray("- pC[1]:"),
-    chalk.white(uploadData.proof.pC[1].toString())
+    chalk.white(uploadData.proof.pC[1].toString()),
   );
   console.log(
     chalk.gray("- pubSignals[0]:"),
-    chalk.white(uploadData.proof.pubSignals[0].toString())
+    chalk.white(uploadData.proof.pubSignals[0].toString()),
   );
 
   // Print Will Data
@@ -355,7 +355,7 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
       chalk.gray("=>"),
-      chalk.white(value)
+      chalk.white(value),
     );
   });
 
@@ -367,7 +367,7 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
  */
 async function executeUploadCID(
   contract: WillFactory,
-  uploadData: UploadCIDData
+  uploadData: UploadCIDData,
 ): Promise<UploadResult> {
   try {
     console.log(chalk.blue("Executing uploadCid transaction..."));
@@ -382,7 +382,7 @@ async function executeUploadCID(
       uploadData.proof.pC,
       uploadData.proof.pubSignals,
       uploadData.will,
-      uploadData.cid
+      uploadData.cid,
     );
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
@@ -397,7 +397,7 @@ async function executeUploadCID(
       uploadData.cid,
       {
         gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      }
+      },
     );
 
     console.log(chalk.yellow("Transaction sent:"), tx.hash);
@@ -445,7 +445,7 @@ async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -454,7 +454,7 @@ async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.warn(
       chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage
+      errorMessage,
     );
   }
 }
@@ -523,7 +523,7 @@ async function processUploadCID(): Promise<UploadResult> {
     await updateEnvironmentVariables(result);
 
     console.log(
-      chalk.green.bold("\n🎉 CID upload process completed successfully!")
+      chalk.green.bold("\n🎉 CID upload process completed successfully!"),
     );
 
     return result;
@@ -552,7 +552,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

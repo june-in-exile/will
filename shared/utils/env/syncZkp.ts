@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@shared/config"
+import { PATHS_CONFIG } from "@shared/config";
 import { updateEnvVariable } from ".";
 import { readProof } from "@shared/utils/read";
 import { bigintArrayToEnvString } from "@shared/utils/format";
@@ -19,7 +19,7 @@ async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
     ];
 
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -42,9 +42,14 @@ async function copyVerifierContract(): Promise<void> {
 
     await copyFile(sourcePath, destPath);
 
-    console.log(chalk.green(`✅ Verifier contract copied from ${sourcePath} to ${destPath}`));
+    console.log(
+      chalk.green(
+        `✅ Verifier contract copied from ${sourcePath} to ${destPath}`,
+      ),
+    );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to copy verifier contract: ${errorMessage}`);
   }
 }
@@ -52,7 +57,7 @@ async function copyVerifierContract(): Promise<void> {
 export async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Synchronizing Zero Knowledge Proof in .env file ===\n")
+      chalk.cyan("\n=== Synchronizing Zero Knowledge Proof in .env file ===\n"),
     );
 
     await copyVerifierContract();
@@ -68,7 +73,7 @@ export async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);

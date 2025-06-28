@@ -58,7 +58,7 @@ const ERC20_ABI = [
   "function balanceOf(address owner) view returns (uint256)",
   "function symbol() view returns (string)",
   "function decimals() view returns (uint8)",
-  "function name() view returns (string)"
+  "function name() view returns (string)",
 ];
 
 /**
@@ -114,7 +114,7 @@ function validateEnvironment(): EnvironmentVariables {
   // Validate signature length (should be 65 bytes = 130 hex chars + 0x prefix)
   if (PERMIT2_SIGNATURE.length !== 132) {
     throw new Error(
-      `Invalid permit2 signature length: expected 132 characters, got ${PERMIT2_SIGNATURE.length}`
+      `Invalid permit2 signature length: expected 132 characters, got ${PERMIT2_SIGNATURE.length}`,
     );
   }
 
@@ -124,13 +124,13 @@ function validateEnvironment(): EnvironmentVariables {
   if (deadlineTimestamp <= currentTimestamp) {
     console.warn(
       chalk.yellow(
-        "⚠️  Warning: Deadline is in the past or very close to current time"
-      )
+        "⚠️  Warning: Deadline is in the past or very close to current time",
+      ),
     );
     console.warn(
       chalk.yellow(
-        `Current time: ${currentTimestamp}, Deadline: ${deadlineTimestamp}`
-      )
+        `Current time: ${currentTimestamp}, Deadline: ${deadlineTimestamp}`,
+      ),
     );
   }
 
@@ -147,7 +147,7 @@ function validateEnvironment(): EnvironmentVariables {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -155,7 +155,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -186,7 +186,7 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
  */
 async function createWillContract(
   willAddress: string,
-  wallet: Wallet
+  wallet: Wallet,
 ): Promise<Will> {
   try {
     console.log(chalk.blue("Loading will contract..."));
@@ -252,7 +252,7 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
 async function getTokenBalance(
   provider: JsonRpcProvider,
   tokenAddress: string,
-  holderAddress: string
+  holderAddress: string,
 ): Promise<TokenBalance> {
   try {
     const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
@@ -260,7 +260,7 @@ async function getTokenBalance(
     const [balance, symbol, decimals] = await Promise.all([
       tokenContract.balanceOf(holderAddress),
       tokenContract.symbol().catch(() => "UNKNOWN"),
-      tokenContract.decimals().catch(() => 18)
+      tokenContract.decimals().catch(() => 18),
     ]);
 
     const formattedBalance = ethers.formatUnits(balance, decimals);
@@ -271,12 +271,14 @@ async function getTokenBalance(
       balance,
       formattedBalance,
       symbol,
-      decimals
+      decimals,
     };
   } catch (error) {
     console.warn(
-      chalk.yellow(`Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`),
-      error instanceof Error ? error.message : "Unknown error"
+      chalk.yellow(
+        `Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`,
+      ),
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     return {
@@ -285,7 +287,7 @@ async function getTokenBalance(
       balance: 0n,
       formattedBalance: "0",
       symbol: "ERROR",
-      decimals: 18
+      decimals: 18,
     };
   }
 }
@@ -295,14 +297,20 @@ async function getTokenBalance(
  */
 async function checkTokenBalances(
   provider: JsonRpcProvider,
-  willInfo: WillInfo
+  willInfo: WillInfo,
 ): Promise<BalanceSnapshot> {
   try {
     console.log(chalk.blue("Checking token balances..."));
 
     const balances: TokenBalance[] = [];
-    const uniqueTokens = [...new Set(willInfo.estates.map(estate => estate.token))];
-    const allAddresses = [willInfo.testator, willInfo.executor, ...willInfo.estates.map(estate => estate.beneficiary)];
+    const uniqueTokens = [
+      ...new Set(willInfo.estates.map((estate) => estate.token)),
+    ];
+    const allAddresses = [
+      willInfo.testator,
+      willInfo.executor,
+      ...willInfo.estates.map((estate) => estate.beneficiary),
+    ];
     const uniqueAddresses = [...new Set(allAddresses)];
 
     // Check balances for all combinations of addresses and tokens
@@ -313,14 +321,19 @@ async function checkTokenBalances(
       }
     }
 
-    console.log(chalk.green(`✅ Checked balances for ${balances.length} address-token pairs`));
+    console.log(
+      chalk.green(
+        `✅ Checked balances for ${balances.length} address-token pairs`,
+      ),
+    );
 
     return {
       timestamp: Date.now(),
-      balances
+      balances,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to check token balances: ${errorMessage}`);
   }
 }
@@ -328,31 +341,46 @@ async function checkTokenBalances(
 /**
  * Print balance snapshot
  */
-function printBalanceSnapshot(snapshot: BalanceSnapshot, title: string, willInfo: WillInfo): void {
+function printBalanceSnapshot(
+  snapshot: BalanceSnapshot,
+  title: string,
+  willInfo: WillInfo,
+): void {
   console.log(chalk.cyan(`\n=== ${title} ===`));
-  console.log(chalk.gray("Timestamp:"), new Date(snapshot.timestamp).toISOString());
+  console.log(
+    chalk.gray("Timestamp:"),
+    new Date(snapshot.timestamp).toISOString(),
+  );
 
   // Group balances by token
-  const balancesByToken = snapshot.balances.reduce((acc, balance) => {
-    if (!acc[balance.tokenAddress]) {
-      acc[balance.tokenAddress] = [];
-    }
-    acc[balance.tokenAddress].push(balance);
-    return acc;
-  }, {} as Record<string, TokenBalance[]>);
+  const balancesByToken = snapshot.balances.reduce(
+    (acc, balance) => {
+      if (!acc[balance.tokenAddress]) {
+        acc[balance.tokenAddress] = [];
+      }
+      acc[balance.tokenAddress].push(balance);
+      return acc;
+    },
+    {} as Record<string, TokenBalance[]>,
+  );
 
   Object.entries(balancesByToken).forEach(([tokenAddress, balances]) => {
     const symbol = balances[0]?.symbol || "UNKNOWN";
     console.log(chalk.blue(`\n💰 Token: ${symbol} (${tokenAddress})`));
 
-    balances.forEach(balance => {
-      const addressType = balance.address.toLowerCase() === willInfo.testator.toLowerCase() ? "Testator" :
-        balance.address.toLowerCase() === willInfo.executor.toLowerCase() ? "Executor" :
-          "Beneficiary";
+    balances.forEach((balance) => {
+      const addressType =
+        balance.address.toLowerCase() === willInfo.testator.toLowerCase()
+          ? "Testator"
+          : balance.address.toLowerCase() === willInfo.executor.toLowerCase()
+            ? "Executor"
+            : "Beneficiary";
 
       console.log(
-        chalk.gray(`  ${addressType} (${balance.address.slice(0, 6)}...${balance.address.slice(-4)}):`),
-        chalk.white(`${balance.formattedBalance} ${balance.symbol}`)
+        chalk.gray(
+          `  ${addressType} (${balance.address.slice(0, 6)}...${balance.address.slice(-4)}):`,
+        ),
+        chalk.white(`${balance.formattedBalance} ${balance.symbol}`),
       );
     });
   });
@@ -366,16 +394,16 @@ function printBalanceSnapshot(snapshot: BalanceSnapshot, title: string, willInfo
 function compareBalanceSnapshots(
   beforeSnapshot: BalanceSnapshot,
   afterSnapshot: BalanceSnapshot,
-  willInfo: WillInfo
+  willInfo: WillInfo,
 ): void {
   console.log(chalk.cyan("\n=== Balance Changes Summary ==="));
 
   const beforeMap = new Map(
-    beforeSnapshot.balances.map(b => [`${b.address}-${b.tokenAddress}`, b])
+    beforeSnapshot.balances.map((b) => [`${b.address}-${b.tokenAddress}`, b]),
   );
 
   const afterMap = new Map(
-    afterSnapshot.balances.map(b => [`${b.address}-${b.tokenAddress}`, b])
+    afterSnapshot.balances.map((b) => [`${b.address}-${b.tokenAddress}`, b]),
   );
 
   let hasChanges = false;
@@ -387,22 +415,28 @@ function compareBalanceSnapshots(
     const difference = afterBalance.balance - beforeBalance.balance;
     if (difference !== 0n) {
       hasChanges = true;
-      const addressType = afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase() ? "Testator" :
-        afterBalance.address.toLowerCase() === willInfo.executor.toLowerCase() ? "Executor" :
-          "Beneficiary";
+      const addressType =
+        afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
+          ? "Testator"
+          : afterBalance.address.toLowerCase() ===
+              willInfo.executor.toLowerCase()
+            ? "Executor"
+            : "Beneficiary";
 
       const formattedDifference = ethers.formatUnits(
         difference < 0n ? -difference : difference,
-        afterBalance.decimals
+        afterBalance.decimals,
       );
 
       const changeColor = difference > 0n ? chalk.green : chalk.red;
       const changeSymbol = difference > 0n ? "+" : "-";
 
       console.log(
-        chalk.gray(`${addressType} (${afterBalance.address.slice(0, 6)}...${afterBalance.address.slice(-4)}):`),
+        chalk.gray(
+          `${addressType} (${afterBalance.address.slice(0, 6)}...${afterBalance.address.slice(-4)}):`,
+        ),
         chalk.gray(`${afterBalance.symbol}`),
-        changeColor(`${changeSymbol}${formattedDifference}`)
+        changeColor(`${changeSymbol}${formattedDifference}`),
       );
     }
   }
@@ -419,14 +453,14 @@ function compareBalanceSnapshots(
  */
 function validateExecutionPrerequisites(
   willInfo: WillInfo,
-  executorAddress: string
+  executorAddress: string,
 ): void {
   console.log(chalk.blue("Validating execution prerequisites..."));
 
   // Check if caller is the executor
   if (executorAddress.toLowerCase() !== willInfo.executor.toLowerCase()) {
     throw new Error(
-      `Only executor can call this function. Expected: ${willInfo.executor}, Got: ${executorAddress}`
+      `Only executor can call this function. Expected: ${willInfo.executor}, Got: ${executorAddress}`,
     );
   }
 
@@ -450,7 +484,7 @@ function printSignatureTransferDetails(
   willInfo: WillInfo,
   nonce: string,
   deadline: string,
-  signature: string
+  signature: string,
 ): void {
   console.log(chalk.cyan("\n=== Signature Transfer Details ==="));
 
@@ -460,7 +494,7 @@ function printSignatureTransferDetails(
   console.log(chalk.gray("- Executor:"), chalk.white(willInfo.executor));
   console.log(
     chalk.gray("- Executed:"),
-    chalk.white(willInfo.executed.toString())
+    chalk.white(willInfo.executed.toString()),
   );
 
   // Print Estates
@@ -469,12 +503,12 @@ function printSignatureTransferDetails(
     console.log(chalk.gray(`  Estate ${index}:`));
     console.log(
       chalk.gray("    - Beneficiary:"),
-      chalk.white(estate.beneficiary)
+      chalk.white(estate.beneficiary),
     );
     console.log(chalk.gray("    - Token:"), chalk.white(estate.token));
     console.log(
       chalk.gray("    - Amount:"),
-      chalk.white(estate.amount.toString())
+      chalk.white(estate.amount.toString()),
     );
   });
 
@@ -484,7 +518,7 @@ function printSignatureTransferDetails(
   console.log(chalk.gray("- Deadline:"), chalk.white(deadline));
   console.log(
     chalk.gray("- Deadline (Date):"),
-    chalk.white(new Date(parseInt(deadline) * 1000).toISOString())
+    chalk.white(new Date(parseInt(deadline) * 1000).toISOString()),
   );
   console.log(chalk.gray("- Signature:"), chalk.white(signature));
 
@@ -500,11 +534,11 @@ async function executeSignatureTransfer(
   nonce: string,
   deadline: string,
   signature: string,
-  executorAddress: string
+  executorAddress: string,
 ): Promise<SignatureTransferResult> {
   try {
     console.log(
-      chalk.blue("Executing signatureTransferToBeneficiaries transaction...")
+      chalk.blue("Executing signatureTransferToBeneficiaries transaction..."),
     );
 
     // Print detailed transfer information
@@ -522,7 +556,7 @@ async function executeSignatureTransfer(
       await contract.signatureTransferToBeneficiaries.estimateGas(
         nonceBigInt,
         deadlineBigInt,
-        signature
+        signature,
       );
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
@@ -534,7 +568,7 @@ async function executeSignatureTransfer(
       signature,
       {
         gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      }
+      },
     );
 
     console.log(chalk.yellow("Transaction sent:"), tx.hash);
@@ -568,7 +602,7 @@ async function executeSignatureTransfer(
       console.log(chalk.green("🎉 Will executed successfully!"));
     } else {
       console.warn(
-        chalk.yellow("⚠️  Warning: WillExecuted event not found in logs")
+        chalk.yellow("⚠️  Warning: WillExecuted event not found in logs"),
       );
     }
 
@@ -584,7 +618,7 @@ async function executeSignatureTransfer(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(
-      `Failed to execute signatureTransferToBeneficiaries: ${errorMessage}`
+      `Failed to execute signatureTransferToBeneficiaries: ${errorMessage}`,
     );
   }
 }
@@ -593,7 +627,7 @@ async function executeSignatureTransfer(
  * Update environment variables with execution data
  */
 async function updateEnvironmentVariables(
-  result: SignatureTransferResult
+  result: SignatureTransferResult,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -605,7 +639,7 @@ async function updateEnvironmentVariables(
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -614,7 +648,7 @@ async function updateEnvironmentVariables(
       error instanceof Error ? error.message : "Unknown error";
     console.warn(
       chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage
+      errorMessage,
     );
   }
 }
@@ -632,13 +666,13 @@ async function verifyWillExecution(contract: Will): Promise<void> {
       console.log(chalk.green("✅ Will execution confirmed on-chain"));
     } else {
       console.warn(
-        chalk.yellow("⚠️  Warning: Will execution status not updated")
+        chalk.yellow("⚠️  Warning: Will execution status not updated"),
       );
     }
   } catch (error) {
     console.warn(
       chalk.yellow("Warning: Could not verify execution status"),
-      error
+      error,
     );
   }
 }
@@ -666,9 +700,15 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     const willInfo = await getWillInfo(contract);
 
     // Check balances before execution
-    console.log(chalk.magenta.bold("\n🔍 Checking balances before execution..."));
+    console.log(
+      chalk.magenta.bold("\n🔍 Checking balances before execution..."),
+    );
     const beforeSnapshot = await checkTokenBalances(provider, willInfo);
-    printBalanceSnapshot(beforeSnapshot, "Token Balances Before Execution", willInfo);
+    printBalanceSnapshot(
+      beforeSnapshot,
+      "Token Balances Before Execution",
+      willInfo,
+    );
 
     // Execute signature transfer
     const result = await executeSignatureTransfer(
@@ -677,13 +717,19 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
       NONCE,
       DEADLINE,
       PERMIT2_SIGNATURE,
-      wallet.address
+      wallet.address,
     );
 
     // Check balances after execution
-    console.log(chalk.magenta.bold("\n🔍 Checking balances after execution..."));
+    console.log(
+      chalk.magenta.bold("\n🔍 Checking balances after execution..."),
+    );
     const afterSnapshot = await checkTokenBalances(provider, willInfo);
-    printBalanceSnapshot(afterSnapshot, "Token Balances After Execution", willInfo);
+    printBalanceSnapshot(
+      afterSnapshot,
+      "Token Balances After Execution",
+      willInfo,
+    );
 
     // Compare and show differences
     compareBalanceSnapshots(beforeSnapshot, afterSnapshot, willInfo);
@@ -695,12 +741,12 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     await updateEnvironmentVariables(result);
 
     console.log(
-      chalk.green.bold("\n🎉 Will execution process completed successfully!")
+      chalk.green.bold("\n🎉 Will execution process completed successfully!"),
     );
     console.log(
       chalk.green.bold(
-        `💰 ${result.estateCount} estate(s) transferred to beneficiaries!`
-      )
+        `💰 ${result.estateCount} estate(s) transferred to beneficiaries!`,
+      ),
     );
 
     return result;
@@ -709,7 +755,7 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will execution process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -733,7 +779,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

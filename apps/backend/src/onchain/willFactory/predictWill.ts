@@ -1,6 +1,10 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config";
 import { updateEnvVariable } from "@shared/utils/env";
-import { type Estate, type WillFactory, WillFactory__factory } from "@shared/types";
+import {
+  type Estate,
+  type WillFactory,
+  WillFactory__factory,
+} from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
@@ -61,7 +65,7 @@ function validateEnvironment(): EnvironmentVariables {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.will.formatted)) {
     throw new Error(
-      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`
+      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`,
     );
   }
 }
@@ -70,7 +74,7 @@ function validateFiles(): void {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -78,7 +82,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -142,7 +146,7 @@ function readWillData(): WillData {
       for (const field of requiredFields) {
         if (!estate[field]) {
           throw new Error(
-            `Missing required field '${field}' in estate ${index}`
+            `Missing required field '${field}' in estate ${index}`,
           );
         }
       }
@@ -150,13 +154,13 @@ function readWillData(): WillData {
       // Validate addresses
       if (!ethers.isAddress(estate.beneficiary)) {
         throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`
+          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
         );
       }
 
       if (!ethers.isAddress(estate.token)) {
         throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`
+          `Invalid token address in estate ${index}: ${estate.token}`,
         );
       }
     });
@@ -176,7 +180,7 @@ function readWillData(): WillData {
  */
 async function createContractInstance(
   factoryAddress: string,
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<WillFactory> {
   try {
     console.log(chalk.blue("Loading will factory contract..."));
@@ -205,7 +209,7 @@ async function predictWillAddress(
   contract: WillFactory,
   testator: string,
   estates: Estate[],
-  salt: number
+  salt: number,
 ): Promise<string> {
   try {
     console.log(chalk.blue("Predicting will address..."));
@@ -217,7 +221,7 @@ async function predictWillAddress(
     const predictedAddress = await contract.predictWill(
       testator,
       estates,
-      salt
+      salt,
     );
 
     if (!ethers.isAddress(predictedAddress)) {
@@ -226,7 +230,7 @@ async function predictWillAddress(
 
     console.log(
       chalk.green("✅ Will address predicted:"),
-      chalk.white(predictedAddress)
+      chalk.white(predictedAddress),
     );
     return predictedAddress;
   } catch (error) {
@@ -242,7 +246,7 @@ async function predictWillAddress(
 function saveAddressedWill(
   willData: WillData,
   salt: number,
-  predictedAddress: string
+  predictedAddress: string,
 ): AddressedWill {
   try {
     console.log(chalk.blue("Preparing addressed will..."));
@@ -260,11 +264,11 @@ function saveAddressedWill(
 
     writeFileSync(
       PATHS_CONFIG.will.addressed,
-      JSON.stringify(addressedWill, null, 4)
+      JSON.stringify(addressedWill, null, 4),
     );
     console.log(
       chalk.green("✅ Addressed will saved to:"),
-      PATHS_CONFIG.will.addressed
+      PATHS_CONFIG.will.addressed,
     );
 
     return addressedWill;
@@ -281,7 +285,7 @@ function saveAddressedWill(
 async function updateEnvironmentVariables(
   estates: Estate[],
   salt: number,
-  predictedAddress: string
+  predictedAddress: string,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -297,13 +301,13 @@ async function updateEnvironmentVariables(
       updates.push(
         [`BENEFICIARY${index}`, estate.beneficiary.toString()],
         [`TOKEN${index}`, estate.token.toString()],
-        [`AMOUNT${index}`, estate.amount.toString()]
+        [`AMOUNT${index}`, estate.amount.toString()],
       );
     });
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -326,7 +330,7 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
         contract.executor(),
         contract.uploadCidVerifier(),
         contract.createWillVerifier(),
-      ]
+      ],
     );
 
     console.log(chalk.gray("Contract addresses:"));
@@ -368,7 +372,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
       contract,
       willData.testator,
       willData.estates,
-      salt
+      salt,
     );
 
     // Save addressed will
@@ -378,7 +382,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
     await updateEnvironmentVariables(willData.estates, salt, predictedAddress);
 
     console.log(
-      chalk.green.bold("\n🎉 Will addressing process completed successfully!")
+      chalk.green.bold("\n🎉 Will addressing process completed successfully!"),
     );
 
     return {
@@ -393,7 +397,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will addressing process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -405,7 +409,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Will Address Prediction & Environment Setup ===\n")
+      chalk.cyan("\n=== Will Address Prediction & Environment Setup ===\n"),
     );
 
     const result = await processWillAddressing();
@@ -417,7 +421,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

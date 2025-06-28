@@ -144,7 +144,7 @@ function showUsage(): void {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Synchronizing anvil status to .env file ===\n")
+      chalk.cyan("\n=== Synchronizing anvil status to .env file ===\n"),
     );
 
     console.log(chalk.blue(`Checking port: ${ANVIL_PORT}`));

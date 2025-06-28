@@ -588,20 +588,44 @@ export const PATHS_CONFIG: PathsConfig = {
   // ZKP files
   zkp: {
     uploadCid: {
-      verifier: resolve(modulePath, "../zkp/circuits/uploadCid/contracts/verifier.sol"),
+      verifier: resolve(
+        modulePath,
+        "../zkp/circuits/uploadCid/contracts/verifier.sol",
+      ),
       proof: resolve(modulePath, "../zkp/circuits/uploadCid/proofs/proof.json"),
-      public: resolve(modulePath, "../zkp/circuits/uploadCid/proofs/public.json"),
+      public: resolve(
+        modulePath,
+        "../zkp/circuits/uploadCid/proofs/public.json",
+      ),
     },
     createWill: {
-      verifier: resolve(modulePath, "../zkp/circuits/createWill/contracts/verifier.sol"),
-      proof: resolve(modulePath, "../zkp/circuits/createWill/proofs/proof.json"),
-      public: resolve(modulePath, "../zkp/circuits/createWill/proofs/public.json"),
+      verifier: resolve(
+        modulePath,
+        "../zkp/circuits/createWill/contracts/verifier.sol",
+      ),
+      proof: resolve(
+        modulePath,
+        "../zkp/circuits/createWill/proofs/proof.json",
+      ),
+      public: resolve(
+        modulePath,
+        "../zkp/circuits/createWill/proofs/public.json",
+      ),
     },
     multiplier2: {
-      verifier: resolve(modulePath, "../zkp/circuits/multiplier2/contracts/verifier.sol"),
-      proof: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/proof.json"),
-      public: resolve(modulePath, "../zkp/circuits/multiplier2/proofs/public.json"),
-    }
+      verifier: resolve(
+        modulePath,
+        "../zkp/circuits/multiplier2/contracts/verifier.sol",
+      ),
+      proof: resolve(
+        modulePath,
+        "../zkp/circuits/multiplier2/proofs/proof.json",
+      ),
+      public: resolve(
+        modulePath,
+        "../zkp/circuits/multiplier2/proofs/public.json",
+      ),
+    },
   },
 
   // Environment files
@@ -611,8 +635,14 @@ export const PATHS_CONFIG: PathsConfig = {
   contracts: {
     broadcastDir: resolve(modulePath, "../contracts/broadcast"),
     outDir: resolve(modulePath, "../contracts/out"),
-    groth16Verifier: resolve(modulePath, "../contracts/src/Groth16Verifier.sol"),
-    jsonCidVerifier: resolve(modulePath, "../contracts/src/JsonCidVerifier.sol"),
+    groth16Verifier: resolve(
+      modulePath,
+      "../contracts/src/Groth16Verifier.sol",
+    ),
+    jsonCidVerifier: resolve(
+      modulePath,
+      "../contracts/src/JsonCidVerifier.sol",
+    ),
     will: resolve(modulePath, "../contracts/src/Will.sol"),
     willFactory: resolve(modulePath, "../contracts/src/WillFactory.sol"),
   },
@@ -859,7 +889,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
 
     if (missing.length > 0) {
       throw new Error(
-        `Missing required environment variables: ${missing.join(", ")}`
+        `Missing required environment variables: ${missing.join(", ")}`,
       );
     }
 
@@ -868,7 +898,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       const value = process.env[key];
       if (value && !pattern.test(value)) {
         throw new Error(
-          `Invalid format for environment variable ${key}: ${value}`
+          `Invalid format for environment variable ${key}: ${value}`,
         );
       }
     }

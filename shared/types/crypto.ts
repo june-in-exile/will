@@ -5,7 +5,8 @@ import { Base64String } from "@shared/types/encoding.js";
 export type HashableInput = string | number | boolean | object;
 export type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
 
-export type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
+export type SupportedAlgorithm =
+  (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
 
 // Configuration interfaces
 

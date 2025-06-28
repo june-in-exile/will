@@ -52,12 +52,16 @@ function validateEnvironment(): EnvironmentVariables {
 /**
  * Save downloaded will to file
  */
-function saveDownloadedWill(
-  downloadedWill: DownloadedWill
-): void {
+function saveDownloadedWill(downloadedWill: DownloadedWill): void {
   try {
-    writeFileSync(PATHS_CONFIG.will.downloaded, JSON.stringify(downloadedWill, null, 4));
-    console.log(chalk.green("✅ Downloaded will saved to:"), PATHS_CONFIG.will.downloaded);
+    writeFileSync(
+      PATHS_CONFIG.will.downloaded,
+      JSON.stringify(downloadedWill, null, 4),
+    );
+    console.log(
+      chalk.green("✅ Downloaded will saved to:"),
+      PATHS_CONFIG.will.downloaded,
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -74,7 +78,6 @@ async function processIPFSDownload(): Promise<DownloadResult> {
   try {
     const { CID: cidString } = validateEnvironment();
 
-
     // Create Helia instance
     helia = await createHelia();
     const j: HeliaJSON = json(helia);
@@ -89,7 +92,7 @@ async function processIPFSDownload(): Promise<DownloadResult> {
     saveDownloadedWill(downloadedWill);
 
     console.log(
-      chalk.green.bold("\n🎉 IPFS download process completed successfully!")
+      chalk.green.bold("\n🎉 IPFS download process completed successfully!"),
     );
 
     return {
@@ -113,7 +116,7 @@ async function processIPFSDownload(): Promise<DownloadResult> {
           stopError instanceof Error ? stopError.message : "Unknown stop error";
         console.warn(
           chalk.yellow("⚠️ Warning while stopping Helia:"),
-          stopErrorMessage
+          stopErrorMessage,
         );
       }
     }
@@ -136,7 +139,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

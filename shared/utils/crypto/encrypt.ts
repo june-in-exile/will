@@ -1,5 +1,10 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
-import { Base64String, type EncryptionArgs, type AuthenticatedCipher, type SupportedAlgorithm } from "@shared/types";
+import {
+  Base64String,
+  type EncryptionArgs,
+  type AuthenticatedCipher,
+  type SupportedAlgorithm,
+} from "@shared/types";
 import { AES_256_GCM } from "@shared/constants";
 import { randomBytes, createCipheriv } from "crypto";
 import { writeFileSync } from "fs";
@@ -27,35 +32,49 @@ function parseArgs(): EncryptionArgs {
       const algorithm = args[i + 1];
       if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
         throw new Error(
-          `Unsupported encryption algorithm: ${algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`
+          `Unsupported encryption algorithm: ${algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
         );
       }
       parsed.algorithm = algorithm as SupportedAlgorithm;
       console.log(chalk.blue("Using algorithm:"), algorithm);
     } else if (args[i] === "--plaintext" && i + 1 < args.length) {
       const plaintext = args[i + 1];
-      console.log(chalk.blue("Plaintext provided:"), chalk.gray(plaintext.substring(0, 50) + (plaintext.length > 50 ? "..." : "")));
-      parsed.plaintext = Buffer.from(plaintext, CRYPTO_CONFIG.plaintextEncoding);
+      console.log(
+        chalk.blue("Plaintext provided:"),
+        chalk.gray(
+          plaintext.substring(0, 50) + (plaintext.length > 50 ? "..." : ""),
+        ),
+      );
+      parsed.plaintext = Buffer.from(
+        plaintext,
+        CRYPTO_CONFIG.plaintextEncoding,
+      );
     } else if (args[i] === "--key" && i + 1 < args.length) {
       try {
         parsed.key = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided key"));
       } catch (error) {
-        throw new Error(`Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     } else if (args[i] === "--iv" && i + 1 < args.length) {
       try {
         parsed.iv = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided IV"));
       } catch (error) {
-        throw new Error(`Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   }
 
   // Validate required parameters
   if (!parsed.plaintext) {
-    throw new Error("Missing required parameter: --plaintext must be specified");
+    throw new Error(
+      "Missing required parameter: --plaintext must be specified",
+    );
   }
 
   if (!parsed.algorithm || !parsed.plaintext) {
@@ -84,28 +103,59 @@ function showUsage(): void {
   console.log(chalk.cyan("\n=== Usage Information ===\n"));
   console.log(
     chalk.white(
-      "This script encrypts plaintext using AES-256-GCM or ChaCha20-Poly1305 algorithms:\n"
-    )
+      "This script encrypts plaintext using AES-256-GCM or ChaCha20-Poly1305 algorithms:\n",
+    ),
   );
 
   console.log(chalk.yellow("Basic usage:"));
-  console.log(chalk.gray('   pnpm exec tsx encrypt.ts --plaintext "Hello, World!"'));
+  console.log(
+    chalk.gray('   pnpm exec tsx encrypt.ts --plaintext "Hello, World!"'),
+  );
 
   console.log(chalk.yellow("\nWith specific algorithm:"));
-  console.log(chalk.gray('   pnpm exec tsx encrypt.ts --algorithm chacha20-poly1305 --plaintext "Secret message"'));
+  console.log(
+    chalk.gray(
+      '   pnpm exec tsx encrypt.ts --algorithm chacha20-poly1305 --plaintext "Secret message"',
+    ),
+  );
 
   console.log(chalk.yellow("\nWith custom key and IV:"));
-  console.log(chalk.gray('   pnpm exec tsx encrypt.ts --plaintext "Text" --key "base64key..." --iv "base64iv..."'));
+  console.log(
+    chalk.gray(
+      '   pnpm exec tsx encrypt.ts --plaintext "Text" --key "base64key..." --iv "base64iv..."',
+    ),
+  );
 
   console.log(chalk.white("\nParameters:"));
-  console.log(chalk.cyan("  --algorithm") + chalk.gray("    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]"));
-  console.log(chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"));
-  console.log(chalk.cyan("  --key") + chalk.gray("         Base64-encoded encryption key [optional - auto-generated if not provided]"));
-  console.log(chalk.cyan("  --iv") + chalk.gray("          Base64-encoded initialization vector [optional - auto-generated if not provided]"));
+  console.log(
+    chalk.cyan("  --algorithm") +
+      chalk.gray(
+        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
+  );
+  console.log(
+    chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
+  );
+  console.log(
+    chalk.cyan("  --key") +
+      chalk.gray(
+        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+      ),
+  );
+  console.log(
+    chalk.cyan("  --iv") +
+      chalk.gray(
+        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+      ),
+  );
 
   console.log(chalk.red("\nImportant:"));
   console.log(chalk.red("• --plaintext parameter is required"));
-  console.log(chalk.red("• If --key or --iv are not provided, they will be randomly generated"));
+  console.log(
+    chalk.red(
+      "• If --key or --iv are not provided, they will be randomly generated",
+    ),
+  );
 }
 
 /**
@@ -229,7 +279,7 @@ export function encrypt(
   plaintext: Buffer,
   key: Buffer,
   iv: Buffer,
-): { ciphertext: Buffer, authTag: Buffer } {
+): { ciphertext: Buffer; authTag: Buffer } {
   try {
     // Validate inputs
     validateEncryptionParams(algorithm, plaintext, key, iv);
@@ -262,7 +312,9 @@ export function encrypt(
 /**
  * Get or generate encryption key with validation
  */
-export function generateEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
+export function generateEncryptionKey(
+  size: number = CRYPTO_CONFIG.keySize,
+): Buffer {
   try {
     console.log(chalk.blue("🔑 Generating new encryption key..."));
 
@@ -335,19 +387,27 @@ async function main(): Promise<void> {
 
     console.log(chalk.cyan("Algorithm:"), chalk.white(algorithm));
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
-    console.log(chalk.cyan("Key(base64):"), chalk.white(Base64String.fromBuffer(key)));
-    console.log(chalk.cyan("IV(base64):"), chalk.white(Base64String.fromBuffer(iv)));
+    console.log(
+      chalk.cyan("Key(base64):"),
+      chalk.white(Base64String.fromBuffer(key)),
+    );
+    console.log(
+      chalk.cyan("IV(base64):"),
+      chalk.white(Base64String.fromBuffer(iv)),
+    );
     console.log();
-    console.log(chalk.cyan("Ciphertext(base64):"), chalk.white(Base64String.fromBuffer(result.ciphertext)));
-    console.log(chalk.cyan("AuthTag(base64):"), chalk.white(Base64String.fromBuffer(result.authTag)));
-
+    console.log(
+      chalk.cyan("Ciphertext(base64):"),
+      chalk.white(Base64String.fromBuffer(result.ciphertext)),
+    );
+    console.log(
+      chalk.cyan("AuthTag(base64):"),
+      chalk.white(Base64String.fromBuffer(result.authTag)),
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      chalk.red.bold("\n❌ Encryption failed:"),
-      errorMessage,
-    );
+    console.error(chalk.red.bold("\n❌ Encryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
     if (

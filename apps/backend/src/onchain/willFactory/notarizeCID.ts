@@ -68,7 +68,7 @@ function validateEnvironment(): EnvironmentVariables {
   // Validate signature length (should be 65 bytes = 130 hex chars + 0x prefix)
   if (EXECUTOR_SIGNATURE.length !== 132) {
     throw new Error(
-      `Invalid executor signature length: expected 132 characters, got ${EXECUTOR_SIGNATURE.length}`
+      `Invalid executor signature length: expected 132 characters, got ${EXECUTOR_SIGNATURE.length}`,
     );
   }
 
@@ -84,7 +84,7 @@ function validateEnvironment(): EnvironmentVariables {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -92,7 +92,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -123,7 +123,7 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
  */
 async function createContractInstance(
   factoryAddress: string,
-  wallet: Wallet
+  wallet: Wallet,
 ): Promise<WillFactory> {
   try {
     console.log(chalk.blue("Loading will factory contract..."));
@@ -152,7 +152,7 @@ async function createContractInstance(
  */
 async function validateCidStatus(
   contract: WillFactory,
-  cid: string
+  cid: string,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Validating CID status..."));
@@ -162,13 +162,13 @@ async function validateCidStatus(
 
     if (testatorValidateTime === 0n) {
       throw new Error(
-        `CID ${cid} has not been validated by testator yet. Please run uploadCid first.`
+        `CID ${cid} has not been validated by testator yet. Please run uploadCid first.`,
       );
     }
 
     console.log(
       chalk.green("✅ CID validated by testator at:"),
-      new Date(Number(testatorValidateTime) * 1000).toISOString()
+      new Date(Number(testatorValidateTime) * 1000).toISOString(),
     );
 
     // Check if CID has already been notarized
@@ -177,7 +177,7 @@ async function validateCidStatus(
     if (executorValidateTime > 0n) {
       console.log(
         chalk.yellow("⚠️  Warning: CID already notarized at:"),
-        new Date(Number(executorValidateTime) * 1000).toISOString()
+        new Date(Number(executorValidateTime) * 1000).toISOString(),
       );
       console.log(chalk.yellow("Proceeding with re-notarization..."));
     }
@@ -194,7 +194,7 @@ async function validateCidStatus(
 async function verifyExecutorSignature(
   contract: WillFactory,
   cid: string,
-  signature: string
+  signature: string,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Verifying executor signature..."));
@@ -235,7 +235,7 @@ function printNotarizationDetails(cid: string, signature: string): void {
 async function executeNotarizeCID(
   contract: WillFactory,
   cid: string,
-  signature: string
+  signature: string,
 ): Promise<NotarizeResult> {
   try {
     console.log(chalk.blue("Executing notarizeCid transaction..."));
@@ -294,7 +294,7 @@ async function executeNotarizeCID(
  * Update environment variables with notarization data
  */
 async function updateEnvironmentVariables(
-  result: NotarizeResult
+  result: NotarizeResult,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -306,7 +306,7 @@ async function updateEnvironmentVariables(
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -315,7 +315,7 @@ async function updateEnvironmentVariables(
       error instanceof Error ? error.message : "Unknown error";
     console.warn(
       chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage
+      errorMessage,
     );
   }
 }
@@ -374,7 +374,7 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
     await updateEnvironmentVariables(result);
 
     console.log(
-      chalk.green.bold("\n🎉 CID notarization process completed successfully!")
+      chalk.green.bold("\n🎉 CID notarization process completed successfully!"),
     );
 
     return result;
@@ -383,7 +383,7 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during CID notarization process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -406,7 +406,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

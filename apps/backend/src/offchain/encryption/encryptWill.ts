@@ -4,8 +4,16 @@ import {
   generateInitializationVector,
   encrypt,
 } from "@shared/utils/crypto";
-import { validateEthereumAddress, validateSignature } from "@shared/utils/format"
-import { Base64String, type EncryptionArgs, type EncryptedWill, type SupportedAlgorithm } from "@shared/types";
+import {
+  validateEthereumAddress,
+  validateSignature,
+} from "@shared/utils/format";
+import {
+  Base64String,
+  type EncryptionArgs,
+  type EncryptedWill,
+  type SupportedAlgorithm,
+} from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -55,7 +63,7 @@ interface Signature {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.will.signed)) {
     throw new Error(
-      `Signed will file does not exist: ${PATHS_CONFIG.will.signed}`
+      `Signed will file does not exist: ${PATHS_CONFIG.will.signed}`,
     );
   }
 }
@@ -70,7 +78,15 @@ function readSignedWill(): SignedWill {
     const willJson: SignedWill = JSON.parse(willContent);
 
     // Validate required fields
-    const requiredFields: (keyof SignedWill)[] = ["testator", "estates", "salt", "will", "timestamp", "metadata", "signature"];
+    const requiredFields: (keyof SignedWill)[] = [
+      "testator",
+      "estates",
+      "salt",
+      "will",
+      "timestamp",
+      "metadata",
+      "signature",
+    ];
     for (const field of requiredFields) {
       if (willJson[field] === undefined || willJson[field] === null) {
         throw new Error(`Missing required field: ${field}`);
@@ -88,7 +104,7 @@ function readSignedWill(): SignedWill {
     }
 
     // Validate salt is a positive number
-    if (typeof willJson.salt !== 'number' || willJson.salt <= 0) {
+    if (typeof willJson.salt !== "number" || willJson.salt <= 0) {
       throw new Error(`Invalid salt value: ${willJson.salt}`);
     }
 
@@ -100,7 +116,9 @@ function readSignedWill(): SignedWill {
 
     // Validate timestamp is not in the future (with 1 minute tolerance)
     if (timestamp > new Date(Date.now() + 60000)) {
-      throw new Error(`Timestamp cannot be in the future: ${willJson.timestamp}`);
+      throw new Error(
+        `Timestamp cannot be in the future: ${willJson.timestamp}`,
+      );
     }
 
     // Validate estates array
@@ -110,43 +128,60 @@ function readSignedWill(): SignedWill {
 
     // Validate each estate
     willJson.estates.forEach((estate, index) => {
-      const requiredEstateFields: (keyof Estate)[] = ["beneficiary", "token", "amount"];
+      const requiredEstateFields: (keyof Estate)[] = [
+        "beneficiary",
+        "token",
+        "amount",
+      ];
 
       for (const field of requiredEstateFields) {
         if (estate[field] === undefined || estate[field] === null) {
-          throw new Error(`Missing required field '${field}' in estate ${index}`);
+          throw new Error(
+            `Missing required field '${field}' in estate ${index}`,
+          );
         }
       }
 
       // Validate beneficiary address
       if (!validateEthereumAddress(estate.beneficiary)) {
-        throw new Error(`Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`);
+        throw new Error(
+          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
+        );
       }
 
       // Validate token address
       if (!validateEthereumAddress(estate.token)) {
-        throw new Error(`Invalid token address in estate ${index}: ${estate.token}`);
+        throw new Error(
+          `Invalid token address in estate ${index}: ${estate.token}`,
+        );
       }
 
       // Validate amount is a positive number
-      if (typeof estate.amount !== 'number' || estate.amount <= 0) {
-        throw new Error(`Invalid amount in estate ${index}: ${estate.amount} (must be a positive number)`);
+      if (typeof estate.amount !== "number" || estate.amount <= 0) {
+        throw new Error(
+          `Invalid amount in estate ${index}: ${estate.amount} (must be a positive number)`,
+        );
       }
 
       // Validate amount is an integer (no decimals for token amounts)
       if (!Number.isInteger(estate.amount)) {
-        throw new Error(`Amount must be an integer in estate ${index}: ${estate.amount}`);
+        throw new Error(
+          `Amount must be an integer in estate ${index}: ${estate.amount}`,
+        );
       }
     });
 
     // Validate metadata
-    if (!willJson.metadata || typeof willJson.metadata !== 'object') {
+    if (!willJson.metadata || typeof willJson.metadata !== "object") {
       throw new Error("Metadata must be an object");
     }
 
-    const requiredMetadataFields: (keyof Metadata)[] = ["predictedAt", "estatesCount"];
+    const requiredMetadataFields: (keyof Metadata)[] = [
+      "predictedAt",
+      "estatesCount",
+    ];
     for (const field of requiredMetadataFields) {
-      if (typeof willJson.metadata[field] !== 'number') {
+      if (typeof willJson.metadata[field] !== "number") {
         throw new Error(`Invalid metadata field '${field}': must be a number`);
       }
     }
@@ -154,44 +189,63 @@ function readSignedWill(): SignedWill {
     // Validate metadata consistency
     if (willJson.metadata.estatesCount !== willJson.estates.length) {
       throw new Error(
-        `Metadata estates count (${willJson.metadata.estatesCount}) does not match actual estates count (${willJson.estates.length})`
+        `Metadata estates count (${willJson.metadata.estatesCount}) does not match actual estates count (${willJson.estates.length})`,
       );
     }
 
     // Validate predictedAt timestamp
     if (willJson.metadata.predictedAt <= 0) {
-      throw new Error(`Invalid predictedAt timestamp: ${willJson.metadata.predictedAt}`);
+      throw new Error(
+        `Invalid predictedAt timestamp: ${willJson.metadata.predictedAt}`,
+      );
     }
 
     // Validate signature object
-    if (!willJson.signature || typeof willJson.signature !== 'object') {
+    if (!willJson.signature || typeof willJson.signature !== "object") {
       throw new Error("Signature must be an object");
     }
 
-    const requiredSignatureFields: (keyof Signature)[] = ["nonce", "deadline", "signature"];
+    const requiredSignatureFields: (keyof Signature)[] = [
+      "nonce",
+      "deadline",
+      "signature",
+    ];
     for (const field of requiredSignatureFields) {
-      if (willJson.signature[field] === undefined || willJson.signature[field] === null) {
+      if (
+        willJson.signature[field] === undefined ||
+        willJson.signature[field] === null
+      ) {
         throw new Error(`Missing required signature field: ${field}`);
       }
     }
 
     // Validate signature fields
-    if (typeof willJson.signature.nonce !== 'number' || willJson.signature.nonce <= 0) {
+    if (
+      typeof willJson.signature.nonce !== "number" ||
+      willJson.signature.nonce <= 0
+    ) {
       throw new Error(`Invalid nonce: ${willJson.signature.nonce}`);
     }
 
-    if (typeof willJson.signature.deadline !== 'number' || willJson.signature.deadline <= 0) {
+    if (
+      typeof willJson.signature.deadline !== "number" ||
+      willJson.signature.deadline <= 0
+    ) {
       throw new Error(`Invalid deadline: ${willJson.signature.deadline}`);
     }
 
     if (!validateSignature(willJson.signature.signature)) {
-      throw new Error(`Invalid signature format: ${willJson.signature.signature}`);
+      throw new Error(
+        `Invalid signature format: ${willJson.signature.signature}`,
+      );
     }
 
     // Validate deadline is in the future
     const currentTimestamp = Math.floor(Date.now() / 1000);
     if (willJson.signature.deadline <= currentTimestamp) {
-      throw new Error(`Signature deadline has expired: ${willJson.signature.deadline}`);
+      throw new Error(
+        `Signature deadline has expired: ${willJson.signature.deadline}`,
+      );
     }
 
     console.log(chalk.green("✅ Signed will validated successfully"));
@@ -214,7 +268,10 @@ function getEncryptionArgs(): EncryptionArgs {
   validateFiles();
   const signedWill = readSignedWill();
   const signedWillString = JSON.stringify(signedWill);
-  const plaintext = Buffer.from(signedWillString, CRYPTO_CONFIG.plaintextEncoding);
+  const plaintext = Buffer.from(
+    signedWillString,
+    CRYPTO_CONFIG.plaintextEncoding,
+  );
 
   const key = generateEncryptionKey(CRYPTO_CONFIG.keySize);
 
@@ -226,12 +283,16 @@ function getEncryptionArgs(): EncryptionArgs {
 /**
  * Save encrypted will to file
  */
-function saveEncryptedWill(
-  encryptedWill: EncryptedWill
-): void {
+function saveEncryptedWill(encryptedWill: EncryptedWill): void {
   try {
-    writeFileSync(PATHS_CONFIG.will.encrypted, JSON.stringify(encryptedWill, null, 4));
-    console.log(chalk.green("Encrypted will saved to:"), PATHS_CONFIG.will.encrypted);
+    writeFileSync(
+      PATHS_CONFIG.will.encrypted,
+      JSON.stringify(encryptedWill, null, 4),
+    );
+    console.log(
+      chalk.green("Encrypted will saved to:"),
+      PATHS_CONFIG.will.encrypted,
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -268,15 +329,15 @@ async function processWillEncryption(): Promise<ProcessResult> {
           ciphertext: encryptedWill.ciphertext.substring(0, 50) + "...",
         },
         null,
-        2
-      )
+        2,
+      ),
     );
 
     // Save encrypted will
     saveEncryptedWill(encryptedWill);
 
     console.log(
-      chalk.green.bold("\n🎉 Will encryption process completed successfully!")
+      chalk.green.bold("\n🎉 Will encryption process completed successfully!"),
     );
 
     return {
@@ -289,7 +350,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will encryption process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -300,9 +361,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(
-      chalk.cyan("\n=== Will Encryption ===\n")
-    );
+    console.log(chalk.cyan("\n=== Will Encryption ===\n"));
 
     const result = await processWillEncryption();
 

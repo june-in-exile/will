@@ -50,7 +50,7 @@ class ContractAddressExtractor {
       }
 
       const broadcastData: BroadcastData = JSON.parse(
-        readFileSync(broadcastPath, "utf8")
+        readFileSync(broadcastPath, "utf8"),
       );
 
       // Priority: Extract from receipts
@@ -71,7 +71,7 @@ class ContractAddressExtractor {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       console.error(
-        chalk.red(`Error processing broadcast file: ${errorMessage}`)
+        chalk.red(`Error processing broadcast file: ${errorMessage}`),
       );
       throw error;
     }
@@ -129,7 +129,7 @@ class ContractAddressExtractor {
       this.broadcastDir,
       `${contractName}.s.sol`,
       chainId,
-      "run-latest.json"
+      "run-latest.json",
     );
   }
 
@@ -188,13 +188,13 @@ async function main(): Promise<void> {
   if (args.length < 3) {
     console.error(
       chalk.red(
-        `❌ Usage: pnpm exec tsx ${process.argv[1]} <KEY> <CONTRACT_NAME> <CHAIN_ID>`
-      )
+        `❌ Usage: pnpm exec tsx ${process.argv[1]} <KEY> <CONTRACT_NAME> <CHAIN_ID>`,
+      ),
     );
     console.error(
       chalk.gray(
-        `📝 For example: pnpm exec tsx ${process.argv[1]} WILL_FACTORY WillFactory 31337`
-      )
+        `📝 For example: pnpm exec tsx ${process.argv[1]} WILL_FACTORY WillFactory 31337`,
+      ),
     );
     process.exit(1);
   }

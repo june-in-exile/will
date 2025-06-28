@@ -81,7 +81,7 @@ function validateFiles(): void {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -89,7 +89,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -104,14 +104,14 @@ async function validateRpcConnection(
  */
 async function createContractInstance(
   verifierAddress: string,
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Groth16Verifier> {
   try {
     console.log(chalk.blue("Loading Groth16 verifier contract..."));
 
     const contract = Groth16Verifier__factory.connect(
       verifierAddress,
-      provider
+      provider,
     );
 
     // Validate contract exists at address
@@ -142,19 +142,19 @@ function printProofData(proof: ProofData): void {
   console.log(chalk.gray("- pA[1]:"), chalk.white(proof.pA[1].toString()));
   console.log(
     chalk.gray("- pB[0][0]:"),
-    chalk.white(proof.pB[0][0].toString())
+    chalk.white(proof.pB[0][0].toString()),
   );
   console.log(
     chalk.gray("- pB[0][1]:"),
-    chalk.white(proof.pB[0][1].toString())
+    chalk.white(proof.pB[0][1].toString()),
   );
   console.log(
     chalk.gray("- pB[1][0]:"),
-    chalk.white(proof.pB[1][0].toString())
+    chalk.white(proof.pB[1][0].toString()),
   );
   console.log(
     chalk.gray("- pB[1][1]:"),
-    chalk.white(proof.pB[1][1].toString())
+    chalk.white(proof.pB[1][1].toString()),
   );
   console.log(chalk.gray("- pC[0]:"), chalk.white(proof.pC[0].toString()));
   console.log(chalk.gray("- pC[1]:"), chalk.white(proof.pC[1].toString()));
@@ -163,7 +163,7 @@ function printProofData(proof: ProofData): void {
   proof.pubSignals.forEach((signal, index) => {
     console.log(
       chalk.gray(`- pubSignal[${index}]:`),
-      chalk.white(signal.toString())
+      chalk.white(signal.toString()),
     );
   });
 
@@ -175,7 +175,7 @@ function printProofData(proof: ProofData): void {
  */
 async function submitProofToContract(
   contract: Groth16Verifier,
-  proof: ProofData
+  proof: ProofData,
 ): Promise<ProofValidationResult> {
   try {
     console.log(chalk.blue("Submitting proof for verification..."));
@@ -190,7 +190,7 @@ async function submitProofToContract(
       proof.pA,
       proof.pB,
       proof.pC,
-      proof.pubSignals
+      proof.pubSignals,
     );
 
     const executionTime = Date.now() - startTime;
@@ -233,7 +233,7 @@ async function processProofSubmission(): Promise<ProofSubmissionResult> {
     // Create contract instance
     const contract = await createContractInstance(
       UPLOAD_CID_VERIFIER,
-      provider
+      provider,
     );
 
     // Read and validate proof data
@@ -250,7 +250,7 @@ async function processProofSubmission(): Promise<ProofSubmissionResult> {
     };
 
     console.log(
-      chalk.green.bold("\n🎉 Proof submission process completed successfully!")
+      chalk.green.bold("\n🎉 Proof submission process completed successfully!"),
     );
 
     return result;
@@ -259,7 +259,7 @@ async function processProofSubmission(): Promise<ProofSubmissionResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during proof submission process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -278,17 +278,17 @@ async function main(): Promise<void> {
     console.log(chalk.gray("Results:"));
     console.log(
       chalk.gray("- Proof Valid:"),
-      result.isValid ? chalk.green("✅ YES") : chalk.red("❌ NO")
+      result.isValid ? chalk.green("✅ YES") : chalk.red("❌ NO"),
     );
     console.log(chalk.gray("- Contract Address:"), result.contractAddress);
     console.log(
       chalk.gray("- Submitted At:"),
-      new Date(result.submittedAt).toISOString()
+      new Date(result.submittedAt).toISOString(),
     );
 
     if (!result.isValid) {
       console.log(
-        chalk.yellow("\n⚠️  Proof verification failed. Please check:")
+        chalk.yellow("\n⚠️  Proof verification failed. Please check:"),
       );
       console.log(chalk.gray("1. Proof generation process"));
       console.log(chalk.gray("2. Public signal consistency"));
@@ -300,7 +300,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

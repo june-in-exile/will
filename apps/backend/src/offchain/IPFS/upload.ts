@@ -46,7 +46,7 @@ interface ExecResult {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.will.encrypted)) {
     throw new Error(
-      `Encrypted will file does not exist: ${PATHS_CONFIG.will.encrypted}`
+      `Encrypted will file does not exist: ${PATHS_CONFIG.will.encrypted}`,
     );
   }
 }
@@ -105,7 +105,7 @@ async function createHeliaInstance(): Promise<HeliaInstance> {
  */
 async function uploadToIPFS(
   jsonHandler: HeliaJSON,
-  willData: EncryptedWillData
+  willData: EncryptedWillData,
 ): Promise<CID> {
   try {
     console.log(chalk.blue("Uploading encrypted will to IPFS..."));
@@ -128,19 +128,19 @@ async function uploadToIPFS(
  */
 async function pinInLocalDaemon(
   cid: CID,
-  retryAttempts: number = IPFS_CONFIG.pinning.retryAttempts
+  retryAttempts: number = IPFS_CONFIG.pinning.retryAttempts,
 ): Promise<boolean> {
   for (let attempt = 1; attempt <= retryAttempts; attempt++) {
     try {
       console.log(
         chalk.blue(
-          `Attempting to pin in local IPFS daemon (attempt ${attempt}/${retryAttempts})...`
-        )
+          `Attempting to pin in local IPFS daemon (attempt ${attempt}/${retryAttempts})...`,
+        ),
       );
 
       const { stdout, stderr }: ExecResult = await execPromise(
         `ipfs pin add ${cid.toString()}`,
-        { timeout: IPFS_CONFIG.pinning.timeout }
+        { timeout: IPFS_CONFIG.pinning.timeout },
       );
 
       if (stderr && stderr.trim()) {
@@ -149,7 +149,7 @@ async function pinInLocalDaemon(
 
       console.log(
         chalk.green("✅ Content pinned in local IPFS daemon:"),
-        stdout.trim()
+        stdout.trim(),
       );
       return true;
     } catch (error: unknown) {
@@ -162,21 +162,21 @@ async function pinInLocalDaemon(
         if (execError.code === "TIMEOUT") {
           console.warn(
             chalk.yellow(
-              `⚠️ Timeout on attempt ${attempt}: IPFS daemon pinning timed out`
-            )
+              `⚠️ Timeout on attempt ${attempt}: IPFS daemon pinning timed out`,
+            ),
           );
         } else if (execError.code === "ENOENT") {
           console.error(
             chalk.red(
-              "❌ IPFS CLI not found - please ensure IPFS is installed and in PATH"
-            )
+              "❌ IPFS CLI not found - please ensure IPFS is installed and in PATH",
+            ),
           );
           throw new Error("IPFS CLI not available - pinning failed");
         } else {
           const errorMessage = execError.message || "Unknown exec error";
           console.warn(
             chalk.yellow(`⚠️ Attempt ${attempt} failed:`),
-            errorMessage
+            errorMessage,
           );
         }
       } else {
@@ -184,13 +184,13 @@ async function pinInLocalDaemon(
           error instanceof Error ? error.message : "Unknown error";
         console.warn(
           chalk.yellow(`⚠️ Attempt ${attempt} failed:`),
-          errorMessage
+          errorMessage,
         );
       }
 
       if (isLastAttempt) {
         console.error(
-          chalk.red("❌ Could not pin in local IPFS daemon after all attempts")
+          chalk.red("❌ Could not pin in local IPFS daemon after all attempts"),
         );
         console.error(chalk.gray("This might be because:"));
         console.error(chalk.gray("- The daemon is not running"));
@@ -199,7 +199,7 @@ async function pinInLocalDaemon(
 
         // Throw error on final failure
         throw new Error(
-          `Failed to pin content in local IPFS daemon after ${retryAttempts} attempts`
+          `Failed to pin content in local IPFS daemon after ${retryAttempts} attempts`,
         );
       }
     }
@@ -241,7 +241,7 @@ async function updateEnvironmentVariables(cid: CID): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("❌ Failed to update environment variables:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -271,11 +271,11 @@ async function processIPFSUpload(): Promise<UploadResult> {
     try {
       await pinInLocalDaemon(cid);
       console.log(
-        chalk.green("✅ Local daemon pinning completed successfully")
+        chalk.green("✅ Local daemon pinning completed successfully"),
       );
     } catch (daemonError) {
       console.error(
-        chalk.red("❌ Local daemon pinning failed - aborting process")
+        chalk.red("❌ Local daemon pinning failed - aborting process"),
       );
       const errorMessage =
         daemonError instanceof Error
@@ -295,7 +295,7 @@ async function processIPFSUpload(): Promise<UploadResult> {
     await updateEnvironmentVariables(cid);
 
     console.log(
-      chalk.green.bold("\n🎉 IPFS upload process completed successfully!")
+      chalk.green.bold("\n🎉 IPFS upload process completed successfully!"),
     );
 
     return {
@@ -317,7 +317,7 @@ async function processIPFSUpload(): Promise<UploadResult> {
       errorMessage.includes("Helia pinning")
     ) {
       console.error(
-        chalk.red.bold("❌ Process failed due to pinning requirements not met")
+        chalk.red.bold("❌ Process failed due to pinning requirements not met"),
       );
 
       // Determine which pinning failed
@@ -349,7 +349,7 @@ async function processIPFSUpload(): Promise<UploadResult> {
           stopError instanceof Error ? stopError.message : "Unknown stop error";
         console.warn(
           chalk.yellow("⚠️ Warning while stopping Helia:"),
-          stopErrorMessage
+          stopErrorMessage,
         );
       }
     }
@@ -401,7 +401,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

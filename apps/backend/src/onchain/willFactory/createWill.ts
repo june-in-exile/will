@@ -1,11 +1,8 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
 import { updateEnvVariable } from "@shared/utils/env";
 import { readProof } from "@shared/utils/read";
-import {
-  validatePrivateKey,
-  validateCidv1,
-} from "@shared/utils/format";
-import { Base64String, type SupportedAlgorithm } from "@shared/types"
+import { validatePrivateKey, validateCidv1 } from "@shared/utils/format";
+import { Base64String, type SupportedAlgorithm } from "@shared/types";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
@@ -132,7 +129,7 @@ function parseEstatesFromEnvironment(): Estate[] {
     // Validate addresses
     if (!ethers.isAddress(beneficiary)) {
       throw new Error(
-        `Invalid beneficiary address at index ${index}: ${beneficiary}`
+        `Invalid beneficiary address at index ${index}: ${beneficiary}`,
       );
     }
 
@@ -150,7 +147,7 @@ function parseEstatesFromEnvironment(): Estate[] {
 
     if (parsedAmount <= 0n) {
       throw new Error(
-        `Amount must be greater than zero at index ${index}: ${amount}`
+        `Amount must be greater than zero at index ${index}: ${amount}`,
       );
     }
 
@@ -165,12 +162,12 @@ function parseEstatesFromEnvironment(): Estate[] {
 
   if (estates.length === 0) {
     throw new Error(
-      "No estates found in environment variables. Please set BENEFICIARY0, TOKEN0, AMOUNT0, etc."
+      "No estates found in environment variables. Please set BENEFICIARY0, TOKEN0, AMOUNT0, etc.",
     );
   }
 
   console.log(
-    chalk.green(`✅ Found ${estates.length} estate(s) in environment`)
+    chalk.green(`✅ Found ${estates.length} estate(s) in environment`),
   );
   return estates;
 }
@@ -196,7 +193,7 @@ function validateFiles(): void {
  * Validate RPC connection
  */
 async function validateRpcConnection(
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Network> {
   try {
     console.log(chalk.blue("Validating RPC connection..."));
@@ -204,7 +201,7 @@ async function validateRpcConnection(
     console.log(
       chalk.green("✅ Connected to network:"),
       network.name,
-      `(Chain ID: ${network.chainId})`
+      `(Chain ID: ${network.chainId})`,
     );
     return network;
   } catch (error) {
@@ -234,7 +231,7 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
  * Validate required fields
  */
 function validateRequiredFields(
-  will: Partial<EncryptedWillData>
+  will: Partial<EncryptedWillData>,
 ): asserts will is EncryptedWillData {
   const REQUIRED_FIELDS: (keyof EncryptedWillData)[] = [
     "algorithm",
@@ -258,14 +255,14 @@ function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   // Validate encryption algorithm
   if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedWill.algorithm)) {
     throw new Error(
-      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`
+      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`,
     );
   }
 
   // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
   if (encryptedWill.iv.length < 12) {
     throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`
+      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`,
     );
   }
 
@@ -290,7 +287,7 @@ function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
   if (timestamp < oneYearAgo) {
     console.warn(
-      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year")
+      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year"),
     );
   }
 }
@@ -322,11 +319,11 @@ function readWillData(): EncryptedWillData {
  * Convert will data to JsonObject format
  */
 function convertToJsonObject(
-  encryptedWillData: EncryptedWillData
+  encryptedWillData: EncryptedWillData,
 ): JsonCidVerifier.JsonObjectStruct {
   try {
     console.log(
-      chalk.blue("Converting encrypted will data to JsonObject format...")
+      chalk.blue("Converting encrypted will data to JsonObject format..."),
     );
 
     const keys: string[] = [];
@@ -349,7 +346,7 @@ function convertToJsonObject(
     values.push(encryptedWillData.timestamp);
 
     console.log(
-      chalk.green("✅ Encrypted will data converted to JsonObject format")
+      chalk.green("✅ Encrypted will data converted to JsonObject format"),
     );
 
     return { keys, values };
@@ -365,7 +362,7 @@ function convertToJsonObject(
  */
 async function createContractInstance(
   factoryAddress: string,
-  wallet: Wallet
+  wallet: Wallet,
 ): Promise<WillFactory> {
   try {
     console.log(chalk.blue("Loading will factory contract..."));
@@ -394,7 +391,7 @@ async function createContractInstance(
  */
 async function validateCidPrerequisites(
   contract: WillFactory,
-  cid: string
+  cid: string,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Validating CID prerequisites..."));
@@ -403,7 +400,7 @@ async function validateCidPrerequisites(
     const testatorValidateTime = await contract.testatorValidateTimes(cid);
     if (testatorValidateTime === 0n) {
       throw new Error(
-        `CID ${cid} has not been validated by testator. Please run uploadCid first.`
+        `CID ${cid} has not been validated by testator. Please run uploadCid first.`,
       );
     }
 
@@ -411,7 +408,7 @@ async function validateCidPrerequisites(
     const executorValidateTime = await contract.executorValidateTimes(cid);
     if (executorValidateTime <= testatorValidateTime) {
       throw new Error(
-        `CID ${cid} has not been notarized by executor or was notarized before testator validation. Please run notarizeCid first.`
+        `CID ${cid} has not been notarized by executor or was notarized before testator validation. Please run notarizeCid first.`,
       );
     }
 
@@ -419,18 +416,18 @@ async function validateCidPrerequisites(
     const existingWill = await contract.wills(cid);
     if (existingWill !== ethers.ZeroAddress) {
       throw new Error(
-        `Will already exists for CID ${cid} at address: ${existingWill}`
+        `Will already exists for CID ${cid} at address: ${existingWill}`,
       );
     }
 
     console.log(chalk.green("✅ CID prerequisites validated successfully"));
     console.log(
       chalk.gray("- Testator validated at:"),
-      new Date(Number(testatorValidateTime) * 1000).toISOString()
+      new Date(Number(testatorValidateTime) * 1000).toISOString(),
     );
     console.log(
       chalk.gray("- Executor notarized at:"),
-      new Date(Number(executorValidateTime) * 1000).toISOString()
+      new Date(Number(executorValidateTime) * 1000).toISOString(),
     );
   } catch (error) {
     const errorMessage =
@@ -444,7 +441,7 @@ async function validateCidPrerequisites(
  */
 function validateEstateBusinessRules(
   estates: Estate[],
-  testator: string
+  testator: string,
 ): void {
   console.log(chalk.blue("Validating estate business rules..."));
 
@@ -454,7 +451,7 @@ function validateEstateBusinessRules(
     // Check beneficiary is not testator
     if (estate.beneficiary.toLowerCase() === testator.toLowerCase()) {
       throw new Error(
-        `Estate ${i}: Beneficiary cannot be the same as testator (${estate.beneficiary})`
+        `Estate ${i}: Beneficiary cannot be the same as testator (${estate.beneficiary})`,
       );
     }
 
@@ -463,13 +460,13 @@ function validateEstateBusinessRules(
       const otherEstate = estates[j];
       if (
         estate.beneficiary.toLowerCase() ===
-        otherEstate.beneficiary.toLowerCase() &&
+          otherEstate.beneficiary.toLowerCase() &&
         estate.token.toLowerCase() === otherEstate.token.toLowerCase()
       ) {
         console.warn(
           chalk.yellow(
-            `⚠️  Warning: Duplicate beneficiary-token pair found at estates ${i} and ${j}: ${estate.beneficiary} - ${estate.token}`
-          )
+            `⚠️  Warning: Duplicate beneficiary-token pair found at estates ${i} and ${j}: ${estate.beneficiary} - ${estate.token}`,
+          ),
         );
       }
     }
@@ -485,7 +482,7 @@ async function predictWillAddress(
   contract: WillFactory,
   testator: string,
   estates: Estate[],
-  salt: bigint
+  salt: bigint,
 ): Promise<string> {
   try {
     console.log(chalk.blue("Predicting will address..."));
@@ -500,7 +497,7 @@ async function predictWillAddress(
     const predictedAddress = await contract.predictWill(
       testator,
       contractEstates,
-      salt
+      salt,
     );
 
     console.log(chalk.green("✅ Will address predicted:"), predictedAddress);
@@ -536,12 +533,12 @@ function printCreateWillData(createData: CreateWillData): void {
     console.log(chalk.gray(`  Estate ${index}:`));
     console.log(
       chalk.gray("    - Beneficiary:"),
-      chalk.white(estate.beneficiary)
+      chalk.white(estate.beneficiary),
     );
     console.log(chalk.gray("    - Token:"), chalk.white(estate.token));
     console.log(
       chalk.gray("    - Amount:"),
-      chalk.white(estate.amount.toString())
+      chalk.white(estate.amount.toString()),
     );
   });
 
@@ -549,39 +546,39 @@ function printCreateWillData(createData: CreateWillData): void {
   console.log(chalk.blue("\n🔐 Proof Data:"));
   console.log(
     chalk.gray("- pA[0]:"),
-    chalk.white(createData.proof.pA[0].toString())
+    chalk.white(createData.proof.pA[0].toString()),
   );
   console.log(
     chalk.gray("- pA[1]:"),
-    chalk.white(createData.proof.pA[1].toString())
+    chalk.white(createData.proof.pA[1].toString()),
   );
   console.log(
     chalk.gray("- pB[0][0]:"),
-    chalk.white(createData.proof.pB[0][0].toString())
+    chalk.white(createData.proof.pB[0][0].toString()),
   );
   console.log(
     chalk.gray("- pB[0][1]:"),
-    chalk.white(createData.proof.pB[0][1].toString())
+    chalk.white(createData.proof.pB[0][1].toString()),
   );
   console.log(
     chalk.gray("- pB[1][0]:"),
-    chalk.white(createData.proof.pB[1][0].toString())
+    chalk.white(createData.proof.pB[1][0].toString()),
   );
   console.log(
     chalk.gray("- pB[1][1]:"),
-    chalk.white(createData.proof.pB[1][1].toString())
+    chalk.white(createData.proof.pB[1][1].toString()),
   );
   console.log(
     chalk.gray("- pC[0]:"),
-    chalk.white(createData.proof.pC[0].toString())
+    chalk.white(createData.proof.pC[0].toString()),
   );
   console.log(
     chalk.gray("- pC[1]:"),
-    chalk.white(createData.proof.pC[1].toString())
+    chalk.white(createData.proof.pC[1].toString()),
   );
   console.log(
     chalk.gray("- pubSignals[0]:"),
-    chalk.white(createData.proof.pubSignals[0].toString())
+    chalk.white(createData.proof.pubSignals[0].toString()),
   );
 
   // Print Will Data
@@ -592,7 +589,7 @@ function printCreateWillData(createData: CreateWillData): void {
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
       chalk.gray("=>"),
-      chalk.white(value)
+      chalk.white(value),
     );
   });
 
@@ -604,7 +601,7 @@ function printCreateWillData(createData: CreateWillData): void {
  */
 async function executeCreateWill(
   contract: WillFactory,
-  createData: CreateWillData
+  createData: CreateWillData,
 ): Promise<CreateWillResult> {
   try {
     console.log(chalk.blue("Executing createWill transaction..."));
@@ -623,7 +620,7 @@ async function executeCreateWill(
       contract,
       createData.testator,
       createData.estates,
-      createData.salt
+      createData.salt,
     );
 
     // Convert estates to the format expected by the contract
@@ -643,7 +640,7 @@ async function executeCreateWill(
       createData.cid,
       createData.testator,
       contractEstates,
-      createData.salt
+      createData.salt,
     );
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
@@ -661,7 +658,7 @@ async function executeCreateWill(
       createData.salt,
       {
         gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      }
+      },
     );
 
     console.log(chalk.yellow("Transaction sent:"), tx.hash);
@@ -702,8 +699,8 @@ async function executeCreateWill(
         if (willAddress.toLowerCase() !== predictedAddress.toLowerCase()) {
           console.warn(
             chalk.yellow(
-              "⚠️  Warning: Actual will address differs from prediction"
-            )
+              "⚠️  Warning: Actual will address differs from prediction",
+            ),
           );
         }
       }
@@ -728,7 +725,7 @@ async function executeCreateWill(
  * Update environment variables with creation data
  */
 async function updateEnvironmentVariables(
-  result: CreateWillResult
+  result: CreateWillResult,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -741,7 +738,7 @@ async function updateEnvironmentVariables(
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -750,7 +747,7 @@ async function updateEnvironmentVariables(
       error instanceof Error ? error.message : "Unknown error";
     console.warn(
       chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage
+      errorMessage,
     );
   }
 }
@@ -834,7 +831,7 @@ async function processCreateWill(): Promise<CreateWillResult> {
     await updateEnvironmentVariables(result);
 
     console.log(
-      chalk.green.bold("\n🎉 Will creation process completed successfully!")
+      chalk.green.bold("\n🎉 Will creation process completed successfully!"),
     );
 
     return result;
@@ -843,7 +840,7 @@ async function processCreateWill(): Promise<CreateWillResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will creation process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -867,7 +864,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode

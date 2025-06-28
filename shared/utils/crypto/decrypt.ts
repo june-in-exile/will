@@ -1,5 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
-import type { DecryptionArgs, AuthenticatedDecipher, SupportedAlgorithm } from "@shared/types";
+import type {
+  DecryptionArgs,
+  AuthenticatedDecipher,
+  SupportedAlgorithm,
+} from "@shared/types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants";
 import { createDecipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
@@ -23,7 +27,7 @@ function parseArgs(): DecryptionArgs {
       const algorithm = args[i + 1];
       if (algorithm !== AES_256_GCM && algorithm !== CHACHA20_POLY1305) {
         throw new Error(
-          `Invalid algorithm: ${algorithm}. Must be either '${AES_256_GCM}' or '${CHACHA20_POLY1305}'`
+          `Invalid algorithm: ${algorithm}. Must be either '${AES_256_GCM}' or '${CHACHA20_POLY1305}'`,
         );
       }
       parsed.algorithm = algorithm;
@@ -31,30 +35,41 @@ function parseArgs(): DecryptionArgs {
     } else if (args[i] === "--ciphertext" && i + 1 < args.length) {
       try {
         parsed.ciphertext = Buffer.from(args[i + 1], "base64");
-        console.log(chalk.blue("Ciphertext provided:"), chalk.gray(`${parsed.ciphertext.length} bytes`));
+        console.log(
+          chalk.blue("Ciphertext provided:"),
+          chalk.gray(`${parsed.ciphertext.length} bytes`),
+        );
       } catch (error) {
-        throw new Error(`Invalid ciphertext format. Ciphertext must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid ciphertext format. Ciphertext must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     } else if (args[i] === "--key" && i + 1 < args.length) {
       try {
         parsed.key = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided key"));
       } catch (error) {
-        throw new Error(`Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid key format. Key must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     } else if (args[i] === "--iv" && i + 1 < args.length) {
       try {
         parsed.iv = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided IV"));
       } catch (error) {
-        throw new Error(`Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid IV format. IV must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     } else if (args[i] === "--authTag" && i + 1 < args.length) {
       try {
         parsed.authTag = Buffer.from(args[i + 1], "base64");
         console.log(chalk.blue("Using provided auth tag"));
       } catch (error) {
-        throw new Error(`Invalid auth tag format. Auth tag must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Invalid auth tag format. Auth tag must be valid base64: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   }
@@ -67,7 +82,9 @@ function parseArgs(): DecryptionArgs {
   if (!parsed.authTag) missingParams.push("--authTag");
 
   if (missingParams.length > 0) {
-    throw new Error(`Missing required parameters: ${missingParams.join(", ")} must be specified`);
+    throw new Error(
+      `Missing required parameters: ${missingParams.join(", ")} must be specified`,
+    );
   }
 
   return parsed as DecryptionArgs;
@@ -80,27 +97,60 @@ function showUsage(): void {
   console.log(chalk.cyan("\n=== Usage Information ===\n"));
   console.log(
     chalk.white(
-      "This script decrypts ciphertext using AES-256-GCM or ChaCha20-Poly1305 algorithms:\n"
-    )
+      "This script decrypts ciphertext using AES-256-GCM or ChaCha20-Poly1305 algorithms:\n",
+    ),
   );
 
   console.log(chalk.yellow("Basic usage:"));
-  console.log(chalk.gray('   pnpm exec tsx decrypt.ts --ciphertext "base64..." --key "base64..." --iv "base64..." --authTag "base64..."'));
+  console.log(
+    chalk.gray(
+      '   pnpm exec tsx decrypt.ts --ciphertext "base64..." --key "base64..." --iv "base64..." --authTag "base64..."',
+    ),
+  );
 
   console.log(chalk.yellow("\nWith specific algorithm:"));
-  console.log(chalk.gray('   pnpm exec tsx decrypt.ts --algorithm chacha20-poly1305 --ciphertext "..." --key "..." --iv "..." --authTag "..."'));
+  console.log(
+    chalk.gray(
+      '   pnpm exec tsx decrypt.ts --algorithm chacha20-poly1305 --ciphertext "..." --key "..." --iv "..." --authTag "..."',
+    ),
+  );
 
   console.log(chalk.white("\nParameters:"));
-  console.log(chalk.cyan("  --algorithm") + chalk.gray("     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]"));
-  console.log(chalk.cyan("  --ciphertext") + chalk.gray("    Base64-encoded ciphertext to decrypt [required]"));
-  console.log(chalk.cyan("  --key") + chalk.gray("          Base64-encoded decryption key [required]"));
-  console.log(chalk.cyan("  --iv") + chalk.gray("           Base64-encoded initialization vector [required]"));
-  console.log(chalk.cyan("  --authTag") + chalk.gray("      Base64-encoded authentication tag [required]"));
+  console.log(
+    chalk.cyan("  --algorithm") +
+      chalk.gray(
+        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
+  );
+  console.log(
+    chalk.cyan("  --ciphertext") +
+      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+  );
+  console.log(
+    chalk.cyan("  --key") +
+      chalk.gray("          Base64-encoded decryption key [required]"),
+  );
+  console.log(
+    chalk.cyan("  --iv") +
+      chalk.gray("           Base64-encoded initialization vector [required]"),
+  );
+  console.log(
+    chalk.cyan("  --authTag") +
+      chalk.gray("      Base64-encoded authentication tag [required]"),
+  );
 
   console.log(chalk.red("\nImportant:"));
-  console.log(chalk.red("• All parameters (--ciphertext, --key, --iv, --authTag) are required"));
-  console.log(chalk.red("• All input values must be valid base64-encoded strings"));
-  console.log(chalk.red("• The algorithm must match the one used for encryption"));
+  console.log(
+    chalk.red(
+      "• All parameters (--ciphertext, --key, --iv, --authTag) are required",
+    ),
+  );
+  console.log(
+    chalk.red("• All input values must be valid base64-encoded strings"),
+  );
+  console.log(
+    chalk.red("• The algorithm must match the one used for encryption"),
+  );
 }
 
 /**
@@ -318,20 +368,25 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Decryption completed successfully!\n"));
 
     console.log(chalk.cyan("Algorithm:"), chalk.white(algorithm));
-    console.log(chalk.cyan("Ciphertext(base64):"), chalk.white(ciphertext.toString("base64")));
-    console.log(chalk.cyan("Key(base64):"), chalk.white(key.toString("base64")));
+    console.log(
+      chalk.cyan("Ciphertext(base64):"),
+      chalk.white(ciphertext.toString("base64")),
+    );
+    console.log(
+      chalk.cyan("Key(base64):"),
+      chalk.white(key.toString("base64")),
+    );
     console.log(chalk.cyan("IV(base64):"), chalk.white(iv.toString("base64")));
-    console.log(chalk.cyan("AuthTag(base64):"), chalk.white(authTag.toString("base64")));
+    console.log(
+      chalk.cyan("AuthTag(base64):"),
+      chalk.white(authTag.toString("base64")),
+    );
     console.log();
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
-
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      chalk.red.bold("\n❌ Decryption failed:"),
-      errorMessage,
-    );
+    console.error(chalk.red.bold("\n❌ Decryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
     if (

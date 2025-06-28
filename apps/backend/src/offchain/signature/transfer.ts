@@ -106,7 +106,7 @@ function validateEnvironment(): EnvironmentVariables {
 function validateFiles(): void {
   if (!existsSync(PATHS_CONFIG.will.addressed)) {
     throw new Error(
-      `Addressed will file does not exist: ${PATHS_CONFIG.will.addressed}`
+      `Addressed will file does not exist: ${PATHS_CONFIG.will.addressed}`,
     );
   }
 }
@@ -116,7 +116,7 @@ function validateFiles(): void {
  */
 async function createSigner(
   privateKey: string,
-  provider: JsonRpcProvider
+  provider: JsonRpcProvider,
 ): Promise<Wallet> {
   try {
     console.log(chalk.blue("Initializing signer..."));
@@ -184,7 +184,7 @@ function readWillData(): WillData {
       willJson.estates.length < VALIDATION_CONFIG.will.minEstatesRequired
     ) {
       throw new Error(
-        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.will.minEstatesRequired})`
+        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.will.minEstatesRequired})`,
       );
     }
 
@@ -198,20 +198,20 @@ function readWillData(): WillData {
       for (const field of requiredEstateFields) {
         if (!estate[field]) {
           throw new Error(
-            `Missing required field '${field}' in estate ${index}`
+            `Missing required field '${field}' in estate ${index}`,
           );
         }
       }
 
       if (!ethers.isAddress(estate.token)) {
         throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`
+          `Invalid token address in estate ${index}: ${estate.token}`,
         );
       }
 
       if (!ethers.isAddress(estate.beneficiary)) {
         throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`
+          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
         );
       }
 
@@ -238,14 +238,14 @@ function readWillData(): WillData {
  * Calculate deadline timestamp
  */
 function calculateDeadline(
-  durationMs: number = PERMIT2_CONFIG.defaultDuration
+  durationMs: number = PERMIT2_CONFIG.defaultDuration,
 ): number {
   const endTimeMs = Date.now() + durationMs;
   const endTimeSeconds = Math.floor(endTimeMs / 1000);
 
   console.log(
     chalk.gray("Signature valid until:"),
-    new Date(endTimeMs).toISOString()
+    new Date(endTimeMs).toISOString(),
   );
   return endTimeSeconds;
 }
@@ -273,7 +273,7 @@ function createPermitStructure(
   estates: Estate[],
   willAddress: string,
   nonce: number,
-  deadline: number
+  deadline: number,
 ): Permit {
   try {
     console.log(chalk.blue("Creating permit structure..."));
@@ -317,7 +317,7 @@ async function signPermit(
   permit: Permit,
   permit2Address: string,
   chainId: bigint,
-  signer: Wallet
+  signer: Wallet,
 ): Promise<string> {
   try {
     console.log(chalk.blue("Generating EIP-712 signature..."));
@@ -325,7 +325,7 @@ async function signPermit(
     const { domain, types, values } = SignatureTransfer.getPermitData(
       permit,
       permit2Address,
-      chainId
+      chainId,
     );
 
     console.log(chalk.gray("Domain:"), domain.name, `(v${domain.version})`);
@@ -336,7 +336,7 @@ async function signPermit(
     console.log(chalk.green("✅ Signature generated successfully"));
     console.log(
       chalk.gray("Signature:"),
-      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`
+      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`,
     );
 
     return signature;
@@ -354,7 +354,7 @@ function saveSignedWill(
   willData: WillData,
   nonce: number,
   deadline: number,
-  signature: string
+  signature: string,
 ): SignedWillData {
   try {
     console.log(chalk.blue("Preparing signed will..."));
@@ -370,11 +370,11 @@ function saveSignedWill(
 
     writeFileSync(
       PATHS_CONFIG.will.signed,
-      JSON.stringify(signedWill, null, 4)
+      JSON.stringify(signedWill, null, 4),
     );
     console.log(
       chalk.green("✅ Signed will saved to:"),
-      PATHS_CONFIG.will.signed
+      PATHS_CONFIG.will.signed,
     );
 
     return signedWill;
@@ -391,7 +391,7 @@ function saveSignedWill(
 async function updateEnvironmentVariables(
   nonce: number,
   deadline: number,
-  signature: string
+  signature: string,
 ): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
@@ -403,7 +403,7 @@ async function updateEnvironmentVariables(
     ];
 
     await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value))
+      updates.map(([key, value]) => updateEnvVariable(key, value)),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
@@ -443,7 +443,7 @@ async function processWillSigning(): Promise<ProcessResult> {
     console.log(chalk.gray("- Deadline:"), deadline);
     console.log(
       chalk.gray("- Valid until:"),
-      new Date(deadline * 1000).toISOString()
+      new Date(deadline * 1000).toISOString(),
     );
 
     // Create permit structure
@@ -451,7 +451,7 @@ async function processWillSigning(): Promise<ProcessResult> {
       willData.estates,
       willData.will,
       nonce,
-      deadline
+      deadline,
     );
 
     // Sign the permit
@@ -459,7 +459,7 @@ async function processWillSigning(): Promise<ProcessResult> {
       permit,
       PERMIT2,
       network.chainId,
-      signer
+      signer,
     );
 
     // Save signed will
@@ -469,7 +469,7 @@ async function processWillSigning(): Promise<ProcessResult> {
     await updateEnvironmentVariables(nonce, deadline, signature);
 
     console.log(
-      chalk.green.bold("\n🎉 Will signing process completed successfully!")
+      chalk.green.bold("\n🎉 Will signing process completed successfully!"),
     );
 
     return {
@@ -487,7 +487,7 @@ async function processWillSigning(): Promise<ProcessResult> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will signing process:"),
-      errorMessage
+      errorMessage,
     );
     throw error;
   }
@@ -512,7 +512,7 @@ async function main(): Promise<void> {
       error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage
+      errorMessage,
     );
 
     // Log stack trace in development mode
