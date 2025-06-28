@@ -44,7 +44,7 @@ Run the workflow for different circuits:
 
 ```bash
 make all CIRCUIT=createWill
-make all CIRCUIT=uploadCID
+make all CIRCUIT=uploadCid
 ```
 
 ## Detailed Usage
@@ -140,7 +140,7 @@ make clean-circuit
 ```bash
 make clean-multiplier2
 make clean-createWill
-make clean-uploadCID
+make clean-uploadCid
 ```
 
 ## Workflow Explanation
@@ -221,7 +221,7 @@ snarkjs generatecall public.json proof.json
 
 - `multiplier2` - Multiplier example circuit
 - `createWill` - Will creation circuit
-- `uploadCID` - CID upload circuit
+- `uploadCid` - CID upload circuit
 
 ### Switch Circuits
 
@@ -230,7 +230,7 @@ snarkjs generatecall public.json proof.json
 CIRCUIT = createWill
 
 # Method 2: Override on command line
-make compile CIRCUIT=uploadCID
+make compile CIRCUIT=uploadCid
 make all CIRCUIT=createWill
 ```
 
@@ -239,6 +239,7 @@ make all CIRCUIT=createWill
 1. Create a new directory under `circuits/`
 2. Add the `.circom` circuit file
 3. Run the workflow using Makefile:
+
    ```bash
    make all CIRCUIT=your_new_circuit
    ```
