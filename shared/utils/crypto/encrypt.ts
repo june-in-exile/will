@@ -74,7 +74,7 @@ function parseArgs(): EncryptionArgs {
     console.log(chalk.blue("🎲 Generated new initialization vector"));
   }
 
-  return parsed as EncryptionArgs;;
+  return parsed as EncryptionArgs;
 }
 
 /**
@@ -275,7 +275,7 @@ export function generateEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buf
 
     const keyBuffer = generateSecureRandomBytes(size, "encryption key");
 
-    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);;
+    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
 
     return keyBuffer;
   } catch (error) {

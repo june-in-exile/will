@@ -102,7 +102,7 @@ importers:
         version: 5.0.3
       '@types/node':
         specifier: ^24.0.6
-        version: 24.0.6
+        version: 24.0.7
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.8
@@ -117,7 +117,7 @@ importers:
         version: 8.35.0(eslint@9.30.0)(typescript@5.8.3)
       '@vitejs/plugin-react':
         specifier: ^4.6.0
-        version: 4.6.0(vite@7.0.0(@types/node@24.0.6)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
+        version: 4.6.0(vite@7.0.0(@types/node@24.0.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       concurrently:
         specifier: ^9.2.0
         version: 9.2.0
@@ -147,7 +147,7 @@ importers:
         version: 5.0.10
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.0.6)(typescript@5.8.3)
+        version: 10.9.2(@types/node@24.0.7)(typescript@5.8.3)
       tsconfig-paths:
         specifier: ^4.2.0
         version: 4.2.0
@@ -159,7 +159,7 @@ importers:
         version: 5.8.3
       vite:
         specifier: ^7.0.0
-        version: 7.0.0(@types/node@24.0.6)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
+        version: 7.0.0(@types/node@24.0.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
 
   apps/backend:
     devDependencies:
@@ -378,6 +378,59 @@ packages:
   '@babel/types@7.27.7':
     resolution: {integrity: sha512-8OLQgDScAOHXnAz2cV+RfzzNMipuLVBz2biuAJFMV9bfkNf393je3VM8CLkjQodW5+iWsSJdSgSWT6rsZoXHPw==}
     engines: {node: '>=6.9.0'}
+
+  '@biomejs/biome@2.0.6':
+    resolution: {integrity: sha512-RRP+9cdh5qwe2t0gORwXaa27oTOiQRQvrFf49x2PA1tnpsyU7FIHX4ZOFMtBC4QNtyWsN7Dqkf5EDbg4X+9iqA==}
+    engines: {node: '>=14.21.3'}
+    hasBin: true
+
+  '@biomejs/cli-darwin-arm64@2.0.6':
+    resolution: {integrity: sha512-AzdiNNjNzsE6LfqWyBvcL29uWoIuZUkndu+wwlXW13EKcBHbbKjNQEZIJKYDc6IL+p7bmWGx3v9ZtcRyIoIz5A==}
+    engines: {node: '>=14.21.3'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@biomejs/cli-darwin-x64@2.0.6':
+    resolution: {integrity: sha512-wJjjP4E7bO4WJmiQaLnsdXMa516dbtC6542qeRkyJg0MqMXP0fvs4gdsHhZ7p9XWTAmGIjZHFKXdsjBvKGIJJQ==}
+    engines: {node: '>=14.21.3'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@biomejs/cli-linux-arm64-musl@2.0.6':
+    resolution: {integrity: sha512-CVPEMlin3bW49sBqLBg2x016Pws7eUXA27XYDFlEtponD0luYjg2zQaMJ2nOqlkKG9fqzzkamdYxHdMDc2gZFw==}
+    engines: {node: '>=14.21.3'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@biomejs/cli-linux-arm64@2.0.6':
+    resolution: {integrity: sha512-ZSVf6TYo5rNMUHIW1tww+rs/krol7U5A1Is/yzWyHVZguuB0lBnIodqyFuwCNqG9aJGyk7xIMS8HG0qGUPz0SA==}
+    engines: {node: '>=14.21.3'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@biomejs/cli-linux-x64-musl@2.0.6':
+    resolution: {integrity: sha512-mKHE/e954hR/hSnAcJSjkf4xGqZc/53Kh39HVW1EgO5iFi0JutTN07TSjEMg616julRtfSNJi0KNyxvc30Y4rQ==}
+    engines: {node: '>=14.21.3'}
+    cpu: [x64]
+    os: [linux]
+
+  '@biomejs/cli-linux-x64@2.0.6':
+    resolution: {integrity: sha512-geM1MkHTV1Kh2Cs/Xzot9BOF3WBacihw6bkEmxkz4nSga8B9/hWy5BDiOG3gHDGIBa8WxT0nzsJs2f/hPqQIQw==}
+    engines: {node: '>=14.21.3'}
+    cpu: [x64]
+    os: [linux]
+
+  '@biomejs/cli-win32-arm64@2.0.6':
+    resolution: {integrity: sha512-290V4oSFoKaprKE1zkYVsDfAdn0An5DowZ+GIABgjoq1ndhvNxkJcpxPsiYtT7slbVe3xmlT0ncdfOsN7KruzA==}
+    engines: {node: '>=14.21.3'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@biomejs/cli-win32-x64@2.0.6':
+    resolution: {integrity: sha512-bfM1Bce0d69Ao7pjTjUS+AWSZ02+5UHdiAP85Th8e9yV5xzw6JrHXbL5YWlcEKQ84FIZMdDc7ncuti1wd2sdbw==}
+    engines: {node: '>=14.21.3'}
+    cpu: [x64]
+    os: [win32]
 
   '@chainsafe/as-chacha20poly1305@0.1.0':
     resolution: {integrity: sha512-BpNcL8/lji/GM3+vZ/bgRWqJ1q5kwvTFmGPk7pxm/QQZDbaMI98waOHjEymTjq2JmdD/INdNBFOVSyJofXg7ew==}
@@ -1316,8 +1369,8 @@ packages:
   '@types/node@22.7.5':
     resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
 
-  '@types/node@24.0.6':
-    resolution: {integrity: sha512-ZOyn+gOs749xU7ovp+Ibj0g1o3dFRqsfPnT22C2t5JzcRvgsEDpGawPbCISGKLudJk9Y0wiu9sYd6kUh0pc9TA==}
+  '@types/node@24.0.7':
+    resolution: {integrity: sha512-YIEUUr4yf8q8oQoXPpSlnvKNVKDQlPMWrmOcgzoduo7kvA2UF0/BwJ/eMKFTiTtkNL17I0M6Xe2tvwFU7be6iw==}
 
   '@types/pbkdf2@3.1.2':
     resolution: {integrity: sha512-uRwJqmiXmh9++aSu1VNEn3iIxWOhd8AHXNSdlaLfdAAdSTY9jYVeGWnzejM3dvrkbqE3/hyQkQQ29IFATEGlew==}
@@ -4004,8 +4057,8 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
-  token-types@6.0.0:
-    resolution: {integrity: sha512-lbDrTLVsHhOMljPscd0yitpozq7Ga2M5Cvez5AjGg8GASBjtt6iERCAJ93yommPmz62fb45oFIXHEZ3u9bfJEA==}
+  token-types@6.0.1:
+    resolution: {integrity: sha512-jK12SoPQ9D33HTOIQaOhc5tN4Vr+hlbiP/GSPviCyo8/7xgPG5j4AYvl7Zd4k8RhL55eT/IUhBGl7fL06w3mrQ==}
     engines: {node: '>=14.16'}
 
   touch@3.1.1:
@@ -4435,8 +4488,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.18.2:
-    resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
+  ws@8.18.3:
+    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -4708,6 +4761,41 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@biomejs/biome@2.0.6':
+    optionalDependencies:
+      '@biomejs/cli-darwin-arm64': 2.0.6
+      '@biomejs/cli-darwin-x64': 2.0.6
+      '@biomejs/cli-linux-arm64': 2.0.6
+      '@biomejs/cli-linux-arm64-musl': 2.0.6
+      '@biomejs/cli-linux-x64': 2.0.6
+      '@biomejs/cli-linux-x64-musl': 2.0.6
+      '@biomejs/cli-win32-arm64': 2.0.6
+      '@biomejs/cli-win32-x64': 2.0.6
+
+  '@biomejs/cli-darwin-arm64@2.0.6':
+    optional: true
+
+  '@biomejs/cli-darwin-x64@2.0.6':
+    optional: true
+
+  '@biomejs/cli-linux-arm64-musl@2.0.6':
+    optional: true
+
+  '@biomejs/cli-linux-arm64@2.0.6':
+    optional: true
+
+  '@biomejs/cli-linux-x64-musl@2.0.6':
+    optional: true
+
+  '@biomejs/cli-linux-x64@2.0.6':
+    optional: true
+
+  '@biomejs/cli-win32-arm64@2.0.6':
+    optional: true
+
+  '@biomejs/cli-win32-x64@2.0.6':
+    optional: true
 
   '@chainsafe/as-chacha20poly1305@0.1.0': {}
 
@@ -5475,14 +5563,14 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       jest-mock: 29.7.0
 
   '@jest/fake-timers@29.7.0':
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -5516,7 +5604,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -5951,7 +6039,7 @@ snapshots:
       p-event: 6.0.1
       progress-events: 1.0.1
       race-signal: 1.1.3
-      ws: 8.18.2
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -6295,7 +6383,7 @@ snapshots:
     dependencies:
       debug: 4.4.1(supports-color@5.5.0)
       fflate: 0.8.2
-      token-types: 6.0.0
+      token-types: 6.0.1
     transitivePeerDependencies:
       - supports-color
 
@@ -6340,30 +6428,30 @@ snapshots:
 
   '@types/bn.js@5.2.0':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/dns-packet@5.6.5':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/estree@1.0.8': {}
 
   '@types/express-serve-static-core@5.0.6':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.5
@@ -6376,7 +6464,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/http-errors@2.0.5': {}
 
@@ -6397,19 +6485,19 @@ snapshots:
   '@types/multicast-dns@7.2.4':
     dependencies:
       '@types/dns-packet': 5.6.5
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/node@22.7.5':
     dependencies:
       undici-types: 6.19.8
 
-  '@types/node@24.0.6':
+  '@types/node@24.0.7':
     dependencies:
       undici-types: 7.8.0
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/prettier@2.7.3': {}
 
@@ -6429,17 +6517,17 @@ snapshots:
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/send@0.17.5':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/serve-static@1.15.8':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       '@types/send': 0.17.5
 
   '@types/sinon@17.0.4':
@@ -6452,11 +6540,11 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/ws@8.5.3':
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -6564,7 +6652,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@vitejs/plugin-react@4.6.0(vite@7.0.0(@types/node@24.0.6)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))':
+  '@vitejs/plugin-react@4.6.0(vite@7.0.0(@types/node@24.0.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@babel/core': 7.27.7
       '@babel/plugin-transform-react-jsx-self': 7.27.1(@babel/core@7.27.7)
@@ -6572,7 +6660,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.19
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 7.0.0(@types/node@24.0.6)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
+      vite: 7.0.0(@types/node@24.0.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -6978,7 +7066,7 @@ snapshots:
 
   chrome-launcher@0.15.2:
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -6987,7 +7075,7 @@ snapshots:
 
   chromium-edge-launcher@0.2.0:
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -7618,7 +7706,7 @@ snapshots:
     dependencies:
       '@tokenizer/inflate': 0.2.7
       strtok3: 10.3.1
-      token-types: 6.0.0
+      token-types: 6.0.1
       uint8array-extras: 1.4.0
     transitivePeerDependencies:
       - supports-color
@@ -8110,9 +8198,9 @@ snapshots:
 
   iso-constants@0.1.2: {}
 
-  isomorphic-ws@5.0.0(ws@8.18.2):
+  isomorphic-ws@5.0.0(ws@8.18.3):
     dependencies:
-      ws: 8.18.2
+      ws: 8.18.3
 
   istanbul-lib-coverage@3.2.2: {}
 
@@ -8269,7 +8357,7 @@ snapshots:
       event-iterator: 2.0.0
       it-stream-types: 2.0.2
       uint8arrays: 5.1.0
-      ws: 8.18.2
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -8292,7 +8380,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -8302,7 +8390,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -8329,7 +8417,7 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       jest-util: 29.7.0
 
   jest-regex-util@29.6.3: {}
@@ -8337,7 +8425,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -8354,7 +8442,7 @@ snapshots:
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -9688,8 +9776,9 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
-  token-types@6.0.0:
+  token-types@6.0.1:
     dependencies:
+      '@biomejs/biome': 2.0.6
       '@tokenizer/token': 0.3.0
       ieee754: 1.2.1
 
@@ -9724,14 +9813,14 @@ snapshots:
     dependencies:
       typescript: 5.8.3
 
-  ts-node@10.9.2(@types/node@24.0.6)(typescript@5.8.3):
+  ts-node@10.9.2(@types/node@24.0.7)(typescript@5.8.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       acorn: 8.15.0
       acorn-walk: 8.3.4
       arg: 4.1.3
@@ -9883,7 +9972,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@7.0.0(@types/node@24.0.6)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
+  vite@7.0.0(@types/node@24.0.7)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       esbuild: 0.25.5
       fdir: 6.4.6(picomatch@4.0.2)
@@ -9892,7 +9981,7 @@ snapshots:
       rollup: 4.44.1
       tinyglobby: 0.2.14
     optionalDependencies:
-      '@types/node': 24.0.6
+      '@types/node': 24.0.7
       fsevents: 2.3.3
       terser: 5.43.1
       tsx: 4.20.3
@@ -10066,11 +10155,11 @@ snapshots:
   web3-providers-ws@4.0.8:
     dependencies:
       '@types/ws': 8.5.3
-      isomorphic-ws: 5.0.0(ws@8.18.2)
+      isomorphic-ws: 5.0.0(ws@8.18.3)
       web3-errors: 1.3.1
       web3-types: 1.10.0
       web3-utils: 4.3.3
-      ws: 8.18.2
+      ws: 8.18.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -10219,7 +10308,7 @@ snapshots:
 
   ws@8.18.0: {}
 
-  ws@8.18.2: {}
+  ws@8.18.3: {}
 
   xml2js@0.6.2:
     dependencies:

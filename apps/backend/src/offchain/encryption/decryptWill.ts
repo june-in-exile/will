@@ -134,7 +134,7 @@ async function processWillDecryption(isTestMode: boolean): Promise<ProcessResult
 
         console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
         const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-        const dcryptedWill = dcryptedWillBuffer.toString(CRYPTO_CONFIG.cyphertextEncoding);;
+        const dcryptedWill = dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding);
 
         console.log(chalk.gray("Decrypted will structure:"));
         console.log(dcryptedWill);
