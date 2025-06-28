@@ -3,7 +3,7 @@ import { readProof } from "@shared/utils/read";
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
-  ProofData,
+  type ProofData,
 } from "@shared/types";
 import { existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";

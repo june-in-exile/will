@@ -1,5 +1,6 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
-import { Base64String, DecryptionArgs, EncryptedWill, SupportedAlgorithm } from "@shared/types";
+import type { DecryptionArgs, EncryptedWill, SupportedAlgorithm } from "@shared/types";
+import { Base64String } from "@shared/types";
 import {
     getDecryptionKey,
     decrypt,

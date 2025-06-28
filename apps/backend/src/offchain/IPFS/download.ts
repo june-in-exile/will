@@ -1,6 +1,6 @@
 import { PATHS_CONFIG } from "@shared/config";
-import { Base64String, SupportedAlgorithm } from "@shared/types";
 import { validateCidv1 } from "@shared/utils/format";
+import type { Base64String, SupportedAlgorithm } from "@shared/types";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";

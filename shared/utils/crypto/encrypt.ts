@@ -1,9 +1,8 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
+import { Base64String, type EncryptionArgs, type AuthenticatedCipher, type SupportedAlgorithm } from "../../types";
 import { randomBytes, createCipheriv } from "crypto";
-import { Base64String } from "../../types";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";
-import type { EncryptionArgs, AuthenticatedCipher, SupportedAlgorithm } from "../../types";
 import { AES_256_GCM } from "../../constants";
 import chalk from "chalk";
 

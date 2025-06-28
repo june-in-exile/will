@@ -1,8 +1,8 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "../../config";
-import { createDecipheriv } from "crypto";
-import { existsSync, readFileSync } from "fs";
 import type { DecryptionArgs, AuthenticatedDecipher, SupportedAlgorithm } from "../../types";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "../../constants";
+import { createDecipheriv } from "crypto";
+import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";
 
 /**

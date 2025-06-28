@@ -5,7 +5,7 @@ import {
   encrypt,
 } from "@shared/utils/crypto";
 import { validateEthereumAddress, validateSignature } from "@shared/utils/format"
-import { Base64String, EncryptionArgs, EncryptedWill, SupportedAlgorithm } from "@shared/types";
+import { Base64String, type EncryptionArgs, type EncryptedWill, type SupportedAlgorithm } from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

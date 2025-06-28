@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@shared/config";
-import { SupportedAlgorithm } from "@shared/types";
+import type { SupportedAlgorithm } from "@shared/types";
 import { updateEnvVariable } from "@shared/utils/env";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";

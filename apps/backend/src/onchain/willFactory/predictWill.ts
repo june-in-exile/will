@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config";
 import { updateEnvVariable } from "@shared/utils/env";
-import { Estate, WillFactory, WillFactory__factory } from "@shared/types";
+import { type Estate, type WillFactory, WillFactory__factory } from "@shared/types";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";

@@ -5,7 +5,7 @@ import {
   validatePrivateKey,
   validateCidv1,
 } from "@shared/utils/format";
-import { Base64String, SupportedAlgorithm } from "@shared/types"
+import { Base64String, type SupportedAlgorithm } from "@shared/types"
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
