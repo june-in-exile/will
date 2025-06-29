@@ -46,9 +46,15 @@ clean_typechain:
 
 clean: clean_address clean_groth16verifier_and_proof clean_typechain
 	@forge clean
-	@rm -rf cache broadcast
+	@rm -rf cache broadcast lib
 
 # ----------------- CICD Commands -----------------------
+
+install:
+	@rm -rf lib
+	@forge install foundry-rs/forge-std --no-commit
+	@forge install OpenZeppelin/openzeppelin-contracts --no-commit
+	@forge install Uniswap/permit2 --no-commit
 
 build: sync_groth16verifier_and_proof
 	@forge build
