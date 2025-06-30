@@ -430,7 +430,6 @@ template AES256GCMDecryptProof(
 1. 【基礎工具】先實現簡單的輔助電路
    - Base64CharToValue: 單個 base64 字符轉數值
    - Base64GroupDecoder: 4個字符解碼為3字節
-   - CounterIncrement32: 32位計數器遞增
    
 2. 【密碼學基礎】實現密碼學原語
    - AESSBox: S-Box 查找表
@@ -446,6 +445,7 @@ template AES256GCMDecryptProof(
 4. 【GCM 組件】實現 GCM 特定功能
    - ComputeJ0: 計算初始計數器
    - GCMAuthVerify: 認證標籤驗證
+   - CounterIncrement32: 32位計數器遞增
    
 5. 【整合測試】組合完整電路
    - 先用小的測試向量驗證
