@@ -97,6 +97,7 @@ zkp/circuits/*/build
 zkp/circuits/*/input/*
 !zkp/circuits/*/input/example.json
 
+zkp/circuits/shared/keys/*
 zkp/circuits/*/keys/*.zkey
 zkp/circuits/*/proofs
 
@@ -160,3 +161,9 @@ web_modules/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 contracts/lib/
+
+# Jest
+.jest/
+
+# ESLint cache
+.eslintcache

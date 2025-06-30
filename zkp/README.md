@@ -2,7 +2,7 @@
 
 This directory contains multiple Circom circuit implementations, supporting a complete ZK-SNARK workflow from circuit compilation to smart contract deployment.
 
-### Prerequisites
+## Prerequisites
 
 ```bash
 # Install circom
@@ -27,7 +27,17 @@ npm install
 ### Setup Powers of Tau (shared across all circuits)
 
 ```bash
+# Download existing Powers of Tau (recommended)
+make trusted-setup-phase1-download
+
+# Or generate new Powers of Tau
 make trusted-setup-phase1
+```
+
+### Prepare Input Data
+```bash
+echo '{"a":3,"b":11}' > circuits/multiplier2/input/example.json
+# Generates example input: circuits/multiplier2/inputs/example.json
 ```
 
 ### Run the Demo
@@ -41,19 +51,13 @@ make circuit
 Or run individual steps:
 
 ```bash
-make compile
-make witness
-make trusted-setup-pahse2
-make prove
-make verify
-make solidity
-make generate-call
-```
-
-### Clean Up
-
-```bash
-make clean
+make compile                    # Compile Circuit
+make witness                    # Generate Witness
+make trusted-setup-pahse2       # Circuit-Specific Trusted Setup
+make prove                      # Generate Proof
+make verify                     # Verify Proof
+make solidity                   # Generate Solidity Verifier Contract
+make generate-call              # Generate Smart Contract Call Parameters
 ```
 
 ### For Specific Circuits
@@ -61,103 +65,18 @@ make clean
 Run the workflow for different circuits:
 
 ```bash
-make circuit CIRCUIT=createWill
-make circuit CIRCUIT=uploadCid
+make <command> CIRCUIT=createWill
+make <command> CIRCUIT=uploadCid
 ```
 
-## Detailed Usage
-
-### 1. Circuit Examples
-
-#### multiplier2.circom (Multiplier Circuit)
-
-```circom
-pragma circom 2.0.0;
-
-template Multiplier2() {
-    signal input a;
-    signal input b;
-    signal output c;
-    c <== a*b;
-}
-
-component main = Multiplier2();
-```
-
-### 2. Step-by-step Execution
-
-#### Compile Circuit
+### Clean Up
 
 ```bash
-make compile
-# Or specify a circuit
-make compile CIRCUIT=createWill
-```
-
-#### Prepare Input Data
-
-```bash
-echo '{"a":3,"b":11}' > circuits/multiplier2/input/example.json
-# Generates example input: circuits/multiplier2/input/example.json
-```
-
-#### Generate Witness
-
-```bash
-make witness
-```
-
-#### Trusted Setup
-
-```bash
-# General setup (Powers of Tau)
-make trusted-setup-phase1
-
-# Circuit-specific setup
-make trusted-setup-phase2
-```
-
-#### Generate and Verify Proof
-
-```bash
-# Generate proof
-make prove
-
-# Verify proof
-make verify
-```
-
-#### Generate Solidity Verifier Contract
-
-```bash
-make solidity
-```
-
-#### Generate Smart Contract Call Parameters
-
-```bash
-make generate-call
-```
-
-### 3. Cleanup Operations
-
-#### Clean All Circuits
-
-```bash
-make clean-all
-```
-
-#### Clean Current Circuit
-
-```bash
+# Clean current circuit
 make clean
-```
 
-#### Clean Specific Circuit
-
-```bash
-make clean CIRCUIT=uploadCid
-make clean CIRCUIT=createWill
+# Clean all circuits
+make clean-all
 ```
 
 ## Workflow Explanation
@@ -167,10 +86,13 @@ make clean CIRCUIT=createWill
 #### Powers of Tau (General Setup)
 
 ```bash
-# Automatically executes the following steps:
+# Generate powers of tau
 snarkjs powersoftau new bn128 12 pot12_0000.ptau
 snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau
 snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau
+
+# Or download existing powers of tau:
+# https://github.com/privacy-scaling-explorations/perpetualpowersoftau
 ```
 
 #### Circuit-Specific Setup
@@ -209,16 +131,16 @@ snarkjs generatecall public.json proof.json
 
 ### Compilation Artifacts
 
-- `multiplier2.r1cs` - R1CS constraint system
-- `multiplier2.wasm` - WebAssembly compiled circuit
-- `multiplier2.sym` - Symbol file
-- `multiplier2_js/` - JavaScript witness generator
+- `<circuit>.r1cs` - R1CS constraint system
+- `<circuit>.wasm` - WebAssembly compiled circuit
+- `<circuit>.sym` - Symbol file
+- `<circuit>_js/` - JavaScript witness generator
 
 ### Key Files
 
-- `pot12_final.ptau` - Powers of Tau (shared)
-- `multiplier2_0000.zkey` - Initial circuit key
-- `multiplier2_0001.zkey` - Final circuit key
+- `<ptau>.ptau` - Powers of Tau (shared)
+- `<circuit>_0000.zkey` - Initial circuit key
+- `<circuit>_0001.zkey` - Final circuit key
 - `verification_key.json` - Verification key
 
 ### Proof Related
@@ -254,10 +176,11 @@ make circuit CIRCUIT=createWill
 
 1. Create a new directory under `circuits/`
 2. Add the `.circom` circuit file
-3. Run the workflow using Makefile:
+3. Add the `inputs/example.json` input file
+4. Run the workflow using Makefile:
 
    ```bash
-   make all CIRCUIT=your_new_circuit
+   make circuit CIRCUIT=your_new_circuit
    ```
 
 ## References

@@ -2,13 +2,17 @@
 CIRCUIT ?= multiplier2
 
 # Directory structure
+SHARED_KEYS := ./circuits/shared/keys
+PTAU_PATH := $(SHARED_KEYS)/generated/pot12_02.ptau
+
 DIR := ./circuits/$(CIRCUIT)
+INPUTS := $(DIR)/inputs
 BUILD := $(DIR)/build
-INPUT := $(DIR)/input
-ZKEY := $(DIR)/keys
-PROOF := $(DIR)/proofs
-CONTRACT := $(DIR)/contracts
-PTAU := ./circuits/shared/keys
+KEYS := $(DIR)/keys
+PROOFS := $(DIR)/proofs
+CONTRACTS := $(DIR)/contracts
+
+DOWNLOAD_CMD = $(shell which wget > /dev/null 2>&1 && echo "wget -O" || echo "curl -o")
 
 # Default target
 help:
@@ -24,8 +28,9 @@ help:
 	@echo "  make generate-call       - Generate Solidity call data"
 	@echo ""
 	@echo "🔑 Key Management:"
-	@echo "  make trusted-setup-phase1    - Setup Powers of Tau (shared)"
-	@echo "  make trusted-setup-phase2    - Setup circuit-specific keys"
+	@echo "  make trusted-setup-phase1            - Setup Powers of Tau (shared)"
+	@echo "  make trusted-setup-phase1-download   - Download Powers of Tau (shared)"
+	@echo "  make trusted-setup-phase2            - Setup circuit-specific keys"
 	@echo ""
 	@echo "🧹 Cleanup:"
 	@echo "  make clean               - Clean current circuit ($(CIRCUIT))"
@@ -34,16 +39,36 @@ help:
 	@echo "🎯 Circuit-specific operations:"
 	@echo "  make CIRCUIT=<name> <command>  - Run command for specific circuit"
 
+define set_ptau_vars
+	$(eval SOURCE = $(1)) # <downloaded|generated>
+	$(eval PTAU_SIZE = $(2)) # 00, 01, 02, ..., 26, 27, final
+	$(eval FINAL_PTAU_PATH = $(SHARED_KEYS)/$(SOURCE)/pot$(PTAU_SIZE).ptau)
+	$(eval PTAU_URL = https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_$(PTAU_SIZE).ptau)
+endef
+
+trusted-setup-phase1-download:
+	$(call set_ptau_vars,downloaded,12)
+	@echo "⚡ Downloading powers of tau..."
+	mkdir -p $(SHARED_KEYS)/downloaded
+	@if [ ! -f $(FINAL_PTAU_PATH) ]; then \
+		$(DOWNLOAD_CMD) $(FINAL_PTAU_PATH) $(PTAU_URL); \
+		snarkjs powersoftau truncate $(FINAL_PTAU_PATH); \
+		echo "✅ Powers of Tau downloaded and truncated!"; \
+	else \
+		echo "✅ Powers of Tau already exists!"; \
+	fi
+
 trusted-setup-phase1:
-	@echo "⚡ Setting up Powers of Tau ceremony..."
-	mkdir -p $(PTAU)
-	@if [ ! -f $(PTAU)/pot12_final.ptau ]; then \
-		cd $(PTAU); \
-		snarkjs powersoftau new bn128 12 pot12_0000.ptau -v; \
-		snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau --name="First contribution" -v; \
-		snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau -v; \
-		rm -f pot12_0000.ptau pot12_0001.ptau; \
-		echo "✅ Powers of Tau ceremony completed!"; \
+	$(call set_ptau_vars,generated,02)
+	@echo "🔐 Setting up trusted ceremony..."
+	mkdir -p $(SHARED_KEYS)/generated
+	@if [ ! -f $(FINAL_PTAU_PATH) ]; then \
+		snarkjs powersoftau new bn128 $(PTAU_SIZE) $(SHARED_KEYS)/pot$(PTAU_SIZE)_0000.ptau -v; \
+		snarkjs powersoftau contribute $(SHARED_KEYS)/pot$(PTAU_SIZE)_0000.ptau $(SHARED_KEYS)/pot$(PTAU_SIZE)_0001.ptau --name="First contribution" -v; \
+		snarkjs powersoftau prepare phase2 $(SHARED_KEYS)/pot$(PTAU_SIZE)_0001.ptau $(FINAL_PTAU_PATH) -v; \
+		snarkjs powersoftau truncate $(FINAL_PTAU_PATH); \
+		rm -rf $(SHARED_KEYS)/pot*.ptau; \
+		echo "✅ Powers of Tau set and truncated!"; \
 	else \
 		echo "✅ Powers of Tau already exists!"; \
 	fi
@@ -60,62 +85,62 @@ compile:
 
 trusted-setup-phase2:
 	@echo "🔑 Generating keys for $(CIRCUIT)..."
-	mkdir -p $(ZKEY)
-	@if [ ! -f $(PTAU)/pot12_final.ptau ]; then \
-		echo "❌ Powers of Tau not found. Run 'make trusted-setup-phase1' first."; \
+	mkdir -p $(KEYS)
+	@if [ ! -f $(PTAU_PATH) ]; then \
+		echo "❌ Powers of Tau not found."; \
 		exit 1; \
 	fi
-	snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU)/pot12_final.ptau $(ZKEY)/$(CIRCUIT)_0000.zkey
-	snarkjs zkey contribute $(ZKEY)/$(CIRCUIT)_0000.zkey $(ZKEY)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
-	snarkjs zkey export verificationkey $(ZKEY)/$(CIRCUIT)_0001.zkey $(ZKEY)/verification_key.json
+	snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU_PATH) $(KEYS)/$(CIRCUIT)_0000.zkey
+	snarkjs zkey contribute $(KEYS)/$(CIRCUIT)_0000.zkey $(KEYS)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
+	snarkjs zkey export verificationkey $(KEYS)/$(CIRCUIT)_0001.zkey $(KEYS)/verification_key.json
 	@echo "✅ Keys generated successfully!"
 
 witness:
 	@echo "🧮 Generating witness for $(CIRCUIT)..."
-	@if [ ! -f $(INPUT)/example.json ]; then \
+	@if [ ! -f $(INPUTS)/example.json ]; then \
 		echo "❌ Input file not found."; \
 		exit 1; \
 	fi
-	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUT)/example.json $(BUILD)/witness.wtns
+	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUTS)/example.json $(BUILD)/witness.wtns
 	@echo "✅ Witness generated successfully!"
 
 prove:
 	@echo "🔐 Generating proof for $(CIRCUIT)..."
-	mkdir -p $(PROOF)
+	mkdir -p $(PROOFS)
 	@if [ ! -f $(BUILD)/witness.wtns ]; then \
 		echo "❌ Witness not found. Run 'make witness' first."; \
 		exit 1; \
 	fi
-	snarkjs groth16 prove $(ZKEY)/$(CIRCUIT)_0001.zkey $(BUILD)/witness.wtns $(PROOF)/proof.json $(PROOF)/public.json
+	snarkjs groth16 prove $(KEYS)/$(CIRCUIT)_0001.zkey $(BUILD)/witness.wtns $(PROOFS)/proof.json $(PROOFS)/public.json
 	@echo "✅ Proof generated successfully!"
 
 verify:
 	@echo "✅ Verifying proof for $(CIRCUIT)..."
-	@if [ ! -f $(PROOF)/proof.json ]; then \
+	@if [ ! -f $(PROOFS)/proof.json ]; then \
 		echo "❌ Proof not found. Run 'make prove' first."; \
 		exit 1; \
 	fi
-	snarkjs groth16 verify $(ZKEY)/verification_key.json $(PROOF)/public.json $(PROOF)/proof.json
+	snarkjs groth16 verify $(KEYS)/verification_key.json $(PROOFS)/public.json $(PROOFS)/proof.json
 	@echo "✅ Proof verification completed!"
 
 solidity:
 	@echo "📝 Generating Solidity verifier for $(CIRCUIT)..."
-	mkdir -p $(CONTRACT)
-	snarkjs zkey export solidityverifier $(ZKEY)/$(CIRCUIT)_0001.zkey $(CONTRACT)/verifier.sol
-	@echo "✅ Solidity verifier generated: $(CONTRACT)/verifier.sol"
+	mkdir -p $(CONTRACTS)
+	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(CONTRACTS)/verifier.sol
+	@echo "✅ Solidity verifier generated: $(CONTRACTS)/verifier.sol"
 
 generate-call:
 	@echo "📞 Generating Solidity call data for $(CIRCUIT)..."
-	@if [ ! -f $(PROOF)/proof.json ]; then \
+	@if [ ! -f $(PROOFS)/proof.json ]; then \
 		echo "❌ Proof not found. Run 'make prove' first."; \
 		exit 1; \
 	fi
-	snarkjs generatecall $(PROOF)/public.json $(PROOF)/proof.json
+	snarkjs generatecall $(PROOFS)/public.json $(PROOFS)/proof.json
 
 # Cleanup operations
 _clean-dir:
 	@find $(1) -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true
-	@find $(1) -maxdepth 1 -type d ! -name "$$(basename "$(1)")" ! -name "components" ! -name "input" -exec rm -rf {} + 2>/dev/null || true
+	@find $(1) -maxdepth 1 -type d ! -name "$$(basename "$(1)")" ! -name "components" ! -name "inputs" -exec rm -rf {} + 2>/dev/null || true
 
 clean:
 	@echo "🧹 Cleaning $(CIRCUIT)..."
@@ -123,13 +148,14 @@ clean:
 	@echo "✅ $(CIRCUIT) cleaned!"
 
 clean-all:
-	@echo "🧹 Cleaning all circuits..."
+	@echo "🧹 Cleaning all circuits and Powers of Tau..."
 	@for circuit_dir in circuits/*/; do \
 		[ -d "$$circuit_dir" ] && [ "$$(basename "$$circuit_dir")" != "shared" ] || continue; \
 		echo "  Cleaning $$(basename "$$circuit_dir")..."; \
 		$(MAKE) _clean-dir TARGET_DIR=$$circuit_dir; \
 	done
-	@echo "✅ All circuits cleaned!"
+	@rm -rf ./circuits/shared/keys
+	@echo "✅ All circuits and Powers of Tau cleaned!"
 
 # Project status
 status:
