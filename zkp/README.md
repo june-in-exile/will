@@ -2,6 +2,20 @@
 
 This directory contains multiple Circom circuit implementations, supporting a complete ZK-SNARK workflow from circuit compilation to smart contract deployment.
 
+### Prerequisites
+
+```bash
+# Install circom
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+source ~/.cargo/env
+git clone https://github.com/iden3/circom.git
+cd circom
+cargo build --release
+cargo install --path circom
+
+# Install Node.js (v18+ recommended)
+```
+
 ## Quick Start
 
 ### Install Dependencies
@@ -10,29 +24,33 @@ This directory contains multiple Circom circuit implementations, supporting a co
 npm install
 ```
 
-### Complete Workflow
+### Setup Powers of Tau (shared across all circuits)
+
+```bash
+make trusted-setup-phase1
+```
+
+### Run the Demo
 
 Run the complete workflow using the default circuit (`multiplier2`):
 
 ```bash
-make all
+make circuit
 ```
 
 Or run individual steps:
 
 ```bash
 make compile
-make input-example
 make witness
-make trusted-setup-general
-make trusted-setup-specific
+make trusted-setup-pahse2
 make prove
 make verify
 make solidity
 make generate-call
 ```
 
-To clean up generated files:
+### Clean Up
 
 ```bash
 make clean
@@ -43,8 +61,8 @@ make clean
 Run the workflow for different circuits:
 
 ```bash
-make all CIRCUIT=createWill
-make all CIRCUIT=uploadCid
+make circuit CIRCUIT=createWill
+make circuit CIRCUIT=uploadCid
 ```
 
 ## Detailed Usage
@@ -79,7 +97,7 @@ make compile CIRCUIT=createWill
 #### Prepare Input Data
 
 ```bash
-make input-example
+echo '{"a":3,"b":11}' > circuits/multiplier2/input/example.json
 # Generates example input: circuits/multiplier2/input/example.json
 ```
 
@@ -93,10 +111,10 @@ make witness
 
 ```bash
 # General setup (Powers of Tau)
-make trusted-setup-general
+make trusted-setup-phase1
 
 # Circuit-specific setup
-make trusted-setup-specific
+make trusted-setup-phase2
 ```
 
 #### Generate and Verify Proof
@@ -126,21 +144,20 @@ make generate-call
 #### Clean All Circuits
 
 ```bash
-make clean
+make clean-all
 ```
 
 #### Clean Current Circuit
 
 ```bash
-make clean-circuit
+make clean
 ```
 
 #### Clean Specific Circuit
 
 ```bash
-make clean-multiplier2
-make clean-createWill
-make clean-uploadCid
+make clean CIRCUIT=uploadCid
+make clean CIRCUIT=createWill
 ```
 
 ## Workflow Explanation
@@ -220,18 +237,17 @@ snarkjs generatecall public.json proof.json
 ### Currently Available Circuits
 
 - `multiplier2` - Multiplier example circuit
-- `createWill` - Will creation circuit
 - `uploadCid` - CID upload circuit
+- `createWill` - Will creation circuit
 
 ### Switch Circuits
 
 ```bash
 # Method 1: Modify CIRCUIT variable in Makefile
-CIRCUIT = createWill
+CIRCUIT ?= createWill
 
 # Method 2: Override on command line
-make compile CIRCUIT=uploadCid
-make all CIRCUIT=createWill
+make circuit CIRCUIT=createWill
 ```
 
 ### Adding New Circuits
