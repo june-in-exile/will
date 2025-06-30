@@ -79,6 +79,9 @@ apps/backend/will/7_decrypted.json
 # =============================================================================
 # BLOCKCHAIN & SMART CONTRACTS
 # =============================================================================
+# ZKP Verifier
+contracts/src/Groth16Verifier.sol
+
 # Foundry
 broadcast/
 cache/
