@@ -1,9 +1,4 @@
 declare module "circom_tester" {
-  export interface CircuitTester {
-    wasm(circuitPath: string): Promise<CircuitInstance>;
-    c(circuitPath: string): Promise<CircuitInstance>;
-  }
-
   export interface CircuitInstance {
     calculateWitness(input: Record<string, unknown>): Promise<bigint[]>;
     checkConstraints(witness: bigint[]): Promise<void>;
@@ -14,9 +9,26 @@ declare module "circom_tester" {
       expectedOut: Record<string, unknown>
     ): Promise<void>;
   }
+  
+  export interface CircuitTester {
+    wasm(
+      circuitPath: string,
+      options?: {
+        include?: string[];
+        [key: string]: any;
+      }
+    ): Promise<CircuitInstance>;
+    c(
+      circuitPath: string,
+      options?: {
+        include?: string[];
+        [key: string]: any;
+      }
+    ): Promise<CircuitInstance>;
+  }
 
-  const circom_tester: CircuitTester;
-  export { circom_tester };
+  export const circom_tester: CircuitTester;
 
-  export default circom_tester;
+  const circom_tester_default: CircuitTester;
+  export default circom_tester_default;
 }

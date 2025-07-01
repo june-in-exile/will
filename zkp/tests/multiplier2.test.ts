@@ -1,8 +1,7 @@
+import type { TestInput } from "./types/multiplier2";
 import { exec } from "child_process";
 import * as fs from "fs/promises";
 import { promisify } from "util";
-
-import type { TestInput } from "./types/multiplier2";
 
 const execAsync = promisify(exec);
 
