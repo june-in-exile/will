@@ -1,9 +1,10 @@
 # Default circuit for circuit-specific operations
+CIRCUIT = base64
 CIRCUIT ?= multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/generated/pot02.ptau
+PTAU_PATH := $(SHARED_KEYS)/generated/pot06.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs
@@ -59,7 +60,7 @@ trusted-setup-phase1-download:
 	fi
 
 trusted-setup-phase1:
-	$(call set_ptau_vars,generated,02)
+	$(call set_ptau_vars,generated,06)
 	@echo "🔐 Setting up trusted ceremony..."
 	mkdir -p $(SHARED_KEYS)/generated
 	@if [ ! -f $(FINAL_PTAU_PATH) ]; then \
@@ -80,8 +81,18 @@ circuit: compile witness trusted-setup-phase2 prove verify solidity generate-cal
 compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
-	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD)
+	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD) -l node_modules
 	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
+
+witness: compile
+	@echo "🧮 Generating witness for $(CIRCUIT)..."
+	@if [ ! -f $(INPUTS)/example.json ]; then \
+		echo "❌ Input file not found."; \
+		exit 1; \
+	fi
+	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUTS)/example.json $(BUILD)/witness.wtns
+	snarkjs wtns export json $(BUILD)/witness.wtns $(BUILD)/witness.json
+	@echo "✅ Witness generated successfully!"
 
 trusted-setup-phase2:
 	@echo "🔑 Generating keys for $(CIRCUIT)..."
@@ -94,15 +105,6 @@ trusted-setup-phase2:
 	snarkjs zkey contribute $(KEYS)/$(CIRCUIT)_0000.zkey $(KEYS)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
 	snarkjs zkey export verificationkey $(KEYS)/$(CIRCUIT)_0001.zkey $(KEYS)/verification_key.json
 	@echo "✅ Keys generated successfully!"
-
-witness:
-	@echo "🧮 Generating witness for $(CIRCUIT)..."
-	@if [ ! -f $(INPUTS)/example.json ]; then \
-		echo "❌ Input file not found."; \
-		exit 1; \
-	fi
-	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUTS)/example.json $(BUILD)/witness.wtns
-	@echo "✅ Witness generated successfully!"
 
 prove:
 	@echo "🔐 Generating proof for $(CIRCUIT)..."

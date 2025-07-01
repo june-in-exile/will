@@ -2,17 +2,9 @@ import { exec } from "child_process";
 import * as fs from "fs/promises";
 import { promisify } from "util";
 
+import type { TestInput } from "./types/multiplier2";
+
 const execAsync = promisify(exec);
-
-interface TestInput {
-  a: number | string;
-  b: number | string;
-}
-
-interface ProofData {
-  proof: any;
-  publicSignals: string[];
-}
 
 describe("Multiplier2 Circuit Tests", () => {
   const circuitName = "multiplier2";
@@ -37,7 +29,7 @@ describe("Multiplier2 Circuit Tests", () => {
   async function compileCircuit() {
     try {
       const { stdout, stderr } = await execAsync(
-        `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir}`
+        `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`
       );
       if (stderr && !stderr.includes("Everything went okay")) {
         console.warn("Compilation warnings:", stderr);
@@ -230,7 +222,7 @@ describe("Multiplier2 Circuit Tests", () => {
   describe("Proof Generation and Verification", () => {
     const ok_message = "OK!";
 
-    async function generateProof(input: TestInput): Promise<ProofData> {
+    async function generateProof(input: TestInput): Promise<Groth16Proof> {
       const inputFile = `${inputDir}/proof_input_${Date.now()}.json`;
       const witnessFile = `${buildDir}/witness_proof.wtns`;
 
@@ -255,9 +247,9 @@ describe("Multiplier2 Circuit Tests", () => {
 
     test("should generate and verify valid proof", async () => {
       const input = { a: 7, b: 8 };
-      const { publicSignals } = await generateProof(input);
+      const proof = await generateProof(input);
 
-      expect(publicSignals[0]).toBe((7 * 8).toString());
+      expect(proof.publicSignals[0]).toBe((7 * 8).toString());
 
       const { stdout } = await execAsync(
         `snarkjs groth16 verify ${vkeyFile} ${publicFile} ${proofFile}`
@@ -276,7 +268,7 @@ describe("Multiplier2 Circuit Tests", () => {
       const proof1 = await generateProof(input1);
       const proof2 = await generateProof(input2);
 
-      expect(proof1.proof).not.toEqual(proof2.proof);
+      expect(proof1).not.toEqual(proof2);
 
       expect(proof1.publicSignals[0]).toBe((2 * 3).toString());
       expect(proof2.publicSignals[0]).toBe((4 * 5).toString());
@@ -293,8 +285,6 @@ describe("Multiplier2 Circuit Tests", () => {
 
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(30000);
-
-      console.log(`✅ Proof generation completed in ${duration}ms`);
 
       await fs.unlink(proofFile);
       await fs.unlink(publicFile);

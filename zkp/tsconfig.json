@@ -1,25 +1,32 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
   },
   "include": [
-    "tests/**/*"
+    "**/*.ts",
+    "**/*.test.ts",
+    "jest.setup.ts",
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules",
-    "circuits/*/build"
+    "dist",
+    "coverage",
+    "circuits/*/build",
+    "**/*.js"
   ],
   "ts-node": {
-    "esm": false,
+    "esm": true,
     "experimentalSpecifierResolution": "node"
   }
 }
