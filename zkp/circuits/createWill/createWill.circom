@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.2.2;
 
 // 最簡化的 AES-GCM 解密驗證電路
 // 確保所有約束都是二次的，且所有輸入都正確初始化

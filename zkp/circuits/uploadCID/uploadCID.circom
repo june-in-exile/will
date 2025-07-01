@@ -8,7 +8,7 @@
  * 電路架構分層設計
  */
 
-pragma circom 2.0.0;
+pragma circom 2.2.2;
 
 // =============================================================================
 // 第一層：編碼轉換 Templates
@@ -25,7 +25,7 @@ template Base64Decoder(inputLength, outputLength) {
     // Base64 字符映射表 (A-Z: 0-25, a-z: 26-51, 0-9: 52-61, +: 62, /: 63)
     component charToValue[inputLength];
     for (var i = 0; i < inputLength; i++) {
-        charToValue[i] = Base64CharToValue();
+        charToValue[i] = AsciiToBase64();
         charToValue[i].char <== base64Chars[i];
     }
     
@@ -428,7 +428,7 @@ template AES256GCMDecryptProof(
 建議的實現順序：
 
 1. 【基礎工具】先實現簡單的輔助電路
-   - Base64CharToValue: 單個 base64 字符轉數值
+   - AsciiToBase64: 單個 base64 字符轉數值
    - Base64GroupDecoder: 4個字符解碼為3字節
    
 2. 【密碼學基礎】實現密碼學原語
