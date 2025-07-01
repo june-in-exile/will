@@ -11,8 +11,9 @@ describe("Base64 Character to Value Conversion", function () {
         __dirname,
         "..",
         "circuits",
-        "base64",
-        "base64.circom"
+        "shared",
+        "components",
+        "Base64CharToValue.circom"
       );
 
       circuit = await circom_tester.wasm(circuitPath, {

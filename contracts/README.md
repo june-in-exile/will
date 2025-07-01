@@ -119,7 +119,7 @@
 
 2. (Arbitrum Sepolia only) Verify `Will.sol`.
 
-   Check the contract on https://sepolia.arbiscan.io/address/<WILL>. If it's not verified yet, run the following command to verify it.
+   Check the contract on https://sepolia.arbiscan.io/address/\<WILL\>. If it's not verified yet, run the following command to verify it.
 
    ```sh
    make verify_will
