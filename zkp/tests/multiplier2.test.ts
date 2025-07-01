@@ -1,11 +1,60 @@
-import type { TestInput } from "./types/multiplier2";
+import type { CircuitInstance } from "circom_tester";
+import path from "path";
+import { TestInput, TestCase } from "./types/multiplier2";
+const circom_tester = require("circom_tester");
 import { exec } from "child_process";
 import * as fs from "fs/promises";
 import { promisify } from "util";
 
+
+describe("Multiplier2 Circuit Tests", function () {
+  let circuit: CircuitInstance;
+
+  beforeAll(async function (): Promise<void> {
+    try {
+      const circuitPath = path.join(
+        __dirname,
+        "..",
+        "circuits",
+        "multiplier2",
+        "multiplier2.circom"
+      );
+
+      circuit = await circom_tester.wasm(circuitPath, {
+        include: [
+          path.join(__dirname, "..", "node_modules"),
+          path.join(__dirname, "..", "node_modules", "circomlib", "circuits"),
+        ],
+      });
+    } catch (error) {
+      console.error("Failed to load circuit:", error);
+      throw error;
+    }
+  }, 30000);
+
+  describe("Basic Multiplication", function (): void {
+    const testCases: TestCase[] = [
+      { a: 3, b: 11, expected: 33 },
+      { a: 7, b: 6, expected: 42 },
+      { a: 0, b: 5, expected: 0 },
+      { a: 12345, b: 67890, expected: 12345 * 67890 },
+    ];
+
+    testCases.forEach(({ a, b, expected }: TestCase): void => {
+      test(`should generate witness for ${a} x ${b}`, async function (): Promise<void> {
+        const input = { a, b };
+        const witness: bigint[] = await circuit.calculateWitness(input);
+
+        await circuit.checkConstraints(witness);
+        expect(witness[1]).toBe(BigInt(expected));
+      });
+    });
+  });
+});
+
 const execAsync = promisify(exec);
 
-describe("Multiplier2 Circuit Tests", () => {
+describe("Workflow Tests", () => {
   const circuitName = "multiplier2";
   const circuitDir = `circuits/${circuitName}`;
   const inputDir = `${circuitDir}/inputs`;
@@ -109,94 +158,6 @@ describe("Multiplier2 Circuit Tests", () => {
   });
 
   describe("Witness Generation", () => {
-    const correct_witness_message = "WITNESS IS CORRECT";
-
-    async function generateWitness(input: TestInput, witnessFile: string) {
-      const inputFile = `${inputDir}/${Date.now()}.json`;
-      await fs.writeFile(inputFile, JSON.stringify(input, null, 2));
-
-      await execAsync(
-        `snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`
-      );
-
-      await fs.unlink(inputFile);
-    }
-
-    test("should generate witness for basic multiplication", async () => {
-      const witnessFile = `${buildDir}/witness_basic.wtns`;
-      const input = { a: 3, b: 11 };
-
-      await generateWitness(input, witnessFile);
-
-      const { stdout } = await execAsync(
-        `snarkjs wtns check ${r1csFile} ${witnessFile}`
-      );
-      expect(stdout.trim()).toContain(correct_witness_message);
-
-      const witnessJsonFile = `${buildDir}/witness_basic.json`;
-      await execAsync(
-        `snarkjs wtns export json ${witnessFile} ${witnessJsonFile}`
-      );
-
-      const witnessData = JSON.parse(
-        await fs.readFile(witnessJsonFile, "utf-8")
-      );
-      expect(witnessData[1]).toBe((3 * 11).toString());
-
-      await fs.unlink(witnessFile);
-      await fs.unlink(witnessJsonFile);
-    });
-
-    test("should handle zero multiplication", async () => {
-      const witnessFile = `${buildDir}/witness_zero.wtns`;
-      const input = { a: 0, b: 5 };
-
-      await generateWitness(input, witnessFile);
-
-      const { stdout } = await execAsync(
-        `snarkjs wtns check ${r1csFile} ${witnessFile}`
-      );
-      expect(stdout.trim()).toContain(correct_witness_message);
-
-      const witnessJsonFile = `${buildDir}/witness_zero.json`;
-      await execAsync(
-        `snarkjs wtns export json ${witnessFile} ${witnessJsonFile}`
-      );
-
-      const witnessData = JSON.parse(
-        await fs.readFile(witnessJsonFile, "utf-8")
-      );
-      expect(witnessData[1]).toBe((0 * 5).toString());
-
-      await fs.unlink(witnessFile);
-      await fs.unlink(witnessJsonFile);
-    });
-
-    test("should handle large numbers", async () => {
-      const witnessFile = `${buildDir}/witness_large.wtns`;
-      const input = { a: 12345, b: 67890 };
-
-      await generateWitness(input, witnessFile);
-
-      const { stdout } = await execAsync(
-        `snarkjs wtns check ${r1csFile} ${witnessFile}`
-      );
-      expect(stdout.trim()).toContain(correct_witness_message);
-
-      const witnessJsonFile = `${buildDir}/witness_large.json`;
-      await execAsync(
-        `snarkjs wtns export json ${witnessFile} ${witnessJsonFile}`
-      );
-
-      const witnessData = JSON.parse(
-        await fs.readFile(witnessJsonFile, "utf-8")
-      );
-      expect(witnessData[1]).toBe((12345 * 67890).toString());
-
-      await fs.unlink(witnessFile);
-      await fs.unlink(witnessJsonFile);
-    });
-
     test("should complete witness generation within time limit", async () => {
       const start = Date.now();
 
