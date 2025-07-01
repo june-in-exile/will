@@ -3,7 +3,6 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: [
-    '**/tests/**/*.ts',
     '**/?(*.)+(spec|test).ts'
   ],
   transform: {
@@ -11,7 +10,6 @@ module.exports = {
   },
   collectCoverageFrom: [
     'tests/**/*.ts',
-    '!tests/**/*.d.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: [
@@ -19,6 +17,5 @@ module.exports = {
     'lcov',
     'html'
   ],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   testTimeout: 30000
 };

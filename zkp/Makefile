@@ -3,7 +3,7 @@ CIRCUIT ?= multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/generated/pot12_02.ptau
+PTAU_PATH := $(SHARED_KEYS)/generated/pot02.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs
@@ -138,13 +138,16 @@ generate-call:
 	snarkjs generatecall $(PROOFS)/public.json $(PROOFS)/proof.json
 
 # Cleanup operations
-_clean-dir:
-	@find $(1) -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true
-	@find $(1) -maxdepth 1 -type d ! -name "$$(basename "$(1)")" ! -name "components" ! -name "inputs" -exec rm -rf {} + 2>/dev/null || true
+define clean_dir
+	{ \
+		find $(1) -maxdepth 1 -type f ! -name "*.circom" -delete 2>/dev/null || true; \
+		find $(1) -maxdepth 1 -type d ! -name "$$(basename $(1))" ! -name "components" ! -name "inputs" -exec rm -rf {} + 2>/dev/null || true; \
+	}
+endef
 
 clean:
 	@echo "🧹 Cleaning $(CIRCUIT)..."
-	$(call clean_circuit_dir,$(DIR))
+	@$(call clean_dir,$(DIR))
 	@echo "✅ $(CIRCUIT) cleaned!"
 
 clean-all:
@@ -152,7 +155,7 @@ clean-all:
 	@for circuit_dir in circuits/*/; do \
 		[ -d "$$circuit_dir" ] && [ "$$(basename "$$circuit_dir")" != "shared" ] || continue; \
 		echo "  Cleaning $$(basename "$$circuit_dir")..."; \
-		$(MAKE) _clean-dir TARGET_DIR=$$circuit_dir; \
+		$(call clean_dir,$$circuit_dir); \
 	done
 	@rm -rf ./circuits/shared/keys
 	@echo "✅ All circuits and Powers of Tau cleaned!"
