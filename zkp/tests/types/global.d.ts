@@ -3,9 +3,12 @@ declare global {
   namespace CircomTester {
     interface CircuitInstance {
       /**
-     * Calculates the witness for the circuit using the provided input.
-     */
-      calculateWitness(input: Record<string, unknown>, sanityCheck?: boolean): Promise<bigint[]>;
+       * Calculates the witness for the circuit using the provided input.
+       */
+      calculateWitness(
+        input: Record<string, unknown>,
+        sanityCheck?: boolean,
+      ): Promise<bigint[]>;
 
       /**
        * Verifies that all constraints are satisfied by the witness.
@@ -27,7 +30,7 @@ declare global {
        */
       assertOut(
         witness: bigint[],
-        expectedOut: Record<string, unknown>
+        expectedOut: Record<string, unknown>,
       ): Promise<void>;
 
       /**
@@ -42,7 +45,7 @@ declare global {
       getOutput(
         witness: bigint[],
         expectedOutStructure: Record<string, any>,
-        templateName?: string
+        templateName?: string,
       ): Promise<Record<string, any>>;
     }
 
@@ -58,7 +61,7 @@ declare global {
           templatePublicSignals?: string[];
           recompile?: boolean;
           [key: string]: any;
-        }
+        },
       ): Promise<CircuitInstance>;
 
       c(
@@ -72,7 +75,7 @@ declare global {
           templatePublicSignals?: string[];
           recompile?: boolean;
           [key: string]: any;
-        }
+        },
       ): Promise<CircuitInstance>;
     }
   }
@@ -80,4 +83,4 @@ declare global {
   const circom_tester: CircomTester.CircuitTester;
 }
 
-export { };
+export {};

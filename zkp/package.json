@@ -4,7 +4,7 @@
   "description": "TypeScript testing framework for Circom circuit development",
   "scripts": {
     "test": "jest --verbose",
-    "test:single": "jest --testNamePattern=",
+    "test:single": "jest --verbose --testNamePattern=",
     "lint": "eslint tests/**/*.ts",
     "format": "prettier --write tests/**/*.ts",
     "clean": "make clean-all"
