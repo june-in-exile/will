@@ -26,7 +26,7 @@ export async function compileCircuit(
     , {
       include: getCircomlib(),
       O: 2,
-      inspect: true,
+      // inspect: true,
       verbose: false,
       ...(options?.templateName ? { templateName: options.templateName } : {}),
       ...(options?.templateParams ? { templateParams: options.templateParams } : {}),

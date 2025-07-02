@@ -2,11 +2,11 @@ import { compileCircuit } from "./utils";
 const circom_tester = require("circom_tester");
 
 describe("Multiplier2 Circuit Tests", function () {
-  let multiplier2: CircomTester.CircuitInstance;
+  let circuit: CircomTester.CircuitInstance;
 
   beforeAll(async function (): Promise<void> {
     try {
-      multiplier2 = await compileCircuit("./multiplier2/multiplier2.circom");
+      circuit = await compileCircuit("./multiplier2/multiplier2.circom");
     } catch (error) {
       console.error("Failed to load circuit:", error);
       throw error;
@@ -24,10 +24,10 @@ describe("Multiplier2 Circuit Tests", function () {
     testCases.forEach(({ a, b, expected }): void => {
       test(`should generate witness for ${a} x ${b}`, async function (): Promise<void> {
         const input = { a, b };
-        const witness: bigint[] = await multiplier2.calculateWitness(input);
+        const witness: bigint[] = await circuit.calculateWitness(input);
 
-        await multiplier2.checkConstraints(witness);
-        await multiplier2.assertOut(witness, { c: BigInt(expected) });
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { c: BigInt(expected) });
       });
     });
   });

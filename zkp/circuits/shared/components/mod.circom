@@ -8,10 +8,8 @@ template Modulo(modulusBits) {
     signal output quotient;
     signal output remainder;
 
-    component check_modulus_range = LessThan(modulusBits);
-    check_modulus_range.in[0] <== modulus;
-    check_modulus_range.in[1] <== 1 << modulusBits;
-    check_modulus_range.out === 1;
+    // Constraint the bits of modulus
+    _ = Num2Bits(modulusBits)(modulus);
     
     quotient <-- in \ modulus;
     remainder <-- in % modulus;
@@ -20,14 +18,10 @@ template Modulo(modulusBits) {
     in === quotient * modulus + remainder;
     
     // remainder < modulus
-    component remainderCheck = LessThan(modulusBits);
-    remainderCheck.in[0] <== remainder;
-    remainderCheck.in[1] <== modulus;
-    remainderCheck.out === 1;
+    signal validRemainder <== LessThan(modulusBits)([remainder,modulus]);
+    validRemainder === 1;
 
     // quotient >= 0
-    component quotientCheck = GreaterEqThan(modulusBits);
-    quotientCheck.in[0] <== quotient;
-    quotientCheck.in[1] <== 0;
-    quotientCheck.out === 1;
+    signal validQuotient <== GreaterEqThan(modulusBits)([quotient,0]);
+    validQuotient === 1;
 }

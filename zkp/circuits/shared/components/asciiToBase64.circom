@@ -16,9 +16,9 @@ template AsciiToBase64() {
     signal input asciiCode;     // (0-127)
     signal output base64Value;  // (0-64)
     
-    signal {bool} isUpperCase <== InRange(7, 65, 90)(asciiCode);    // A-Z
-    signal {bool} isLowerCase <== InRange(7, 97, 122)(asciiCode);   // a-z
-    signal {bool} isDigit <== InRange(7, 48, 57)(asciiCode);        // 0-9
+    signal {bool} isUpperCase <== InRange(7)(asciiCode, 65, 90);    // A-Z
+    signal {bool} isLowerCase <== InRange(7)(asciiCode, 97, 122);   // a-z
+    signal {bool} isDigit <== InRange(7)(asciiCode, 48, 57);        // 0-9
     signal {bool} isPlus <== IsEqual()([asciiCode,43]);             // +
     signal {bool} isSlash <== IsEqual()([asciiCode,47]);            // /
     signal {bool} isPadding <== IsEqual()([asciiCode,61]);          // =

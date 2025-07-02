@@ -2,27 +2,20 @@ import { compileCircuit } from "./utils";
 const circom_tester = require("circom_tester");
 
 describe("Modulo Circuit", function () {
-  let mod4: CircomTester.CircuitInstance;  // 4-bit input
-  let mod6: CircomTester.CircuitInstance;  // 6-bit input
-  let mod8: CircomTester.CircuitInstance;  // 8-bit input
-
-  beforeAll(async function (): Promise<void> {
-    try {
-      mod6 = await compileCircuit("./shared/components/mod.circom", {
-        templateName: "Modulo",
-        templateParams: ["6"]
-      });
-      mod8 = await compileCircuit("./shared/components/mod.circom", {
-        templateName: "Modulo",
-        templateParams: ["8"]
-      });
-    } catch (error) {
-      console.error("Failed to load modulo circuit:", error);
-      throw error;
-    }
-  }, 30000);
+  let circuit: CircomTester.CircuitInstance;
 
   describe("6-bit Modulo Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      try {
+        circuit = await compileCircuit("./shared/components/mod.circom", {
+          templateParams: ["6"]
+        });
+      } catch (error) {
+        console.error("Failed to load circuit:", error);
+        throw error;
+      }
+    }, 30000);
+
     test("should calculate valid modulus correctly", async function (): Promise<void> {
       const testCases = [
         { in: 0, modulus: 16 },
@@ -48,9 +41,9 @@ describe("Modulo Circuit", function () {
       ]
 
       for (const testCase of testCases) {
-        const witness = await mod6.calculateWitness(testCase);
-        await mod6.checkConstraints(witness);
-        await mod6.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        const witness = await circuit.calculateWitness(testCase);
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
       }
     });
 
@@ -67,12 +60,23 @@ describe("Modulo Circuit", function () {
       ];
 
       for (const testCase of testCases) {
-        await expect(mod6.calculateWitness(testCase)).rejects.toThrow();
+        await expect(circuit.calculateWitness(testCase)).rejects.toThrow();
       }
     });
   });
 
   describe("8-bit Modulo Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      try {
+        circuit = await compileCircuit("./shared/components/mod.circom", {
+          templateParams: ["8"]
+        });
+      } catch (error) {
+        console.error("Failed to load circuit:", error);
+        throw error;
+      }
+    }, 30000);
+
     test("should calculate valid modulus correctly", async function (): Promise<void> {
       const testCases = [
         { in: 0, modulus: 16 },
@@ -98,10 +102,10 @@ describe("Modulo Circuit", function () {
       ]
 
       for (const testCase of testCases) {
-        const witness = await mod8.calculateWitness(testCase);
+        const witness = await circuit.calculateWitness(testCase);
 
-        await mod8.checkConstraints(witness);
-        await mod8.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
       }
     });
 
@@ -121,7 +125,7 @@ describe("Modulo Circuit", function () {
 
       for (const testCase of testCases) {
         const input = { in: testCase.in, modulus: testCase.modulus };
-        await expect(mod6.calculateWitness(input)).rejects.toThrow();
+        await expect(circuit.calculateWitness(input)).rejects.toThrow();
       }
     });
   });
