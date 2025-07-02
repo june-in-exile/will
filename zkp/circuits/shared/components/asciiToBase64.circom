@@ -34,5 +34,3 @@ template AsciiToBase64() {
     
     upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue ==> base64Value;
 }
-
-component main = AsciiToBase64();

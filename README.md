@@ -238,8 +238,9 @@ pnpm build
    - [ ] The cpp circom compilation doesn't work.
    - [ ] IPFS related actions would stuck.
 2. **Refactor**
-   - [ ] Unify the types.
-   - [ ] Combine the repeated functions.
+   - [ ] Unify the types in backend.
+   - [ ] Combine the repeated functions in backend.
+   - [ ] Remove the node_modeuls in contracts (managed w/ pnpm in root)
 3. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.
    - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content.

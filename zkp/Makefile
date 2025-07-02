@@ -1,4 +1,5 @@
 # Default circuit for circuit-specific operations
+CIRCUIT = base64
 CIRCUIT ?= multiplier2
 
 # Directory structure
@@ -80,7 +81,7 @@ circuit: compile witness trusted-setup-phase2 prove verify solidity generate-cal
 compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
-	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD) -l node_modules
+	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD) -l node_modules --O2
 	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
 
 witness: compile

@@ -2,14 +2,14 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 
-template ModuloCircuit(inputBits, modulusBits) {
+template Modulo(inputBits, modulusBits) {
     signal input in;
     signal output out;
     
     var modulus = 1 << modulusBits;
     
     signal quotient;
-    quotient <== in \ modulus;
+    quotient <== in / modulus;
     
     out <== in - quotient * modulus;
     

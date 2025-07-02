@@ -52,9 +52,9 @@ clean: clean_address clean_groth16verifier_and_proof clean_typechain
 
 install:
 	@rm -rf lib
-	@forge install foundry-rs/forge-std --no-commit
-	@forge install OpenZeppelin/openzeppelin-contracts --no-commit
-	@forge install Uniswap/permit2 --no-commit
+	@forge install foundry-rs/forge-std
+	@forge install OpenZeppelin/openzeppelin-contracts
+	@forge install Uniswap/permit2
 
 build: sync_groth16verifier_and_proof
 	@forge build

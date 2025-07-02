@@ -21,6 +21,7 @@ describe("Base64 Character to Value Conversion", function () {
           path.join(__dirname, "..", "node_modules"),
           path.join(__dirname, "..", "node_modules", "circomlib", "circuits"),
         ],
+        compileFlags: ["--O2"],
       });
     } catch (error) {
       console.error("Failed to load circuit:", error);
@@ -92,9 +93,8 @@ describe("Base64 Character to Value Conversion", function () {
         try {
           const witness = await circuit.calculateWitness(input);
           await expect(circuit.checkConstraints(witness)).rejects.toThrow();
-          console.log(`Adjacent invalid ASCII ${asciiCode} correctly rejected`);
         } catch (error) {
-          console.log(`Adjacent invalid ASCII ${asciiCode} rejected at witness calculation`);
+          // failing in calculateWitness phase is also expected
           expect(error).toBeDefined();
         }
       }
