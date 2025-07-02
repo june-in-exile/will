@@ -33,11 +33,8 @@ describe("Modulo Circuit", function () {
         { in: 13, modulus: 32 },
         { in: 13, modulus: 33 },
         { in: 32, modulus: 37 },
+        { in: 0, modulus: 63 },
         { in: 1, modulus: 63 },
-        { in: 62, modulus: 63 },
-        { in: 63, modulus: 63 },
-        { in: 64, modulus: 63 },
-        { in: 300, modulus: 63 },
       ]
 
       for (const testCase of testCases) {
@@ -47,7 +44,7 @@ describe("Modulo Circuit", function () {
       }
     });
 
-    test("should reject invalid modulus", async function (): Promise<void> {
+    test("should contraint modulus", async function (): Promise<void> {
       const testCases = [
         { in: 0, modulus: 64 },
         { in: 1, modulus: 64 },
@@ -61,6 +58,25 @@ describe("Modulo Circuit", function () {
 
       for (const testCase of testCases) {
         await expect(circuit.calculateWitness(testCase)).rejects.toThrow();
+      }
+    });
+
+    test("should not contraint input value", async function (): Promise<void> {
+      const testCases = [
+        { in: 24, modulus: 12 },
+        { in: 120, modulus: 12 },
+        { in: 64, modulus: 16 },
+        { in: 300, modulus: 16 },
+        { in: 62, modulus: 63 },
+        { in: 63, modulus: 63 },
+        { in: 64, modulus: 63 },
+        { in: 300, modulus: 63 },
+      ];
+
+      for (const testCase of testCases) {
+        const witness = await circuit.calculateWitness(testCase);
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
       }
     });
   });
@@ -95,10 +111,8 @@ describe("Modulo Circuit", function () {
         { in: 13, modulus: 33 },
         { in: 32, modulus: 37 },
         { in: 28, modulus: 109 },
+        { in: 0, modulus: 255 },
         { in: 1, modulus: 255 },
-        { in: 255, modulus: 255 },
-        { in: 256, modulus: 255 },
-        { in: 1024, modulus: 255 },
       ]
 
       for (const testCase of testCases) {
@@ -109,7 +123,7 @@ describe("Modulo Circuit", function () {
       }
     });
 
-    test("should reject invalid modulus", async function (): Promise<void> {
+    test("should contraint invalid modulus", async function (): Promise<void> {
       const testCases = [
         { in: 0, modulus: 256 },
         { in: 1, modulus: 256 },
@@ -126,6 +140,24 @@ describe("Modulo Circuit", function () {
       for (const testCase of testCases) {
         const input = { in: testCase.in, modulus: testCase.modulus };
         await expect(circuit.calculateWitness(input)).rejects.toThrow();
+      }
+    });
+
+    test("should not contraint input value", async function (): Promise<void> {
+      const testCases = [
+        { in: 24, modulus: 12 },
+        { in: 120, modulus: 12 },
+        { in: 64, modulus: 16 },
+        { in: 300, modulus: 16 },
+        { in: 255, modulus: 255 },
+        { in: 256, modulus: 255 },
+        { in: 1024, modulus: 255 },
+      ];
+
+      for (const testCase of testCases) {
+        const witness = await circuit.calculateWitness(testCase);
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
       }
     });
   });

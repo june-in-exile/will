@@ -10,28 +10,16 @@ template InRange(bits) {
     signal output out;
     
     // Constraint the bits of in, min and max
-    component inBits = Num2Bits(bits);
-    component minBits = Num2Bits(bits);
-    component maxBits = Num2Bits(bits);
-    
-    inBits.in <== in;
-    minBits.in <== min;
-    maxBits.in <== max;
+    _ = Num2Bits(bits)(in);
+    _ = Num2Bits(bits)(min);
+    _ = Num2Bits(bits)(max);
     
     // min <= max
-    component minLeqMax = LessEqThan(bits);
-    minLeqMax.in[0] <== min;
-    minLeqMax.in[1] <== max;
-    minLeqMax.out === 1;
+    signal minLeqMax <== LessEqThan(bits)([min,max]);
+    minLeqMax === 1;
     
-    component geq = GreaterEqThan(bits);
-    component leq = LessEqThan(bits);
+    signal inGeqMin <== GreaterEqThan(bits)([in,min]);
+    signal inLeqMax <== LessEqThan(bits)([in,max]);
     
-    geq.in[0] <== in;
-    geq.in[1] <== min;
-    
-    leq.in[0] <== in;
-    leq.in[1] <== max;
-    
-    out <== geq.out * leq.out;
+    out <== inGeqMin * inLeqMax;
 }
