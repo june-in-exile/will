@@ -1,31 +1,12 @@
-import type { CircuitInstance } from "circom_tester";
-import path from "path";
-import { TestInput, TestCase } from "./types/multiplier2";
+import { compileCircuit } from "./utils";
 const circom_tester = require("circom_tester");
-import { exec } from "child_process";
-import * as fs from "fs/promises";
-import { promisify } from "util";
-
 
 describe("Multiplier2 Circuit Tests", function () {
-  let circuit: CircuitInstance;
+  let multiplier2: CircomTester.CircuitInstance;
 
   beforeAll(async function (): Promise<void> {
     try {
-      const circuitPath = path.join(
-        __dirname,
-        "..",
-        "circuits",
-        "multiplier2",
-        "multiplier2.circom"
-      );
-
-      circuit = await circom_tester.wasm(circuitPath, {
-        include: [
-          path.join(__dirname, "..", "node_modules"),
-          path.join(__dirname, "..", "node_modules", "circomlib", "circuits"),
-        ],
-      });
+      multiplier2 = await compileCircuit("./multiplier2/multiplier2.circom");
     } catch (error) {
       console.error("Failed to load circuit:", error);
       throw error;
@@ -33,26 +14,35 @@ describe("Multiplier2 Circuit Tests", function () {
   }, 30000);
 
   describe("Basic Multiplication", function (): void {
-    const testCases: TestCase[] = [
+    const testCases = [
       { a: 3, b: 11, expected: 33 },
       { a: 7, b: 6, expected: 42 },
       { a: 0, b: 5, expected: 0 },
       { a: 12345, b: 67890, expected: 12345 * 67890 },
     ];
 
-    testCases.forEach(({ a, b, expected }: TestCase): void => {
+    testCases.forEach(({ a, b, expected }): void => {
       test(`should generate witness for ${a} x ${b}`, async function (): Promise<void> {
         const input = { a, b };
-        const witness: bigint[] = await circuit.calculateWitness(input);
+        const witness: bigint[] = await multiplier2.calculateWitness(input);
 
-        await circuit.checkConstraints(witness);
-        expect(witness[1]).toBe(BigInt(expected));
+        await multiplier2.checkConstraints(witness);
+        await multiplier2.assertOut(witness, { c: BigInt(expected) });
       });
     });
   });
 });
 
+import * as fs from "fs/promises";
+import { exec } from "child_process";
+import { promisify } from "util";
+
 const execAsync = promisify(exec);
+
+interface Groth16Proof {
+  proof: any;
+  publicSignals: string[];
+}
 
 describe("Workflow Tests", () => {
   const circuitName = "multiplier2";
@@ -119,7 +109,7 @@ describe("Workflow Tests", () => {
     ];
 
     for (const dir of dirs) {
-      await fs.mkdir(dir, { recursive: true }).catch(() => {});
+      await fs.mkdir(dir, { recursive: true }).catch(() => { });
     }
 
     await compileCircuit();
@@ -182,7 +172,7 @@ describe("Workflow Tests", () => {
   describe("Proof Generation and Verification", () => {
     const ok_message = "OK!";
 
-    async function generateProof(input: TestInput): Promise<Groth16Proof> {
+    async function generateProof(input: { a: number, b: number }): Promise<Groth16Proof> {
       const inputFile = `${inputDir}/proof_input_${Date.now()}.json`;
       const witnessFile = `${buildDir}/witness_proof.wtns`;
 

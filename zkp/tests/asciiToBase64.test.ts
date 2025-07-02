@@ -1,28 +1,12 @@
-import path from "path";
+import { compileCircuit } from "./utils";
 const circom_tester = require("circom_tester");
-import type { CircuitInstance } from "circom_tester";
 
 describe("Base64 Character to Value Conversion", function () {
-  let circuit: CircuitInstance;
+  let circuit: CircomTester.CircuitInstance;
 
   beforeAll(async function (): Promise<void> {
     try {
-      const circuitPath = path.join(
-        __dirname,
-        "..",
-        "circuits",
-        "shared",
-        "components",
-        "asciiToBase64.circom"
-      );
-
-      circuit = await circom_tester.wasm(circuitPath, {
-        include: [
-          path.join(__dirname, "..", "node_modules"),
-          path.join(__dirname, "..", "node_modules", "circomlib", "circuits"),
-        ],
-        compileFlags: ["--O2"],
-      });
+      circuit = await compileCircuit("./shared/components/asciiToBase64.circom");
     } catch (error) {
       console.error("Failed to load circuit:", error);
       throw error;

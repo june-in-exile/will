@@ -1,1 +1,1 @@
-export * from "./circomlib";
+export * from "./compile";
