@@ -2,19 +2,32 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 
-template Modulo(inputBits, modulusBits) {
+template Modulo(modulusBits) {
     signal input in;
-    signal output out;
+    signal input modulus; 
+    signal output quotient;
+    signal output remainder;
+
+    component check_modulus_range = LessThan(modulusBits);
+    check_modulus_range.in[0] <== modulus;
+    check_modulus_range.in[1] <== 1 << modulusBits;
+    check_modulus_range.out === 1;
     
-    var modulus = 1 << modulusBits;
+    quotient <-- in \ modulus;
+    remainder <-- in % modulus;
+    remainder === in - quotient * modulus;
     
-    signal quotient;
-    quotient <== in / modulus;
+    in === quotient * modulus + remainder;
     
-    out <== in - quotient * modulus;
-    
-    component rangeCheck = LessEqThan(modulusBits);
-    rangeCheck.in[0] <== out;
-    rangeCheck.in[1] <== modulus - 1;
-    rangeCheck.out === 1;
+    // remainder < modulus
+    component remainderCheck = LessThan(modulusBits);
+    remainderCheck.in[0] <== remainder;
+    remainderCheck.in[1] <== modulus;
+    remainderCheck.out === 1;
+
+    // quotient >= 0
+    component quotientCheck = GreaterEqThan(modulusBits);
+    quotientCheck.in[0] <== quotient;
+    quotientCheck.in[1] <== 0;
+    quotientCheck.out === 1;
 }

@@ -1,4 +1,4 @@
 pragma circom 2.2.2;
 include "../../circuits/shared/components/mod.circom";
 
-component main = Modulo(6, 4);
+component main = Modulo(6);

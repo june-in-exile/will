@@ -23,7 +23,7 @@ template AsciiToBase64() {
     signal {bool} isSlash <== IsEqual()([asciiCode,47]);            // /
     signal {bool} isPadding <== IsEqual()([asciiCode,61]);          // =
 
-    isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding === 1;
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
     
     signal upperValue <== isUpperCase * (asciiCode - 65);       // A=0, B=1, ..., Z=25
     signal lowerValue <== isLowerCase * (asciiCode - 97 + 26);  // a=26, b=27, ..., z=51
@@ -32,5 +32,5 @@ template AsciiToBase64() {
     signal slashValue <== isSlash * 63;                         // /=63
     signal paddingValue <== isPadding * 64;                     // ==64
     
-    upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue ==> base64Value;
+    base64Value <== upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue;
 }
