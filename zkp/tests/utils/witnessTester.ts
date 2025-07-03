@@ -125,7 +125,11 @@ export class WitnessTester<IN extends readonly string[] = [], OUT extends readon
         const witness = await this.calculateWitness(input);
         await this.expectConstraintPass(witness);
         if (output) {
-            await this.assertOut(witness, output);
+            // try {
+                await this.assertOut(witness, output);
+            // } catch (error) {
+                // throw new AssertionError({ message: (error as Error).message });
+            // }
         }
     }
 
