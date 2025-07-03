@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 
 describe("InRange Circuit", function () {
-  let circuit: WitnessTester<['in', 'min', 'max'], ['out']>;
+  let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
   describe("Basic 4-bit Range Validation", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.create("./shared/components/range.circom", {
@@ -11,14 +11,18 @@ describe("InRange Circuit", function () {
 
     test("should validate full range [0, 15]", async function (): Promise<void> {
       for (let value = 0; value <= 15; value++) {
-        await circuit.expectPass({ in: value, min: 0, max: 15 }, { out: 1 })
+        await circuit.expectPass({ in: value, min: 0, max: 15 }, { out: 1 });
       }
     });
 
     test("should validate custom range [3, 8]", async function (): Promise<void> {
-      const min = 3, max = 8;
+      const min = 3,
+        max = 8;
       for (let value = 0; value <= 15; value++) {
-        await circuit.expectPass({ in: value, min, max }, { out: (min <= value && value <= max) ? 1 : 0 })
+        await circuit.expectPass(
+          { in: value, min, max },
+          { out: min <= value && value <= max ? 1 : 0 },
+        );
       }
     });
 
@@ -48,29 +52,38 @@ describe("InRange Circuit", function () {
     });
 
     test("should validate full range [0, 255]", async function (): Promise<void> {
-      const min = 0, max = 255;
+      const min = 0,
+        max = 255;
       const values = [0, 1, 127, 254, 255];
 
       for (const value of values) {
-        await circuit.expectPass({ in: value, min, max }, { out: 1 })
+        await circuit.expectPass({ in: value, min, max }, { out: 1 });
       }
     });
 
     test("should validate custom range [10, 100]", async function (): Promise<void> {
-      const min = 10, max = 100;
+      const min = 10,
+        max = 100;
       const values = [9, 10, 11, 50, 99, 100, 101];
 
       for (const value of values) {
-        await circuit.expectPass({ in: value, min, max }, { out: (min <= value && value <= max) ? 1 : 0 })
+        await circuit.expectPass(
+          { in: value, min, max },
+          { out: min <= value && value <= max ? 1 : 0 },
+        );
       }
     });
 
     test("should handle exact boundary values correctly", async function (): Promise<void> {
-      const min = 50, max = 200;
+      const min = 50,
+        max = 200;
       const values = [49, 50, 51, 199, 200, 201];
 
       for (const value of values) {
-        await circuit.expectPass({ in: value, min, max }, { out: (min <= value && value <= max) ? 1 : 0 })
+        await circuit.expectPass(
+          { in: value, min, max },
+          { out: min <= value && value <= max ? 1 : 0 },
+        );
       }
     });
   });

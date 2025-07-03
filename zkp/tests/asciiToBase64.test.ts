@@ -1,10 +1,12 @@
 import { WitnessTester } from "./utils";
 
 describe("Base64 Character to Value Conversion", function () {
-  let circuit: WitnessTester<['asciiCode'], ['base64Value']>;
+  let circuit: WitnessTester<["asciiCode"], ["base64Value"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.create("./shared/components/asciiToBase64.circom");
+    circuit = await WitnessTester.create(
+      "./shared/components/asciiToBase64.circom",
+    );
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -18,7 +20,7 @@ describe("Base64 Character to Value Conversion", function () {
         // const base64Value: number = i === 64 ? 64 : i; // '=' is special case
         const base64Value: number = i;
 
-        await circuit.expectPass({ asciiCode }, { base64Value })
+        await circuit.expectPass({ asciiCode }, { base64Value });
       }
     });
   });
@@ -36,7 +38,7 @@ describe("Base64 Character to Value Conversion", function () {
         63, // "?"
         32, // " "
         10, // "\n"
-        9,  // "\t"
+        9, // "\t"
       ];
 
       for (const asciiCode of invalidChars) {

@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 
 describe("Modulo Circuit", function () {
-  let circuit: WitnessTester<['in', 'modulus'], ['quotient', 'remainder']>;
+  let circuit: WitnessTester<["in", "modulus"], ["quotient", "remainder"]>;
 
   describe("6-bit Modulo Operations", function (): void {
     beforeAll(async function (): Promise<void> {
@@ -35,7 +35,7 @@ describe("Modulo Circuit", function () {
         await circuit.expectPass(testCase, {
           quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
           remainder: BigInt(testCase.in % testCase.modulus),
-        })
+        });
       }
     });
 
@@ -110,7 +110,7 @@ describe("Modulo Circuit", function () {
         await circuit.expectPass(testCase, {
           quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
           remainder: BigInt(testCase.in % testCase.modulus),
-        })
+        });
       }
     });
 

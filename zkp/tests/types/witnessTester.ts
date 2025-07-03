@@ -12,8 +12,8 @@ export type SignalValueType = IntegerValueType | SignalValueType[];
  * to make them type-safe, e.g. `CircuitSignals<['sig1', 'sig2']>`
  */
 export type CircuitSignals<T extends readonly string[] = []> = T extends []
-    ? { [signal: string]: SignalValueType }
-    : { [signal in T[number]]: SignalValueType };
+  ? { [signal: string]: SignalValueType }
+  : { [signal in T[number]]: SignalValueType };
 
 /** A witness is an array of `bigint`s, corresponding to the values of each wire in the evaluation of the circuit. */
 export type WitnessType = bigint[];
@@ -23,38 +23,38 @@ export type WitnessType = bigint[];
  * the most important is `varIdx` which indicates the position of this signal in the witness array.
  */
 export type SymbolsType = {
-    [symbol: string]: {
-        labelIdx: number;
-        varIdx: number;
-        componentIdx: number;
-    };
+  [symbol: string]: {
+    labelIdx: number;
+    varIdx: number;
+    componentIdx: number;
+  };
 };
 
 /** A configuration object for circuit compilation. */
 export type CompileOptions = {
-    templateName?: string;
-    /** Parameters to pass to the template */
-    templateParams?: string[];
-    /** List of public signals for the template */
-    templatePublicSignals?: string[];
-    /** Optimization level (0-2, default: 2) */
-    O?: Optimization;
-    /** Enable verbose output during compilation (default: false) */
-    verbose?: boolean;
-    /** Enable inspection mode for debugging (default: false) */
-    inspect?: boolean;
-    /** Output constraints in JSON format (default: false) */
-    json?: boolean;
-    /** Force recompilation even if compiled version exists (default: true) */
-    recompile?: boolean;
-    /** Elliptic curve to use for the field (default: "bn128") */
-    prime?: CurveName;
-    /** Enable simplification substitution optimization (default: false) */
-    simplification_substitution?: boolean;
-    /** Disable assembly generation (default: false) */
-    no_asm?: boolean;
-    /** Skip initialization phase (default: false) */
-    no_init?: boolean;
+  templateName?: string;
+  /** Parameters to pass to the template */
+  templateParams?: string[];
+  /** List of public signals for the template */
+  templatePublicSignals?: string[];
+  /** Optimization level (0-2, default: 2) */
+  O?: Optimization;
+  /** Enable verbose output during compilation (default: false) */
+  verbose?: boolean;
+  /** Enable inspection mode for debugging (default: false) */
+  inspect?: boolean;
+  /** Output constraints in JSON format (default: false) */
+  json?: boolean;
+  /** Force recompilation even if compiled version exists (default: true) */
+  recompile?: boolean;
+  /** Elliptic curve to use for the field (default: "bn128") */
+  prime?: CurveName;
+  /** Enable simplification substitution optimization (default: false) */
+  simplification_substitution?: boolean;
+  /** Disable assembly generation (default: false) */
+  no_asm?: boolean;
+  /** Skip initialization phase (default: false) */
+  no_init?: boolean;
 };
 
 /**
@@ -63,15 +63,21 @@ export type CompileOptions = {
  * @see https://github.com/iden3/circom_tester/blob/main/wasm/tester.js
  */
 export type CircomTester = {
-    checkConstraints: (witness: WitnessType) => Promise<void>;
-    release: () => Promise<void>;
-    assertOut: (actualOut: WitnessType, expectedOut: CircuitSignals) => Promise<void>;
-    calculateWitness: (input: CircuitSignals, sanityCheck: boolean) => Promise<WitnessType>;
-    loadConstraints: () => Promise<void>;
-    constraints: unknown[] | undefined;
-    loadSymbols: () => Promise<void>;
-    symbols: SymbolsType | undefined;
-    getDecoratedOutput: (witness: WitnessType) => Promise<string>;
-    dir: string;
-    baseName: string;
+  checkConstraints: (witness: WitnessType) => Promise<void>;
+  release: () => Promise<void>;
+  assertOut: (
+    actualOut: WitnessType,
+    expectedOut: CircuitSignals,
+  ) => Promise<void>;
+  calculateWitness: (
+    input: CircuitSignals,
+    sanityCheck: boolean,
+  ) => Promise<WitnessType>;
+  loadConstraints: () => Promise<void>;
+  constraints: unknown[] | undefined;
+  loadSymbols: () => Promise<void>;
+  symbols: SymbolsType | undefined;
+  getDecoratedOutput: (witness: WitnessType) => Promise<string>;
+  dir: string;
+  baseName: string;
 };

@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 
 describe("Multiplier2 Circuit", function () {
-  let circuit: WitnessTester<['a', 'b'], ['c']>;
+  let circuit: WitnessTester<["a", "b"], ["c"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.create("./multiplier2/multiplier2.circom");
@@ -17,7 +17,7 @@ describe("Multiplier2 Circuit", function () {
 
     testCases.forEach(({ a, b, c }): void => {
       test(`should validate ${a} x ${b} = ${c}`, async function (): Promise<void> {
-        await circuit.expectPass({ a, b }, { c })
+        await circuit.expectPass({ a, b }, { c });
       });
     });
   });
