@@ -30,8 +30,8 @@ expect.extend({
 global.console = {
   ...console,
   // Mute the logs
-//   log: jest.fn(),
-//   debug: jest.fn(),
+  //   log: jest.fn(),
+  //   debug: jest.fn(),
   info: console.info,
   warn: console.warn,
   error: console.error,
@@ -41,14 +41,13 @@ beforeEach((): void => {
   jest.clearAllMocks();
 });
 
-afterEach((): void => {
-});
+afterEach((): void => {});
 
 process.on(
   "unhandledRejection",
   (reason: unknown, promise: Promise<unknown>): void => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  }
+  },
 );
 
 const originalConsoleError = console.error;
@@ -88,7 +87,7 @@ export const BASE64_CONSTANTS = {
 export function generateTestCases(
   start: number,
   end: number,
-  baseValue: number
+  baseValue: number,
 ): Array<{ ascii: number; expected: number }> {
   const cases: Array<{ ascii: number; expected: number }> = [];
   for (let i = start; i <= end; i++) {

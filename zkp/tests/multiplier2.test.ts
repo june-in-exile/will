@@ -1,13 +1,14 @@
 import { Circomkit, WitnessTester } from "circomkit";
 
-describe("Multiplier2 Circuit Tests", function () {
+describe("Multiplier2 With Witness Tester", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
 
   beforeAll(async function (): Promise<void> {
     const circomkit = new Circomkit();
     circuit = await circomkit.WitnessTester("multiplier2", {
       file: "multiplier2/multiplier2",
-      template: "Multiplier2"
+      template: "Multiplier2",
+      dir: "test",
     });
   });
 

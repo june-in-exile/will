@@ -90,7 +90,7 @@ describe("Modulo Circuit", function () {
       circuit = await circomkit.WitnessTester("mod", {
         file: "shared/components/mod",
         template: "Modulo",
-        params: [8]
+        params: [8],
       });
     });
 
@@ -114,15 +114,13 @@ describe("Modulo Circuit", function () {
         { in: 28, modulus: 109 },
         { in: 0, modulus: 255 },
         { in: 1, modulus: 255 },
-      ]
+      ];
 
       for (const testCase of testCases) {
-        circuit.expectPass(
-          testCase,
-          {
-            quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
-            remainder: BigInt(testCase.in % testCase.modulus)
-          })
+        circuit.expectPass(testCase, {
+          quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
+          remainder: BigInt(testCase.in % testCase.modulus),
+        });
       }
     });
 

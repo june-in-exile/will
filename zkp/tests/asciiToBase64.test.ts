@@ -6,7 +6,9 @@ describe("Base64 Character to Value Conversion", function () {
 
   beforeAll(async function (): Promise<void> {
     try {
-      circuit = await compileCircuit("./shared/components/asciiToBase64.circom");
+      circuit = await compileCircuit(
+        "./shared/components/asciiToBase64.circom",
+      );
     } catch (error) {
       console.error("Failed to load circuit:", error);
       throw error;
@@ -35,17 +37,17 @@ describe("Base64 Character to Value Conversion", function () {
   describe("Invalid Base64 Characters", function (): void {
     test("should handle invalid characters", async function (): Promise<void> {
       const invalidChars = [
-        { char: '@', ascii: 64 },
-        { char: '#', ascii: 35 },
-        { char: '$', ascii: 36 },
-        { char: '%', ascii: 37 },
-        { char: '&', ascii: 38 },
-        { char: '*', ascii: 42 },
-        { char: '!', ascii: 33 },
-        { char: '?', ascii: 63 },
-        { char: ' ', ascii: 32 },
-        { char: '\n', ascii: 10 },
-        { char: '\t', ascii: 9 },
+        { char: "@", ascii: 64 },
+        { char: "#", ascii: 35 },
+        { char: "$", ascii: 36 },
+        { char: "%", ascii: 37 },
+        { char: "&", ascii: 38 },
+        { char: "*", ascii: 42 },
+        { char: "!", ascii: 33 },
+        { char: "?", ascii: 63 },
+        { char: " ", ascii: 32 },
+        { char: "\n", ascii: 10 },
+        { char: "\t", ascii: 9 },
       ];
 
       for (const invalidChar of invalidChars) {
@@ -63,11 +65,11 @@ describe("Base64 Character to Value Conversion", function () {
 
     test("should handle characters adjacent to valid range", async function (): Promise<void> {
       const adjacentInvalid = [
-        47,  // '/' 's previous character ('.')
-        58,  // '9' 's next character (':')
-        64,  // 'A' 's previous character ('@') 
-        91,  // 'Z' 's next character ('[')
-        96,  // 'a' 's previous character ('`')
+        47, // '/' 's previous character ('.')
+        58, // '9' 's next character (':')
+        64, // 'A' 's previous character ('@')
+        91, // 'Z' 's next character ('[')
+        96, // 'a' 's previous character ('`')
         123, // 'z' 's next character ('{')
       ];
 
@@ -84,5 +86,4 @@ describe("Base64 Character to Value Conversion", function () {
       }
     });
   });
-
 });
