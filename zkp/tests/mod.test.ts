@@ -1,14 +1,13 @@
-import { compile_wasm, WitnessTester } from "./utils";
+import { WitnessTester } from "./utils";
 
 describe("Modulo Circuit", function () {
   let circuit: WitnessTester<['in', 'modulus'], ['quotient', 'remainder']>;
 
   describe("6-bit Modulo Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = new WitnessTester(
-        await compile_wasm("./shared/components/mod.circom", {
-          templateParams: ["6"],
-        }));
+      circuit = await WitnessTester.create("./shared/components/mod.circom", {
+        templateParams: ["6"],
+      })
     });
 
     test("should calculate valid modulus correctly", async function (): Promise<void> {
@@ -80,10 +79,9 @@ describe("Modulo Circuit", function () {
 
   describe("8-bit Modulo Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = new WitnessTester(
-        await compile_wasm("./shared/components/mod.circom", {
-          templateParams: ["8"],
-        }));
+      circuit = await WitnessTester.create("./shared/components/mod.circom", {
+        templateParams: ["8"],
+      })
     });
 
     test("should calculate valid modulus correctly", async function (): Promise<void> {

@@ -1,6 +1,6 @@
 // Source: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
-import { compile_wasm as compile_wasm } from ".";
+import { compile_wasm } from ".";
 import { AssertionError } from 'node:assert';
 import type { CircomTester, WitnessType, CircuitSignals, SymbolsType, SignalValueType, CompileOptions } from '../types/';
 import path from 'node:path';
@@ -15,8 +15,13 @@ export class WitnessTester<IN extends readonly string[] = [], OUT extends readon
 
     constructor(
         /** The underlying `circom_tester` object */
-        private readonly circomTester: CircomTester
+        private circomTester: CircomTester
     ) { }
+
+    static async create(circuitPath: string, options?: CompileOptions): Promise<WitnessTester> {
+        const circomTester = await compile_wasm(circuitPath, options);
+        return new WitnessTester(circomTester);
+    }
 
     /** Assert that constraints are valid for a given witness. */
     async expectConstraintPass(witness: WitnessType): Promise<void> {
@@ -126,9 +131,9 @@ export class WitnessTester<IN extends readonly string[] = [], OUT extends readon
         await this.expectConstraintPass(witness);
         if (output) {
             // try {
-                await this.assertOut(witness, output);
+            await this.assertOut(witness, output);
             // } catch (error) {
-                // throw new AssertionError({ message: (error as Error).message });
+            // throw new AssertionError({ message: (error as Error).message });
             // }
         }
     }

@@ -1,17 +1,11 @@
-import { compile_wasm } from "./utils";
-const circom_tester = require("circom_tester");
+import { WitnessTester } from "./utils";
 
 describe("Multiplier2 Circuit", function () {
-  let circuit: CircomTester.CircuitInstance;
+  let circuit: WitnessTester<['a', 'b'], ['c']>;
 
   beforeAll(async function (): Promise<void> {
-    try {
-      circuit = await compile_wasm("./multiplier2/multiplier2.circom");
-    } catch (error) {
-      console.error("Failed to load circuit:", error);
-      throw error;
-    }
-  }, 30000);
+    circuit = await WitnessTester.create("./multiplier2/multiplier2.circom")
+  });
 
   describe("Basic Multiplication", function (): void {
     const testCases = [
@@ -23,11 +17,7 @@ describe("Multiplier2 Circuit", function () {
 
     testCases.forEach(({ a, b, c }): void => {
       test(`should validate ${a} x ${b} = ${c}`, async function (): Promise<void> {
-        const input = { a, b };
-        const witness: bigint[] = await circuit.calculateWitness(input);
-
-        await circuit.checkConstraints(witness);
-        await circuit.assertOut(witness, { c });
+        await circuit.expectPass({ a, b }, { c })
       });
     });
   });
