@@ -4,7 +4,7 @@ describe("Base64 Character to Value Conversion", function () {
   let circuit: WitnessTester<["asciiCode"], ["base64Value"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.create(
+    circuit = await WitnessTester.construct(
       "./shared/components/asciiToBase64.circom",
     );
   });

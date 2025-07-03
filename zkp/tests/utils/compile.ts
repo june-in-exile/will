@@ -1,4 +1,4 @@
-import type { CircomTester, CompileOptions } from "../types";
+import type { CircomTester, CompilationOptions } from "../types";
 const circom_tester = require("circom_tester");
 import path from "path";
 
@@ -10,9 +10,9 @@ import path from "path";
  * @returns Promise that resolves to a WASM tester instance
  * @throws Error if circomlib is not found
  */
-export async function compile_wasm(
+export async function construct_wasm(
   circuitPath: string,
-  options?: CompileOptions,
+  options?: CompilationOptions,
 ): Promise<CircomTester> {
   let circomlibPaths: string[];
 

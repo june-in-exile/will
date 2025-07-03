@@ -31,14 +31,14 @@ export type SymbolsType = {
 };
 
 /** A configuration object for circuit compilation. */
-export type CompileOptions = {
+export type CompilationOptions = {
   templateName?: string;
   /** Parameters to pass to the template */
   templateParams?: string[];
   /** List of public signals for the template */
   templatePublicSignals?: string[];
   /** Optimization level (0-2, default: 2) */
-  O?: Optimization;
+  O?: ConstraintSimplification;
   /** Enable verbose output during compilation (default: false) */
   verbose?: boolean;
   /** Enable inspection mode for debugging (default: false) */

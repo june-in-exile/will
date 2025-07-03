@@ -1,5 +1,5 @@
 declare global {
-  type Optimization = 0 | 1 | 2;
+  type ConstraintSimplification = 0 | 1 | 2;
 
   type CurveName =
     | "bn128"
@@ -12,4 +12,4 @@ declare global {
     | "vesta";
 }
 
-export {};
+export { };

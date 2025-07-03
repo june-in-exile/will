@@ -26,17 +26,10 @@ template Base64GroupDecoder() {
     signal input values[4];   // 4 Base64 values (0-64)
     signal output bytes[3];   // 3 decoded bytes (0-255)
     
-    // Handle padding cases - declare all components outside loops
-    component paddingCheck[4];
+    // Handle padding cases
     signal isPadding[4];
     for (var i = 0; i < 4; i++) {
-        paddingCheck[i] = IsEqual();
-    }
-    
-    for (var i = 0; i < 4; i++) {
-        paddingCheck[i].in[0] <== values[i];
-        paddingCheck[i].in[1] <== 64;  // padding value
-        isPadding[i] <== paddingCheck[i].out;
+        isPadding[i] <== IsEqual()([values[i], 64]); // 64 is padding value
     }
     
     // Ensure padding can only appear at the end
@@ -45,15 +38,14 @@ template Base64GroupDecoder() {
     signal hasOnePadding;
     signal hasTwoPadding;
     
-    signal temp1 <== (1 - isPadding[0]) * (1 - isPadding[1]);
-    signal temp2 <== (1 - isPadding[2]) * (1 - isPadding[3]);
-    hasNoPadding <== temp1 * temp2;
+    signal firstTwoNotPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
+    signal LastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
+    signal LastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
+    signal LastTwoArePadding <== isPadding[2] * isPadding[3];
 
-    signal temp3 <== (1 - isPadding[2]) * isPadding[3];
-    hasOnePadding <== temp1 * temp3;
-
-    signal temp4 <== isPadding[2] * isPadding[3];
-    hasTwoPadding <== temp1 * temp4;
+    hasNoPadding <== firstTwoNotPadding * LastTwoNotPadding;
+    hasOnePadding <== firstTwoNotPadding * LastOneIsPadding;
+    hasTwoPadding <== firstTwoNotPadding * LastTwoArePadding;
     
     signal validPadding;
     validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
@@ -65,16 +57,11 @@ template Base64GroupDecoder() {
         effectiveValues[i] <== values[i] * (1 - isPadding[i]);
     }
     
-    // Ensure all valid values are in 0-63 range - declare components outside loop
-    component valueCheck[4];
+    // Ensure all valid values are in 0-63 range
+    signal valueCheck[4];
     for (var i = 0; i < 4; i++) {
-        valueCheck[i] = LessEqThan(6);
-    }
-    
-    for (var i = 0; i < 4; i++) {
-        valueCheck[i].in[0] <== effectiveValues[i];
-        valueCheck[i].in[1] <== 63;
-        valueCheck[i].out === 1;
+        valueCheck[i] = LessEqThan(6)([effectiveValues[i], 63]);
+        valueCheck[i] === 1;
     }
     
     // Base64 decoding calculation

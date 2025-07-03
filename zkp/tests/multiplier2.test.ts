@@ -4,7 +4,7 @@ describe("Multiplier2 Circuit", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.create("./multiplier2/multiplier2.circom");
+    circuit = await WitnessTester.construct("./multiplier2/multiplier2.circom");
   });
 
   describe("Basic Multiplication", function (): void {

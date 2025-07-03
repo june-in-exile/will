@@ -4,7 +4,7 @@ describe("InRange Circuit", function () {
   let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
   describe("Basic 4-bit Range Validation", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.create("./shared/components/range.circom", {
+      circuit = await WitnessTester.construct("./shared/components/range.circom", {
         templateParams: ["4"],
       });
     });
@@ -46,7 +46,7 @@ describe("InRange Circuit", function () {
 
   describe("Basic 8-bit Range Validation", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.create("./shared/components/range.circom", {
+      circuit = await WitnessTester.construct("./shared/components/range.circom", {
         templateParams: ["8"],
       });
     });

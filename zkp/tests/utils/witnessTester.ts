@@ -1,6 +1,6 @@
 // Source: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
-import { compile_wasm } from ".";
+import { construct_wasm } from ".";
 import { AssertionError } from "node:assert";
 import type {
   CircomTester,
@@ -8,7 +8,7 @@ import type {
   CircuitSignals,
   SymbolsType,
   SignalValueType,
-  CompileOptions,
+  CompilationOptions,
 } from "../types/";
 import path from "node:path";
 import fs from "node:fs";
@@ -26,13 +26,13 @@ export class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) {}
+  ) { }
 
-  static async create(
+  static async construct(
     circuitPath: string,
-    options?: CompileOptions,
+    options?: CompilationOptions,
   ): Promise<WitnessTester> {
-    const circomTester = await compile_wasm(circuitPath, options);
+    const circomTester = await construct_wasm(circuitPath, options);
     return new WitnessTester(circomTester);
   }
 

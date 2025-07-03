@@ -5,7 +5,7 @@ describe("Modulo Circuit", function () {
 
   describe("6-bit Modulo Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.create("./shared/components/mod.circom", {
+      circuit = await WitnessTester.construct("./shared/components/mod.circom", {
         templateParams: ["6"],
       });
     });
@@ -79,7 +79,7 @@ describe("Modulo Circuit", function () {
 
   describe("8-bit Modulo Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.create("./shared/components/mod.circom", {
+      circuit = await WitnessTester.construct("./shared/components/mod.circom", {
         templateParams: ["8"],
       });
     });

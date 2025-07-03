@@ -9,7 +9,7 @@ interface Groth16Proof {
   publicSignals: string[];
 }
 
-describe("Workflow Tests", () => {
+describe("Workflow CLI Tests", () => {
   const circuitName = "multiplier2";
   const circuitDir = `circuits/${circuitName}`;
   const inputDir = `${circuitDir}/inputs`;
