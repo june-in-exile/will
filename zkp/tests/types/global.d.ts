@@ -1,4 +1,4 @@
-declare global {
+declare module global {
   // Reference: https://github.com/iden3/circom_tester/blob/de724233bab248824c4e6214374261a3b1d804a5/wasm/tester.js#L28
   namespace CircomTester {
     interface CircuitInstance {
@@ -44,9 +44,9 @@ declare global {
        */
       getOutput(
         witness: bigint[],
-        expectedOutStructure: Record<string, any>,
+        expectedOutStructure: Record<string, unknown>,
         templateName?: string,
-      ): Promise<Record<string, any>>;
+      ): Promise<Record<string, unknown>>;
     }
 
     interface CircuitTester {
@@ -57,10 +57,10 @@ declare global {
           output?: string;
           compileFlags?: string[];
           templateName?: string;
-          templateParams?: any[];
+          templateParams?: unknown[];
           templatePublicSignals?: string[];
           recompile?: boolean;
-          [key: string]: any;
+          [key: string]: unknown;
         },
       ): Promise<CircuitInstance>;
 
@@ -71,10 +71,10 @@ declare global {
           output?: string;
           compileFlags?: string[];
           templateName?: string;
-          templateParams?: any[];
+          templateParams?: unknown[];
           templatePublicSignals?: string[];
           recompile?: boolean;
-          [key: string]: any;
+          [key: string]: unknown;
         },
       ): Promise<CircuitInstance>;
     }
@@ -83,4 +83,9 @@ declare global {
   const circom_tester: CircomTester.CircuitTester;
 }
 
-export {};
+export { };
+
+// declare module 'circom_tester' {
+//   const tester: CircomTester.CircuitTester;
+//   export = tester;
+// }

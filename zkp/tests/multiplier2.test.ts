@@ -1,28 +1,33 @@
-import { Circomkit, WitnessTester } from "circomkit";
+import { compileCircuit } from "./utils";
+import * as circom_tester from "circom_tester";
 
-describe("Multiplier2 With Witness Tester", function () {
-  let circuit: WitnessTester<["a", "b"], ["c"]>;
+describe("Multiplier2 Circuit Tests", function () {
+  let circuit: CircomTester.CircuitInstance;
 
   beforeAll(async function (): Promise<void> {
-    const circomkit = new Circomkit();
-    circuit = await circomkit.WitnessTester("multiplier2", {
-      file: "multiplier2/multiplier2",
-      template: "Multiplier2",
-      dir: "test",
-    });
-  });
+    try {
+      circuit = await compileCircuit("./multiplier2/multiplier2.circom");
+    } catch (error) {
+      console.error("Failed to load circuit:", error);
+      throw error;
+    }
+  }, 30000);
 
   describe("Basic Multiplication", function (): void {
     const testCases = [
-      { a: 3, b: 11, c: 33 },
-      // { a: 7, b: 6, c: 42 },
-      // { a: 0, b: 5, c: 0 },
-      // { a: 12345, b: 67890, c: 12345 * 67890 },
+      { a: 3, b: 11, expected: 33 },
+      { a: 7, b: 6, expected: 42 },
+      { a: 0, b: 5, expected: 0 },
+      { a: 12345, b: 67890, expected: 12345 * 67890 },
     ];
 
-    testCases.forEach(({ a, b, c }): void => {
-      test(`should validate ${a} x ${b} = ${c}`, async function (): Promise<void> {
-        await circuit.expectPass({ a, b }, { c });
+    testCases.forEach(({ a, b, expected }): void => {
+      test(`should generate witness for ${a} x ${b}`, async function (): Promise<void> {
+        const input = { a, b };
+        const witness: bigint[] = await circuit.calculateWitness(input);
+
+        await circuit.checkConstraints(witness);
+        await circuit.assertOut(witness, { c: BigInt(expected) });
       });
     });
   });
