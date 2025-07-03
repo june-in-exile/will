@@ -7,7 +7,7 @@ describe("Modulo Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.create("./shared/components/mod.circom", {
         templateParams: ["6"],
-      })
+      });
     });
 
     test("should calculate valid modulus correctly", async function (): Promise<void> {
@@ -81,7 +81,7 @@ describe("Modulo Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.create("./shared/components/mod.circom", {
         templateParams: ["8"],
-      })
+      });
     });
 
     test("should calculate valid modulus correctly", async function (): Promise<void> {

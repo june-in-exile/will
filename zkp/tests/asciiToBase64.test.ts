@@ -1,19 +1,11 @@
-import { compile_wasm } from "./utils";
-const circom_tester = require("circom_tester");
+import { WitnessTester } from "./utils";
 
 describe("Base64 Character to Value Conversion", function () {
-  let circuit: CircomTester.CircuitInstance;
+  let circuit: WitnessTester<['asciiCode'], ['base64Value']>;
 
   beforeAll(async function (): Promise<void> {
-    try {
-      circuit = await compile_wasm(
-        "./shared/components/asciiToBase64.circom",
-      );
-    } catch (error) {
-      console.error("Failed to load circuit:", error);
-      throw error;
-    }
-  }, 30000);
+    circuit = await WitnessTester.create("./shared/components/asciiToBase64.circom");
+  });
 
   describe("Complete Base64 Character Set", function (): void {
     test("should handle all valid Base64 characters", async function (): Promise<void> {
@@ -23,49 +15,38 @@ describe("Base64 Character to Value Conversion", function () {
       for (let i = 0; i < base64Chars.length; i++) {
         const char: string = base64Chars[i];
         const asciiCode: number = char.charCodeAt(0);
-        const expectedValue: number = i === 64 ? 64 : i; // '=' is special case
+        // const base64Value: number = i === 64 ? 64 : i; // '=' is special case
+        const base64Value: number = i;
 
-        const input: { asciiCode: number } = { asciiCode };
-        const witness: bigint[] = await circuit.calculateWitness(input);
-
-        await circuit.checkConstraints(witness);
-        const base64Value = witness[1];
-        expect(base64Value).toBe(BigInt(expectedValue));
+        await circuit.expectPass({ asciiCode }, { base64Value })
       }
     });
   });
+
   describe("Invalid Base64 Characters", function (): void {
     test("should handle invalid characters", async function (): Promise<void> {
       const invalidChars = [
-        { char: "@", ascii: 64 },
-        { char: "#", ascii: 35 },
-        { char: "$", ascii: 36 },
-        { char: "%", ascii: 37 },
-        { char: "&", ascii: 38 },
-        { char: "*", ascii: 42 },
-        { char: "!", ascii: 33 },
-        { char: "?", ascii: 63 },
-        { char: " ", ascii: 32 },
-        { char: "\n", ascii: 10 },
-        { char: "\t", ascii: 9 },
+        64, // "@"
+        35, // "#"
+        36, // "$"
+        37, // "%"
+        38, // "&"
+        42, // "*"
+        33, // "!"
+        63, // "?"
+        32, // " "
+        10, // "\n"
+        9,  // "\t"
       ];
 
-      for (const invalidChar of invalidChars) {
-        const input = { asciiCode: invalidChar.ascii };
-
-        try {
-          const witness = await circuit.calculateWitness(input);
-          await expect(circuit.checkConstraints(witness)).rejects.toThrow();
-        } catch (error) {
-          // failing in calculateWitness phase is also expected
-          expect(error).toBeDefined();
-        }
+      for (const asciiCode of invalidChars) {
+        await circuit.expectFail({ asciiCode });
       }
     });
 
     test("should handle characters adjacent to valid range", async function (): Promise<void> {
       const adjacentInvalid = [
-        47, // '/' 's previous character ('.')
+        46, // '/' 's previous character ('.')
         58, // '9' 's next character (':')
         64, // 'A' 's previous character ('@')
         91, // 'Z' 's next character ('[')
@@ -74,15 +55,7 @@ describe("Base64 Character to Value Conversion", function () {
       ];
 
       for (const asciiCode of adjacentInvalid) {
-        const input = { asciiCode };
-
-        try {
-          const witness = await circuit.calculateWitness(input);
-          await expect(circuit.checkConstraints(witness)).rejects.toThrow();
-        } catch (error) {
-          // failing in calculateWitness phase is also expected
-          expect(error).toBeDefined();
-        }
+        await circuit.expectFail({ asciiCode });
       }
     });
   });
