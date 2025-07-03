@@ -1,4 +1,4 @@
-import { compileCircuit } from "./utils";
+import { compileToWasm } from "./utils";
 const circom_tester = require("circom_tester");
 
 describe("Multiplier2 Circuit", function () {
@@ -6,7 +6,7 @@ describe("Multiplier2 Circuit", function () {
 
   beforeAll(async function (): Promise<void> {
     try {
-      circuit = await compileCircuit("./multiplier2/multiplier2.circom");
+      circuit = await compileToWasm("./multiplier2/multiplier2.circom");
     } catch (error) {
       console.error("Failed to load circuit:", error);
       throw error;

@@ -1,1 +1,2 @@
-export * from "./wasmTester";
+export * from "./compile";
+export * from "./witnessTester";
