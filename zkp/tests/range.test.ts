@@ -1,26 +1,21 @@
-import { compileCircuit } from "./utils";
-const circom_tester = require("circom_tester");
+import { Circomkit, WitnessTester } from "circomkit";
 
 describe("InRange Circuit", function () {
-    describe("Basic 4-bit Range Validation", function (): void {
-        let circuit: CircomTester.CircuitInstance;
+    let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
 
+    describe("Basic 4-bit Range Validation", function (): void {
         beforeAll(async function (): Promise<void> {
-            try {
-                circuit = await compileCircuit("./shared/components/range.circom", {
-                    templateParams: ["4"]
-                });
-            } catch (error) {
-                console.error("Failed to load InRange circuit:", error);
-                throw error;
-            }
-        }, 30000);
+            const circomkit = new Circomkit();
+            circuit = await circomkit.WitnessTester("range", {
+                file: "shared/components/range",
+                template: "InRange",
+                params: [4]
+            });
+        });
 
         test("should validate full range [0, 15]", async function (): Promise<void> {
             for (let value = 0; value <= 15; value++) {
-                const witness = await circuit.calculateWitness({ in: value, min: 0, max: 15 });
-                await circuit.checkConstraints(witness);
-                await circuit.assertOut(witness, { out: 1 });
+                await circuit.expectPass({ in: value, min: 0, max: 15 }, { out: 1 });
             }
         });
 
@@ -28,13 +23,11 @@ describe("InRange Circuit", function () {
             const min = 3, max = 8;
             for (let value = 0; value <= 15; value++) {
                 const expected = (min <= value && value <= max) ? 1 : 0;
-                const witness = await circuit.calculateWitness({ in: value, min, max });
-                await circuit.checkConstraints(witness);
-                await circuit.assertOut(witness, { out: expected });
+                await circuit.expectPass({ in: value, min, max }, { out: expected });
             }
         });
 
-        test("should contraint in, min and max", async function (): Promise<void> {
+        test("should constraint in, min and max", async function (): Promise<void> {
             const testCases = [
                 { in: 16, min: 0, max: 15 },
                 { in: 5, min: 16, max: 20 },
@@ -47,25 +40,22 @@ describe("InRange Circuit", function () {
             ];
 
             for (const testCase of testCases) {
-                await expect(circuit.calculateWitness(testCase)).rejects.toThrow();
+                await circuit.expectFail(testCase);
             }
         });
     });
 
-
     describe("Basic 8-bit Range Validation", function (): void {
-        let circuit: CircomTester.CircuitInstance;
+        let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
 
         beforeAll(async function (): Promise<void> {
-            try {
-                circuit = await compileCircuit("./shared/components/range.circom", {
-                    templateParams: ["8"]
-                });
-            } catch (error) {
-                console.error("Failed to load InRange circuit:", error);
-                throw error;
-            }
-        }, 30000);
+            const circomkit = new Circomkit();
+            circuit = await circomkit.WitnessTester("range", {
+                file: "shared/components/range",
+                template: "InRange",
+                params: [8]
+            });
+        });
 
         test("should validate full range [0, 255]", async function (): Promise<void> {
             const testCases = [
@@ -77,9 +67,7 @@ describe("InRange Circuit", function () {
             ];
 
             for (const testCase of testCases) {
-                const witness = await circuit.calculateWitness(testCase);
-                await circuit.checkConstraints(witness);
-                await circuit.assertOut(witness, { out: 1 });
+                await circuit.expectPass(testCase, { out: 1 });
             }
         });
 
@@ -95,9 +83,10 @@ describe("InRange Circuit", function () {
             ];
 
             for (const testCase of testCases) {
-                const witness = await circuit.calculateWitness({ in: testCase.in, min: testCase.min, max: testCase.max });
-                await circuit.checkConstraints(witness);
-                await circuit.assertOut(witness, { out: testCase.expected });
+                await circuit.expectPass(
+                    { in: testCase.in, min: testCase.min, max: testCase.max },
+                    { out: testCase.expected }
+                );
             }
         });
 
@@ -112,9 +101,10 @@ describe("InRange Circuit", function () {
             ];
 
             for (const testCase of testCases) {
-                const witness = await circuit.calculateWitness({ in: testCase.in, min: testCase.min, max: testCase.max });
-                await circuit.checkConstraints(witness);
-                await circuit.assertOut(witness, { out: testCase.expected });
+                await circuit.expectPass(
+                    { in: testCase.in, min: testCase.min, max: testCase.max },
+                    { out: testCase.expected }
+                );
             }
         });
     });
