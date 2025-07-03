@@ -22,7 +22,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'warn',
-    'no-console': 'off', // 允許 console.log，因為這是 CLI 工具
+    'no-console': 'off',
     'prefer-const': 'error',
     'no-var': 'error',
   },
