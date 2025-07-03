@@ -1,4 +1,4 @@
-import { compileToWasm } from "./utils";
+import { compile_wasm } from "./utils";
 const circom_tester = require("circom_tester");
 
 describe("Base64 Character to Value Conversion", function () {
@@ -6,7 +6,7 @@ describe("Base64 Character to Value Conversion", function () {
 
   beforeAll(async function (): Promise<void> {
     try {
-      circuit = await compileToWasm(
+      circuit = await compile_wasm(
         "./shared/components/asciiToBase64.circom",
       );
     } catch (error) {

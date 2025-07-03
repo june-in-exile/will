@@ -1,4 +1,4 @@
-import { compileToWasm as compileToWasm } from "./utils";
+import { compile_wasm as compile_wasm } from "./utils";
 const circom_tester = require("circom_tester");
 
 describe("InRange Circuit", function () {
@@ -7,7 +7,7 @@ describe("InRange Circuit", function () {
 
     beforeAll(async function (): Promise<void> {
       try {
-        circuit = await compileToWasm("./shared/components/range.circom", {
+        circuit = await compile_wasm("./shared/components/range.circom", {
           templateParams: ["4"],
         });
       } catch (error) {
@@ -62,7 +62,7 @@ describe("InRange Circuit", function () {
 
     beforeAll(async function (): Promise<void> {
       try {
-        circuit = await compileToWasm("./shared/components/range.circom", {
+        circuit = await compile_wasm("./shared/components/range.circom", {
           templateParams: ["8"],
         });
       } catch (error) {

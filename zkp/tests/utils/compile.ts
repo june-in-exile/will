@@ -1,5 +1,4 @@
 import type { CircomTester, CompileOptions } from "../types";
-import { WitnessTesterClass } from ".";
 const circom_tester = require("circom_tester");
 import path from "path";
 
@@ -11,7 +10,7 @@ import path from "path";
  * @returns Promise that resolves to a WASM tester instance
  * @throws Error if circomlib is not found
  */
-export async function compileToWasm(
+export async function compile_wasm(
     circuitPath: string,
     options?: CompileOptions,
 ): Promise<CircomTester> {
@@ -45,13 +44,3 @@ export async function compileToWasm(
         },
     );
 };
-
-/** Compiles the circuit and returns a witness tester instance. */
-export async function WitnessTester<IN extends string[] = [], OUT extends string[] = []>(
-    circuitPath: string,
-    options?: CompileOptions
-) {
-    const circomWasmTester: CircomTester = await compileToWasm(circuitPath, options);
-
-    return new WitnessTesterClass<IN, OUT>(circomWasmTester);
-}

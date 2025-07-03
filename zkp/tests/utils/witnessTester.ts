@@ -1,13 +1,13 @@
+// Source: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
+
+import { compile_wasm as compile_wasm } from ".";
 import { AssertionError } from 'node:assert';
-import type { CircomTester, WitnessType, CircuitSignals, SymbolsType, SignalValueType } from '../types/';
+import type { CircomTester, WitnessType, CircuitSignals, SymbolsType, SignalValueType, CompileOptions } from '../types/';
 import path from 'node:path';
 import fs from 'node:fs';
-const circom_tester = require("circom_tester");
-
-// @todo detect optimized symbols https://github.com/erhant/circomkit/issues/80
 
 /** A utility class to test your circuits. Use `expectFail` and `expectPass` to test out evaluations. */
-export class WitnessTesterClass<IN extends readonly string[] = [], OUT extends readonly string[] = []> {
+export class WitnessTester<IN extends readonly string[] = [], OUT extends readonly string[] = []> {
     /** A dictionary of symbols, see {@link loadSymbols} */
     private symbols: SymbolsType | undefined;
     /** List of constraints, see {@link loadConstraints} */
