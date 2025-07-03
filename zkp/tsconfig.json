@@ -10,14 +10,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": [
-    "**/*.ts",
-    "**/*.test.ts",
-    "jest.setup.ts",
-    "types/**/*.d.ts"
-  ],
+  "include": ["**/*.ts", "**/*.test.ts", "jest.setup.ts", "types/**/*.d.ts"],
   "exclude": [
     "node_modules",
     "dist",

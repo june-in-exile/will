@@ -35,6 +35,7 @@ make trusted-setup-phase1
 ```
 
 ### Prepare Input Data
+
 ```bash
 echo '{"a":3,"b":11}' > circuits/multiplier2/input/example.json
 # Generates example input: circuits/multiplier2/inputs/example.json

@@ -5,8 +5,8 @@
   "scripts": {
     "test": "jest --verbose",
     "test:single": "jest --verbose --testNamePattern=",
-    "lint": "eslint tests/**/*.ts",
-    "format": "prettier --write tests/**/*.ts",
+    "lint": "eslint '**/*.ts'",
+    "format": "prettier --write '**/*.ts'",
     "clean": "make clean-all"
   },
   "keywords": [

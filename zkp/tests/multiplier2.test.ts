@@ -67,7 +67,7 @@ describe("Workflow Tests", () => {
   async function compileCircuit() {
     try {
       const { stdout, stderr } = await execAsync(
-        `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`
+        `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`,
       );
       if (stderr && !stderr.includes("Everything went okay")) {
         console.warn("Compilation warnings:", stderr);
@@ -91,11 +91,11 @@ describe("Workflow Tests", () => {
     }
 
     await execAsync(
-      `snarkjs groth16 setup ${r1csFile} ${ptauFile} ${zkeyFile}`
+      `snarkjs groth16 setup ${r1csFile} ${ptauFile} ${zkeyFile}`,
     );
 
     await execAsync(
-      `snarkjs zkey export verificationkey ${zkeyFile} ${vkeyFile}`
+      `snarkjs zkey export verificationkey ${zkeyFile} ${vkeyFile}`,
     );
   }
 
@@ -109,7 +109,7 @@ describe("Workflow Tests", () => {
     ];
 
     for (const dir of dirs) {
-      await fs.mkdir(dir, { recursive: true }).catch(() => { });
+      await fs.mkdir(dir, { recursive: true }).catch(() => {});
     }
 
     await compileCircuit();
@@ -158,7 +158,7 @@ describe("Workflow Tests", () => {
       await fs.writeFile(inputFile, JSON.stringify(input, null, 2));
 
       await execAsync(
-        `snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`
+        `snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`,
       );
 
       const duration = Date.now() - start;
@@ -172,18 +172,21 @@ describe("Workflow Tests", () => {
   describe("Proof Generation and Verification", () => {
     const ok_message = "OK!";
 
-    async function generateProof(input: { a: number, b: number }): Promise<Groth16Proof> {
+    async function generateProof(input: {
+      a: number;
+      b: number;
+    }): Promise<Groth16Proof> {
       const inputFile = `${inputDir}/proof_input_${Date.now()}.json`;
       const witnessFile = `${buildDir}/witness_proof.wtns`;
 
       await fs.writeFile(inputFile, JSON.stringify(input, null, 2));
 
       await execAsync(
-        `snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`
+        `snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`,
       );
 
       await execAsync(
-        `snarkjs groth16 prove ${zkeyFile} ${witnessFile} ${proofFile} ${publicFile}`
+        `snarkjs groth16 prove ${zkeyFile} ${witnessFile} ${proofFile} ${publicFile}`,
       );
 
       const proof = JSON.parse(await fs.readFile(proofFile, "utf-8"));
@@ -202,7 +205,7 @@ describe("Workflow Tests", () => {
       expect(proof.publicSignals[0]).toBe((7 * 8).toString());
 
       const { stdout } = await execAsync(
-        `snarkjs groth16 verify ${vkeyFile} ${publicFile} ${proofFile}`
+        `snarkjs groth16 verify ${vkeyFile} ${publicFile} ${proofFile}`,
       );
 
       expect(stdout.trim()).toContain(ok_message);
@@ -244,7 +247,7 @@ describe("Workflow Tests", () => {
   describe("Solidity Verifier", () => {
     test("should generate Solidity verifier contract", async () => {
       await execAsync(
-        `snarkjs zkey export solidityverifier ${zkeyFile} ${verifierFile}`
+        `snarkjs zkey export solidityverifier ${zkeyFile} ${verifierFile}`,
       );
 
       await expect(fs.access(verifierFile)).resolves.not.toThrow();

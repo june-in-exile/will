@@ -8,7 +8,7 @@ describe("Modulo Circuit", function () {
     beforeAll(async function (): Promise<void> {
       try {
         circuit = await compileCircuit("./shared/components/mod.circom", {
-          templateParams: ["6"]
+          templateParams: ["6"],
         });
       } catch (error) {
         console.error("Failed to load circuit:", error);
@@ -35,12 +35,15 @@ describe("Modulo Circuit", function () {
         { in: 32, modulus: 37 },
         { in: 0, modulus: 63 },
         { in: 1, modulus: 63 },
-      ]
+      ];
 
       for (const testCase of testCases) {
         const witness = await circuit.calculateWitness(testCase);
         await circuit.checkConstraints(witness);
-        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        await circuit.assertOut(witness, {
+          quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
+          remainder: BigInt(testCase.in % testCase.modulus),
+        });
       }
     });
 
@@ -76,7 +79,10 @@ describe("Modulo Circuit", function () {
       for (const testCase of testCases) {
         const witness = await circuit.calculateWitness(testCase);
         await circuit.checkConstraints(witness);
-        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        await circuit.assertOut(witness, {
+          quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
+          remainder: BigInt(testCase.in % testCase.modulus),
+        });
       }
     });
   });
@@ -85,7 +91,7 @@ describe("Modulo Circuit", function () {
     beforeAll(async function (): Promise<void> {
       try {
         circuit = await compileCircuit("./shared/components/mod.circom", {
-          templateParams: ["8"]
+          templateParams: ["8"],
         });
       } catch (error) {
         console.error("Failed to load circuit:", error);
@@ -113,13 +119,16 @@ describe("Modulo Circuit", function () {
         { in: 28, modulus: 109 },
         { in: 0, modulus: 255 },
         { in: 1, modulus: 255 },
-      ]
+      ];
 
       for (const testCase of testCases) {
         const witness = await circuit.calculateWitness(testCase);
 
         await circuit.checkConstraints(witness);
-        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        await circuit.assertOut(witness, {
+          quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
+          remainder: BigInt(testCase.in % testCase.modulus),
+        });
       }
     });
 
@@ -157,7 +166,10 @@ describe("Modulo Circuit", function () {
       for (const testCase of testCases) {
         const witness = await circuit.calculateWitness(testCase);
         await circuit.checkConstraints(witness);
-        await circuit.assertOut(witness, { quotient: BigInt(Math.floor(testCase.in / testCase.modulus)), remainder: BigInt(testCase.in % testCase.modulus) });
+        await circuit.assertOut(witness, {
+          quotient: BigInt(Math.floor(testCase.in / testCase.modulus)),
+          remainder: BigInt(testCase.in % testCase.modulus),
+        });
       }
     });
   });
