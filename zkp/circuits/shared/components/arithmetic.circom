@@ -29,3 +29,13 @@ template Divide(dividendBits, divisorBits) {
     signal {bool} validQuotient <== GreaterEqThan(dividendBits)([quotient, 0]);
     validQuotient === 1;
 }
+
+template MultiplyArray(n) {
+    signal input a[n];
+    signal input b[n];
+    signal output c[n];
+
+    for (var i = 0; i < n; i++) {
+        c[i] <== a[i] * b[i];
+    }
+}
