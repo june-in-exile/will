@@ -39,7 +39,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
     test("should accpet no padding", async function (): Promise<void> {
       const testCases = [
-        { base64s: [19, 22, 5, 46], bytes: [77, 97, 110] },    // TWFu -> Men
+        { base64s: [19, 22, 5, 46], bytes: [77, 97, 110] },    // TWFu -> Man
         { base64s: [29, 6, 33, 37], bytes: [116, 104, 101] },  // dGhl -> the
         { base64s: [16, 23, 9, 37], bytes: [65, 114, 101] },   // QXJl -> Are
       ];

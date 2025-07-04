@@ -1,35 +1,28 @@
 pragma circom 2.2.2;
 
-include "circomlib/circuits/comparators.circom";
-include "circomlib/circuits/gates.circom";
+include "../shared/components/asciiToBase64.circom";
 include "../shared/components/base64GroupDecoder.circom";
 include "../shared/components/range.circom";
-include "../shared/components/mod.circom";
+include "../shared/components/arithmetic.circom";
 
-/**
- * Complete Base64 decoder (supports multiple groups)
- * This is the version for future integration into main circuit
- */
 template Base64Decoder(inputLength,outputLength) {
-    signal input base64Chars[inputLength];  // ASCII values of base64 characters
-    signal output bytes[outputLength];      // Decoded bytes
+    signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
+    signal output bytes[outputLength];  // Decoded bytes (0-255)
     
-    // Ensure input length is multiple of 4 (after padding)
     assert(inputLength % 4 == 0);
-    
     var groups = inputLength \ 4;
+    assert(outputLength == groups*3);
     
-    // Character to value conversion - declare components outside loop
-    component charToValue[inputLength];
+    // Character to value conversion
+    component asciiToBase64[inputLength];
     for (var i = 0; i < inputLength; i++) {
-        charToValue[i] = AsciiToBase64();
+        asciiToBase64[i] = AsciiToBase64();
     }
     
     for (var i = 0; i < inputLength; i++) {
-        charToValue[i].asciiCode <== base64Chars[i];
+        asciiToBase64[i].ascii <== asciis[i];
     }
     
-    // Group decoding - declare components outside loop
     component groupDecoder[groups];
     for (var i = 0; i < groups; i++) {
         groupDecoder[i] = Base64GroupDecoder();
@@ -37,7 +30,7 @@ template Base64Decoder(inputLength,outputLength) {
     
     for (var i = 0; i < groups; i++) {
         for (var j = 0; j < 4; j++) {
-            groupDecoder[i].values[j] <== charToValue[i * 4 + j].base64Value;
+            groupDecoder[i].base64s[j] <== asciiToBase64[i * 4 + j].base64;
         }
         
         // Output bytes (handle possible padding in last group)
@@ -50,4 +43,4 @@ template Base64Decoder(inputLength,outputLength) {
     }
 }
 
-component main = TestBase64Decoder();
+component main = Base64Decoder(4,3);

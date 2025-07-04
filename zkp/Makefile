@@ -4,7 +4,7 @@ CIRCUIT ?= multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/generated/pot06.ptau
+PTAU_PATH := $(SHARED_KEYS)/downloaded/pot20_10.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs
@@ -48,7 +48,7 @@ define set_ptau_vars
 endef
 
 trusted-setup-phase1-download:
-	$(call set_ptau_vars,downloaded,12)
+	$(call set_ptau_vars,downloaded,20)
 	@echo "⚡ Downloading powers of tau..."
 	mkdir -p $(SHARED_KEYS)/downloaded
 	@if [ ! -f $(FINAL_PTAU_PATH) ]; then \
