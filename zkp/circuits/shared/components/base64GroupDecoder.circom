@@ -13,8 +13,8 @@ include "circomlib/circuits/bitify.circom";
  * byte3 = ((5 & 3) << 6) | 46 = 64 + 46 = 110 ('n')
  */
 template Base64GroupDecoder() {
-    signal input base64s[4];   // 4 Base64 values (0-64)
-    signal output bytes[3];   // 3 decoded bytes (0-255)
+    signal input base64s[4];    // 4 Base64 values (0-64)
+    signal output bytes[3];     // 3 decoded bytes (0-255)
     
     // Handle padding cases
     signal {bool} isPadding[4];

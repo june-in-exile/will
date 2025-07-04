@@ -1,6 +1,7 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/sha256/shift.circom";
 
 template Mask(bits, mask) {
     signal input in;
@@ -14,5 +15,14 @@ template Mask(bits, mask) {
         out_bits[i] <== in_bits[i]*mask_bits[i];
     }
 
+    out <== Bits2Num(bits)(out_bits);
+}
+
+template ShiftRight(bits, offset) {
+    signal input in;
+    signal output out;
+
+    signal in_bits[bits] <== Num2Bits(bits)(in);
+    signal out_bits[bits] <== ShR(bits,offset)(in_bits);
     out <== Bits2Num(bits)(out_bits);
 }
