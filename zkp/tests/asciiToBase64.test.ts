@@ -17,11 +17,10 @@ describe("AsciiToBase64 Cicuit", function () {
       for (let i = 0; i < base64Chars.length; i++) {
         const char: string = base64Chars[i];
         const asciiCode: number = char.charCodeAt(0);
-        // const base64Value: number = i === 64 ? 64 : i; // '=' is special case
         const base64Value: number = i;
 
         await circuit.expectPass({ asciiCode }, { base64Value });
-      }
+      };
     });
   });
 
@@ -43,7 +42,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (const asciiCode of invalidChars) {
         await circuit.expectFail({ asciiCode });
-      }
+      };
     });
 
     test("should handle characters adjacent to valid range", async function (): Promise<void> {
@@ -58,7 +57,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (const asciiCode of adjacentInvalid) {
         await circuit.expectFail({ asciiCode });
-      }
+      };
     });
   });
 });

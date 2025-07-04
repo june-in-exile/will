@@ -145,11 +145,7 @@ export class WitnessTester<
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
     if (output) {
-      // try {
       await this.assertOut(witness, output);
-      // } catch (error) {
-      // throw new AssertionError({ message: (error as Error).message });
-      // }
     }
   }
 
