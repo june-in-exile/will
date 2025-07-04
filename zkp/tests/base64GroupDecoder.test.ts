@@ -7,6 +7,7 @@ describe("Base64GroupDecoder Cicuit", function () {
     circuit = await WitnessTester.construct(
       "./shared/components/base64GroupDecoder.circom",
     );
+    console.info("Base64GroupDecoder circuit constraints:", await circuit.getConstraintCount());
   });
 
   describe("Valid Padding", function (): void {
@@ -44,7 +45,6 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
-        console.log("constraint:", await circuit.getConstraintCount());
         await circuit.expectPass({ values: testCase.values }, { bytes: testCase.bytes });
       };
     });
@@ -64,7 +64,6 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
-        console.log("constraint:", await circuit.getConstraintCount());
         await circuit.expectFail(testCase);
       };
     });
@@ -110,4 +109,10 @@ describe("Base64GroupDecoder Cicuit", function () {
       };
     });
   });
+
+  // describe("Constraint Count Validation", function (): void {
+  //   test("should report constraint counts", async function (): Promise<void> {
+  //     console.info("Base64GroupDecoder constraints:", await circuit.getConstraintCount());
+  //   });
+  // });
 });

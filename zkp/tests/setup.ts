@@ -30,8 +30,8 @@ expect.extend({
 global.console = {
   ...console,
   // Mute the logs
-  //   log: jest.fn(),
-  //   debug: jest.fn(),
+  // log: jest.fn(),
+  // debug: jest.fn(),
   info: console.info,
   warn: console.warn,
   error: console.error,
@@ -41,7 +41,7 @@ beforeEach((): void => {
   jest.clearAllMocks();
 });
 
-afterEach((): void => {});
+afterEach((): void => { });
 
 process.on(
   "unhandledRejection",

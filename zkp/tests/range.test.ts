@@ -8,6 +8,7 @@ describe("InRange Circuit", function () {
       circuit = await WitnessTester.construct("./shared/components/range.circom", {
         templateParams: ["4"],
       });
+      console.info("4-bit InRange circuit constraints:", await circuit.getConstraintCount());
     });
 
     test("should validate full range [0, 15]", async function (): Promise<void> {
@@ -50,6 +51,7 @@ describe("InRange Circuit", function () {
       circuit = await WitnessTester.construct("./shared/components/range.circom", {
         templateParams: ["8"],
       });
+      console.info("8-bit InRange circuit constraints:", await circuit.getConstraintCount());
     });
 
     test("should validate full range [0, 255]", async function (): Promise<void> {

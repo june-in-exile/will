@@ -8,6 +8,7 @@ describe("Divide Circuit", function () {
       circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", {
         templateParams: ["8", "6"],
       });
+      console.info("8-by-6-bit divide circuit constraints:", await circuit.getConstraintCount());
     });
 
     test("should calculate valid division correctly", async function (): Promise<void> {
@@ -95,6 +96,7 @@ describe("Divide Circuit", function () {
       circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", {
         templateParams: ["12", "8"],
       });
+      console.info("12-by-8-bit divide circuit constraints:", await circuit.getConstraintCount());
     });
 
     test("should calculate valid division correctly", async function (): Promise<void> {

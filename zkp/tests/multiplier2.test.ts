@@ -5,6 +5,7 @@ describe("Multiplier2 Circuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct("./multiplier2/multiplier2.circom");
+    console.info("Multiplier2 circuit constraints:", await circuit.getConstraintCount());
   });
 
   describe("Basic Multiplication", function (): void {

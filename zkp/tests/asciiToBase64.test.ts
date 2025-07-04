@@ -7,6 +7,7 @@ describe("AsciiToBase64 Cicuit", function () {
     circuit = await WitnessTester.construct(
       "./shared/components/asciiToBase64.circom",
     );
+    console.info("AsciiToBase64 circuit constraints:", await circuit.getConstraintCount());
   });
 
   describe("Complete Base64 Character Set", function (): void {
