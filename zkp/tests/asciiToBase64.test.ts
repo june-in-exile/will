@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 
 describe("AsciiToBase64 Cicuit", function () {
-  let circuit: WitnessTester<["asciiCode"], ["base64Value"]>;
+  let circuit: WitnessTester<["ascii"], ["base64"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
@@ -17,10 +17,10 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (let i = 0; i < base64Chars.length; i++) {
         const char: string = base64Chars[i];
-        const asciiCode: number = char.charCodeAt(0);
-        const base64Value: number = i;
+        const ascii: number = char.charCodeAt(0);
+        const base64: number = i;
 
-        await circuit.expectPass({ asciiCode }, { base64Value });
+        await circuit.expectPass({ ascii }, { base64 });
       };
     });
   });
@@ -41,8 +41,8 @@ describe("AsciiToBase64 Cicuit", function () {
         9, // "\t"
       ];
 
-      for (const asciiCode of invalidChars) {
-        await circuit.expectFail({ asciiCode });
+      for (const ascii of invalidChars) {
+        await circuit.expectFail({ ascii });
       };
     });
 
@@ -56,8 +56,8 @@ describe("AsciiToBase64 Cicuit", function () {
         123, // 'z' 's next character ('{')
       ];
 
-      for (const asciiCode of adjacentInvalid) {
-        await circuit.expectFail({ asciiCode });
+      for (const ascii of adjacentInvalid) {
+        await circuit.expectFail({ ascii });
       };
     });
   });

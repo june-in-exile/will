@@ -32,7 +32,7 @@ global.console = {
   // Comment out to mute the logs
   log: jest.fn(),
   debug: jest.fn(),
-  info: jest.fn(),
+  // info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
 };
