@@ -47,13 +47,13 @@ template AsciiToBase64() {
  * byte3 = ((5 & 3) << 6) | 46 = 64 + 46 = 110 ('n')
  */
 template Base64GroupDecoder() {
-    signal input base64s[4];    // 4 Base64 values (0-64)
+    signal input base64Group[4];    // 4 Base64 values (0-64)
     signal output bytes[3];     // 3 decoded bytes (0-255)
     
     // Handle padding cases
     signal {bool} isPadding[4];
     for (var i = 0; i < 4; i++) {
-        isPadding[i] <== IsEqual()([base64s[i],64]); // 64 is padding value
+        isPadding[i] <== IsEqual()([base64Group[i],64]); // 64 is padding value
     }
     
     // Ensure padding can only appear at the end
@@ -70,24 +70,24 @@ template Base64GroupDecoder() {
     validPadding === 1;
     
     // Extract effective values (treat padding as 0)
-    signal effectiveBase64s[4];
+    signal effectiveBase64Group[4];
     for (var i = 0; i < 4; i++) {
-        effectiveBase64s[i] <== base64s[i] * (1 - isPadding[i]);
+        effectiveBase64Group[i] <== base64Group[i] * (1 - isPadding[i]);
     }
     
     // Ensure all valid values are in 0-63 range
     signal {bool} validValue[4];
     for (var i = 0; i < 4; i++) {
-        validValue[i] <== LessEqThan(6)([effectiveBase64s[i],63]);
+        validValue[i] <== LessEqThan(6)([effectiveBase64Group[i],63]);
         validValue[i] === 1;
     }
     
     // Bit shift and mask operations
     // values[0] << 2
-    signal first_base64_left_2 <== effectiveBase64s[0] * 4;
+    signal first_base64_left_2 <== effectiveBase64Group[0] * 4;
 
     // values[1] >> 4
-    signal {bits6} socond_base64_bits[6] <== Num2Bits(6)(effectiveBase64s[1]);
+    signal {bits6} socond_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[1]);
     signal {bits6} socond_base64_right_4_bits[6] <== ShR(6,4)(socond_base64_bits);
     signal socond_base64_right_4 <== Bits2Num(6)(socond_base64_right_4_bits);
 
@@ -103,7 +103,7 @@ template Base64GroupDecoder() {
     signal socond_base64_masked_left_4 <== socond_base64_and_15 * 16;         
     
     // values[2] >> 2
-    signal {bits6} third_base64_bits[6] <== Num2Bits(6)(effectiveBase64s[2]);
+    signal {bits6} third_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[2]);
     signal {bits6} third_base64_right_2_bits[6] <== ShR(6,2)(third_base64_bits);
     signal third_base64_right_2 <== Bits2Num(6)(third_base64_right_2_bits);
     
@@ -119,7 +119,7 @@ template Base64GroupDecoder() {
     signal third_base64_masked_left_6 <== third_base64_and_3 * 64;  
 
     // values[3]
-    signal fourth_base64 <== effectiveBase64s[3];
+    signal fourth_base64 <== effectiveBase64Group[3];
 
     // Combine into final bytes
     signal rawBytes[3];
@@ -153,32 +153,19 @@ template Base64Decoder(inputLength) {
 
     signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
     signal output bytes[outputLength];  // Decoded bytes (0-255)
-    
-    // Character to value conversion
-    component asciiToBase64[inputLength];
-    for (var i = 0; i < inputLength; i++) {
-        asciiToBase64[i] = AsciiToBase64();
-    }
-    
-    for (var i = 0; i < inputLength; i++) {
-        asciiToBase64[i].ascii <== asciis[i];
-    }
-    
-    component groupDecoder[groups];
-    for (var i = 0; i < groups; i++) {
-        groupDecoder[i] = Base64GroupDecoder();
-    }
+
+    signal base64Group[groups][4];
+    signal bytesGroup[groups][3];
     
     for (var i = 0; i < groups; i++) {
         for (var j = 0; j < 4; j++) {
-            groupDecoder[i].base64s[j] <== asciiToBase64[i * 4 + j].base64;
+            base64Group[i][j] <== AsciiToBase64()(asciis[i * 4 + j]);
         }
-        
-        // Output bytes (handle possible padding in last group)
+        bytesGroup[i] <== Base64GroupDecoder()(base64Group[i]);
         for (var j = 0; j < 3; j++) {
             var byteIndex = i * 3 + j;
             if (byteIndex < outputLength) {
-                bytes[byteIndex] <== groupDecoder[i].bytes[j];
+                bytes[byteIndex] <== bytesGroup[i][j];
             }
         }
     }
