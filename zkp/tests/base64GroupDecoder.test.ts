@@ -44,6 +44,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
+        console.log("constraint:", await circuit.getConstraintCount());
         await circuit.expectPass({ values: testCase.values }, { bytes: testCase.bytes });
       };
     });
@@ -63,6 +64,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
+        console.log("constraint:", await circuit.getConstraintCount());
         await circuit.expectFail(testCase);
       };
     });

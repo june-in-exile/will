@@ -1,7 +1,8 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
-include "asciiToBase64.circom";
+include "circomlib/circuits/sha256/shift.circom";
+include "circomlib/circuits/bitify.circom";
 
 /**
  * Decode 4 Base64 values into 3 bytes
@@ -16,28 +17,23 @@ template Base64GroupDecoder() {
     signal output bytes[3];   // 3 decoded bytes (0-255)
     
     // Handle padding cases
-    signal isPadding[4];
+    signal {bool} isPadding[4];
     for (var i = 0; i < 4; i++) {
         isPadding[i] <== IsEqual()([values[i],64]); // 64 is padding value
     }
     
     // Ensure padding can only appear at the end
     // If there's padding,it must be consecutive trailing characters
-    signal hasNoPadding;
-    signal hasOnePadding;
-    signal hasTwoPadding;
-    
     signal firstTwoNotPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
-    signal LastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
-    signal LastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
-    signal LastTwoArePadding <== isPadding[2] * isPadding[3];
+    signal lastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
+    signal lastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
+    signal lastTwoArePadding <== isPadding[2] * isPadding[3];
 
-    hasNoPadding <== firstTwoNotPadding * LastTwoNotPadding;
-    hasOnePadding <== firstTwoNotPadding * LastOneIsPadding;
-    hasTwoPadding <== firstTwoNotPadding * LastTwoArePadding;
+    signal {bool} hasNoPadding <== firstTwoNotPadding * lastTwoNotPadding;
+    signal {bool} hasOnePadding <== firstTwoNotPadding * lastOneIsPadding;
+    signal {bool} hasTwoPadding <== firstTwoNotPadding * lastTwoArePadding;
 
-    signal validPadding;
-    validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
+    signal {bool} validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
     validPadding === 1;
     
     // Extract effective values (treat padding as 0)
@@ -47,24 +43,47 @@ template Base64GroupDecoder() {
     }
     
     // Ensure all valid values are in 0-63 range
-    signal validValue[4];
+    signal {bool} validValue[4];
     for (var i = 0; i < 4; i++) {
         validValue[i] <== LessEqThan(6)([effectiveValues[i],63]);
         validValue[i] === 1;
     }
     
     // Bit shift and mask operations
-    signal value0_shifted_left_2 <== effectiveValues[0] * 4;    // values[0] << 2
+    // values[0] << 2
+    signal value0_shifted_left_2 <== effectiveValues[0] * 4;
 
-    signal value1_shifted_right_4 <-- effectiveValues[1] >> 4;  // values[1] >> 4
+    // values[1] >> 4
+    signal {bits6} value1_in_bits[6] <== Num2Bits(6)(effectiveValues[1]);
+    signal {bits6} value1_shifted_right_4_in_bits[6] <== ShR(6,4)(value1_in_bits);
+    signal value1_shifted_right_4 <== Bits2Num(6)(value1_shifted_right_4_in_bits);
 
-    signal value1_and_15 <-- effectiveValues[1] & 15;           // values[1] & 15
-    signal value1_masked_left_4 <== value1_and_15 * 16;         // (values[1] & 15) << 4
+    // (values[1] & 15) << 4
+    signal {bits6} value1_and_15_in_bits[6];
+    for (var i = 0; i < 4; i++) {
+        value1_and_15_in_bits[i] <== value1_in_bits[i];
+    }
+    for (var i = 4; i < 6; i++) {
+        value1_and_15_in_bits[i] <== 0;
+    }
+    signal value1_and_15 <== Bits2Num(6)(value1_and_15_in_bits);
+    signal value1_masked_left_4 <== value1_and_15 * 16;         
     
-    signal value2_shifted_right_2 <-- effectiveValues[2] \ 4;   // values[2] >> 2
+    // values[2] >> 2
+    signal {bits6} value2_in_bits[6] <== Num2Bits(6)(effectiveValues[2]);
+    signal {bits6} value2_shifted_right_2_in_bits[6] <== ShR(6,2)(value2_in_bits);
+    signal value2_shifted_right_2 <== Bits2Num(6)(value2_shifted_right_2_in_bits);
     
-    signal value2_and_3 <-- effectiveValues[2] & 3;             // values[2] & 3
-    signal value2_masked_left_6 <== value2_and_3 * 64;          // (values[2] & 3) << 6
+    // (values[2] & 3) << 6
+    signal {bits6} value2_and_3_in_bits[6];
+    for (var i = 0; i < 2; i++) {
+        value2_and_3_in_bits[i] <== value2_in_bits[i];
+    }
+    for (var i = 2; i < 6; i++) {
+        value2_and_3_in_bits[i] <== 0;
+    }
+    signal value2_and_3 <== Bits2Num(6)(value2_and_3_in_bits);
+    signal value2_masked_left_6 <== value2_and_3 * 64;  
 
     // Combine into final bytes
     signal rawBytes[3];

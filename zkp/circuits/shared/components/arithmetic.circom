@@ -13,7 +13,7 @@ template Divide(dividendBits, divisorBits) {
     _ = Num2Bits(dividendBits)(dividend);
 
     // divisor > 0
-    signal positiveDivisor <== GreaterThan(divisorBits)([divisor, 0]);
+    signal {bool} positiveDivisor <== GreaterThan(divisorBits)([divisor, 0]);
     positiveDivisor === 1;
     
     quotient <-- dividend \ divisor;
@@ -21,10 +21,10 @@ template Divide(dividendBits, divisorBits) {
     dividend === quotient * divisor + remainder;
     
     // remainder < divisor
-    signal validRemainder <== LessThan(divisorBits)([remainder, divisor]);
+    signal {bool} validRemainder <== LessThan(divisorBits)([remainder, divisor]);
     validRemainder === 1;
 
     // quotient >= 0
-    signal validQuotient <== GreaterEqThan(dividendBits)([quotient, 0]);
+    signal {bool} validQuotient <== GreaterEqThan(dividendBits)([quotient, 0]);
     validQuotient === 1;
 }
