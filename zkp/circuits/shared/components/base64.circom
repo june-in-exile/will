@@ -3,6 +3,40 @@ pragma circom 2.2.2;
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/bitify.circom";
+include "arithmetic.circom";
+include "range.circom";
+
+/**
+ * Base64 Mapping Table：
+ * A-Z: 0-25   (ASCII 65-90)
+ * a-z: 26-51  (ASCII 97-122)  
+ * 0-9: 52-61  (ASCII 48-57)
+ * +:   62     (ASCII 43)
+ * /:   63     (ASCII 47)
+ * =:   64     (ASCII 61, padding)
+ */
+template AsciiToBase64() {
+    signal input ascii;     // (0-127)
+    signal output base64;   // (0-64)
+    
+    signal {bool} isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal {bool} isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal {bool} isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal {bool} isPlus <== IsEqual()([ascii,43]);             // +
+    signal {bool} isSlash <== IsEqual()([ascii,47]);            // /
+    signal {bool} isPadding <== IsEqual()([ascii,61]);          // =
+
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
+    
+    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
+    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
+    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
+    signal plusValue <== isPlus * 62;                       // +=62
+    signal slashValue <== isSlash * 63;                     // /=63
+    signal paddingValue <== isPadding * 64;                 // ==64
+    
+    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue;
+}
 
 /**
  * Decode 4 Base64 values into 3 bytes
@@ -103,5 +137,43 @@ template Base64GroupDecoder() {
     for (var i = 0; i < 3; i++) {
         validByte[i] <== LessEqThan(8)([bytes[i],255]);
         validByte[i] === 1;
+    }
+}
+
+template Base64Decoder(inputLength,outputLength) {
+    signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
+    signal output bytes[outputLength];  // Decoded bytes (0-255)
+    
+    assert(inputLength % 4 == 0);
+    var groups = inputLength \ 4;
+    assert(outputLength == groups*3);
+    
+    // Character to value conversion
+    component asciiToBase64[inputLength];
+    for (var i = 0; i < inputLength; i++) {
+        asciiToBase64[i] = AsciiToBase64();
+    }
+    
+    for (var i = 0; i < inputLength; i++) {
+        asciiToBase64[i].ascii <== asciis[i];
+    }
+    
+    component groupDecoder[groups];
+    for (var i = 0; i < groups; i++) {
+        groupDecoder[i] = Base64GroupDecoder();
+    }
+    
+    for (var i = 0; i < groups; i++) {
+        for (var j = 0; j < 4; j++) {
+            groupDecoder[i].base64s[j] <== asciiToBase64[i * 4 + j].base64;
+        }
+        
+        // Output bytes (handle possible padding in last group)
+        for (var j = 0; j < 3; j++) {
+            var byteIndex = i * 3 + j;
+            if (byteIndex < outputLength) {
+                bytes[byteIndex] <== groupDecoder[i].bytes[j];
+            }
+        }
     }
 }
