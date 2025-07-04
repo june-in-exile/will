@@ -1,6 +1,6 @@
 import { WitnessTester } from "./utils";
 
-describe("Base64 Character to Value Conversion", function () {
+describe("AsciiToBase64 Cicuit", function () {
   let circuit: WitnessTester<["asciiCode"], ["base64Value"]>;
 
   beforeAll(async function (): Promise<void> {

@@ -1,5 +1,5 @@
 # Default circuit for circuit-specific operations
-# CIRCUIT = base64
+CIRCUIT = base64
 CIRCUIT ?= multiplier2
 
 # Directory structure
