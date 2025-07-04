@@ -1,5 +1,6 @@
 pragma circom 2.2.2;
 
+include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 
 template Divide(dividendBits, divisorBits) {
@@ -8,7 +9,7 @@ template Divide(dividendBits, divisorBits) {
     signal output quotient;
     signal output remainder;
 
-    // Constraint the bits of modulus
+    // constraint the bits of divisor and dividend
     _ = Num2Bits(divisorBits)(divisor);
     _ = Num2Bits(dividendBits)(dividend);
 
