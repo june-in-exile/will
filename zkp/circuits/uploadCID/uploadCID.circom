@@ -10,6 +10,8 @@
 
 pragma circom 2.2.2;
 
+include "../shared/components/base64.circom";
+
 // =============================================================================
 // 第一層：編碼轉換 Templates
 // =============================================================================
@@ -18,32 +20,8 @@ pragma circom 2.2.2;
  * Base64 解碼器
  * 將 base64 字串轉換為字節陣列
  */
-template Base64Decoder(inputLength, outputLength) {
-    signal input base64Chars[inputLength];  // base64 字符的 ASCII 值
-    signal output bytes[outputLength];      // 解碼後的字節
-    
-    // Base64 字符映射表 (A-Z: 0-25, a-z: 26-51, 0-9: 52-61, +: 62, /: 63)
-    component charToValue[inputLength];
-    for (var i = 0; i < inputLength; i++) {
-        charToValue[i] = AsciiToBase64();
-        charToValue[i].char <== base64Chars[i];
-    }
-    
-    // 每 4 個 base64 字符解碼為 3 個字節
-    var groups = inputLength \ 4;
-    component decoder[groups];
-    for (var i = 0; i < groups; i++) {
-        decoder[i] = Base64GroupDecoder();
-        decoder[i].values[0] <== charToValue[i*4].value;
-        decoder[i].values[1] <== charToValue[i*4+1].value;
-        decoder[i].values[2] <== charToValue[i*4+2].value;
-        decoder[i].values[3] <== charToValue[i*4+3].value;
-        
-        if (i*3 < outputLength) bytes[i*3] <== decoder[i].bytes[0];
-        if (i*3+1 < outputLength) bytes[i*3+1] <== decoder[i].bytes[1];
-        if (i*3+2 < outputLength) bytes[i*3+2] <== decoder[i].bytes[2];
-    }
-}
+// template Base64Decoder(inputLength, outputLength) {
+// }
 
 /**
  * UTF-8 編碼器
@@ -428,8 +406,8 @@ template AES256GCMDecryptProof(
 建議的實現順序：
 
 1. 【基礎工具】先實現簡單的輔助電路
-   - AsciiToBase64: 單個 base64 字符轉數值
-   - Base64GroupDecoder: 4個字符解碼為3字節
+   - [v] AsciiToBase64: 單個 base64 字符轉數值
+   - [v] Base64GroupDecoder: 4個字符解碼為3字節
    
 2. 【密碼學基礎】實現密碼學原語
    - AESSBox: S-Box 查找表
