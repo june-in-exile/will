@@ -41,9 +41,9 @@ template AsciiToBase64() {
 /**
  * Decode 4 Base64 values into 3 bytes
  * 
- * Example: base64 values = [19,22,5,46] (TWVu -> "Men")
+ * Example: base64 values = [19,22,5,46] ("TWFu" -> "Man")
  * byte1 = (19 << 2) | (22 >> 4) = 76 + 1 = 77 ('M')
- * byte2 = ((22 & 15) << 4) | (5 >> 2) = 96 + 1 = 97 ('e') 
+ * byte2 = ((22 & 15) << 4) | (5 >> 2) = 96 + 1 = 97 ('a') 
  * byte3 = ((5 & 3) << 6) | 46 = 64 + 46 = 110 ('n')
  */
 template Base64GroupDecoder() {
@@ -140,13 +140,19 @@ template Base64GroupDecoder() {
     }
 }
 
-template Base64Decoder(inputLength,outputLength) {
-    signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
-    signal output bytes[outputLength];  // Decoded bytes (0-255)
-    
+/**
+ * Decode 4 Base64 characters into 3 bytes
+ * 
+ * Example: ASCII code of "TWFu" ([84,87,86,117]) -> AsciiToBase64() -> [19,22,5,46]
+ *  -> Base64GroupDecoder() -> [77,97,110] (decoded bytes, in this case it's ASCII code of "Man")
+ */
+template Base64Decoder(inputLength) {
     assert(inputLength % 4 == 0);
     var groups = inputLength \ 4;
-    assert(outputLength == groups*3);
+    var outputLength = groups * 3;
+
+    signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
+    signal output bytes[outputLength];  // Decoded bytes (0-255)
     
     // Character to value conversion
     component asciiToBase64[inputLength];

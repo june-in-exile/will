@@ -108,7 +108,7 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64s: [29, 6, 33, 37], bytes: [116, 104, 101] },  // dGhl -> the
         { base64s: [16, 23, 9, 37], bytes: [65, 114, 101] },   // QXJl -> Are
       ];
-
+      
       for (const testCase of testCases) {
         await circuit.expectPass({ base64s: testCase.base64s }, { bytes: testCase.bytes });
       };
@@ -179,25 +179,47 @@ describe("Base64GroupDecoder Cicuit", function () {
 describe("Base64Decoder Circuit", function () {
   let circuit: WitnessTester<["asciis"], ["bytes"]>;
 
-  beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.construct("./shared/components/base64.circom", {
-      templateName: "Base64Decoder",
-      templateParams: ["4", "3"],
+  describe("Valid Padding", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct("./shared/components/base64.circom", {
+        templateName: "Base64Decoder",
+        templateParams: ["4"],
+      });
+      console.info("Base64Decoder circuit constraints:", await circuit.getConstraintCount());
     });
-    console.info("Base64Decoder circuit constraints:", await circuit.getConstraintCount());
-  });
 
-  describe("Realword Decode Cases", function (): void {
-    test("should decode 'TWFu' into 'Man'", async function (): Promise<void> {
+    test("should decode no-padding case 'TWFu' into 'Man'", async function (): Promise<void> {
       const asciis = [84, 87, 70, 117];
       const bytes = [77, 97, 110];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test.skip("should decode 'QkM=' into 'A'", async function (): Promise<void> {
+    test("should decode 1-padding case 'QkM=' into 'BC'", async function (): Promise<void> {
       const asciis = [81, 107, 77, 61];
+      const bytes = [66, 67, 0];
+      await circuit.expectPass({ asciis }, { bytes });
+    });
+
+    test("should decode 2-padding case 'QQ==' into 'A'", async function (): Promise<void> {
+      const asciis = [81, 81, 61, 61];
       const bytes = [65, 0, 0];
       await circuit.expectPass({ asciis }, { bytes });
+    });
+  });
+
+  describe("Invalid Padding", function (): void {
+    test("should not decode invalid padding patterns", async function (): Promise<void> {
+      const testCases = [
+        { asciis: [84, 61, 61, 61] }, // T===
+        { asciis: [61, 86, 61, 61] }, // =V==
+        { asciis: [61, 61, 107, 110] }, // ==kn
+        { asciis: [97, 61, 70, 98] }, // a=Fb
+        { asciis: [61, 57, 80, 113] }, // =9Pq
+      ];
+     
+      for (const testCase of testCases) {
+        await circuit.expectFail(testCase);
+      }
     });
   });
 });
