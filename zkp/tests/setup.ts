@@ -29,12 +29,12 @@ expect.extend({
 
 global.console = {
   ...console,
-  // Mute the logs
-  // log: jest.fn(),
-  // debug: jest.fn(),
-  info: console.info,
-  warn: console.warn,
-  error: console.error,
+  // Comment out to mute the logs
+  log: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
 };
 
 beforeEach((): void => {
