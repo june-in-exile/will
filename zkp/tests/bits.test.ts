@@ -13,7 +13,7 @@ describe("Mask Circuit", function () {
       console.info("8-bit 0x0F mask circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct mask operations", async function (): Promise<void> {
+    it("should perform correct mask operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },         // 0000 0000 & 0000 1111 = 0000 0000
         { in: 15, out: 15 },       // 0000 1111 & 0000 1111 = 0000 1111
@@ -30,7 +30,7 @@ describe("Mask Circuit", function () {
       }
     });
 
-    test("should handle minimum and maximum values correctly", async function (): Promise<void> {
+    it("should handle minimum and maximum values correctly", async function (): Promise<void> {
       const testCases8 = [
         { in: 0, out: 0 },
         { in: 255, out: 15 },
@@ -41,7 +41,7 @@ describe("Mask Circuit", function () {
       };
     });
 
-    test("should handle power of 2 values correctly", async function (): Promise<void> {
+    it("should handle power of 2 values correctly", async function (): Promise<void> {
       const testCases = [
         { in: 1, out: 1 },     // 2^0
         { in: 2, out: 2 },     // 2^1
@@ -58,7 +58,7 @@ describe("Mask Circuit", function () {
       }
     });
 
-    test("should handle alternating bit patterns", async function (): Promise<void> {
+    it("should handle alternating bit patterns", async function (): Promise<void> {
       const testCases = [
         { in: 85, out: 5 },    // 0101 0101 & 0000 1111 = 0000 0101
         { in: 170, out: 10 },  // 1010 1010 & 0000 1111 = 0000 1010
@@ -71,7 +71,7 @@ describe("Mask Circuit", function () {
       }
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 256 },    // exceeds 8-bit range
         { in: 512 },    // exceeds 8-bit range
@@ -96,7 +96,7 @@ describe("Mask Circuit", function () {
       console.info("16-bit 0xFF mask circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct mask operations", async function (): Promise<void> {
+    it("should perform correct mask operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },           // 0x0000 & 0x00FF = 0x0000
         { in: 255, out: 255 },       // 0x00FF & 0x00FF = 0x00FF
@@ -113,7 +113,7 @@ describe("Mask Circuit", function () {
       };
     });
 
-    test("should handle minimum and maximum values correctly", async function (): Promise<void> {
+    it("should handle minimum and maximum values correctly", async function (): Promise<void> {
       const testCases16 = [
         { in: 0, out: 0 },
         { in: 65535, out: 255 },
@@ -124,7 +124,7 @@ describe("Mask Circuit", function () {
       };
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 65536 },   // exceeds 16-bit range
         { in: 131072 },  // exceeds 16-bit range
@@ -148,7 +148,7 @@ describe("Mask Circuit", function () {
       console.info("32-bit 0xFFFF mask circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct mask operations", async function (): Promise<void> {
+    it("should perform correct mask operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },               // 0x00000000 & 0x0000FFFF = 0x00000000
         { in: 65535, out: 65535 },       // 0x0000FFFF & 0x0000FFFF = 0x0000FFFF
@@ -165,7 +165,7 @@ describe("Mask Circuit", function () {
       };
     });
 
-    test("should handle minimum and maximum values correctly", async function (): Promise<void> {
+    it("should handle minimum and maximum values correctly", async function (): Promise<void> {
       const testCases32 = [
         { in: 0, out: 0 },
         { in: 4294967295, out: 65535 },
@@ -176,7 +176,7 @@ describe("Mask Circuit", function () {
       };
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 4294967296 }, // exceeds 32-bit range
         { in: 8589934592 }, // exceeds 32-bit range
@@ -204,7 +204,7 @@ describe("ShiftRight Circuit", function () {
       console.info("8-bit 1-offset shift circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct 1-bit right shift operations", async function (): Promise<void> {
+    it("should perform correct 1-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },        // 00000000 >> 1 = 00000000
         { in: 1, out: 0 },        // 00000001 >> 1 = 00000000
@@ -227,7 +227,7 @@ describe("ShiftRight Circuit", function () {
       };
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 256 },   // exceeds 8-bit range
         { in: 512 },   // exceeds 8-bit range
@@ -252,7 +252,7 @@ describe("ShiftRight Circuit", function () {
       console.info("8-bit 2-offset shift circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct 2-bit right shift operations", async function (): Promise<void> {
+    it("should perform correct 2-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },       // 00000000 >> 2 = 00000000
         { in: 1, out: 0 },       // 00000001 >> 2 = 00000000
@@ -273,7 +273,7 @@ describe("ShiftRight Circuit", function () {
       }
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 256 },   // exceeds 8-bit range
         { in: 512 },   // exceeds 8-bit range
@@ -296,7 +296,7 @@ describe("ShiftRight Circuit", function () {
       console.info("8-bit 4-offset shift circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct 4-bit right shift operations", async function (): Promise<void> {
+    it("should perform correct 4-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },       // 00000000 >> 4 = 00000000
         { in: 15, out: 0 },      // 00001111 >> 4 = 00000000
@@ -315,7 +315,7 @@ describe("ShiftRight Circuit", function () {
       }
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 256 },   // exceeds 8-bit range
         { in: 512 },   // exceeds 8-bit range
@@ -338,7 +338,7 @@ describe("ShiftRight Circuit", function () {
       console.info("16-bit 8-offset shift circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct 8-bit right shift operations", async function (): Promise<void> {
+    it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },
         { in: 255, out: 0 },       // 0x00FF >> 8 = 0x0000
@@ -355,7 +355,7 @@ describe("ShiftRight Circuit", function () {
       }
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 65536 },  // exceeds 16-bit range
         { in: 131072 }, // exceeds 16-bit range
@@ -378,7 +378,7 @@ describe("ShiftRight Circuit", function () {
       console.info("32-bit 8-offset shift circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform correct 8-bit right shift operations", async function (): Promise<void> {
+    it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { in: 0, out: 0 },
         { in: 1, out: 0 },                  // 0x00000001 >> 8 = 0x00000000
@@ -396,7 +396,7 @@ describe("ShiftRight Circuit", function () {
       }
     });
 
-    test("should reject out-of-range values", async function (): Promise<void> {
+    it("should reject out-of-range values", async function (): Promise<void> {
       const testCases = [
         { in: 4294967296 }, // exceeds 32-bit range
         { in: 8589934592 }, // exceeds 32-bit range

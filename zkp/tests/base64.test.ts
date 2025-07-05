@@ -12,7 +12,7 @@ describe("AsciiToBase64 Cicuit", function () {
   });
 
   describe("Complete Base64 Character Set", function (): void {
-    test("should handle all valid Base64 characters", async function (): Promise<void> {
+    it("should handle all valid Base64 characters", async function (): Promise<void> {
       const base64Chars: string =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
@@ -27,7 +27,7 @@ describe("AsciiToBase64 Cicuit", function () {
   });
 
   describe("Invalid Base64 Characters", function (): void {
-    test("should handle invalid characters", async function (): Promise<void> {
+    it("should handle invalid characters", async function (): Promise<void> {
       const invalidChars = [
         64, // "@"
         35, // "#"
@@ -47,7 +47,7 @@ describe("AsciiToBase64 Cicuit", function () {
       };
     });
 
-    test("should handle characters adjacent to valid range", async function (): Promise<void> {
+    it("should handle characters adjacent to valid range", async function (): Promise<void> {
       const adjacentInvalid = [
         46, // '/' 's previous character ('.')
         58, // '9' 's next character (':')
@@ -76,7 +76,7 @@ describe("Base64GroupDecoder Cicuit", function () {
   });
 
   describe("Valid Padding", function (): void {
-    test("should accpet two padding", async function (): Promise<void> {
+    it("should accpet two padding", async function (): Promise<void> {
       const testCases = [
         { base64Group: [16, 16, 64, 64], bytes: [65, 0, 0] },  // QQ== -> A
         { base64Group: [26, 26, 64, 64], bytes: [105, 0, 0] }, // aa== -> i
@@ -90,7 +90,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       };
     });
 
-    test("should accpet one padding", async function (): Promise<void> {
+    it("should accpet one padding", async function (): Promise<void> {
       const testCases = [
         { base64Group: [16, 36, 12, 64], bytes: [66, 67, 0] },  // QkM= -> BC
         { base64Group: [19, 22, 21, 64], bytes: [77, 101, 0] }, // TWV= -> Me
@@ -102,7 +102,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       };
     });
 
-    test("should accpet no padding", async function (): Promise<void> {
+    it("should accpet no padding", async function (): Promise<void> {
       const testCases = [
         { base64Group: [19, 22, 5, 46], bytes: [77, 97, 110] },    // TWFu -> Man
         { base64Group: [29, 6, 33, 37], bytes: [116, 104, 101] },  // dGhl -> the
@@ -116,7 +116,7 @@ describe("Base64GroupDecoder Cicuit", function () {
   });
 
   describe("Invalid Padding", function (): void {
-    test("should reject padding in position 0 or 1", async function (): Promise<void> {
+    it("should reject padding in position 0 or 1", async function (): Promise<void> {
       const testCases = [
         { base64Group: [64, 22, 5, 46] },
         { base64Group: [64, 64, 33, 34] },
@@ -133,7 +133,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       };
     });
 
-    test("should reject one padding in position 2", async function (): Promise<void> {
+    it("should reject one padding in position 2", async function (): Promise<void> {
       const testCases = [
         { base64Group: [29, 6, 64, 34] },
         { base64Group: [16, 23, 64, 37] },
@@ -146,7 +146,7 @@ describe("Base64GroupDecoder Cicuit", function () {
   });
 
   describe("Range Validation", function (): void {
-    test("should handle boundary base64Group correctly", async function (): Promise<void> {
+    it("should handle boundary base64Group correctly", async function (): Promise<void> {
       const testCases = [
         { base64Group: [0, 0, 0, 0], bytes: [0, 0, 0] },
         { base64Group: [0, 0, 63, 63], bytes: [0, 15, 255] },
@@ -159,7 +159,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       };
     });
 
-    test("should handle out-of-range base64Group correctly", async function (): Promise<void> {
+    it("should handle out-of-range base64Group correctly", async function (): Promise<void> {
       const testCases = [
         { base64Group: [100, 50, 25, 12] },
         { base64Group: [20, 65, 20, 20] },
@@ -188,49 +188,49 @@ describe("Base64Decoder Circuit", function () {
       console.info("4-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
+    it("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
       const asciis = [84, 87, 70, 117];
       const bytes = [77, 97, 110];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode 1-padding 'QkM=' into 'BC'", async function (): Promise<void> {
+    it("should decode 1-padding 'QkM=' into 'BC'", async function (): Promise<void> {
       const asciis = [81, 107, 77, 61];
       const bytes = [66, 67, 0];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode 2-padding 'QQ==' into 'A'", async function (): Promise<void> {
+    it("should decode 2-padding 'QQ==' into 'A'", async function (): Promise<void> {
       const asciis = [81, 81, 61, 61];
       const bytes = [65, 0, 0];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode null byte 'AA==' to 0x00", async function (): Promise<void> {
+    it("should decode null byte 'AA==' to 0x00", async function (): Promise<void> {
       const asciis = [65, 65, 61, 61];
       const bytes = [0];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode max byte '/w==' to 0xFF", async function (): Promise<void> {
+    it("should decode max byte '/w==' to 0xFF", async function (): Promise<void> {
       const asciis = [47, 119, 61, 61];
       const bytes = [255];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode with + and / characters '+/8='", async function (): Promise<void> {
+    it("should decode with + and / characters '+/8='", async function (): Promise<void> {
       const asciis = [43, 47, 56, 61];
       const bytes = [251, 255];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode uppercase and lowercase mix 'AaAa'", async function (): Promise<void> {
+    it("should decode uppercase and lowercase mix 'AaAa'", async function (): Promise<void> {
       const asciis = [65, 97, 65, 97];
       const bytes = [1, 160, 26];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should not decode invalid padding patterns", async function (): Promise<void> {
+    it("should not decode invalid padding patterns", async function (): Promise<void> {
       const testCases = [
         { asciis: [84, 61, 61, 61] },   // T===
         { asciis: [61, 86, 61, 61] },   // =V==
@@ -254,19 +254,19 @@ describe("Base64Decoder Circuit", function () {
       console.info("8-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
+    it("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
       const asciis = [84, 109, 56, 103, 100, 50, 70, 53];
       const bytes = [78, 111, 32, 119, 97, 121];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode 1-padding 'SGVsbG8=' into 'Hello'", async function (): Promise<void> {
+    it("should decode 1-padding 'SGVsbG8=' into 'Hello'", async function (): Promise<void> {
       const asciis = [83, 71, 86, 115, 98, 71, 56, 61];
       const bytes = [72, 101, 108, 108, 111];
       await circuit.expectPass({ asciis }, { bytes });
     });
 
-    test("should decode 2-padding 'Q29vbA==' into 'Cool'", async function (): Promise<void> {
+    it("should decode 2-padding 'Q29vbA==' into 'Cool'", async function (): Promise<void> {
       const asciis = [81, 50, 57, 118, 98, 65, 61, 61];
       const bytes = [67, 111, 111, 108];
       await circuit.expectPass({ asciis }, { bytes });
@@ -282,9 +282,11 @@ describe("Base64Decoder Circuit", function () {
       console.info("360-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should decode a real world case", async function (): Promise<void> {
+    it("should decode a real world case", async function (): Promise<void> {
       // Source: https://zh.wikipedia.org/zh-tw/Base64
+      // TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=
       const asciis = [84, 87, 70, 117, 73, 71, 108, 122, 73, 71, 82, 112, 99, 51, 82, 112, 98, 109, 100, 49, 97, 88, 78, 111, 90, 87, 81, 115, 73, 71, 53, 118, 100, 67, 66, 118, 98, 109, 120, 53, 73, 71, 74, 53, 73, 71, 104, 112, 99, 121, 66, 121, 90, 87, 70, 122, 98, 50, 52, 115, 73, 71, 74, 49, 100, 67, 66, 105, 101, 83, 66, 48, 97, 71, 108, 122, 73, 72, 78, 112, 98, 109, 100, 49, 98, 71, 70, 121, 73, 72, 66, 104, 99, 51, 78, 112, 98, 50, 52, 103, 90, 110, 74, 118, 98, 83, 66, 118, 100, 71, 104, 108, 99, 105, 66, 104, 98, 109, 108, 116, 89, 87, 120, 122, 76, 67, 66, 51, 97, 71, 108, 106, 97, 67, 66, 112, 99, 121, 66, 104, 73, 71, 120, 49, 99, 51, 81, 103, 98, 50, 89, 103, 100, 71, 104, 108, 73, 71, 49, 112, 98, 109, 81, 115, 73, 72, 82, 111, 89, 88, 81, 103, 89, 110, 107, 103, 89, 83, 66, 119, 90, 88, 74, 122, 90, 88, 90, 108, 99, 109, 70, 117, 89, 50, 85, 103, 98, 50, 89, 103, 90, 71, 86, 115, 97, 87, 100, 111, 100, 67, 66, 112, 98, 105, 66, 48, 97, 71, 85, 103, 89, 50, 57, 117, 100, 71, 108, 117, 100, 87, 86, 107, 73, 71, 70, 117, 90, 67, 66, 112, 98, 109, 82, 108, 90, 109, 70, 48, 97, 87, 100, 104, 89, 109, 120, 108, 73, 71, 100, 108, 98, 109, 86, 121, 89, 88, 82, 112, 98, 50, 52, 103, 98, 50, 89, 103, 97, 50, 53, 118, 100, 50, 120, 108, 90, 71, 100, 108, 76, 67, 66, 108, 101, 71, 78, 108, 90, 87, 82, 122, 73, 72, 82, 111, 90, 83, 66, 122, 97, 71, 57, 121, 100, 67, 66, 50, 90, 87, 104, 108, 98, 87, 86, 117, 89, 50, 85, 103, 98, 50, 89, 103, 89, 87, 53, 53, 73, 71, 78, 104, 99, 109, 53, 104, 98, 67, 66, 119, 98, 71, 86, 104, 99, 51, 86, 121, 90, 83, 52, 61];
+      // Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.
       const bytes = [77, 97, 110, 32, 105, 115, 32, 100, 105, 115, 116, 105, 110, 103, 117, 105, 115, 104, 101, 100, 44, 32, 110, 111, 116, 32, 111, 110, 108, 121, 32, 98, 121, 32, 104, 105, 115, 32, 114, 101, 97, 115, 111, 110, 44, 32, 98, 117, 116, 32, 98, 121, 32, 116, 104, 105, 115, 32, 115, 105, 110, 103, 117, 108, 97, 114, 32, 112, 97, 115, 115, 105, 111, 110, 32, 102, 114, 111, 109, 32, 111, 116, 104, 101, 114, 32, 97, 110, 105, 109, 97, 108, 115, 44, 32, 119, 104, 105, 99, 104, 32, 105, 115, 32, 97, 32, 108, 117, 115, 116, 32, 111, 102, 32, 116, 104, 101, 32, 109, 105, 110, 100, 44, 32, 116, 104, 97, 116, 32, 98, 121, 32, 97, 32, 112, 101, 114, 115, 101, 118, 101, 114, 97, 110, 99, 101, 32, 111, 102, 32, 100, 101, 108, 105, 103, 104, 116, 32, 105, 110, 32, 116, 104, 101, 32, 99, 111, 110, 116, 105, 110, 117, 101, 100, 32, 97, 110, 100, 32, 105, 110, 100, 101, 102, 97, 116, 105, 103, 97, 98, 108, 101, 32, 103, 101, 110, 101, 114, 97, 116, 105, 111, 110, 32, 111, 102, 32, 107, 110, 111, 119, 108, 101, 100, 103, 101, 44, 32, 101, 120, 99, 101, 101, 100, 115, 32, 116, 104, 101, 32, 115, 104, 111, 114, 116, 32, 118, 101, 104, 101, 109, 101, 110, 99, 101, 32, 111, 102, 32, 97, 110, 121, 32, 99, 97, 114, 110, 97, 108, 32, 112, 108, 101, 97, 115, 117, 114, 101, 46];
       await circuit.expectPass({ asciis }, { bytes });
     });

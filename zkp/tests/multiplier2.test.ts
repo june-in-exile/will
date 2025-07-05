@@ -17,7 +17,7 @@ describe("Multiplier2 Circuit", function () {
     ];
 
     testCases.forEach(({ a, b, c }): void => {
-      test(`should validate ${a} x ${b} = ${c}`, async function (): Promise<void> {
+      it(`should validate ${a} x ${b} = ${c}`, async function (): Promise<void> {
         await circuit.expectPass({ a, b }, { c });
       });
     });

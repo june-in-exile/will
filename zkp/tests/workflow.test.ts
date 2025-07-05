@@ -82,13 +82,13 @@ describe("Workflow CLI Tests", () => {
   }, 120000); // 2 minutes timeout
 
   describe("Circuit Compilation", () => {
-    test("should have all compiled files", async () => {
+    it("should have all compiled files", async () => {
       await expect(fs.access(r1csFile)).resolves.not.toThrow();
       await expect(fs.access(wasmFile)).resolves.not.toThrow();
       await expect(fs.access(symFile)).resolves.not.toThrow();
     });
 
-    test("should have correct circuit constraints", async () => {
+    it("should have correct circuit constraints", async () => {
       const { stdout } = await execAsync(`snarkjs info -r ${r1csFile}`);
       expect(stdout).toContain("# of Constraints: 1");
       expect(stdout).toContain("# of Wires: 4");
@@ -96,12 +96,12 @@ describe("Workflow CLI Tests", () => {
   });
 
   describe("Trusted Setup", () => {
-    test("should have generated keys", async () => {
+    it("should have generated keys", async () => {
       await expect(fs.access(zkeyFile)).resolves.not.toThrow();
       await expect(fs.access(vkeyFile)).resolves.not.toThrow();
     });
 
-    test("should have valid verification key", async () => {
+    it("should have valid verification key", async () => {
       const vkeyContent = await fs.readFile(vkeyFile, "utf-8");
       const vkey = JSON.parse(vkeyContent);
 
@@ -113,7 +113,7 @@ describe("Workflow CLI Tests", () => {
   });
 
   describe("Witness Generation", () => {
-    test("should complete witness generation within time limit", async () => {
+    it("should complete witness generation within time limit", async () => {
       const start = Date.now();
 
       const witnessFile = `${buildDir}/witness_perf.wtns`;
@@ -163,7 +163,7 @@ describe("Workflow CLI Tests", () => {
       return { proof, publicSignals };
     }
 
-    test("should generate and verify valid proof", async () => {
+    it("should generate and verify valid proof", async () => {
       const input = { a: 7, b: 8 };
       const proof = await generateProof(input);
 
@@ -179,7 +179,7 @@ describe("Workflow CLI Tests", () => {
       await fs.unlink(publicFile);
     });
 
-    test("should generate different proofs for different inputs", async () => {
+    it("should generate different proofs for different inputs", async () => {
       const input1 = { a: 2, b: 3 };
       const input2 = { a: 4, b: 5 };
 
@@ -195,7 +195,7 @@ describe("Workflow CLI Tests", () => {
       await fs.unlink(publicFile);
     });
 
-    test("should complete proof generation within time limit", async () => {
+    it("should complete proof generation within time limit", async () => {
       const start = Date.now();
 
       const input = { a: 42, b: 24 };
@@ -210,7 +210,7 @@ describe("Workflow CLI Tests", () => {
   });
 
   describe("Solidity Verifier", () => {
-    test("should generate Solidity verifier contract", async () => {
+    it("should generate Solidity verifier contract", async () => {
       await execAsync(
         `snarkjs zkey export solidityverifier ${zkeyFile} ${verifierFile}`,
       );

@@ -2,7 +2,7 @@ import { WitnessTester } from "./utils";
 
 describe("InRange Circuit", function () {
   let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
-  
+
   describe("Basic 4-bit Range Validation", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct("./shared/components/range.circom", {
@@ -11,13 +11,13 @@ describe("InRange Circuit", function () {
       console.info("4-bit InRange circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should validate full range [0, 15]", async function (): Promise<void> {
+    it("should validate full range [0, 15]", async function (): Promise<void> {
       for (let value = 0; value <= 15; value++) {
         await circuit.expectPass({ in: value, min: 0, max: 15 }, { out: 1 });
       }
     });
 
-    test("should validate custom range [3, 8]", async function (): Promise<void> {
+    it("should validate custom range [3, 8]", async function (): Promise<void> {
       const min = 3,
         max = 8;
       for (let value = 0; value <= 15; value++) {
@@ -28,7 +28,7 @@ describe("InRange Circuit", function () {
       }
     });
 
-    test("should contraint in, min and max", async function (): Promise<void> {
+    it("should contraint in, min and max", async function (): Promise<void> {
       const testCases = [
         { in: 16, min: 0, max: 15 },
         { in: 5, min: 16, max: 20 },
@@ -54,7 +54,7 @@ describe("InRange Circuit", function () {
       console.info("8-bit InRange circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should validate full range [0, 255]", async function (): Promise<void> {
+    it("should validate full range [0, 255]", async function (): Promise<void> {
       const min = 0,
         max = 255;
       const values = [0, 1, 127, 254, 255];
@@ -64,7 +64,7 @@ describe("InRange Circuit", function () {
       }
     });
 
-    test("should validate custom range [10, 100]", async function (): Promise<void> {
+    it("should validate custom range [10, 100]", async function (): Promise<void> {
       const min = 10,
         max = 100;
       const values = [9, 10, 11, 50, 99, 100, 101];
@@ -77,7 +77,7 @@ describe("InRange Circuit", function () {
       }
     });
 
-    test("should handle exact boundary values correctly", async function (): Promise<void> {
+    it("should handle exact boundary values correctly", async function (): Promise<void> {
       const min = 50,
         max = 200;
       const values = [49, 50, 51, 199, 200, 201];

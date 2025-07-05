@@ -12,7 +12,7 @@ describe("Divide Circuit", function () {
       console.info("8-by-6-bit divide circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should calculate valid division correctly", async function (): Promise<void> {
+    it("should calculate valid division correctly", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 1 },
         { dividend: 1, divisor: 1 },
@@ -43,7 +43,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should prevent division by zero", async function (): Promise<void> {
+    it("should prevent division by zero", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 0 },
         { dividend: 1, divisor: 0 },
@@ -57,7 +57,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should constraint dividend bits", async function (): Promise<void> {
+    it("should constraint dividend bits", async function (): Promise<void> {
       const testCases = [
         { dividend: 256, divisor: 0 },
         { dividend: 256, divisor: 1 },
@@ -74,7 +74,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should constraint divisor bits", async function (): Promise<void> {
+    it("should constraint divisor bits", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 64 },
         { dividend: 1, divisor: 64 },
@@ -101,7 +101,7 @@ describe("Divide Circuit", function () {
       console.info("12-by-8-bit divide circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should calculate valid division correctly", async function (): Promise<void> {
+    it("should calculate valid division correctly", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 1 },
         { dividend: 1, divisor: 1 },
@@ -132,7 +132,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should prevent division by zero", async function (): Promise<void> {
+    it("should prevent division by zero", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 0 },
         { dividend: 1, divisor: 0 },
@@ -149,7 +149,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should constraint dividend bits", async function (): Promise<void> {
+    it("should constraint dividend bits", async function (): Promise<void> {
       const testCases = [
         { dividend: 4096, divisor: 0 },
         { dividend: 4096, divisor: 1 },
@@ -167,7 +167,7 @@ describe("Divide Circuit", function () {
       };
     });
 
-    test("should constraint divisor bits", async function (): Promise<void> {
+    it("should constraint divisor bits", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 256 },
         { dividend: 1, divisor: 256 },
@@ -202,7 +202,7 @@ describe("MultiplyArray Circuit", function () {
       console.info("1-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform element-wise multiplication correctly", async function (): Promise<void> {
+    it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         { a: [0], b: [0], c: [0] },
         { a: [1], b: [1], c: [1] },
@@ -222,7 +222,7 @@ describe("MultiplyArray Circuit", function () {
       };
     });
 
-    test("should handle large numbers correctly", async function (): Promise<void> {
+    it("should handle large numbers correctly", async function (): Promise<void> {
       const testCases = [
         {
           a: [1000],
@@ -276,7 +276,7 @@ describe("MultiplyArray Circuit", function () {
     });
 
 
-    test("should perform element-wise multiplication correctly", async function (): Promise<void> {
+    it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         { a: [0, 0, 0], b: [0, 0, 0], c: [0, 0, 0] },
         { a: [1, 1, 1], b: [1, 1, 1], c: [1, 1, 1] },
@@ -294,7 +294,7 @@ describe("MultiplyArray Circuit", function () {
       };
     });
 
-    test("should handle large numbers correctly", async function (): Promise<void> {
+    it("should handle large numbers correctly", async function (): Promise<void> {
       const testCases = [
         {
           a: [100, 200, 300],
@@ -332,7 +332,7 @@ describe("MultiplyArray Circuit", function () {
       console.info("5-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform element-wise multiplication correctly", async function (): Promise<void> {
+    it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         {
           a: [1, 2, 3, 4, 5],
@@ -375,7 +375,7 @@ describe("MultiplyArray Circuit", function () {
       console.info("10-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
     });
 
-    test("should perform element-wise multiplication correctly", async function (): Promise<void> {
+    it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         {
           a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
