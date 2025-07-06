@@ -1,4 +1,4 @@
-import type { CircomTester, CompilationOptions } from "../types";
+import type { CircomDefaults, CircomTester, CompilationOptions } from "../types";
 import { generateCircomTest } from "./generateTestCircom";
 import { commentComponentMainInFile, uncommentComponentMainInFile } from "./commentMain";
 import { getCircomlibPath } from "./getCircomlibPath";
@@ -21,10 +21,12 @@ export async function construct_wasm(
 
   const absoluteCircuitPath = path.join(__dirname, "..", "..", "circuits", circuitPath);
   await commentComponentMainInFile(absoluteCircuitPath);
-  
+
   const testCircuitPath = await generateCircomTest(absoluteCircuitPath, templateName);
 
-  const circomlibPath = getCircomlibPath();
+  const circomlibPath = await getCircomlibPath();
+
+  const defaultOptions = (global as any).CIRCOM_DEFAULTS;
 
   const wasm_tester = await circom_tester.wasm(
     testCircuitPath,
@@ -37,16 +39,8 @@ export async function construct_wasm(
       ...(options?.templatePublicSignals && {
         templatePublicSignals: options.templatePublicSignals,
       }),
-      O: options?.O ?? 1,
-      verbose: options?.verbose ?? false,
-      inspect: options?.inspect ?? false,
-      json: options?.json ?? false,
-      recompile: options?.recompile ?? true,
-      prime: options?.prime ?? "bn128",
-      simplification_substitution:
-        options?.simplification_substitution ?? false,
-      no_asm: options?.no_asm ?? false,
-      no_init: options?.no_init ?? false,
+      ...defaultOptions,
+      ...options,
     },
   );
 

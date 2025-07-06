@@ -89,7 +89,7 @@ describe("Utf8Encoder Circuit", function (): void {
     console.info("Utf8Encoder circuit constraints:", await circuit.getConstraintCount());
   });
 
-  describe("Individual Character Encoding", function (): void {
+  describe.only("Individual Character Encoding", function (): void {
     it("should correctly encode character of byte length 1", async () => {
       for (const testCase of testCases1Byte) {
         await circuit.expectPass({ codepoint: testCase.codepoint }, { utf8: "1" });

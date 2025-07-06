@@ -61,7 +61,18 @@
     ],
     "testTimeout": 30000,
     "globals": {
-      "LOG_LEVEL": "info"
+      "LOG_LEVEL": "log",
+      "CIRCOM_DEFAULTS": {
+        "O": 1,
+        "verbose": false,
+        "inspect": false,
+        "json": false,
+        "recompile": true,
+        "prime": "bn128",
+        "simplification_substitution": false,
+        "no_asm": false,
+        "no_init": false
+      }
     }
   }
 }

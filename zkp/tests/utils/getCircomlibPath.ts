@@ -1,6 +1,6 @@
 import path from "path";
 
-export function getCircomlibPath() {
+export async function getCircomlibPath() {
     let circomlibPath: string;
 
     try {

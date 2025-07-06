@@ -1,3 +1,15 @@
+export type CircomDefaults = {
+  O: number;
+  verbose: boolean;
+  inspect: boolean;
+  json: boolean;
+  recompile: boolean;
+  prime: string;
+  simplification_substitution: boolean;
+  no_asm: boolean;
+  no_init: boolean;
+};
+
 /** An integer value is a numerical string, a number, or a bigint. */
 export type IntegerValueType = `${number}` | number | bigint;
 
