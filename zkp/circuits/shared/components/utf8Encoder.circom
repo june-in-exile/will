@@ -6,25 +6,20 @@ include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/mux2.circom";
 
 /**
- * UTF-8 Byte Length Calculator Template
- * 
- * This template determines how many bytes are required to encode a given Unicode 
- * codepoint in UTF-8 format. It returns the length as a 2-bit binary representation.
- * 
  * UTF-8 Encoding Ranges:
- * - 1 byte:  U+0000   to U+007F    (0 to 127)       - ASCII characters
- * - 2 bytes: U+0080   to U+07FF    (128 to 2,047)   - Latin extended, Greek, Cyrillic, etc.
- * - 3 bytes: U+0800   to U+FFFF    (2,048 to 65,535) - Most other scripts (CJK, etc.)
- * - 4 bytes: U+10000  to U+10FFFF  (65,536 to 1,114,111) - Supplementary planes (emoji, etc.)
+ * - 1 byte:  U+0000   to U+007F    (0 to 127)              - ASCII characters
+ * - 2 bytes: U+0080   to U+07FF    (128 to 2,047)          - Latin extended, Greek, Cyrillic, etc.
+ * - 3 bytes: U+0800   to U+FFFF    (2,048 to 65,535)       - Most other scripts (CJK, etc.)
+ * - 4 bytes: U+10000  to U+10FFFF  (65,536 to 1,114,111)   - Supplementary planes (emoji, etc.)
  * 
  * @param codepoint - Unicode codepoint (0 to 1,114,111)
  * @returns length[2] - 2-bit binary representation of byte length
  * 
  * Output Encoding:
- * - [0,0] = 1 byte  (length = 0*2 + 0 = 0, interpreted as 1)
- * - [1,0] = 2 bytes (length = 0*2 + 1 = 1, interpreted as 2)  
- * - [0,1] = 3 bytes (length = 1*2 + 0 = 2, interpreted as 3)
- * - [1,1] = 4 bytes (length = 1*2 + 1 = 3, interpreted as 4)
+ * - [0,0]: 1 byte  (length = 0*2 + 0 = 0, interpreted as 1)
+ * - [1,0]: 2 bytes (length = 0*2 + 1 = 1, interpreted as 2)  
+ * - [0,1]: 3 bytes (length = 1*2 + 0 = 2, interpreted as 3)
+ * - [1,1]: 4 bytes (length = 1*2 + 1 = 3, interpreted as 4)
  * 
  * Examples:
  * - 'A' (65):      length = [0,0] (1 byte)
@@ -53,11 +48,6 @@ template Utf8ByteLength() {
 }
 
 /**
- * UTF-8 Encoder Circuit Template
- * 
- * This template converts a Unicode codepoint to its UTF-8 byte representation.
- * UTF-8 is a variable-length encoding that uses 1-4 bytes to represent Unicode characters:
- * 
  * Encoding Rules:
  * - 1 byte  (0-127):        0xxxxxxx
  * - 2 bytes (128-2047):     110xxxxx 10xxxxxx
@@ -76,6 +66,7 @@ template Utf8ByteLength() {
  */
 template Utf8Encoder() {
     signal input {number} codepoint;
+    // TODO: handle with bus
     signal output {byte} bytes[4];
     signal output {bit} validBytes[4];
     

@@ -143,8 +143,13 @@ template Base64GroupDecoder() {
 /**
  * Decode 4 Base64 characters into 3 bytes
  * 
- * Example: ASCII code of "TWFu" ([84,87,86,117]) -> AsciiToBase64() -> [19,22,5,46]
- *  -> Base64GroupDecoder() -> [77,97,110] (decoded bytes, in this case it's ASCII code of "Man")
+ * Example: Decode "TWFu" (Base64 for "Man")
+ *  ASCII code of "TWFu" ([84,87,70,117]) -> AsciiToBase64() -> Base64 Value of "TWFu" ([19,22,5,46])
+ *      -> Base64GroupDecoder() -> [77,97,110] (decoded bytes, in this case it's ASCII code of "Man")
+ *
+ *  signal {ascii} ascii_TWFu[4] <== [84, 87, 70, 117];
+ *  signal bytes[3] <== Base64Decoder(4)(ascii_TWFu);
+ *  bytes === [77, 97, 110]; // (ASCII for "Man")
  */
 template Base64Decoder(inputLength) {
     assert(inputLength % 4 == 0);
