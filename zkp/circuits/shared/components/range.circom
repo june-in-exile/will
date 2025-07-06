@@ -3,10 +3,19 @@ pragma circom 2.2.2;
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 
+/**
+ * InRange Circuit Template
+ * 
+ * This zero-knowledge circuit template verifies whether an input value falls within
+ * a specified range [min, max]. It ensures that min <= input <= max while maintaining
+ * privacy of the actual values.
+ * 
+ * @param bits - The bit width for the numbers (e.g., 8, 16, 32, 64)
+ */
 template InRange(bits) {
-    signal input {number} in;
-    signal input {number} min;
-    signal input {number} max;
+    signal input in;
+    signal input min;
+    signal input max;
     signal output {bool} out;
     
     // Constraint the bits of in, min and max

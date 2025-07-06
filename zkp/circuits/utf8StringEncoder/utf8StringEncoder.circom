@@ -5,7 +5,7 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/mux2.circom";
 include "../shared/components/utf8Encoder.circom";
 
-// 字串編碼器 - 編碼多個字符
+
 template Utf8StringEncoder(length) {
     signal input {number} codepoints[length];
     signal output {byte} bytes[length * 4];
@@ -22,20 +22,7 @@ template Utf8StringEncoder(length) {
     }
     totalBytes <== byteCounts[length-1];
 
-    // 簡化版本：假設按順序排列字節
-    var byteIndex = 0;
-    for (var i = 0; i < length; i++) {
-        for (var j = 0; j < 4; j++) {
-            var byteIndex = length * 4 + j;
-            var nextByteIndex = validBytes[i][j+1] * (byteIndex + 1) + (1 - validBytes[i][j+1]) * (validBytes[i][j+2]) * (byteIndex + 2)
-            byteIndex + 2
-            byteIndex + 3
-            byteIndex + 4
-
-            bytes[byteIndex] <== utf32bytes[i][j] * validBytes[i][j];
-            byteIndex++;
-        }
-    }
+    // handle the bytes
 }
 
 

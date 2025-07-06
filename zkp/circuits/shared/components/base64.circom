@@ -16,25 +16,15 @@ include "range.circom";
  * =:   64     (ASCII 61, padding)
  */
 template AsciiToBase64() {
-    signal input {number} ascii;     // (0-127)
+    signal input {ascii} ascii;     // (0-127)
     signal output {base64} base64;  // (0-64)
 
-    signal {number} number65 <== 65;
-    signal {number} number90 <== 90;
-    signal {number} number97 <== 97;
-    signal {number} number122 <== 122;
-    signal {number} number48 <== 48;
-    signal {number} number57 <== 57;
-    signal {number} number43 <== 43;
-    signal {number} number47 <== 47;
-    signal {number} number61 <== 61;
-    
-    signal isUpperCase <== InRange(7)(ascii, number65, number90);    // A-Z
-    signal isLowerCase <== InRange(7)(ascii, number97, number122);   // a-z
-    signal isDigit <== InRange(7)(ascii, number48, number57);        // 0-9
-    signal isPlus <== IsEqual()([ascii,number43]);             // +
-    signal isSlash <== IsEqual()([ascii,number47]);            // /
-    signal isPadding <== IsEqual()([ascii,number61]);          // =
+    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,43]);             // +
+    signal isSlash <== IsEqual()([ascii,47]);            // /
+    signal isPadding <== IsEqual()([ascii,61]);          // =
 
     1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
     
@@ -161,7 +151,7 @@ template Base64Decoder(inputLength) {
     var groups = inputLength \ 4;
     var outputLength = groups * 3;
 
-    signal input {number} asciis[inputLength];  // ASCII values of base64 characters (0-127)
+    signal input {ascii} asciis[inputLength];  // ASCII values of base64 characters (0-127)
     signal output {byte} bytes[outputLength];  // Decoded bytes (0-255)
 
     signal {base64} base64Group[groups][4];
