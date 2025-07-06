@@ -1,3 +1,19 @@
+export function utf8ByteLength(codepoint: number): { length: [number, number] } {
+    let length: [number, number];
+    if (codepoint < 0x0080) {
+        length = [0, 0];
+    } else if (codepoint < 0x0800) {
+        length = [1, 0];
+    } else if (codepoint < 0x10000) {
+        length = [0, 1];
+    } else if (codepoint < 0x110000) {
+        length = [1, 1];
+    } else {
+        throw new Error("Invalid UTF8 Char");
+    }
+    return { length };
+}
+
 export function encodeUTF8(codepoint: number): { bytes: [number, number, number, number], validBytes: [number, number, number, number] } {
     if (codepoint < 0 || codepoint > 0x10FFFF) {
         throw new Error("Invalid Unicode codepoint");

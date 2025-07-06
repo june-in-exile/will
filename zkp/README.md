@@ -34,13 +34,6 @@ make trusted-setup-phase1-download
 make trusted-setup-phase1
 ```
 
-### Prepare Input Data
-
-```bash
-echo '{"a":3,"b":11}' > circuits/multiplier2/input/example.json
-# Generates example input: circuits/multiplier2/inputs/example.json
-```
-
 ### Run the Demo
 
 Run the complete workflow using the default circuit (`multiplier2`):
@@ -190,3 +183,24 @@ make circuit CIRCUIT=createWill
 - [SnarkJS Documentation](https://github.com/iden3/snarkjs)
 - [Groth16 Protocol](https://eprint.iacr.org/2016/260.pdf)
 - [Powers of Tau Ceremony](https://github.com/privacy-scaling-explorations/perpetualpowersoftau)
+
+## Common Errors for Development
+
+1. Output not defined:
+   ```
+    RUNS  tests/utf8Encoder.test.ts
+   will/zkp/node_modules/circom_tester/common/tester.js:264
+                     throw new Error("Output variable not defined: " + prefix);
+                           ^
+
+   Error: Output variable not defined: main.length[0]
+   ```
+
+   Reason: forget to add `await` before `circuit.expectPass()` / `circuit.expectFail()`
+   ```
+   // incorrect
+   circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+   
+   // correct
+   await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+   ```

@@ -1,68 +1,118 @@
 import { WitnessTester } from "./utils";
-import { encodeUTF8 } from "./utils/utf8Encoder";
+import { utf8ByteLength, encodeUTF8 } from "./utils/utf8Encoder";
+
+const testCases1Byte = [
+  { codepoint: 65 },  // A
+  { codepoint: 90 },  // Z
+  { codepoint: 48 },  // 0
+  { codepoint: 57 },  // 9
+  { codepoint: 32 },  // space
+  { codepoint: 33 },  // !
+  { codepoint: 0 },   // Null character
+  { codepoint: 127 }, // DEL character
+];
+const testCases2Byte = [
+  { codepoint: 241 },   // Spanish ñ
+  { codepoint: 252 },   // German ü
+  { codepoint: 233 },   // French é
+  { codepoint: 945 },   // Greek alpha α
+  { codepoint: 946 },   // Greek beta β
+  { codepoint: 1078 },  // Cyrillic zh ж
+  { codepoint: 128 },   // First 2-byte character
+  { codepoint: 2047 },  // Last 2-byte character
+];
+const testCases3Byte = [
+  { codepoint: 20013 }, // 中
+  { codepoint: 25991 }, // 文
+  { codepoint: 20320 }, // 你
+  { codepoint: 22909 }, // 好
+  { codepoint: 12354 }, // あ
+  { codepoint: 12363 }, // か
+  { codepoint: 54620 }, // 한
+  { codepoint: 8364 },  // €
+  { codepoint: 2048 },  // First 3-byte character
+  { codepoint: 65535 }, // Last 3-byte character
+];
+const testCases4Byte = [
+  { codepoint: 128640 },  // 🚀
+  { codepoint: 128512 },  // 😀
+  { codepoint: 127757 },  // 🌍
+  { codepoint: 128187 },  // 💻
+  { codepoint: 127881 },  // 🎉
+  { codepoint: 65536 },   // First 4-byte character
+  { codepoint: 1114111 }, // Last valid Unicode character
+];
+
+describe("Utf8ByteLength Circuit", function (): void {
+  let circuit: WitnessTester<["codepoint"], ["length"]>;
+
+  beforeAll(async function (): Promise<void> {
+    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", {
+      templateName: "Utf8ByteLength",
+    });
+    console.info("Utf8ByteLength circuit constraints:", await circuit.getConstraintCount());
+  });
+
+  describe("Byte Length Calculation for UTF8 Encoding", function (): void {
+    it("should correctly calculate byte length of 1", async () => {
+      for (const testCase of testCases1Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+      };
+    });
+
+    it("should correctly calculate byte length of 2", async () => {
+      for (const testCase of testCases2Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+      };
+    });
+
+    it("should correctly calculate byte length of 3", async () => {
+      for (const testCase of testCases3Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+      };
+    });
+
+    it("should correctly calculate byte length of 4", async () => {
+      for (const testCase of testCases4Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+      };
+    });
+  });
+});
 
 describe("Utf8Encoder Circuit", function (): void {
   let circuit: WitnessTester<["codepoint"], ["bytes", "validBytes"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom");
+    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", {
+      templateName: "Utf8Encoder",
+    });
     console.info("Utf8Encoder circuit constraints:", await circuit.getConstraintCount());
   });
 
   describe("Individual Character Encoding", function (): void {
+    it("should correctly encode character of byte length 1", async () => {
+      for (const testCase of testCases1Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, encodeUTF8(testCase.codepoint));
+      };
+    });
 
-    const testCases = [
-      { char: 'A', codepoint: 65, description: "ASCII letter A" },
-      { char: 'Z', codepoint: 90, description: "ASCII letter Z" },
-      { char: '0', codepoint: 48, description: "ASCII digit 0" },
-      { char: '9', codepoint: 57, description: "ASCII digit 9" },
-      { char: ' ', codepoint: 32, description: "ASCII space" },
-      { char: '!', codepoint: 33, description: "ASCII exclamation" },
-      { char: '\x00', codepoint: 0, description: "Null character" },
-      { char: '\x7F', codepoint: 127, description: "DEL character (last 1-byte)" },
+    it("should correctly encode character of byte length 2", async () => {
+      for (const testCase of testCases2Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, encodeUTF8(testCase.codepoint));
+      };
+    });
 
-      { char: 'ñ', codepoint: 241, description: "Spanish ñ" },
-      { char: 'ü', codepoint: 252, description: "German ü" },
-      { char: 'é', codepoint: 233, description: "French é" },
-      { char: 'α', codepoint: 945, description: "Greek alpha" },
-      { char: 'β', codepoint: 946, description: "Greek beta" },
-      { char: 'ж', codepoint: 1078, description: "Cyrillic zh" },
-      { char: '\u0080', codepoint: 128, description: "First 2-byte character" },
-      { char: '\u07FF', codepoint: 2047, description: "Last 2-byte character" },
+    it("should correctly encode character of byte length 3", async () => {
+      for (const testCase of testCases3Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, encodeUTF8(testCase.codepoint));
+      };
+    });
 
-      { char: '中', codepoint: 20013, description: "Chinese character (center)" },
-      { char: '文', codepoint: 25991, description: "Chinese character (text)" },
-      { char: '你', codepoint: 20320, description: "Chinese character (you)" },
-      { char: '好', codepoint: 22909, description: "Chinese character (good)" },
-      { char: 'あ', codepoint: 12354, description: "Japanese hiragana A" },
-      { char: 'か', codepoint: 12363, description: "Japanese hiragana KA" },
-      { char: '한', codepoint: 54620, description: "Korean hangul HAN" },
-      { char: '€', codepoint: 8364, description: "Euro symbol" },
-      { char: '\u0800', codepoint: 2048, description: "First 3-byte character" },
-      { char: '\uFFFF', codepoint: 65535, description: "Last 3-byte character" },
-
-      { char: '🚀', codepoint: 128640, description: "Rocket emoji" },
-      { char: '😀', codepoint: 128512, description: "Grinning face emoji" },
-      { char: '🌍', codepoint: 127757, description: "Earth emoji" },
-      { char: '💻', codepoint: 128187, description: "Laptop emoji" },
-      { char: '🎉', codepoint: 127881, description: "Party emoji" },
-      { char: '\u{10000}', codepoint: 65536, description: "First 4-byte character" },
-      { char: '\u{10FFFF}', codepoint: 1114111, description: "Last valid Unicode character" },
-
-      { codepoint: 0, description: "Minimum codepoint" },
-      { codepoint: 127, description: "Maximum 1-byte" },
-      { codepoint: 128, description: "Minimum 2-byte" },
-      { codepoint: 2047, description: "Maximum 2-byte" },
-      { codepoint: 2048, description: "Minimum 3-byte" },
-      { codepoint: 65535, description: "Maximum 3-byte" },
-      { codepoint: 65536, description: "Minimum 4-byte" },
-      { codepoint: 1114111, description: "Maximum valid Unicode" }
-    ];
-
-    testCases.forEach((testCase) => {
-      it(`should correctly encode ${testCase.description} (U+${testCase.codepoint.toString(16).toUpperCase()})`, async () => {
-        circuit.expectPass({ codepoint: testCase.codepoint }, encodeUTF8(testCase.codepoint));
-      });
+    it("should correctly encode character of byte length 4", async () => {
+      for (const testCase of testCases4Byte) {
+        await circuit.expectPass({ codepoint: testCase.codepoint }, encodeUTF8(testCase.codepoint));
+      };
     });
   });
 });

@@ -2,254 +2,191 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
-include "circomlib/circuits/mux4.circom";
+include "circomlib/circuits/mux2.circom";
 
-template Utf8Encoder(inputLength, outputLength) {
-    signal input bytes[inputLength];
-    signal output utf8Bytes[outputLength];
-    
-    // 簡化實現：假設都是 ASCII 字符 (1 字節 UTF-8)
-    // 完整實現需要處理多字節 UTF-8 字符
-    for (var i = 0; i < inputLength && i < outputLength; i++) {
-        utf8Bytes[i] <== bytes[i];
-    }
-}
-
-
-// UTF-8 字節長度檢測器
+// UTF-8 Encoding：
+// 0x0000-0x007F    -> encode to 1 byte (0xxxxxxx)
+// 0x0080-0x07FF    -> encode to 2 bytes (110xxxxx 10xxxxxx)  
+// 0x0800-0xFFFF    -> encode to 3 bytes (1110xxxx 10xxxxxx 10xxxxxx)
+// 0x10000-0x10FFFF -> encode to 4 bytes (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
 template Utf8ByteLength() {
     signal input codepoint;
-    signal output length[2];  // 用 2 位表示長度 (1-4)
+    signal output length[2];
     
-    // UTF-8 編碼規則：
-    // 0x0000-0x007F: 1 字節 (0xxxxxxx)
-    // 0x0080-0x07FF: 2 字節 (110xxxxx 10xxxxxx)  
-    // 0x0800-0xFFFF: 3 字節 (1110xxxx 10xxxxxx 10xxxxxx)
-    // 0x10000-0x10FFFF: 4 字節 (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+    signal {bool} lt0x0080 <== LessThan(32)([codepoint,128]);
+    signal {bool} lt0x0800 <== LessThan(32)([codepoint,2048]);
+    signal {bool} lt0x10000 <== LessThan(32)([codepoint,65536]);
+    signal {bool} lt0x110000 <== LessThan(32)([codepoint,1114112]);
     
-    component lt128 = LessThan(32);
-    lt128.in[0] <== codepoint;
-    lt128.in[1] <== 128;  // 0x80
+    signal {bool} is1byte <== lt0x0080;
+    signal {bool} is2byte <== (1 - lt0x0080) * lt0x0800;
+    signal {bool} is3byte <== (1 - lt0x0800) * lt0x10000;
+    signal {bool} is4byte <== (1 - lt0x10000) * lt0x110000;
     
-    component lt2048 = LessThan(32);
-    lt2048.in[0] <== codepoint;
-    lt2048.in[1] <== 2048;  // 0x800
+    1 === is1byte + is2byte + is3byte + is4byte;
     
-    component lt65536 = LessThan(32);
-    lt65536.in[0] <== codepoint;
-    lt65536.in[1] <== 65536;  // 0x10000
-    
-    // 計算長度
-    // length = 1 if codepoint < 128
-    // length = 2 if 128 <= codepoint < 2048  
-    // length = 3 if 2048 <= codepoint < 65536
-    // length = 4 if codepoint >= 65536
-    
-    signal is1byte <== lt128.out;
-    signal is2byte <== (1 - lt128.out) * lt2048.out;
-    signal is3byte <== (1 - lt2048.out) * lt65536.out;
-    signal is4byte <== (1 - lt65536.out);
-    
-    // 轉換為 2 位二進制
+    // 1 byte: [0,0]
+    // 2 byte: [0,1]
+    // 3 byte: [1,0]
+    // 4 byte: [1,1]
     length[0] <== is2byte + is4byte;  // LSB
     length[1] <== is3byte + is4byte;  // MSB
 }
 
-// UTF-8 編碼器主模板
 template Utf8Encoder() {
     signal input codepoint;
-    signal output bytes[4];      // 最多 4 個字節
-    signal output validBytes[4]; // 哪些字節是有效的
+    signal output bytes[4];
+    signal output validBytes[4];
     
-    // 獲取字節長度
-    component lengthCalc = Utf8ByteLength();
-    lengthCalc.codepoint <== codepoint;
+    signal {bits21} codepointBits[21] <== Num2Bits(21)(codepoint);  // Unicode requires 21-bit at most
     
-    // 將碼點轉換為位元
-    component codepointBits = Num2Bits(21);  // Unicode 最大需要 21 位
-    codepointBits.in <== codepoint;
+    // 1-byte encoding (0xxxxxxx)
+    signal byte1_1byte <== Bits2Num(8)([
+            codepointBits[0],
+            codepointBits[1],
+            codepointBits[2],
+            codepointBits[3],
+            codepointBits[4],
+            codepointBits[5],
+            codepointBits[6],
+            0
+        ]);
     
-    // 準備不同長度的編碼
-    signal byte1_1byte;  // 1 字節編碼的第一個字節
-    signal byte1_2byte;  // 2 字節編碼的第一個字節
-    signal byte2_2byte;  // 2 字節編碼的第二個字節
-    signal byte1_3byte;  // 3 字節編碼的第一個字節
-    signal byte2_3byte;  // 3 字節編碼的第二個字節
-    signal byte3_3byte;  // 3 字節編碼的第三個字節
-    signal byte1_4byte;  // 4 字節編碼的第一個字節
-    signal byte2_4byte;  // 4 字節編碼的第二個字節
-    signal byte3_4byte;  // 4 字節編碼的第三個字節
-    signal byte4_4byte;  // 4 字節編碼的第四個字節
+    // 2-byte encoding (110xxxxx 10xxxxxx)
+    // 11000000 | (codepoint >> 6)
+    signal byte1_2byte <== Bits2Num(8)([
+            codepointBits[6],
+            codepointBits[7],
+            codepointBits[8],
+            codepointBits[9],
+            codepointBits[10],
+            0,
+            1,
+            1
+        ]);
+
+    // 10000000 | (codepoint & 00111111)
+    signal byte2_2byte <== Bits2Num(8)([
+            codepointBits[0],
+            codepointBits[1],
+            codepointBits[2],
+            codepointBits[3],
+            codepointBits[4],
+            codepointBits[5],
+            0,
+            1
+        ]);
     
-    // 1 字節編碼 (0xxxxxxx)
-    component byte1_1_bits = Bits2Num(8);
-    byte1_1_bits.in[0] <== codepointBits.out[0];
-    byte1_1_bits.in[1] <== codepointBits.out[1];
-    byte1_1_bits.in[2] <== codepointBits.out[2];
-    byte1_1_bits.in[3] <== codepointBits.out[3];
-    byte1_1_bits.in[4] <== codepointBits.out[4];
-    byte1_1_bits.in[5] <== codepointBits.out[5];
-    byte1_1_bits.in[6] <== codepointBits.out[6];
-    byte1_1_bits.in[7] <== 0;
-    byte1_1byte <== byte1_1_bits.out;
+    // 3-byte encoding (1110xxxx 10xxxxxx 10xxxxxx)
+    // 11100000 | (codepoint >> 12)
+    signal byte1_3byte <== Bits2Num(8)([
+            codepointBits[12],
+            codepointBits[13],
+            codepointBits[14],
+            codepointBits[15],
+            0,
+            1,
+            1,
+            1
+        ]);
     
-    // 2 字節編碼 (110xxxxx 10xxxxxx)
-    component byte1_2_bits = Bits2Num(8);
-    byte1_2_bits.in[0] <== codepointBits.out[6];
-    byte1_2_bits.in[1] <== codepointBits.out[7];
-    byte1_2_bits.in[2] <== codepointBits.out[8];
-    byte1_2_bits.in[3] <== codepointBits.out[9];
-    byte1_2_bits.in[4] <== codepointBits.out[10];
-    byte1_2_bits.in[5] <== 0;
-    byte1_2_bits.in[6] <== 1;
-    byte1_2_bits.in[7] <== 1;
-    byte1_2byte <== byte1_2_bits.out;
+    // 10000000 | ((codepoint >> 6) & 00111111)
+    signal byte2_3byte <== Bits2Num(8)([
+            codepointBits[6],
+            codepointBits[7],
+            codepointBits[8],
+            codepointBits[9],
+            codepointBits[10],
+            codepointBits[11],
+            0,
+            1
+        ]);
+
+    // 10000000 | (codepoint & 00111111)
+    signal byte3_3byte <== Bits2Num(8)([
+            codepointBits[0],
+            codepointBits[1],
+            codepointBits[2],
+            codepointBits[3],
+            codepointBits[4],
+            codepointBits[5],
+            0,
+            1
+        ]);
     
-    component byte2_2_bits = Bits2Num(8);
-    byte2_2_bits.in[0] <== codepointBits.out[0];
-    byte2_2_bits.in[1] <== codepointBits.out[1];
-    byte2_2_bits.in[2] <== codepointBits.out[2];
-    byte2_2_bits.in[3] <== codepointBits.out[3];
-    byte2_2_bits.in[4] <== codepointBits.out[4];
-    byte2_2_bits.in[5] <== codepointBits.out[5];
-    byte2_2_bits.in[6] <== 0;
-    byte2_2_bits.in[7] <== 1;
-    byte2_2byte <== byte2_2_bits.out;
+    // 4-byte encoding (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+    // 11110000 | (codepoint >> 18)
+    signal byte1_4byte <== Bits2Num(8)([
+            codepointBits[18],
+            codepointBits[19],
+            codepointBits[20],
+            0,
+            1,
+            1,
+            1,
+            1
+        ]);
+
+    // 10000000 | ((codepoint >> 12) & 00111111)
+    signal byte2_4byte <== Bits2Num(8)([
+            codepointBits[12],
+            codepointBits[13],
+            codepointBits[14],
+            codepointBits[15],
+            codepointBits[16],
+            codepointBits[17],
+            0,
+            1
+        ]);
     
-    // 3 字節編碼 (1110xxxx 10xxxxxx 10xxxxxx)
-    component byte1_3_bits = Bits2Num(8);
-    byte1_3_bits.in[0] <== codepointBits.out[12];
-    byte1_3_bits.in[1] <== codepointBits.out[13];
-    byte1_3_bits.in[2] <== codepointBits.out[14];
-    byte1_3_bits.in[3] <== codepointBits.out[15];
-    byte1_3_bits.in[4] <== 0;
-    byte1_3_bits.in[5] <== 1;
-    byte1_3_bits.in[6] <== 1;
-    byte1_3_bits.in[7] <== 1;
-    byte1_3byte <== byte1_3_bits.out;
+    // 10000000 | ((codepoint >> 6) & 00111111)
+    signal byte3_4byte <== Bits2Num(8)([
+            codepointBits[6],
+            codepointBits[7],
+            codepointBits[8],
+            codepointBits[9],
+            codepointBits[10],
+            codepointBits[11],
+            0,
+            1
+        ]);
+
+    // 10000000 | (codepoint & 00111111)
+    signal byte4_4byte <== Bits2Num(8)([
+            codepointBits[0],
+            codepointBits[1],
+            codepointBits[2],
+            codepointBits[3],
+            codepointBits[4],
+            codepointBits[5],
+            0,
+            1
+        ]);
     
-    component byte2_3_bits = Bits2Num(8);
-    byte2_3_bits.in[0] <== codepointBits.out[6];
-    byte2_3_bits.in[1] <== codepointBits.out[7];
-    byte2_3_bits.in[2] <== codepointBits.out[8];
-    byte2_3_bits.in[3] <== codepointBits.out[9];
-    byte2_3_bits.in[4] <== codepointBits.out[10];
-    byte2_3_bits.in[5] <== codepointBits.out[11];
-    byte2_3_bits.in[6] <== 0;
-    byte2_3_bits.in[7] <== 1;
-    byte2_3byte <== byte2_3_bits.out;
+    signal {bits2} length[2] <== Utf8ByteLength()(codepoint);
+
+    bytes[0] <== Mux2()([byte1_1byte,byte1_2byte,byte1_3byte,byte1_4byte],length);
+    bytes[1] <== Mux2()([0,byte2_2byte,byte2_3byte,byte2_4byte],length);
+    bytes[2] <== Mux2()([0,0,byte3_3byte,byte3_4byte],length);
+    bytes[3] <== Mux2()([0,0,0,byte4_4byte],length);
     
-    component byte3_3_bits = Bits2Num(8);
-    byte3_3_bits.in[0] <== codepointBits.out[0];
-    byte3_3_bits.in[1] <== codepointBits.out[1];
-    byte3_3_bits.in[2] <== codepointBits.out[2];
-    byte3_3_bits.in[3] <== codepointBits.out[3];
-    byte3_3_bits.in[4] <== codepointBits.out[4];
-    byte3_3_bits.in[5] <== codepointBits.out[5];
-    byte3_3_bits.in[6] <== 0;
-    byte3_3_bits.in[7] <== 1;
-    byte3_3byte <== byte3_3_bits.out;
-    
-    // 4 字節編碼 (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
-    component byte1_4_bits = Bits2Num(8);
-    byte1_4_bits.in[0] <== codepointBits.out[18];
-    byte1_4_bits.in[1] <== codepointBits.out[19];
-    byte1_4_bits.in[2] <== codepointBits.out[20];
-    byte1_4_bits.in[3] <== 0;
-    byte1_4_bits.in[4] <== 0;
-    byte1_4_bits.in[5] <== 1;
-    byte1_4_bits.in[6] <== 1;
-    byte1_4_bits.in[7] <== 1;
-    byte1_4byte <== byte1_4_bits.out;
-    
-    component byte2_4_bits = Bits2Num(8);
-    byte2_4_bits.in[0] <== codepointBits.out[12];
-    byte2_4_bits.in[1] <== codepointBits.out[13];
-    byte2_4_bits.in[2] <== codepointBits.out[14];
-    byte2_4_bits.in[3] <== codepointBits.out[15];
-    byte2_4_bits.in[4] <== codepointBits.out[16];
-    byte2_4_bits.in[5] <== codepointBits.out[17];
-    byte2_4_bits.in[6] <== 0;
-    byte2_4_bits.in[7] <== 1;
-    byte2_4byte <== byte2_4_bits.out;
-    
-    component byte3_4_bits = Bits2Num(8);
-    byte3_4_bits.in[0] <== codepointBits.out[6];
-    byte3_4_bits.in[1] <== codepointBits.out[7];
-    byte3_4_bits.in[2] <== codepointBits.out[8];
-    byte3_4_bits.in[3] <== codepointBits.out[9];
-    byte3_4_bits.in[4] <== codepointBits.out[10];
-    byte3_4_bits.in[5] <== codepointBits.out[11];
-    byte3_4_bits.in[6] <== 0;
-    byte3_4_bits.in[7] <== 1;
-    byte3_4byte <== byte3_4_bits.out;
-    
-    component byte4_4_bits = Bits2Num(8);
-    byte4_4_bits.in[0] <== codepointBits.out[0];
-    byte4_4_bits.in[1] <== codepointBits.out[1];
-    byte4_4_bits.in[2] <== codepointBits.out[2];
-    byte4_4_bits.in[3] <== codepointBits.out[3];
-    byte4_4_bits.in[4] <== codepointBits.out[4];
-    byte4_4_bits.in[5] <== codepointBits.out[5];
-    byte4_4_bits.in[6] <== 0;
-    byte4_4_bits.in[7] <== 1;
-    byte4_4byte <== byte4_4_bits.out;
-    
-    // 使用選擇器選擇正確的字節
-    component mux1 = MultiMux4(1);
-    mux1.c[0][0] <== byte1_1byte;
-    mux1.c[0][1] <== byte1_2byte;
-    mux1.c[0][2] <== byte1_3byte;
-    mux1.c[0][3] <== byte1_4byte;
-    mux1.s[0] <== lengthCalc.length[0];
-    mux1.s[1] <== lengthCalc.length[1];
-    bytes[0] <== mux1.out[0];
-    
-    component mux2 = MultiMux4(1);
-    mux2.c[0][0] <== 0;
-    mux2.c[0][1] <== byte2_2byte;
-    mux2.c[0][2] <== byte2_3byte;
-    mux2.c[0][3] <== byte2_4byte;
-    mux2.s[0] <== lengthCalc.length[0];
-    mux2.s[1] <== lengthCalc.length[1];
-    bytes[1] <== mux2.out[0];
-    
-    component mux3 = MultiMux4(1);
-    mux3.c[0][0] <== 0;
-    mux3.c[0][1] <== 0;
-    mux3.c[0][2] <== byte3_3byte;
-    mux3.c[0][3] <== byte3_4byte;
-    mux3.s[0] <== lengthCalc.length[0];
-    mux3.s[1] <== lengthCalc.length[1];
-    bytes[2] <== mux3.out[0];
-    
-    component mux4 = MultiMux4(1);
-    mux4.c[0][0] <== 0;
-    mux4.c[0][1] <== 0;
-    mux4.c[0][2] <== 0;
-    mux4.c[0][3] <== byte4_4byte;
-    mux4.s[0] <== lengthCalc.length[0];
-    mux4.s[1] <== lengthCalc.length[1];
-    bytes[3] <== mux4.out[0];
-    
-    // 設置有效字節標記
     component isLength1 = IsEqual();
-    isLength1.in[0] <== lengthCalc.length[0] + lengthCalc.length[1] * 2;
+    isLength1.in[0] <== length[0] + length[1] * 2;
     isLength1.in[1] <== 0;  // length = 1
     
     component isLength2 = IsEqual();
-    isLength2.in[0] <== lengthCalc.length[0] + lengthCalc.length[1] * 2;
+    isLength2.in[0] <== length[0] + length[1] * 2;
     isLength2.in[1] <== 1;  // length = 2
     
     component isLength3 = IsEqual();
-    isLength3.in[0] <== lengthCalc.length[0] + lengthCalc.length[1] * 2;
+    isLength3.in[0] <== length[0] + length[1] * 2;
     isLength3.in[1] <== 2;  // length = 3
     
     component isLength4 = IsEqual();
-    isLength4.in[0] <== lengthCalc.length[0] + lengthCalc.length[1] * 2;
+    isLength4.in[0] <== length[0] + length[1] * 2;
     isLength4.in[1] <== 3;  // length = 4
     
-    validBytes[0] <== 1;  // 第一個字節總是有效的
+    validBytes[0] <== 1;
     validBytes[1] <== isLength2.out + isLength3.out + isLength4.out;
     validBytes[2] <== isLength3.out + isLength4.out;
     validBytes[3] <== isLength4.out;
@@ -292,9 +229,6 @@ template Utf8StringEncoder(maxChars) {
                    (length > 2 ? byteCounts[2] : 0) +
                    (length > 3 ? byteCounts[3] : 0);
 }
-
-// 主組件 - 單字符編碼器
-component main = Utf8Encoder();
 
 /*
 使用方法：

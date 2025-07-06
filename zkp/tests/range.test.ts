@@ -18,8 +18,7 @@ describe("InRange Circuit", function () {
     });
 
     it("should validate custom range [3, 8]", async function (): Promise<void> {
-      const min = 3,
-        max = 8;
+      const min = 3, max = 8;
       for (let value = 0; value <= 15; value++) {
         await circuit.expectPass(
           { in: value, min, max },
