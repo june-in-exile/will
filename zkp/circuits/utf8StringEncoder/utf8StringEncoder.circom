@@ -32,7 +32,6 @@ template Utf8StringEncoder(length) {
             byteIndex + 3
             byteIndex + 4
 
-
             bytes[byteIndex] <== utf32bytes[i][j] * validBytes[i][j];
             byteIndex++;
         }

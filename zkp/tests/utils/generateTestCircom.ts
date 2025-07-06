@@ -36,6 +36,9 @@ export async function generateCircomTest(
         // Read the original circuit file
         const circuitContent = await fs.promises.readFile(circuitPath, "utf8");
 
+        // Write back the modified content
+        await fs.promises.writeFile(circuitPath, circuitContent, "utf8");
+
         // Parse template definition
         const templateInfo = parseTemplate(circuitContent, templateName);
         if (!templateInfo) {

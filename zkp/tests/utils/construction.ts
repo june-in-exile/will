@@ -1,5 +1,6 @@
 import type { CircomTester, CompilationOptions } from "../types";
-import { generateCircomTest } from "./generateCircomTest";
+import { generateCircomTest } from "./generateTestCircom";
+import { commentComponentMainInFile, uncommentComponentMainInFile } from "./commentMain";
 import { getCircomlibPath } from "./getCircomlibPath";
 const circom_tester = require("circom_tester");
 import path from "path";
@@ -18,14 +19,17 @@ export async function construct_wasm(
   options?: CompilationOptions,
 ): Promise<CircomTester> {
 
-  const testCircuitPath = await generateCircomTest(path.join(__dirname, "..", "..", "circuits", circuitPath), templateName);
+  const absoluteCircuitPath = path.join(__dirname, "..", "..", "circuits", circuitPath);
+  await commentComponentMainInFile(absoluteCircuitPath);
+  
+  const testCircuitPath = await generateCircomTest(absoluteCircuitPath, templateName);
 
-  console.log(testCircuitPath);
+  const circomlibPath = getCircomlibPath();
 
-  return await circom_tester.wasm(
+  const wasm_tester = await circom_tester.wasm(
     testCircuitPath,
     {
-      include: getCircomlibPath(),
+      include: circomlibPath,
       templateName: `Test${templateName}`,
       ...(options?.templateParams && {
         templateParams: options.templateParams,
@@ -45,4 +49,8 @@ export async function construct_wasm(
       no_init: options?.no_init ?? false,
     },
   );
+
+  await uncommentComponentMainInFile(absoluteCircuitPath);
+
+  return wasm_tester;
 }
