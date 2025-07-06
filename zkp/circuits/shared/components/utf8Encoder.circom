@@ -71,9 +71,6 @@ template Utf8ByteLength() {
  */
 template Utf8Encoder() {
     signal input codepoint;
-    // TODO: handle with bus
-    // signal output bytes[4];
-    // signal output {bit} validBytes[4];
     output Utf8() utf8;
     
     signal codepointBits[21] <== Num2Bits(21)(codepoint);  // Unicode requires 21-bit at most

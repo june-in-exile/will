@@ -9,6 +9,7 @@ interface Signal {
     tag: string | null;
     arraySize: string | null;
     isArray: boolean;
+    busType?: string; // For bus-typed signals like "Utf8()"
 }
 
 /**
@@ -35,9 +36,6 @@ export async function generateCircomTest(
     try {
         // Read the original circuit file
         const circuitContent = await fs.promises.readFile(circuitPath, "utf8");
-
-        // Write back the modified content
-        await fs.promises.writeFile(circuitPath, circuitContent, "utf8");
 
         // Parse template definition
         const templateInfo = parseTemplate(circuitContent, templateName);
@@ -72,7 +70,6 @@ export async function generateCircomTest(
 
 /**
  * Generate test directory path based on circuit path
- * Converts "./shared/components/utf8Encoder.circom" to "../../test/utf8Encoder/"
  * @param circuitPath - Path to the circuit file
  * @returns Generated test directory path
  */
@@ -163,17 +160,26 @@ function extractTemplateBody(content: string, startIndex: number): string | null
  * @returns Array of parsed signals
  */
 export function parseSignals(templateBody: string, signalType: 'input' | 'output'): Signal[] {
-    // Regular expression to match signal declarations
-    // Supports both tagged and untagged signals, as well as array declarations
-    const signalRegex = new RegExp(
+    const signals: Signal[] = [];
+
+    // Regular expression to match traditional signal declarations
+    // signal input/output {tag}? name[array]?
+    const traditionalSignalRegex = new RegExp(
         `signal\\s+${signalType}\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*\\[([^\\]]+)\\])?`,
         'g'
     );
 
-    const signals: Signal[] = [];
+    // Regular expression to match bus-typed signal declarations  
+    // output BusType() name[array]?
+    const busSignalRegex = new RegExp(
+        `${signalType}\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*\\[([^\\]]+)\\])?`,
+        'g'
+    );
+
     let match: RegExpExecArray | null;
 
-    while ((match = signalRegex.exec(templateBody)) !== null) {
+    // Parse traditional signals
+    while ((match = traditionalSignalRegex.exec(templateBody)) !== null) {
         const tag = match[1] || null;
         const name = match[2];
         const arraySize = match[3] || null;
@@ -183,6 +189,21 @@ export function parseSignals(templateBody: string, signalType: 'input' | 'output
             tag,
             arraySize,
             isArray: arraySize !== null
+        });
+    }
+
+    // Parse bus-typed signals
+    while ((match = busSignalRegex.exec(templateBody)) !== null) {
+        const busType = match[1];
+        const name = match[2];
+        const arraySize = match[3] || null;
+
+        signals.push({
+            name,
+            tag: null,
+            arraySize,
+            isArray: arraySize !== null,
+            busType: `${busType}()`
         });
     }
 
@@ -237,7 +258,13 @@ export function generateTestTemplate(
 
     // Generate input signal declarations
     for (const input of inputs) {
-        if (input.isArray) {
+        if (input.busType) {
+            if (input.isArray) {
+                content += `    input ${input.busType} ${input.name}[${input.arraySize}];\n`;
+            } else {
+                content += `    input ${input.busType} ${input.name};\n`;
+            }
+        } else if (input.isArray) {
             content += `    signal input ${input.name}[${input.arraySize}];\n`;
         } else {
             content += `    signal input ${input.name};\n`;
@@ -248,7 +275,7 @@ export function generateTestTemplate(
     const hasTaggedInputs = inputs.some(input => input.tag);
     if (hasTaggedInputs) {
         for (const input of inputs) {
-            if (input.tag) {
+            if (input.tag && !input.busType) { // Bus-typed signals don't need tag conversion
                 if (input.isArray) {
                     content += `    signal {${input.tag}} _${input.name}[${input.arraySize}];\n`;
                     content += `    for (var i = 0; i < ${input.arraySize}; i++) {\n`;
@@ -263,7 +290,13 @@ export function generateTestTemplate(
 
     // Generate output signal declarations
     for (const output of outputs) {
-        if (output.tag) {
+        if (output.busType) {
+            if (output.isArray) {
+                content += `    output ${output.busType} ${output.name}[${output.arraySize}];\n`;
+            } else {
+                content += `    output ${output.busType} ${output.name};\n`;
+            }
+        } else if (output.tag) {
             if (output.isArray) {
                 content += `    signal output {${output.tag}} ${output.name}[${output.arraySize}];\n`;
             } else {
@@ -286,14 +319,14 @@ export function generateTestTemplate(
     if (hasTaggedInputs) {
         // Use tagged intermediate signals
         const inputArgs = inputs.map(input => {
-            if (input.tag) {
+            if (input.tag && !input.busType) {
                 return `_${input.name}`;
             } else {
                 return input.name;
             }
         }).join(', ');
 
-        if (outputs.length === 1 && !outputs[0].isArray) {
+        if (outputs.length === 1) {
             content += `    ${outputs[0].name} <== ${templateName}${templateParams}(${inputArgs});\n`;
         } else {
             const outputNames = outputs.map(output => output.name).join(', ');
@@ -303,16 +336,14 @@ export function generateTestTemplate(
         // Use input signals directly
         const inputArgs = inputs.map(input => input.name).join(', ');
 
-        if (outputs.length === 1 && !outputs[0].isArray) {
+        if (outputs.length === 1) {
             content += `    ${outputs[0].name} <== ${templateName}${templateParams}(${inputArgs});\n`;
         } else {
             const outputNames = outputs.map(output => output.name).join(', ');
             content += `    (${outputNames}) <== ${templateName}${templateParams}(${inputArgs});\n`;
         }
     }
-
-    content += `}\n`;
-
+    content += `}`;
     return content;
 }
 
