@@ -1,5 +1,5 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = utf8StringEncoder
+CIRCUIT = utf8Encoder
 CIRCUIT ?= multiplier2
 
 # Directory structure

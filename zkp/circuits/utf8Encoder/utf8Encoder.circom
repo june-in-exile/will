@@ -217,3 +217,5 @@ template Utf8StringEncoder(length) {
         bytes[outPos] <== tempSum[outPos][length-1];
     }
 }
+
+component main = Utf8StringEncoder(3);
