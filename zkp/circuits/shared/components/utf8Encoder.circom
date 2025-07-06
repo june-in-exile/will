@@ -28,7 +28,7 @@ include "circomlib/circuits/mux2.circom";
  * - '🚀' (128640):  length = [1,1] (4 bytes)
  */
 template Utf8ByteLength() {
-    signal input {number} codepoint;
+    signal input codepoint;
     signal output {bit} length[2];
     
     signal lt0x0080 <== LessThan(32)([codepoint,128]);
@@ -65,9 +65,9 @@ template Utf8ByteLength() {
  * - '🚀' (U+1F680 = 128640): bytes=[240,159,154,128], validBytes=[1,1,1,1]
  */
 template Utf8Encoder() {
-    signal input {number} codepoint;
+    signal input codepoint;
     // TODO: handle with bus
-    signal output {byte} bytes[4];
+    signal output bytes[4];
     signal output {bit} validBytes[4];
     
     signal codepointBits[21] <== Num2Bits(21)(codepoint);  // Unicode requires 21-bit at most
@@ -127,4 +127,86 @@ template Utf8Encoder() {
     validBytes[1] <== OR()(length[0],length[1]);
     validBytes[2] <== IsEqual()([length[1],1]);
     validBytes[3] <== AND()(length[0],length[1]);
+}
+
+/**
+ * @param length - Fixed number of characters to encode
+ * 
+ * Input:
+ * - codepoints[length] - Array of Unicode codepoints to encode
+ * 
+ * Output: 
+ * - bytes[length * 4] - Packed UTF-8 byte sequence (max 4 bytes per char)
+ * - validByteCount - Total number of valid bytes in the output
+ * 
+ * Example:
+ * Input:  codepoints = [65, 20013, 128640]  // "A中🚀"
+ * Output: bytes = [65, 228, 184, 173, 240, 159, 154, 128, 0, 0, 0, 0]
+ *         validByteCount = 8
+ */
+template Utf8StringEncoder(length) {
+    signal input codepoints[length];
+    signal output bytes[length * 4];
+    signal output validByteCount;
+    
+    // ========== CHARACTER ENCODING ==========
+    signal utf32Bytes[length][4], validBytes[length][4];
+    for (var i = 0; i < length; i++) {
+        (utf32Bytes[i], validBytes[i]) <== Utf8Encoder()(codepoints[i]);
+    }
+
+    // ========== VALID BYTE CALCULATION ==========
+    signal cumulativeByteCounts[length];
+    cumulativeByteCounts[0] <== validBytes[0][0] + validBytes[0][1] + validBytes[0][2] + validBytes[0][3];
+    for (var i = 1; i < length; i++) {
+        cumulativeByteCounts[i] <== cumulativeByteCounts[i-1] + validBytes[i][0] + validBytes[i][1] + validBytes[i][2] + validBytes[i][3];
+    }
+    validByteCount <== cumulativeByteCounts[length-1];
+
+    // ========== BYTE PACKING ==========
+    // e.g., [65, 0, 0, 0, 228, 184, 173, 0, 240, 159, 154, 128] -> [65, 228, 184, 173, 240, 159, 154, 128, 0, 0, 0, 0]
+    signal firstByteOfChar[length]; // Decide the starting byte offset for each character
+    firstByteOfChar[0] <== 0;
+    for (var i = 1; i < length; i++) {
+        firstByteOfChar[i] <== cumulativeByteCounts[i-1];
+    }
+    
+    // For each output byte position, determine which character byte it should contain
+    signal posMatched[length * 4][length][4];
+    signal selected[length * 4][length][4];
+    signal selectedBytes[length * 4][length][4];
+    signal characterContributions[length * 4][length];
+    signal tempSum[length * 4][length];
+    
+    for (var outPos = 0; outPos < length * 4; outPos++) {
+        for (var charIdx = 0; charIdx < length; charIdx++) {
+            for (var byteIdx = 0; byteIdx < 4; byteIdx++) {
+                // Check if this output position matches this character's byte position
+                posMatched[outPos][charIdx][byteIdx] <== IsEqual()([firstByteOfChar[charIdx] + byteIdx,outPos]);
+                
+                // Select the byte if position matches and byte is valid
+                selected[outPos][charIdx][byteIdx] <== posMatched[outPos][charIdx][byteIdx] * validBytes[charIdx][byteIdx];
+
+                // Put the byte into the output position only if it is selected
+                selectedBytes[outPos][charIdx][byteIdx] <== selected[outPos][charIdx][byteIdx] * utf32Bytes[charIdx][byteIdx];
+            }
+            
+            // Sum all byte contributions from this character for this output position
+            characterContributions[outPos][charIdx] <== 
+                selectedBytes[outPos][charIdx][0] + 
+                selectedBytes[outPos][charIdx][1] + 
+                selectedBytes[outPos][charIdx][2] + 
+                selectedBytes[outPos][charIdx][3];
+        }
+        
+        // Sum contributions from all characters for this output position
+        tempSum[outPos][0] <== characterContributions[outPos][0];
+        
+        for (var charIdx = 1; charIdx < length; charIdx++) {
+            tempSum[outPos][charIdx] <== tempSum[outPos][charIdx-1] + characterContributions[outPos][charIdx];
+        }
+        
+        // Final byte value for this position
+        bytes[outPos] <== tempSum[outPos][length-1];
+    }
 }

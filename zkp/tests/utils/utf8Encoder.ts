@@ -54,3 +54,25 @@ export function encodeUTF8(codepoint: number): { bytes: [number, number, number,
         };
     }
 }
+
+export function encodeUTF8String(codepoints: number[]): { bytes: number[], validByteCount: number } {
+    let bytes: number[] = [];
+    let totalBytes = 0;
+
+    for (const codepoint of codepoints) {
+        const encoded = encodeUTF8(codepoint);
+        for (let i = 0; i < 4; i++) {
+            if (encoded.validBytes[i] === 1) {
+                bytes.push(encoded.bytes[i]);
+                totalBytes++;
+            }
+        }
+    }
+
+    // Pad to expected length (codepoints.length * 4)
+    while (bytes.length < codepoints.length * 4) {
+        bytes.push(0);
+    }
+
+    return { bytes, validByteCount: totalBytes };
+}
