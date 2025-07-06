@@ -74,21 +74,27 @@ export type CompilationOptions = {
  * @see https://github.com/iden3/circom_tester/blob/main/wasm/tester.js
  */
 export type CircomTester = {
-  checkConstraints: (witness: WitnessType) => Promise<void>;
-  release: () => Promise<void>;
-  assertOut: (
-    actualOut: WitnessType,
-    expectedOut: CircuitSignals,
-  ) => Promise<void>;
   calculateWitness: (
     input: CircuitSignals,
     sanityCheck: boolean,
   ) => Promise<WitnessType>;
+
   loadConstraints: () => Promise<void>;
   constraints: unknown[] | undefined;
+
+  checkConstraints: (witness: WitnessType) => Promise<void>;
+  
+  assertOut: (
+    actualOut: WitnessType,
+    expectedOut: CircuitSignals,
+  ) => Promise<void>;
+
   loadSymbols: () => Promise<void>;
   symbols: SymbolsType | undefined;
+  
   getDecoratedOutput: (witness: WitnessType) => Promise<string>;
   dir: string;
   baseName: string;
+
+  release: () => Promise<void>;
 };

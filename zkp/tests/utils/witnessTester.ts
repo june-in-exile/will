@@ -1,4 +1,4 @@
-// Source: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
+// Original Code: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
 import { construct_wasm } from ".";
 import { AssertionError } from "node:assert";
@@ -35,32 +35,6 @@ export class WitnessTester<
   ): Promise<WitnessTester> {
     const circomTester = await construct_wasm(circuitPath, templateName, options);
     return new WitnessTester(circomTester);
-  }
-
-  /** Assert that constraints are valid for a given witness. */
-  async expectConstraintPass(witness: WitnessType): Promise<void> {
-    return this.circomTester.checkConstraints(witness);
-  }
-
-  /**
-   * Assert that constraints are NOT valid for a given witness.
-   * This is useful to test if a fake witness (a witness from a
-   * dishonest prover) can still be valid, which would indicate
-   * that there are soundness errors in the circuit.
-   */
-  async expectConstraintFail(witness: WitnessType): Promise<void> {
-    await this.expectConstraintPass(witness).then(
-      () => {
-        throw new AssertionError({
-          message: "Expected constraints to not match.",
-        });
-      },
-      (err) => {
-        if (err.message !== "Constraint doesn't match") {
-          throw new AssertionError({ message: err.message });
-        }
-      },
-    );
   }
 
   /** Compute witness given the input signals. */
@@ -105,6 +79,44 @@ export class WitnessTester<
     }
   }
 
+  /** Assert that constraints are valid for a given witness. */
+  async expectConstraintPass(witness: WitnessType): Promise<void> {
+    return this.circomTester.checkConstraints(witness);
+  }
+
+  /**
+   * Assert that constraints are NOT valid for a given witness.
+   * This is useful to test if a fake witness (a witness from a
+   * dishonest prover) can still be valid, which would indicate
+   * that there are soundness errors in the circuit.
+   */
+  async expectConstraintFail(witness: WitnessType): Promise<void> {
+    await this.circomTester.checkConstraints(witness).then(
+      () => {
+        throw new AssertionError({
+          message: "Expected constraints to not match.",
+        });
+      },
+      (err) => {
+        if (err.message !== "Constraint doesn't match") {
+          throw new AssertionError({ message: err.message });
+        }
+      },
+    );
+  }
+
+  /** Expect an input to pass assertions and match the output.
+   *
+   * If `output` is omitted, it will only check for constraints to pass.
+   */
+  async expectPass(input: CircuitSignals<IN>, output?: CircuitSignals<OUT>) {
+    const witness = await this.calculateWitness(input);
+    await this.expectConstraintPass(witness);
+    if (output) {
+      await this.assertOut(witness, output);
+    }
+  }
+
   /** Expect a witness computation to fail in the circuit.
    *
    * See [here](https://github.com/iden3/circom/blob/master/code_producers/src/wasm_elements/common/witness_calculator.js#L21)
@@ -138,18 +150,6 @@ export class WitnessTester<
     );
   }
 
-  /** Expect an input to pass assertions and match the output.
-   *
-   * If `output` is omitted, it will only check for constraints to pass.
-   */
-  async expectPass(input: CircuitSignals<IN>, output?: CircuitSignals<OUT>) {
-    const witness = await this.calculateWitness(input);
-    await this.expectConstraintPass(witness);
-    if (output) {
-      await this.assertOut(witness, output);
-    }
-  }
-
   /**
    * Computes the witness.
    * This is a shorthand for calculating the witness and calling {@link readWitnessSignals} on the result.
@@ -164,7 +164,7 @@ export class WitnessTester<
 
     return await this.readWitnessSignals(witness, signals);
   }
-
+  
   /**
    * Override witness value to try and fake a proof. If the circuit has soundness problems (i.e.
    * some signals are not constrained correctly), then you may be able to create a fake witness by
@@ -322,6 +322,22 @@ export class WitnessTester<
   }
 
   /**
+   * @deprecated this is buggy right now
+   * @param witness witness
+   */
+  async getDecoratedOutput(witness: WitnessType): Promise<string> {
+    return this.circomTester.getDecoratedOutput(witness);
+  }
+
+  /**
+   * Cleanup directory, should probably be called upon test completion (?)
+   * @deprecated this is buggy right now
+   */
+  async release(): Promise<void> {
+    this.circomTester.release();
+  }
+
+  /**
    * Assert the output of a given witness.
    * @param actualOut expected witness
    * @param expectedOut computed output signals
@@ -389,21 +405,5 @@ export class WitnessTester<
       };
       symbolsToFind.delete(symbolName); // Remove from list
     }
-  }
-
-  /**
-   * @deprecated this is buggy right now
-   * @param witness witness
-   */
-  private getDecoratedOutput(witness: WitnessType): Promise<string> {
-    return this.circomTester.getDecoratedOutput(witness);
-  }
-
-  /**
-   * Cleanup directory, should probably be called upon test completion (?)
-   * @deprecated this is buggy right now
-   */
-  private release(): Promise<void> {
-    return this.circomTester.release();
   }
 }
