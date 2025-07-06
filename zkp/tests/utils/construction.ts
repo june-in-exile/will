@@ -1,4 +1,6 @@
 import type { CircomTester, CompilationOptions } from "../types";
+import { generateCircomTest } from "./generateCircomTest";
+import { getCircomlibPath } from "./getCircomlibPath";
 const circom_tester = require("circom_tester");
 import path from "path";
 
@@ -12,27 +14,19 @@ import path from "path";
  */
 export async function construct_wasm(
   circuitPath: string,
+  templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
-  let circomlibPaths: string[];
 
-  try {
-    const circomlibPath = path.dirname(
-      require.resolve("circomlib/package.json"),
-    );
-    circomlibPaths = [
-      path.dirname(circomlibPath),
-      path.join(circomlibPath, "circuits"),
-    ];
-  } catch (error) {
-    throw new Error("circomlib not found. Please run: pnpm add circomlib -w");
-  }
+  const testCircuitPath = await generateCircomTest(path.join(__dirname, "..", "..", "circuits", circuitPath), templateName);
+
+  console.log(testCircuitPath);
 
   return await circom_tester.wasm(
-    path.join(__dirname, "..", "..", "circuits", circuitPath),
+    testCircuitPath,
     {
-      include: circomlibPaths,
-      ...(options?.templateName && { templateName: options.templateName }),
+      include: getCircomlibPath(),
+      templateName: `Test${templateName}`,
       ...(options?.templateParams && {
         templateParams: options.templateParams,
       }),

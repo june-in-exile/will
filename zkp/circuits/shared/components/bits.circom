@@ -4,8 +4,8 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/sha256/shift.circom";
 
 template Mask(bits, mask) {
-    signal input in;
-    signal output out;
+    signal input {number} in;
+    signal output {number} out;
     
     signal in_bits[bits] <== Num2Bits(bits)(in);
     signal mask_bits[bits] <== Num2Bits(bits)(mask);
@@ -19,8 +19,8 @@ template Mask(bits, mask) {
 }
 
 template ShiftRight(bits, offset) {
-    signal input in;
-    signal output out;
+    signal input {number} in;
+    signal output {number} out;
 
     signal in_bits[bits] <== Num2Bits(bits)(in);
     signal out_bits[bits] <== ShR(bits,offset)(in_bits);

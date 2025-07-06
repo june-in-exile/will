@@ -30,9 +30,10 @@ export class WitnessTester<
 
   static async construct(
     circuitPath: string,
+    templateName: string,
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
-    const circomTester = await construct_wasm(circuitPath, options);
+    const circomTester = await construct_wasm(circuitPath, templateName, options);
     return new WitnessTester(circomTester);
   }
 

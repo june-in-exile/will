@@ -5,8 +5,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom", {
-      templateName: "AsciiToBase64",
+      "./shared/components/base64.circom", "AsciiToBase64", {
     });
     console.info("AsciiToBase64 circuit constraints:", await circuit.getConstraintCount());
   });
@@ -69,8 +68,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom", {
-      templateName: "Base64GroupDecoder",
+      "./shared/components/base64.circom", "Base64GroupDecoder", {
     });
     console.info("Base64GroupDecoder circuit constraints:", await circuit.getConstraintCount());
   });
@@ -181,8 +179,7 @@ describe("Base64Decoder Circuit", function () {
 
   describe("4-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", {
-        templateName: "Base64Decoder",
+      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
         templateParams: ["4"],
       });
       console.info("4-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
@@ -247,8 +244,7 @@ describe("Base64Decoder Circuit", function () {
 
   describe("8-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", {
-        templateName: "Base64Decoder",
+      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
         templateParams: ["8"],
       });
       console.info("8-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
@@ -275,8 +271,7 @@ describe("Base64Decoder Circuit", function () {
 
   describe("360-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", {
-        templateName: "Base64Decoder",
+      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
         templateParams: ["360"],
       });
       console.info("360-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());

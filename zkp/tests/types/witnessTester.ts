@@ -32,7 +32,6 @@ export type SymbolsType = {
 
 /** A configuration object for circuit compilation. */
 export type CompilationOptions = {
-  templateName?: string;
   /** Parameters to pass to the template */
   templateParams?: string[];
   /** List of public signals for the template */

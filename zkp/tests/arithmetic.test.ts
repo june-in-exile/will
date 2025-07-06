@@ -5,8 +5,7 @@ describe("Divide Circuit", function () {
 
   describe("8-bit Divided by 6-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", {
-        templateName: "Divide",
+      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", "Divide", {
         templateParams: ["8", "6"],
       });
       console.info("8-by-6-bit divide circuit constraints:", await circuit.getConstraintCount());
@@ -94,8 +93,7 @@ describe("Divide Circuit", function () {
 
   describe("12-bit Divided by 8-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", {
-        templateName: "Divide",
+      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", "Divide", {
         templateParams: ["12", "8"],
       });
       console.info("12-by-8-bit divide circuit constraints:", await circuit.getConstraintCount());
@@ -195,8 +193,7 @@ describe("MultiplyArray Circuit", function () {
   describe("1-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", {
-        templateName: "MultiplyArray",
+        "./shared/components/arithmetic.circom", "MultiplyArray", {
         templateParams: ["1"],
       });
       console.info("1-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
@@ -268,8 +265,7 @@ describe("MultiplyArray Circuit", function () {
   describe("3-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", {
-        templateName: "MultiplyArray",
+        "./shared/components/arithmetic.circom", "MultiplyArray", {
         templateParams: ["3"],
       });
       console.info("3-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
@@ -325,8 +321,7 @@ describe("MultiplyArray Circuit", function () {
   describe("5-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", {
-        templateName: "MultiplyArray",
+        "./shared/components/arithmetic.circom", "MultiplyArray", {
         templateParams: ["5"],
       });
       console.info("5-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
@@ -368,8 +363,7 @@ describe("MultiplyArray Circuit", function () {
   describe("10-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", {
-        templateName: "MultiplyArray",
+        "./shared/components/arithmetic.circom", "MultiplyArray", {
         templateParams: ["10"],
       });
       console.info("10-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());

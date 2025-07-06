@@ -6,8 +6,7 @@ describe("Mask Circuit", function () {
   describe("8-bit 0x0F Mask Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "Mask",
+        "./shared/components/bits.circom", "Mask", {
         templateParams: ["8", "15"],
       });
       console.info("8-bit 0x0F mask circuit constraints:", await circuit.getConstraintCount());
@@ -89,8 +88,7 @@ describe("Mask Circuit", function () {
   describe("16-bit 0xFF Mask Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "Mask",
+        "./shared/components/bits.circom", "Mask", {
         templateParams: ["16", "255"],
       });
       console.info("16-bit 0xFF mask circuit constraints:", await circuit.getConstraintCount());
@@ -141,8 +139,7 @@ describe("Mask Circuit", function () {
   describe("32-bit 0xFFFF Mask Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "Mask",
+        "./shared/components/bits.circom", "Mask", {
         templateParams: ["32", "65535"],
       });
       console.info("32-bit 0xFFFF mask circuit constraints:", await circuit.getConstraintCount());
@@ -197,8 +194,7 @@ describe("ShiftRight Circuit", function () {
   describe("8-bit 1-offset Right Shift Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "ShiftRight",
+        "./shared/components/bits.circom", "ShiftRight", {
         templateParams: ["8", "1"],
       });
       console.info("8-bit 1-offset shift circuit constraints:", await circuit.getConstraintCount());
@@ -245,8 +241,7 @@ describe("ShiftRight Circuit", function () {
   describe("8-bit 2-offset Right Shift Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "ShiftRight",
+        "./shared/components/bits.circom", "ShiftRight", {
         templateParams: ["8", "2"],
       });
       console.info("8-bit 2-offset shift circuit constraints:", await circuit.getConstraintCount());
@@ -289,8 +284,7 @@ describe("ShiftRight Circuit", function () {
   describe("8-bit 4-offset Right Shift Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "ShiftRight",
+        "./shared/components/bits.circom", "ShiftRight", {
         templateParams: ["8", "4"],
       });
       console.info("8-bit 4-offset shift circuit constraints:", await circuit.getConstraintCount());
@@ -331,8 +325,7 @@ describe("ShiftRight Circuit", function () {
   describe("16-bit 8-offset Right Shift Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "ShiftRight",
+        "./shared/components/bits.circom", "ShiftRight", {
         templateParams: ["16", "8"],
       });
       console.info("16-bit 8-offset shift circuit constraints:", await circuit.getConstraintCount());
@@ -371,8 +364,7 @@ describe("ShiftRight Circuit", function () {
   describe("32-bit 8-offset Right Shift Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/bits.circom", {
-        templateName: "ShiftRight",
+        "./shared/components/bits.circom", "ShiftRight", {
         templateParams: ["32", "8"],
       });
       console.info("32-bit 8-offset shift circuit constraints:", await circuit.getConstraintCount());

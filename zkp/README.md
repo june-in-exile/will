@@ -186,7 +186,7 @@ make circuit CIRCUIT=createWill
 
 ## Common Errors for Development
 
-1. Output not defined:
+1. Output not defined.
    ```
     RUNS  tests/utf8Encoder.test.ts
    will/zkp/node_modules/circom_tester/common/tester.js:264
@@ -203,4 +203,21 @@ make circuit CIRCUIT=createWill
    
    // correct
    await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
+   ```
+
+2. The number of template input signals must coincide with the number of input parameters.
+   ```
+    error[TAC01]: The number of template input signals must coincide with the number of input parameters 
+        ┌─ "will/zkp/circuits/shared/components/utf8Encoder.circom":188:23
+        │
+    188 │     validBytes[2] <== IsEqual()(length[1],1);
+        │                       ^^^^^^^^^^^^^^^^^^^^^^ This is the anonymous component whose use is not allowed
+
+    previous errors were found
+   ```
+
+   Reason: should input array
+
+   ```
+   validBytes[2] <== IsEqual()([length[1],1]);
    ```

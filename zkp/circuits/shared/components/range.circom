@@ -4,10 +4,10 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 
 template InRange(bits) {
-    signal input in;
-    signal input min;
-    signal input max;
-    signal output out;
+    signal input {number} in;
+    signal input {number} min;
+    signal input {number} max;
+    signal output {bool} out;
     
     // Constraint the bits of in, min and max
     _ = Num2Bits(bits)(in);

@@ -7,7 +7,7 @@ include "arithmetic.circom";
 include "range.circom";
 
 /**
- * Base64 Mapping Table：
+ * Base64 Mapping Table:
  * A-Z: 0-25   (ASCII 65-90)
  * a-z: 26-51  (ASCII 97-122)  
  * 0-9: 52-61  (ASCII 48-57)
@@ -16,15 +16,25 @@ include "range.circom";
  * =:   64     (ASCII 61, padding)
  */
 template AsciiToBase64() {
-    signal input ascii;     // (0-127)
-    signal output base64;   // (0-64)
+    signal input {number} ascii;     // (0-127)
+    signal output {base64} base64;  // (0-64)
+
+    signal {number} number65 <== 65;
+    signal {number} number90 <== 90;
+    signal {number} number97 <== 97;
+    signal {number} number122 <== 122;
+    signal {number} number48 <== 48;
+    signal {number} number57 <== 57;
+    signal {number} number43 <== 43;
+    signal {number} number47 <== 47;
+    signal {number} number61 <== 61;
     
-    signal {bool} isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
-    signal {bool} isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
-    signal {bool} isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
-    signal {bool} isPlus <== IsEqual()([ascii,43]);             // +
-    signal {bool} isSlash <== IsEqual()([ascii,47]);            // /
-    signal {bool} isPadding <== IsEqual()([ascii,61]);          // =
+    signal isUpperCase <== InRange(7)(ascii, number65, number90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, number97, number122);   // a-z
+    signal isDigit <== InRange(7)(ascii, number48, number57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,number43]);             // +
+    signal isSlash <== IsEqual()([ascii,number47]);            // /
+    signal isPadding <== IsEqual()([ascii,number61]);          // =
 
     1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
     
@@ -47,26 +57,26 @@ template AsciiToBase64() {
  * byte3 = ((5 & 3) << 6) | 46 = 64 + 46 = 110 ('n')
  */
 template Base64GroupDecoder() {
-    signal input base64Group[4];    // 4 Base64 values (0-64)
-    signal output bytes[3];     // 3 decoded bytes (0-255)
+    signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
+    signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
     
     // Handle padding cases
-    signal {bool} isPadding[4];
+    signal isPadding[4];
     for (var i = 0; i < 4; i++) {
         isPadding[i] <== IsEqual()([base64Group[i],64]); // 64 is padding value
     }
     
     // Ensure padding can only appear at the end
-    signal {bool} firstTwoNotPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
-    signal {bool} lastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
-    signal {bool} lastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
-    signal {bool} lastTwoArePadding <== isPadding[2] * isPadding[3];
+    signal firstTwoNotPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
+    signal lastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
+    signal lastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
+    signal lastTwoArePadding <== isPadding[2] * isPadding[3];
 
-    signal {bool} hasNoPadding <== firstTwoNotPadding * lastTwoNotPadding;
-    signal {bool} hasOnePadding <== firstTwoNotPadding * lastOneIsPadding;
-    signal {bool} hasTwoPadding <== firstTwoNotPadding * lastTwoArePadding;
+    signal hasNoPadding <== firstTwoNotPadding * lastTwoNotPadding;
+    signal hasOnePadding <== firstTwoNotPadding * lastOneIsPadding;
+    signal hasTwoPadding <== firstTwoNotPadding * lastTwoArePadding;
 
-    signal {bool} validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
+    signal validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
     validPadding === 1;
     
     // Extract effective values (treat padding as 0)
@@ -76,7 +86,7 @@ template Base64GroupDecoder() {
     }
     
     // Ensure all valid values are in 0-63 range
-    signal {bool} validValue[4];
+    signal validValue[4];
     for (var i = 0; i < 4; i++) {
         validValue[i] <== LessEqThan(6)([effectiveBase64Group[i],63]);
         validValue[i] === 1;
@@ -87,12 +97,12 @@ template Base64GroupDecoder() {
     signal first_base64_left_2 <== effectiveBase64Group[0] * 4;
 
     // values[1] >> 4
-    signal {bits6} socond_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[1]);
-    signal {bits6} socond_base64_right_4_bits[6] <== ShR(6,4)(socond_base64_bits);
+    signal socond_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[1]);
+    signal socond_base64_right_4_bits[6] <== ShR(6,4)(socond_base64_bits);
     signal socond_base64_right_4 <== Bits2Num(6)(socond_base64_right_4_bits);
 
     // (values[1] & 15) << 4
-    signal {bits6} socond_base64_and_15_bits[6];
+    signal socond_base64_and_15_bits[6];
     for (var i = 0; i < 4; i++) {
         socond_base64_and_15_bits[i] <== socond_base64_bits[i];
     }
@@ -103,12 +113,12 @@ template Base64GroupDecoder() {
     signal socond_base64_masked_left_4 <== socond_base64_and_15 * 16;         
     
     // values[2] >> 2
-    signal {bits6} third_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[2]);
-    signal {bits6} third_base64_right_2_bits[6] <== ShR(6,2)(third_base64_bits);
+    signal third_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[2]);
+    signal third_base64_right_2_bits[6] <== ShR(6,2)(third_base64_bits);
     signal third_base64_right_2 <== Bits2Num(6)(third_base64_right_2_bits);
     
     // (values[2] & 3) << 6
-    signal {bits6} third_base64_and_3_bits[6];
+    signal third_base64_and_3_bits[6];
     for (var i = 0; i < 2; i++) {
         third_base64_and_3_bits[i] <== third_base64_bits[i];
     }
@@ -151,11 +161,11 @@ template Base64Decoder(inputLength) {
     var groups = inputLength \ 4;
     var outputLength = groups * 3;
 
-    signal input asciis[inputLength];   // ASCII values of base64 characters (0-127)
-    signal output bytes[outputLength];  // Decoded bytes (0-255)
+    signal input {number} asciis[inputLength];  // ASCII values of base64 characters (0-127)
+    signal output {byte} bytes[outputLength];  // Decoded bytes (0-255)
 
-    signal base64Group[groups][4];
-    signal bytesGroup[groups][3];
+    signal {base64} base64Group[groups][4];
+    signal {byte} bytesGroup[groups][3];
     
     for (var i = 0; i < groups; i++) {
         for (var j = 0; j < 4; j++) {

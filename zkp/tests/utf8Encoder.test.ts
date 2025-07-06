@@ -47,9 +47,7 @@ describe("Utf8ByteLength Circuit", function (): void {
   let circuit: WitnessTester<["codepoint"], ["length"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", {
-      templateName: "Utf8ByteLength",
-    });
+    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", "Utf8ByteLength");
     console.info("Utf8ByteLength circuit constraints:", await circuit.getConstraintCount());
   });
 
@@ -84,9 +82,7 @@ describe("Utf8Encoder Circuit", function (): void {
   let circuit: WitnessTester<["codepoint"], ["bytes", "validBytes"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", {
-      templateName: "Utf8Encoder",
-    });
+    circuit = await WitnessTester.construct("./shared/components/utf8Encoder.circom", "Utf8Encoder");
     console.info("Utf8Encoder circuit constraints:", await circuit.getConstraintCount());
   });
 
