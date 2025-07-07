@@ -1,6 +1,7 @@
 import { LOG_LEVELS, LogLevel } from "./types";
 
-const logLevel = (global as any).LOG_LEVEL || "error";
+const logLevel =
+  (globalThis as unknown as GlobalWithLogLevel).LOG_LEVEL || "error";
 
 const currentLogLevel = LOG_LEVELS[logLevel as LogLevel] || 0;
 

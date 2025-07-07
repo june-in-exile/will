@@ -218,9 +218,6 @@ function generateTaggedSignalHandling(inputs: Signal[]): string {
 function generateTemplateInstantiation(template: Template): string {
   const paramsStr =
     template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
-  const hasTaggedInputs = template.inputs.some(
-    (input) => input.tag && !input.busType,
-  );
 
   // Prepare input arguments
   const inputArgs = template.inputs

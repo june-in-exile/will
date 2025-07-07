@@ -1,9 +1,9 @@
 import type { CircomTester, CompilationOptions } from "../types";
 import { generateTestTemplate } from "./generateTestTemplate";
-const circom_tester = require("circom_tester");
-import path from "path";
-
 import * as fs from "fs";
+import path from "path";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const circom_tester = require("circom_tester");
 
 /**
  * Comment out component main declaration in Circom code
@@ -54,19 +54,15 @@ async function modifyComponentMainInFile(
   filePath: string,
   action: "comment" | "uncomment",
 ): Promise<void> {
-  try {
-    const content = await fs.promises.readFile(filePath, "utf8");
+  const content = await fs.promises.readFile(filePath, "utf8");
 
-    const modifiedContent =
-      action === "comment"
-        ? commentComponentMain(content)
-        : uncommentComponentMain(content);
+  const modifiedContent =
+    action === "comment"
+      ? commentComponentMain(content)
+      : uncommentComponentMain(content);
 
-    if (modifiedContent !== content) {
-      await fs.promises.writeFile(filePath, modifiedContent, "utf8");
-    }
-  } catch (error) {
-    throw error;
+  if (modifiedContent !== content) {
+    await fs.promises.writeFile(filePath, modifiedContent, "utf8");
   }
 }
 
@@ -105,7 +101,9 @@ export async function construct_wasm(
 
   const circomlibPath = await getCircomlibPath();
 
-  const defaultOptions = (global as any).CIRCOM_DEFAULTS;
+  const defaultOptions = (
+    global as unknown as { CIRCOM_DEFAULTS?: Record<string, unknown> }
+  ).CIRCOM_DEFAULTS;
 
   const wasm_tester = await circom_tester.wasm(testCircuitPath, {
     include: circomlibPath,

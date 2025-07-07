@@ -62,15 +62,15 @@ function encodeUTF8String(codepoints: number[]): {
   bytes: number[];
   validByteCount: number;
 } {
-  let bytes: number[] = [];
-  let totalBytes = 0;
+  const bytes: number[] = [];
+  let validByteCount = 0;
 
   for (const codepoint of codepoints) {
     const encoded = encodeUTF8(codepoint);
     for (let i = 0; i < 4; i++) {
       if (encoded["utf8.validBytes"][i] === 1) {
         bytes.push(encoded["utf8.bytes"][i]);
-        totalBytes++;
+        validByteCount++;
       }
     }
   }
@@ -80,7 +80,7 @@ function encodeUTF8String(codepoints: number[]): {
     bytes.push(0);
   }
 
-  return { bytes, validByteCount: totalBytes };
+  return { bytes, validByteCount };
 }
 
 export { utf8ByteLength, encodeUTF8, encodeUTF8String };

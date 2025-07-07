@@ -5,7 +5,7 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 
 interface Groth16Proof {
-  proof: any;
+  proof: object;
   publicSignals: string[];
 }
 
@@ -30,15 +30,11 @@ describe("Workflow CLI Tests", () => {
   const verifierFile = `${circuitDir}/contracts/test_verifier.sol`;
 
   async function compileCircuit() {
-    try {
-      const { stdout, stderr } = await execAsync(
-        `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`,
-      );
-      if (stderr && !stderr.includes("Everything went okay")) {
-        console.warn("Compilation warnings:", stderr);
-      }
-    } catch (error) {
-      throw error;
+    const { stderr } = await execAsync(
+      `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`,
+    );
+    if (stderr && !stderr.includes("Everything went okay")) {
+      console.warn("Compilation warnings:", stderr);
     }
   }
 

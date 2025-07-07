@@ -51,7 +51,10 @@ export class WitnessTester<
     if (this.constraints === undefined) {
       await this.loadConstraints();
     }
-    const numConstraints = this.constraints!.length;
+    if (!this.constraints) {
+      throw new Error("Constraints are not loaded.");
+    }
+    const numConstraints = this.constraints.length;
     return numConstraints;
   }
 
@@ -194,7 +197,10 @@ export class WitnessTester<
     const fakeWitness = witness.slice();
     for (const symbolName in symbolValues) {
       // get corresponding symbol
-      const symbolInfo = this.symbols![symbolName];
+      if (!this.symbols) {
+        throw new Error("Symbols are not loaded.");
+      }
+      const symbolInfo = this.symbols[symbolName];
       if (symbolInfo === undefined) {
         throw new Error("Invalid symbol name: " + symbolName);
       }
@@ -216,7 +222,10 @@ export class WitnessTester<
     const ans: Record<string, bigint> = {};
     for (const symbolName of symbols) {
       // get corresponding symbol
-      const symbolInfo = this.symbols![symbolName];
+      if (!this.symbols) {
+        throw new Error("Symbols are not loaded.");
+      }
+      const symbolInfo = this.symbols[symbolName];
       if (symbolInfo === undefined) {
         throw new Error("Invalid symbol name: " + symbolName);
       }
@@ -259,7 +268,10 @@ export class WitnessTester<
       // non-main signals have an additional `.` in them after `main.symbol`
       const signalDotCount = dotCount(signal) + 1; // +1 for the dot in `main.`
       const signalLength = signal.length + 5; // +5 for prefix `main.`
-      const symbolNames = Object.keys(this.symbols!).filter(
+      if (!this.symbols) {
+        throw new Error("Symbols are not loaded.");
+      }
+      const symbolNames = Object.keys(this.symbols).filter(
         (s) => s.startsWith(`main.${signal}`) && signalDotCount === dotCount(s),
       );
 
@@ -281,19 +293,26 @@ export class WitnessTester<
         throw new Error("No symbols matched for signal: " + signal);
       } else if (matchedSymbols.length === 1) {
         // easy case, just return the witness of this symbol
-        entries.push([
-          signal,
-          witness[this.symbols![matchedSymbols[0]].varIdx],
-        ]);
+        if (!this.symbols) {
+          throw new Error("Symbols are not loaded.");
+        }
+        entries.push([signal, witness[this.symbols[matchedSymbols[0]].varIdx]]);
       } else {
         // since signal names are consequent, we only need to know the witness index of the first symbol
-        let idx = this.symbols![matchedSymbols[0]].varIdx;
+        if (!this.symbols) {
+          throw new Error("Symbols are not loaded.");
+        }
+        let idx = this.symbols[matchedSymbols[0]].varIdx;
 
         // we can assume that a symbol with this name appears only once in a component, and that the depth is same for
         // all occurrences of this symbol, given the type system used in Circom. So, we can just count the number
         // of `[`s in any symbol of this signal to find the number of dimensions of this signal.
         // we particularly choose the last symbol in the array, as that holds the maximum index of each dimension of this array.
-        const splits = matchedSymbols.at(-1)!.split("[");
+        const lastMatchedSymbol = matchedSymbols.at(-1);
+        if (!lastMatchedSymbol) {
+          throw new Error("No matched symbols found for signal: " + signal);
+        }
+        const splits = lastMatchedSymbol.split("[");
 
         // since we chose the last symbol, we have something like `main.signal[dim1][dim2]...[dimN]` which we can parse
         const dims = splits

@@ -1,4 +1,8 @@
 declare global {
+  interface GlobalWithLogLevel {
+    LOG_LEVEL?: LogLevel;
+  }
+
   type ConstraintSimplification = 0 | 1 | 2;
 
   type CurveName =
