@@ -71,7 +71,7 @@ async function getCircomlibPath() {
 
   try {
     circomlibPath = path.dirname(require.resolve("circomlib/package.json"));
-  } catch (error) {
+  } catch {
     throw new Error("circomlib not found. Please run: pnpm add circomlib -w");
   }
 
