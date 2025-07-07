@@ -1,5 +1,5 @@
 import { WitnessTester } from "./utils";
-import { utf8ByteLength, encodeUTF8, encodeUTF8String } from "./utils/utf8Encoder";
+import { utf8ByteLength, encodeUTF8, encodeUTF8String } from "./helpers";
 
 const testCases1Byte = [
   { codepoint: 65 },  // A

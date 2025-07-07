@@ -59,11 +59,8 @@ export async function generateCircomTest(
         const testCircuitPath = path.join(testDir, `${templateName}.circom`);
         await fs.promises.writeFile(testCircuitPath, testContent, "utf8");
 
-        console.log(`✅ Successfully generated test file: ${testCircuitPath}`);
         return testCircuitPath;
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`❌ Failed to generate test file: ${errorMessage}`);
         throw error;
     }
 }
