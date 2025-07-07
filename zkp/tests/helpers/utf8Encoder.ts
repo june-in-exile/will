@@ -14,7 +14,9 @@ function utf8ByteLength(codepoint: number): { length: [number, number] } {
     return { length };
 }
 
-function encodeUTF8(codepoint: number): { bytes: [number, number, number, number], validBytes: [number, number, number, number] } {
+function encodeUTF8(codepoint: number): {
+    "utf8.bytes": [number, number, number, number], "utf8.validBytes": [number, number, number, number]
+} {
     if (codepoint < 0 || codepoint > 0x10FFFF) {
         throw new Error("Invalid Unicode codepoint");
     }
@@ -22,16 +24,16 @@ function encodeUTF8(codepoint: number): { bytes: [number, number, number, number
     if (codepoint <= 0x7F) {
         // 1 byte
         return {
-            bytes: [codepoint, 0, 0, 0],
-            validBytes: [1, 0, 0, 0],
+            "utf8.bytes": [codepoint, 0, 0, 0],
+            "utf8.validBytes": [1, 0, 0, 0],
         };
     } else if (codepoint <= 0x7FF) {
         // 2 bytes
         const byte1 = 0xC0 | (codepoint >> 6);
         const byte2 = 0x80 | (codepoint & 0x3F);
         return {
-            bytes: [byte1, byte2, 0, 0],
-            validBytes: [1, 1, 0, 0],
+            "utf8.bytes": [byte1, byte2, 0, 0],
+            "utf8.validBytes": [1, 1, 0, 0],
         };
     } else if (codepoint <= 0xFFFF) {
         // 3 bytes
@@ -39,8 +41,8 @@ function encodeUTF8(codepoint: number): { bytes: [number, number, number, number
         const byte2 = 0x80 | ((codepoint >> 6) & 0x3F);
         const byte3 = 0x80 | (codepoint & 0x3F);
         return {
-            bytes: [byte1, byte2, byte3, 0],
-            validBytes: [1, 1, 1, 0],
+            "utf8.bytes": [byte1, byte2, byte3, 0],
+            "utf8.validBytes": [1, 1, 1, 0],
         };
     } else {
         // 4 bytes
@@ -49,8 +51,8 @@ function encodeUTF8(codepoint: number): { bytes: [number, number, number, number
         const byte3 = 0x80 | ((codepoint >> 6) & 0x3F);
         const byte4 = 0x80 | (codepoint & 0x3F);
         return {
-            bytes: [byte1, byte2, byte3, byte4],
-            validBytes: [1, 1, 1, 1],
+            "utf8.bytes": [byte1, byte2, byte3, byte4],
+            "utf8.validBytes": [1, 1, 1, 1],
         };
     }
 }
@@ -62,8 +64,8 @@ function encodeUTF8String(codepoints: number[]): { bytes: number[], validByteCou
     for (const codepoint of codepoints) {
         const encoded = encodeUTF8(codepoint);
         for (let i = 0; i < 4; i++) {
-            if (encoded.validBytes[i] === 1) {
-                bytes.push(encoded.bytes[i]);
+            if (encoded["utf8.validBytes"][i] === 1) {
+                bytes.push(encoded["utf8.bytes"][i]);
                 totalBytes++;
             }
         }

@@ -12,4 +12,4 @@ declare global {
     | "vesta";
 }
 
-export { };
+export { LOG_LEVELS };

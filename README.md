@@ -235,7 +235,6 @@ pnpm build
 ## 🎯 Next Steps
 
 1. **Fix Bugs**
-   - [ ] The cpp circom compilation doesn't work.
    - [ ] IPFS related actions would stuck.
 2. **Refactor**
    - [ ] Unify the types in backend.

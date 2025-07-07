@@ -1,14 +1,8 @@
+import { LOG_LEVELS, LogLevel } from './types';
+
 const logLevel = (global as any).LOG_LEVEL || 'error';
 
-export const LOG_LEVELS = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3,
-  log: 4
-};
-
-const currentLogLevel = LOG_LEVELS[logLevel as keyof typeof LOG_LEVELS] || 0;
+const currentLogLevel = LOG_LEVELS[logLevel as LogLevel] || 0;
 
 const shouldLog = (level: keyof typeof LOG_LEVELS): boolean => {
   return LOG_LEVELS[level] <= currentLogLevel;

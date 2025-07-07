@@ -27,16 +27,16 @@ include "../shared/components/base64.circom";
  * UTF-8 編碼器
  * 將字節陣列編碼為 UTF-8 字串的字節表示
  */
-template UTF8Encoder(inputLength, outputLength) {
-    signal input bytes[inputLength];
-    signal output utf8Bytes[outputLength];
+// template UTF8Encoder(inputLength, outputLength) {
+//     signal input bytes[inputLength];
+//     signal output utf8Bytes[outputLength];
     
-    // 簡化實現：假設都是 ASCII 字符 (1 字節 UTF-8)
-    // 完整實現需要處理多字節 UTF-8 字符
-    for (var i = 0; i < inputLength && i < outputLength; i++) {
-        utf8Bytes[i] <== bytes[i];
-    }
-}
+//     // 簡化實現：假設都是 ASCII 字符 (1 字節 UTF-8)
+//     // 完整實現需要處理多字節 UTF-8 字符
+//     for (var i = 0; i < inputLength && i < outputLength; i++) {
+//         utf8Bytes[i] <== bytes[i];
+//     }
+// }
 
 // =============================================================================
 // 第二層：密碼學基礎 Templates
