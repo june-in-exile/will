@@ -1,1 +1,1 @@
-export * from "./utf8Encoder"
+export * from "./utf8Encoder";

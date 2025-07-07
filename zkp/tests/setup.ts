@@ -1,6 +1,6 @@
-import { LOG_LEVELS, LogLevel } from './types';
+import { LOG_LEVELS, LogLevel } from "./types";
 
-const logLevel = (global as any).LOG_LEVEL || 'error';
+const logLevel = (global as any).LOG_LEVEL || "error";
 
 const currentLogLevel = LOG_LEVELS[logLevel as LogLevel] || 0;
 
@@ -10,15 +10,15 @@ const shouldLog = (level: keyof typeof LOG_LEVELS): boolean => {
 
 global.console = {
   ...console,
-  log: shouldLog('log') ? console.log : jest.fn(),
-  debug: shouldLog('debug') ? console.debug : jest.fn(),
-  info: shouldLog('info') ? console.info : jest.fn(),
-  warn: shouldLog('warn') ? console.warn : jest.fn(),
-  error: shouldLog('error') ? console.error : jest.fn(),
+  log: shouldLog("log") ? console.log : jest.fn(),
+  debug: shouldLog("debug") ? console.debug : jest.fn(),
+  info: shouldLog("info") ? console.info : jest.fn(),
+  warn: shouldLog("warn") ? console.warn : jest.fn(),
+  error: shouldLog("error") ? console.error : jest.fn(),
 };
 
 beforeEach((): void => {
   jest.clearAllMocks();
 });
 
-afterEach((): void => { });
+afterEach((): void => {});

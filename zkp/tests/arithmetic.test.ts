@@ -1,14 +1,24 @@
 import { WitnessTester } from "./utils";
 
 describe("Divide Circuit", function () {
-  let circuit: WitnessTester<["dividend", "divisor"], ["quotient", "remainder"]>;
+  let circuit: WitnessTester<
+    ["dividend", "divisor"],
+    ["quotient", "remainder"]
+  >;
 
   describe("8-bit Divided by 6-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", "Divide", {
-        templateParams: ["8", "6"],
-      });
-      console.info("8-by-6-bit divide circuit constraints:", await circuit.getConstraintCount());
+      circuit = await WitnessTester.construct(
+        "./shared/components/arithmetic.circom",
+        "Divide",
+        {
+          templateParams: ["8", "6"],
+        },
+      );
+      console.info(
+        "8-by-6-bit divide circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -39,7 +49,7 @@ describe("Divide Circuit", function () {
           quotient: BigInt(Math.floor(testCase.dividend / testCase.divisor)),
           remainder: BigInt(testCase.dividend % testCase.divisor),
         });
-      };
+      }
     });
 
     it("should prevent division by zero", async function (): Promise<void> {
@@ -53,7 +63,7 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
 
     it("should constraint dividend bits", async function (): Promise<void> {
@@ -70,7 +80,7 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
 
     it("should constraint divisor bits", async function (): Promise<void> {
@@ -87,16 +97,23 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
   });
 
   describe("12-bit Divided by 8-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/arithmetic.circom", "Divide", {
-        templateParams: ["12", "8"],
-      });
-      console.info("12-by-8-bit divide circuit constraints:", await circuit.getConstraintCount());
+      circuit = await WitnessTester.construct(
+        "./shared/components/arithmetic.circom",
+        "Divide",
+        {
+          templateParams: ["12", "8"],
+        },
+      );
+      console.info(
+        "12-by-8-bit divide circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -127,7 +144,7 @@ describe("Divide Circuit", function () {
           quotient: BigInt(Math.floor(testCase.dividend / testCase.divisor)),
           remainder: BigInt(testCase.dividend % testCase.divisor),
         });
-      };
+      }
     });
 
     it("should prevent division by zero", async function (): Promise<void> {
@@ -144,7 +161,7 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
 
     it("should constraint dividend bits", async function (): Promise<void> {
@@ -162,7 +179,7 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
 
     it("should constraint divisor bits", async function (): Promise<void> {
@@ -182,7 +199,7 @@ describe("Divide Circuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
   });
 });
@@ -193,10 +210,16 @@ describe("MultiplyArray Circuit", function () {
   describe("1-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", "MultiplyArray", {
-        templateParams: ["1"],
-      });
-      console.info("1-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
+        "./shared/components/arithmetic.circom",
+        "MultiplyArray",
+        {
+          templateParams: ["1"],
+        },
+      );
+      console.info(
+        "1-bit multiplyArray circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -214,9 +237,9 @@ describe("MultiplyArray Circuit", function () {
         console.log("constraint:", await circuit.getConstraintCount());
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
 
     it("should handle large numbers correctly", async function (): Promise<void> {
@@ -224,26 +247,26 @@ describe("MultiplyArray Circuit", function () {
         {
           a: [1000],
           b: [1000],
-          c: [1000000]
+          c: [1000000],
         },
         {
           a: [500],
           b: [2000],
-          c: [1000000]
+          c: [1000000],
         },
         {
           a: [12345],
           b: [6789],
-          c: [83810205]
+          c: [83810205],
         },
       ];
 
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
 
     test.skip("should handle negative numbers (if supported)", async function (): Promise<void> {
@@ -256,21 +279,26 @@ describe("MultiplyArray Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
   });
 
   describe("3-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", "MultiplyArray", {
-        templateParams: ["3"],
-      });
-      console.info("3-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
+        "./shared/components/arithmetic.circom",
+        "MultiplyArray",
+        {
+          templateParams: ["3"],
+        },
+      );
+      console.info(
+        "3-bit multiplyArray circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
-
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
@@ -285,9 +313,9 @@ describe("MultiplyArray Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
 
     it("should handle large numbers correctly", async function (): Promise<void> {
@@ -295,36 +323,42 @@ describe("MultiplyArray Circuit", function () {
         {
           a: [100, 200, 300],
           b: [50, 25, 10],
-          c: [5000, 5000, 3000]
+          c: [5000, 5000, 3000],
         },
         {
           a: [1000, 2000, 3000],
           b: [5, 10, 15],
-          c: [5000, 20000, 45000]
+          c: [5000, 20000, 45000],
         },
         {
           a: [999, 888, 777],
           b: [2, 3, 4],
-          c: [1998, 2664, 3108]
+          c: [1998, 2664, 3108],
         },
       ];
 
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
   });
 
   describe("5-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", "MultiplyArray", {
-        templateParams: ["5"],
-      });
-      console.info("5-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
+        "./shared/components/arithmetic.circom",
+        "MultiplyArray",
+        {
+          templateParams: ["5"],
+        },
+      );
+      console.info(
+        "5-bit multiplyArray circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -332,41 +366,47 @@ describe("MultiplyArray Circuit", function () {
         {
           a: [1, 2, 3, 4, 5],
           b: [2, 3, 4, 5, 6],
-          c: [2, 6, 12, 20, 30]
+          c: [2, 6, 12, 20, 30],
         },
         {
           a: [10, 0, 5, 8, 3],
           b: [2, 7, 4, 0, 9],
-          c: [20, 0, 20, 0, 27]
+          c: [20, 0, 20, 0, 27],
         },
         {
           a: [1, 1, 1, 1, 1],
           b: [7, 8, 9, 10, 11],
-          c: [7, 8, 9, 10, 11]
+          c: [7, 8, 9, 10, 11],
         },
         {
           a: [0, 0, 0, 0, 0],
           b: [1, 2, 3, 4, 5],
-          c: [0, 0, 0, 0, 0]
+          c: [0, 0, 0, 0, 0],
         },
       ];
 
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
   });
 
   describe("10-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom", "MultiplyArray", {
-        templateParams: ["10"],
-      });
-      console.info("10-bit multiplyArray circuit constraints:", await circuit.getConstraintCount());
+        "./shared/components/arithmetic.circom",
+        "MultiplyArray",
+        {
+          templateParams: ["10"],
+        },
+      );
+      console.info(
+        "10-bit multiplyArray circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -374,26 +414,26 @@ describe("MultiplyArray Circuit", function () {
         {
           a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
           b: [10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
-          c: [10, 18, 24, 28, 30, 30, 28, 24, 18, 10]
+          c: [10, 18, 24, 28, 30, 30, 28, 24, 18, 10],
         },
         {
           a: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
           b: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-          c: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+          c: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
         },
         {
           a: [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
           b: [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-          c: [0, 5, 0, 5, 0, 5, 0, 5, 0, 5]
+          c: [0, 5, 0, 5, 0, 5, 0, 5, 0, 5],
         },
       ];
 
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
-      };
+      }
     });
   });
 });

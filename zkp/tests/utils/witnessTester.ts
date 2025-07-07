@@ -26,14 +26,18 @@ export class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) { }
+  ) {}
 
   static async construct(
     circuitPath: string,
     templateName: string,
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
-    const circomTester = await construct_wasm(circuitPath, templateName, options);
+    const circomTester = await construct_wasm(
+      circuitPath,
+      templateName,
+      options,
+    );
     return new WitnessTester(circomTester);
   }
 
@@ -164,7 +168,7 @@ export class WitnessTester<
 
     return await this.readWitnessSignals(witness, signals);
   }
-  
+
   /**
    * Override witness value to try and fake a proof. If the circuit has soundness problems (i.e.
    * some signals are not constrained correctly), then you may be able to create a fake witness by

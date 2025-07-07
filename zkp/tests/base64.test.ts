@@ -5,9 +5,14 @@ describe("AsciiToBase64 Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom", "AsciiToBase64", {
-    });
-    console.info("AsciiToBase64 circuit constraints:", await circuit.getConstraintCount());
+      "./shared/components/base64.circom",
+      "AsciiToBase64",
+      {},
+    );
+    console.info(
+      "AsciiToBase64 circuit constraints:",
+      await circuit.getConstraintCount(),
+    );
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -21,7 +26,7 @@ describe("AsciiToBase64 Cicuit", function () {
         const base64: number = i;
 
         await circuit.expectPass({ ascii }, { base64 });
-      };
+      }
     });
   });
 
@@ -43,7 +48,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (const ascii of invalidChars) {
         await circuit.expectFail({ ascii });
-      };
+      }
     });
 
     it("should handle characters adjacent to valid range", async function (): Promise<void> {
@@ -58,7 +63,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (const ascii of adjacentInvalid) {
         await circuit.expectFail({ ascii });
-      };
+      }
     });
   });
 });
@@ -68,15 +73,20 @@ describe("Base64GroupDecoder Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom", "Base64GroupDecoder", {
-    });
-    console.info("Base64GroupDecoder circuit constraints:", await circuit.getConstraintCount());
+      "./shared/components/base64.circom",
+      "Base64GroupDecoder",
+      {},
+    );
+    console.info(
+      "Base64GroupDecoder circuit constraints:",
+      await circuit.getConstraintCount(),
+    );
   });
 
   describe("Valid Padding", function (): void {
     it("should accpet two padding", async function (): Promise<void> {
       const testCases = [
-        { base64Group: [16, 16, 64, 64], bytes: [65, 0, 0] },  // QQ== -> A
+        { base64Group: [16, 16, 64, 64], bytes: [65, 0, 0] }, // QQ== -> A
         { base64Group: [26, 26, 64, 64], bytes: [105, 0, 0] }, // aa== -> i
         { base64Group: [26, 31, 64, 64], bytes: [105, 0, 0] }, // af== -> i
         { base64Group: [26, 32, 64, 64], bytes: [106, 0, 0] }, // ag== -> j
@@ -84,32 +94,41 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
-        await circuit.expectPass({ base64Group: testCase.base64Group }, { bytes: testCase.bytes });
-      };
+        await circuit.expectPass(
+          { base64Group: testCase.base64Group },
+          { bytes: testCase.bytes },
+        );
+      }
     });
 
     it("should accpet one padding", async function (): Promise<void> {
       const testCases = [
-        { base64Group: [16, 36, 12, 64], bytes: [66, 67, 0] },  // QkM= -> BC
+        { base64Group: [16, 36, 12, 64], bytes: [66, 67, 0] }, // QkM= -> BC
         { base64Group: [19, 22, 21, 64], bytes: [77, 101, 0] }, // TWV= -> Me
         { base64Group: [26, 39, 53, 64], bytes: [106, 125, 0] }, // an1= -> j}
       ];
 
       for (const testCase of testCases) {
-        await circuit.expectPass({ base64Group: testCase.base64Group }, { bytes: testCase.bytes });
-      };
+        await circuit.expectPass(
+          { base64Group: testCase.base64Group },
+          { bytes: testCase.bytes },
+        );
+      }
     });
 
     it("should accpet no padding", async function (): Promise<void> {
       const testCases = [
-        { base64Group: [19, 22, 5, 46], bytes: [77, 97, 110] },    // TWFu -> Man
-        { base64Group: [29, 6, 33, 37], bytes: [116, 104, 101] },  // dGhl -> the
-        { base64Group: [16, 23, 9, 37], bytes: [65, 114, 101] },   // QXJl -> Are
+        { base64Group: [19, 22, 5, 46], bytes: [77, 97, 110] }, // TWFu -> Man
+        { base64Group: [29, 6, 33, 37], bytes: [116, 104, 101] }, // dGhl -> the
+        { base64Group: [16, 23, 9, 37], bytes: [65, 114, 101] }, // QXJl -> Are
       ];
 
       for (const testCase of testCases) {
-        await circuit.expectPass({ base64Group: testCase.base64Group }, { bytes: testCase.bytes });
-      };
+        await circuit.expectPass(
+          { base64Group: testCase.base64Group },
+          { bytes: testCase.bytes },
+        );
+      }
     });
   });
 
@@ -128,7 +147,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
 
     it("should reject one padding in position 2", async function (): Promise<void> {
@@ -139,7 +158,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
   });
 
@@ -153,8 +172,11 @@ describe("Base64GroupDecoder Cicuit", function () {
       ];
 
       for (const testCase of testCases) {
-        await circuit.expectPass({ base64Group: testCase.base64Group }, { bytes: testCase.bytes });
-      };
+        await circuit.expectPass(
+          { base64Group: testCase.base64Group },
+          { bytes: testCase.bytes },
+        );
+      }
     });
 
     it("should handle out-of-range base64Group correctly", async function (): Promise<void> {
@@ -169,7 +191,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-      };
+      }
     });
   });
 });
@@ -179,10 +201,17 @@ describe("Base64Decoder Circuit", function () {
 
   describe("4-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
-        templateParams: ["4"],
-      });
-      console.info("4-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
+      circuit = await WitnessTester.construct(
+        "./shared/components/base64.circom",
+        "Base64Decoder",
+        {
+          templateParams: ["4"],
+        },
+      );
+      console.info(
+        "4-byte Base64Decoder circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
@@ -229,11 +258,11 @@ describe("Base64Decoder Circuit", function () {
 
     it("should not decode invalid padding patterns", async function (): Promise<void> {
       const testCases = [
-        { asciis: [84, 61, 61, 61] },   // T===
-        { asciis: [61, 86, 61, 61] },   // =V==
+        { asciis: [84, 61, 61, 61] }, // T===
+        { asciis: [61, 86, 61, 61] }, // =V==
         { asciis: [61, 61, 107, 110] }, // ==kn
-        { asciis: [97, 61, 70, 98] },   // a=Fb
-        { asciis: [61, 57, 80, 113] },  // =9Pq
+        { asciis: [97, 61, 70, 98] }, // a=Fb
+        { asciis: [61, 57, 80, 113] }, // =9Pq
       ];
 
       for (const testCase of testCases) {
@@ -244,10 +273,17 @@ describe("Base64Decoder Circuit", function () {
 
   describe("8-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
-        templateParams: ["8"],
-      });
-      console.info("8-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
+      circuit = await WitnessTester.construct(
+        "./shared/components/base64.circom",
+        "Base64Decoder",
+        {
+          templateParams: ["8"],
+        },
+      );
+      console.info(
+        "8-byte Base64Decoder circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
@@ -271,18 +307,68 @@ describe("Base64Decoder Circuit", function () {
 
   describe("360-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct("./shared/components/base64.circom", "Base64Decoder", {
-        templateParams: ["360"],
-      });
-      console.info("360-byte Base64Decoder circuit constraints:", await circuit.getConstraintCount());
+      circuit = await WitnessTester.construct(
+        "./shared/components/base64.circom",
+        "Base64Decoder",
+        {
+          templateParams: ["360"],
+        },
+      );
+      console.info(
+        "360-byte Base64Decoder circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
     });
 
     it("should decode a real world case", async function (): Promise<void> {
       // Source: https://zh.wikipedia.org/zh-tw/Base64
       // TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlcmFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdhYmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=
-      const asciis = [84, 87, 70, 117, 73, 71, 108, 122, 73, 71, 82, 112, 99, 51, 82, 112, 98, 109, 100, 49, 97, 88, 78, 111, 90, 87, 81, 115, 73, 71, 53, 118, 100, 67, 66, 118, 98, 109, 120, 53, 73, 71, 74, 53, 73, 71, 104, 112, 99, 121, 66, 121, 90, 87, 70, 122, 98, 50, 52, 115, 73, 71, 74, 49, 100, 67, 66, 105, 101, 83, 66, 48, 97, 71, 108, 122, 73, 72, 78, 112, 98, 109, 100, 49, 98, 71, 70, 121, 73, 72, 66, 104, 99, 51, 78, 112, 98, 50, 52, 103, 90, 110, 74, 118, 98, 83, 66, 118, 100, 71, 104, 108, 99, 105, 66, 104, 98, 109, 108, 116, 89, 87, 120, 122, 76, 67, 66, 51, 97, 71, 108, 106, 97, 67, 66, 112, 99, 121, 66, 104, 73, 71, 120, 49, 99, 51, 81, 103, 98, 50, 89, 103, 100, 71, 104, 108, 73, 71, 49, 112, 98, 109, 81, 115, 73, 72, 82, 111, 89, 88, 81, 103, 89, 110, 107, 103, 89, 83, 66, 119, 90, 88, 74, 122, 90, 88, 90, 108, 99, 109, 70, 117, 89, 50, 85, 103, 98, 50, 89, 103, 90, 71, 86, 115, 97, 87, 100, 111, 100, 67, 66, 112, 98, 105, 66, 48, 97, 71, 85, 103, 89, 50, 57, 117, 100, 71, 108, 117, 100, 87, 86, 107, 73, 71, 70, 117, 90, 67, 66, 112, 98, 109, 82, 108, 90, 109, 70, 48, 97, 87, 100, 104, 89, 109, 120, 108, 73, 71, 100, 108, 98, 109, 86, 121, 89, 88, 82, 112, 98, 50, 52, 103, 98, 50, 89, 103, 97, 50, 53, 118, 100, 50, 120, 108, 90, 71, 100, 108, 76, 67, 66, 108, 101, 71, 78, 108, 90, 87, 82, 122, 73, 72, 82, 111, 90, 83, 66, 122, 97, 71, 57, 121, 100, 67, 66, 50, 90, 87, 104, 108, 98, 87, 86, 117, 89, 50, 85, 103, 98, 50, 89, 103, 89, 87, 53, 53, 73, 71, 78, 104, 99, 109, 53, 104, 98, 67, 66, 119, 98, 71, 86, 104, 99, 51, 86, 121, 90, 83, 52, 61];
+      const asciis = [
+        84, 87, 70, 117, 73, 71, 108, 122, 73, 71, 82, 112, 99, 51, 82, 112, 98,
+        109, 100, 49, 97, 88, 78, 111, 90, 87, 81, 115, 73, 71, 53, 118, 100,
+        67, 66, 118, 98, 109, 120, 53, 73, 71, 74, 53, 73, 71, 104, 112, 99,
+        121, 66, 121, 90, 87, 70, 122, 98, 50, 52, 115, 73, 71, 74, 49, 100, 67,
+        66, 105, 101, 83, 66, 48, 97, 71, 108, 122, 73, 72, 78, 112, 98, 109,
+        100, 49, 98, 71, 70, 121, 73, 72, 66, 104, 99, 51, 78, 112, 98, 50, 52,
+        103, 90, 110, 74, 118, 98, 83, 66, 118, 100, 71, 104, 108, 99, 105, 66,
+        104, 98, 109, 108, 116, 89, 87, 120, 122, 76, 67, 66, 51, 97, 71, 108,
+        106, 97, 67, 66, 112, 99, 121, 66, 104, 73, 71, 120, 49, 99, 51, 81,
+        103, 98, 50, 89, 103, 100, 71, 104, 108, 73, 71, 49, 112, 98, 109, 81,
+        115, 73, 72, 82, 111, 89, 88, 81, 103, 89, 110, 107, 103, 89, 83, 66,
+        119, 90, 88, 74, 122, 90, 88, 90, 108, 99, 109, 70, 117, 89, 50, 85,
+        103, 98, 50, 89, 103, 90, 71, 86, 115, 97, 87, 100, 111, 100, 67, 66,
+        112, 98, 105, 66, 48, 97, 71, 85, 103, 89, 50, 57, 117, 100, 71, 108,
+        117, 100, 87, 86, 107, 73, 71, 70, 117, 90, 67, 66, 112, 98, 109, 82,
+        108, 90, 109, 70, 48, 97, 87, 100, 104, 89, 109, 120, 108, 73, 71, 100,
+        108, 98, 109, 86, 121, 89, 88, 82, 112, 98, 50, 52, 103, 98, 50, 89,
+        103, 97, 50, 53, 118, 100, 50, 120, 108, 90, 71, 100, 108, 76, 67, 66,
+        108, 101, 71, 78, 108, 90, 87, 82, 122, 73, 72, 82, 111, 90, 83, 66,
+        122, 97, 71, 57, 121, 100, 67, 66, 50, 90, 87, 104, 108, 98, 87, 86,
+        117, 89, 50, 85, 103, 98, 50, 89, 103, 89, 87, 53, 53, 73, 71, 78, 104,
+        99, 109, 53, 104, 98, 67, 66, 119, 98, 71, 86, 104, 99, 51, 86, 121, 90,
+        83, 52, 61,
+      ];
       // Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.
-      const bytes = [77, 97, 110, 32, 105, 115, 32, 100, 105, 115, 116, 105, 110, 103, 117, 105, 115, 104, 101, 100, 44, 32, 110, 111, 116, 32, 111, 110, 108, 121, 32, 98, 121, 32, 104, 105, 115, 32, 114, 101, 97, 115, 111, 110, 44, 32, 98, 117, 116, 32, 98, 121, 32, 116, 104, 105, 115, 32, 115, 105, 110, 103, 117, 108, 97, 114, 32, 112, 97, 115, 115, 105, 111, 110, 32, 102, 114, 111, 109, 32, 111, 116, 104, 101, 114, 32, 97, 110, 105, 109, 97, 108, 115, 44, 32, 119, 104, 105, 99, 104, 32, 105, 115, 32, 97, 32, 108, 117, 115, 116, 32, 111, 102, 32, 116, 104, 101, 32, 109, 105, 110, 100, 44, 32, 116, 104, 97, 116, 32, 98, 121, 32, 97, 32, 112, 101, 114, 115, 101, 118, 101, 114, 97, 110, 99, 101, 32, 111, 102, 32, 100, 101, 108, 105, 103, 104, 116, 32, 105, 110, 32, 116, 104, 101, 32, 99, 111, 110, 116, 105, 110, 117, 101, 100, 32, 97, 110, 100, 32, 105, 110, 100, 101, 102, 97, 116, 105, 103, 97, 98, 108, 101, 32, 103, 101, 110, 101, 114, 97, 116, 105, 111, 110, 32, 111, 102, 32, 107, 110, 111, 119, 108, 101, 100, 103, 101, 44, 32, 101, 120, 99, 101, 101, 100, 115, 32, 116, 104, 101, 32, 115, 104, 111, 114, 116, 32, 118, 101, 104, 101, 109, 101, 110, 99, 101, 32, 111, 102, 32, 97, 110, 121, 32, 99, 97, 114, 110, 97, 108, 32, 112, 108, 101, 97, 115, 117, 114, 101, 46];
+      const bytes = [
+        77, 97, 110, 32, 105, 115, 32, 100, 105, 115, 116, 105, 110, 103, 117,
+        105, 115, 104, 101, 100, 44, 32, 110, 111, 116, 32, 111, 110, 108, 121,
+        32, 98, 121, 32, 104, 105, 115, 32, 114, 101, 97, 115, 111, 110, 44, 32,
+        98, 117, 116, 32, 98, 121, 32, 116, 104, 105, 115, 32, 115, 105, 110,
+        103, 117, 108, 97, 114, 32, 112, 97, 115, 115, 105, 111, 110, 32, 102,
+        114, 111, 109, 32, 111, 116, 104, 101, 114, 32, 97, 110, 105, 109, 97,
+        108, 115, 44, 32, 119, 104, 105, 99, 104, 32, 105, 115, 32, 97, 32, 108,
+        117, 115, 116, 32, 111, 102, 32, 116, 104, 101, 32, 109, 105, 110, 100,
+        44, 32, 116, 104, 97, 116, 32, 98, 121, 32, 97, 32, 112, 101, 114, 115,
+        101, 118, 101, 114, 97, 110, 99, 101, 32, 111, 102, 32, 100, 101, 108,
+        105, 103, 104, 116, 32, 105, 110, 32, 116, 104, 101, 32, 99, 111, 110,
+        116, 105, 110, 117, 101, 100, 32, 97, 110, 100, 32, 105, 110, 100, 101,
+        102, 97, 116, 105, 103, 97, 98, 108, 101, 32, 103, 101, 110, 101, 114,
+        97, 116, 105, 111, 110, 32, 111, 102, 32, 107, 110, 111, 119, 108, 101,
+        100, 103, 101, 44, 32, 101, 120, 99, 101, 101, 100, 115, 32, 116, 104,
+        101, 32, 115, 104, 111, 114, 116, 32, 118, 101, 104, 101, 109, 101, 110,
+        99, 101, 32, 111, 102, 32, 97, 110, 121, 32, 99, 97, 114, 110, 97, 108,
+        32, 112, 108, 101, 97, 115, 117, 114, 101, 46,
+      ];
       await circuit.expectPass({ asciis }, { bytes });
     });
   });

@@ -3,7 +3,7 @@ import { generateTestTemplate } from "./generateTestTemplate";
 const circom_tester = require("circom_tester");
 import path from "path";
 
-import * as fs from 'fs';
+import * as fs from "fs";
 
 /**
  * Comment out component main declaration in Circom code
@@ -14,13 +14,16 @@ function commentComponentMain(content: string): string {
   // Regular expression to match component main declarations like: component main = TemplateName();
   const componentMainRegex = /^(\s*)(component\s+main\s*=.*?;)/gm;
 
-  return content.replace(componentMainRegex, (match, indentation, declaration) => {
-    // Don't modify if it's already commented
-    if (declaration.includes('//')) {
-      return match;
-    }
-    return `${indentation}// ${declaration}`;
-  });
+  return content.replace(
+    componentMainRegex,
+    (match, indentation, declaration) => {
+      // Don't modify if it's already commented
+      if (declaration.includes("//")) {
+        return match;
+      }
+      return `${indentation}// ${declaration}`;
+    },
+  );
 }
 
 /**
@@ -30,11 +33,15 @@ function commentComponentMain(content: string): string {
  */
 function uncommentComponentMain(content: string): string {
   // Regular expression to match commented component main declarations like: // component main = TemplateName();
-  const commentedComponentMainRegex = /^(\s*)\/\/\s*(component\s+main\s*=.*?;)/gm;
+  const commentedComponentMainRegex =
+    /^(\s*)\/\/\s*(component\s+main\s*=.*?;)/gm;
 
-  return content.replace(commentedComponentMainRegex, (match, indentation, declaration) => {
-    return `${indentation}${declaration}`;
-  });
+  return content.replace(
+    commentedComponentMainRegex,
+    (match, indentation, declaration) => {
+      return `${indentation}${declaration}`;
+    },
+  );
 }
 
 /**
@@ -43,7 +50,10 @@ function uncommentComponentMain(content: string): string {
  * @param action - Either "comment" or "uncomment"
  * @returns Promise that resolves when the file is modified
  */
-async function modifyComponentMainInFile(filePath: string, action: "comment" | "uncomment"): Promise<void> {
+async function modifyComponentMainInFile(
+  filePath: string,
+  action: "comment" | "uncomment",
+): Promise<void> {
   try {
     const content = await fs.promises.readFile(filePath, "utf8");
 
@@ -85,33 +95,32 @@ export async function construct_wasm(
   templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
-
   const absoluteCircuitPath = `circuits/${circuitPath}`;
-  await modifyComponentMainInFile(absoluteCircuitPath, 'comment');
+  await modifyComponentMainInFile(absoluteCircuitPath, "comment");
 
-  const testCircuitPath = await generateTestTemplate(absoluteCircuitPath, templateName);
+  const testCircuitPath = await generateTestTemplate(
+    absoluteCircuitPath,
+    templateName,
+  );
 
   const circomlibPath = await getCircomlibPath();
 
   const defaultOptions = (global as any).CIRCOM_DEFAULTS;
 
-  const wasm_tester = await circom_tester.wasm(
-    testCircuitPath,
-    {
-      include: circomlibPath,
-      templateName: `Test${templateName}`,
-      ...(options?.templateParams && {
-        templateParams: options.templateParams,
-      }),
-      ...(options?.templatePublicSignals && {
-        templatePublicSignals: options.templatePublicSignals,
-      }),
-      ...defaultOptions,
-      ...options,
-    },
-  );
+  const wasm_tester = await circom_tester.wasm(testCircuitPath, {
+    include: circomlibPath,
+    templateName: `Test${templateName}`,
+    ...(options?.templateParams && {
+      templateParams: options.templateParams,
+    }),
+    ...(options?.templatePublicSignals && {
+      templatePublicSignals: options.templatePublicSignals,
+    }),
+    ...defaultOptions,
+    ...options,
+  });
 
-  await modifyComponentMainInFile(absoluteCircuitPath, 'uncomment');
+  await modifyComponentMainInFile(absoluteCircuitPath, "uncomment");
 
   return wasm_tester;
 }

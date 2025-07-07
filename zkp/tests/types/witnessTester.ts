@@ -71,7 +71,7 @@ export type CircomTester = {
   constraints: unknown[] | undefined;
 
   checkConstraints: (witness: WitnessType) => Promise<void>;
-  
+
   assertOut: (
     actualOut: WitnessType,
     expectedOut: CircuitSignals,
@@ -79,7 +79,7 @@ export type CircomTester = {
 
   loadSymbols: () => Promise<void>;
   symbols: SymbolsType | undefined;
-  
+
   getDecoratedOutput: (witness: WitnessType) => Promise<string>;
   dir: string;
   baseName: string;

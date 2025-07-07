@@ -4,8 +4,14 @@ describe("Multiplier2 Circuit", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
 
   beforeAll(async function (): Promise<void> {
-    circuit = await WitnessTester.construct("./multiplier2/multiplier2.circom", "Multiplier2");
-    console.info("Multiplier2 circuit constraints:", await circuit.getConstraintCount());
+    circuit = await WitnessTester.construct(
+      "./multiplier2/multiplier2.circom",
+      "Multiplier2",
+    );
+    console.info(
+      "Multiplier2 circuit constraints:",
+      await circuit.getConstraintCount(),
+    );
   });
 
   describe("Basic Multiplication", function (): void {
