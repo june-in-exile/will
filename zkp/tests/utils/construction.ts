@@ -2,7 +2,7 @@ import type { CircomTester, CompilationOptions } from "../types";
 import { generateTestTemplate } from "./generateTestTemplate";
 import * as fs from "fs";
 import path from "path";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-require-imports */
 const circom_tester = require("circom_tester");
 
 /**
