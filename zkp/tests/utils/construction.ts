@@ -93,10 +93,7 @@ export async function construct_wasm(
 ): Promise<CircomTester> {
   await modifyComponentMainInFile(circuitPath, "comment");
 
-  const testCircuitPath = await generateTestTemplate(
-    circuitPath,
-    templateName,
-  );
+  const testCircuitPath = await generateTestTemplate(circuitPath, templateName);
 
   const circomlibPath = await getCircomlibPath();
 
