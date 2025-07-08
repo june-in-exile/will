@@ -5,7 +5,7 @@ describe("Multiplier2 Circuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./multiplier2/multiplier2.circom",
+      "circuits/multiplier2/multiplier2.circom",
       "Multiplier2",
     );
     console.info(

@@ -51,7 +51,7 @@ describe("Utf8ByteLength Circuit", function (): void {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/utf8Encoder.circom",
+      "circuits/shared/components/utf8Encoder.circom",
       "Utf8ByteLength",
     );
     console.info(
@@ -104,7 +104,7 @@ describe("Utf8Encoder Circuit", function (): void {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/utf8Encoder.circom",
+      "circuits/shared/components/utf8Encoder.circom",
       "Utf8Encoder",
     );
     console.info(
@@ -158,7 +158,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
   describe("3-Character String Encoding", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/utf8Encoder.circom",
+        "circuits/shared/components/utf8Encoder.circom",
         "Utf8StringEncoder",
         {
           templateParams: ["3"],
@@ -233,7 +233,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
   describe("15-Character String Encoding", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/utf8Encoder.circom",
+        "circuits/shared/components/utf8Encoder.circom",
         "Utf8StringEncoder",
         {
           templateParams: ["15"],

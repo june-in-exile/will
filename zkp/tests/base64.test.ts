@@ -5,7 +5,7 @@ describe("AsciiToBase64 Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom",
+      "circuits/shared/components/base64.circom",
       "AsciiToBase64",
       {},
     );
@@ -73,7 +73,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "./shared/components/base64.circom",
+      "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
       {},
     );
@@ -202,7 +202,7 @@ describe("Base64Decoder Circuit", function () {
   describe("4-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/base64.circom",
+        "circuits/shared/components/base64.circom",
         "Base64Decoder",
         {
           templateParams: ["4"],
@@ -274,7 +274,7 @@ describe("Base64Decoder Circuit", function () {
   describe("8-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/base64.circom",
+        "circuits/shared/components/base64.circom",
         "Base64Decoder",
         {
           templateParams: ["8"],
@@ -308,7 +308,7 @@ describe("Base64Decoder Circuit", function () {
   describe("360-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/base64.circom",
+        "circuits/shared/components/base64.circom",
         "Base64Decoder",
         {
           templateParams: ["360"],

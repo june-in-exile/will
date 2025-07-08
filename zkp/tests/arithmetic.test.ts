@@ -9,7 +9,7 @@ describe("Divide Circuit", function () {
   describe("8-bit Divided by 6-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "Divide",
         {
           templateParams: ["8", "6"],
@@ -104,7 +104,7 @@ describe("Divide Circuit", function () {
   describe("12-bit Divided by 8-bit Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "Divide",
         {
           templateParams: ["12", "8"],
@@ -210,7 +210,7 @@ describe("MultiplyArray Circuit", function () {
   describe("1-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "MultiplyArray",
         {
           templateParams: ["1"],
@@ -288,7 +288,7 @@ describe("MultiplyArray Circuit", function () {
   describe("3-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "MultiplyArray",
         {
           templateParams: ["3"],
@@ -349,7 +349,7 @@ describe("MultiplyArray Circuit", function () {
   describe("5-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "MultiplyArray",
         {
           templateParams: ["5"],
@@ -397,7 +397,7 @@ describe("MultiplyArray Circuit", function () {
   describe("10-bit Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "./shared/components/arithmetic.circom",
+        "circuits/shared/components/arithmetic.circom",
         "MultiplyArray",
         {
           templateParams: ["10"],

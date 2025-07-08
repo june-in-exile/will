@@ -91,11 +91,10 @@ export async function construct_wasm(
   templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
-  const absoluteCircuitPath = `circuits/${circuitPath}`;
-  await modifyComponentMainInFile(absoluteCircuitPath, "comment");
+  await modifyComponentMainInFile(circuitPath, "comment");
 
   const testCircuitPath = await generateTestTemplate(
-    absoluteCircuitPath,
+    circuitPath,
     templateName,
   );
 
@@ -118,7 +117,7 @@ export async function construct_wasm(
     ...options,
   });
 
-  await modifyComponentMainInFile(absoluteCircuitPath, "uncomment");
+  await modifyComponentMainInFile(circuitPath, "uncomment");
 
   return wasm_tester;
 }
