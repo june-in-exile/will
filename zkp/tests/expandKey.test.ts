@@ -1,3 +1,4 @@
+import { AESKeyExpansion } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("ExpandKey Circuit", function () {
@@ -15,19 +16,16 @@ describe("ExpandKey Circuit", function () {
       );
     });
 
-    it("should expand 32-byte key to 240-byte", async function (): Promise<void> {
-      const keyBase64 = "gqngitQZdS6ihWF34xmxSkwN9fPhteFwvMrpDG6G5gY";
-      const keyBuffer = Buffer.from(keyBase64, "base64");
-      const key = Array.from(keyBuffer.values());
-      console.debug("key:", key);
-
-      const expandedKeyBase64 =
-        "gqngitQZdS6ihWF34xmxSkwN9fPhteFwvMrpDG6G5gbHJ48VEz76O7G7m0xSoioGTDcQnK2C8ewRSBjgf87+5k6cAcddovv87BlgsL67Srbi3cbST183Pl4XL94h2dE4f6IGOiIA/cbOGZ12cKLXwLPnyGj8uP9Woq/QiIN2AbBP3uHWbd4cEKPHgWbTZVam1ap5TCkShhqLvVaSCMtXIkCFcuYtW272jpzvkF35uTaZMy9JsCGpUzuc/8EzV6jjO0djJRYcDdOYgOJDxXlbdT+FFtSPpL+HtDhARodv6KXT3GUyxcBo4V1AiqKYOdHX";
-      const expandedKeyBuffer = Buffer.from(expandedKeyBase64, "base64");
-      const expandedKey = Array.from(expandedKeyBuffer.values());
-      console.debug("expandedKey:", expandedKey);
-
-      await circuit.expectPass({ key }, { expandedKey });
+    it("should expand 32-byte key to 240-byte correctly", async function (): Promise<void> {
+      const key = Buffer.from([
+        0xaa, 0x6a, 0x44, 0x59, 0x14, 0x10, 0xfb, 0x0d,
+        0x61, 0xa7, 0xac, 0x45, 0x62, 0x4a, 0x17, 0x15,
+        0x41, 0xd9, 0x03, 0xc3, 0xac, 0xef, 0x55, 0xd3,
+        0x5b, 0x10, 0xd9, 0x21, 0xd3, 0x40, 0x4b, 0xba
+      ]);
+      const expandedKey = AESKeyExpansion.expandKey(key);
+      
+      await circuit.expectPass({ key: Array.from(key) }, { expandedKey: expandedKey.flatMap(expandedKey => [...expandedKey]) });
     });
   });
 });
