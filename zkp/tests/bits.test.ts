@@ -10,11 +10,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["8", "15"],
-        },
+        }
       );
       console.info(
         "8-bit 0x0F mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -98,11 +98,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["16", "255"],
-        },
+        }
       );
       console.info(
         "16-bit 0xFF mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -155,11 +155,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["32", "65535"],
-        },
+        }
       );
       console.info(
         "32-bit 0xFFFF mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -216,11 +216,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "1"],
-        },
+        }
       );
       console.info(
         "8-bit 1-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -269,11 +269,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "2"],
-        },
+        }
       );
       console.info(
         "8-bit 2-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -318,11 +318,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "4"],
-        },
+        }
       );
       console.info(
         "8-bit 4-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -365,11 +365,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["16", "8"],
-        },
+        }
       );
       console.info(
         "16-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -410,11 +410,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["32", "8"],
-        },
+        }
       );
       console.info(
         "32-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -441,6 +441,203 @@ describe("ShiftRight Circuit", function () {
         { in: 4294967296 }, // exceeds 32-bit range
         { in: 8589934592 }, // exceeds 32-bit range
         { in: -1 }, // negative value
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectFail(testCase);
+      }
+    });
+  });
+});
+
+describe("BitwiseXor Circuit", function () {
+  let circuit: WitnessTester<["a", "b"], ["c"]>;
+
+  describe("8-bit XOR Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXor",
+        {
+          templateParams: ["8"],
+        }
+      );
+      console.info(
+        "8-bit XOR circuit constraints:",
+        await circuit.getConstraintCount()
+      );
+    });
+
+    it("should perform correct XOR operations", async function (): Promise<void> {
+      const testCases = [
+        { a: 0, b: 0, c: 0 }, // 0000 0000 ^ 0000 0000 = 0000 0000
+        { a: 0, b: 255, c: 255 }, // 0000 0000 ^ 1111 1111 = 1111 1111
+        { a: 255, b: 0, c: 255 }, // 1111 1111 ^ 0000 0000 = 1111 1111
+        { a: 255, b: 255, c: 0 }, // 1111 1111 ^ 1111 1111 = 0000 0000
+        { a: 170, b: 85, c: 255 }, // 1010 1010 ^ 0101 0101 = 1111 1111
+        { a: 85, b: 170, c: 255 }, // 0101 0101 ^ 1010 1010 = 1111 1111
+        { a: 51, b: 204, c: 255 }, // 0011 0011 ^ 1100 1100 = 1111 1111
+        { a: 204, b: 51, c: 255 }, // 1100 1100 ^ 0011 0011 = 1111 1111
+        { a: 15, b: 240, c: 255 }, // 0000 1111 ^ 1111 0000 = 1111 1111
+        { a: 240, b: 15, c: 255 }, // 1111 0000 ^ 0000 1111 = 1111 1111
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass(
+          { a: testCase.a, b: testCase.b },
+          { c: testCase.c }
+        );
+      }
+    });
+
+    it("should handle power of 2 values correctly", async function (): Promise<void> {
+      const testCases = [
+        { a: 1, b: 1, c: 0 }, // 2^0 ^ 2^0 = 0
+        { a: 2, b: 2, c: 0 }, // 2^1 ^ 2^1 = 0
+        { a: 4, b: 4, c: 0 }, // 2^2 ^ 2^2 = 0
+        { a: 8, b: 8, c: 0 }, // 2^3 ^ 2^3 = 0
+        { a: 16, b: 16, c: 0 }, // 2^4 ^ 2^4 = 0
+        { a: 32, b: 32, c: 0 }, // 2^5 ^ 2^5 = 0
+        { a: 64, b: 64, c: 0 }, // 2^6 ^ 2^6 = 0
+        { a: 128, b: 128, c: 0 }, // 2^7 ^ 2^7 = 0
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass(
+          { a: testCase.a, b: testCase.b },
+          { c: testCase.c }
+        );
+      }
+    });
+
+    it("should handle identity operations", async function (): Promise<void> {
+      const testCases = [
+        { a: 170, b: 0, c: 170 }, // XOR with 0 returns original
+        { a: 85, b: 0, c: 85 }, // XOR with 0 returns original
+        { a: 255, b: 0, c: 255 }, // XOR with 0 returns original
+        { a: 123, b: 123, c: 0 }, // XOR with self returns 0
+        { a: 200, b: 200, c: 0 }, // XOR with self returns 0
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass(
+          { a: testCase.a, b: testCase.b },
+          { c: testCase.c }
+        );
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { a: 256, b: 0 }, // exceeds 8-bit range
+        { a: 0, b: 256 }, // exceeds 8-bit range
+        { a: 512, b: 100 }, // exceeds 8-bit range
+        { a: 100, b: 512 }, // exceeds 8-bit range
+        { a: -1, b: 0 }, // negative value
+        { a: 0, b: -1 }, // negative value
+        { a: -10, b: -20 }, // negative values
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectFail(testCase);
+      }
+    });
+  });
+
+  describe("16-bit XOR Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXor",
+        {
+          templateParams: ["16"],
+        }
+      );
+      console.info(
+        "16-bit XOR circuit constraints:",
+        await circuit.getConstraintCount()
+      );
+    });
+
+    it("should perform correct XOR operations", async function (): Promise<void> {
+      const testCases = [
+        { a: 0, b: 0, c: 0 }, // 0x0000 ^ 0x0000 = 0x0000
+        { a: 0, b: 65535, c: 65535 }, // 0x0000 ^ 0xFFFF = 0xFFFF
+        { a: 65535, b: 0, c: 65535 }, // 0xFFFF ^ 0x0000 = 0xFFFF
+        { a: 65535, b: 65535, c: 0 }, // 0xFFFF ^ 0xFFFF = 0x0000
+        { a: 43690, b: 21845, c: 65535 }, // 0xAAAA ^ 0x5555 = 0xFFFF
+        { a: 21845, b: 43690, c: 65535 }, // 0x5555 ^ 0xAAAA = 0xFFFF
+        { a: 61680, b: 3855, c: 65535 }, // 0xF0F0 ^ 0x0F0F = 0xFFFF
+        { a: 255, b: 65280, c: 65535 }, // 0x00FF ^ 0xFF00 = 0xFFFF
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass(
+          { a: testCase.a, b: testCase.b },
+          { c: testCase.c }
+        );
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { a: 65536, b: 0 }, // exceeds 16-bit range
+        { a: 0, b: 65536 }, // exceeds 16-bit range
+        { a: 131072, b: 1000 }, // exceeds 16-bit range
+        { a: -1, b: 0 }, // negative value
+        { a: 0, b: -1 }, // negative value
+        { a: -100, b: -200 }, // negative values
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectFail(testCase);
+      }
+    });
+  });
+
+  describe("32-bit XOR Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXor",
+        {
+          templateParams: ["32"],
+        }
+      );
+      console.info(
+        "32-bit XOR circuit constraints:",
+        await circuit.getConstraintCount()
+      );
+    });
+
+    it("should perform correct XOR operations", async function (): Promise<void> {
+      const testCases = [
+        { a: 0, b: 0, c: 0 }, // 0x00000000 ^ 0x00000000 = 0x00000000
+        { a: 0, b: 4294967295, c: 4294967295 }, // 0x00000000 ^ 0xFFFFFFFF = 0xFFFFFFFF
+        { a: 4294967295, b: 0, c: 4294967295 }, // 0xFFFFFFFF ^ 0x00000000 = 0xFFFFFFFF
+        { a: 4294967295, b: 4294967295, c: 0 }, // 0xFFFFFFFF ^ 0xFFFFFFFF = 0x00000000
+        { a: 2863311530, b: 1431655765, c: 4294967295 }, // 0xAAAAAAAA ^ 0x55555555 = 0xFFFFFFFF
+        { a: 1431655765, b: 2863311530, c: 4294967295 }, // 0x55555555 ^ 0xAAAAAAAA = 0xFFFFFFFF
+        { a: 4042322160, b: 252645135, c: 4294967295 }, // 0xF0F0F0F0 ^ 0x0F0F0F0F = 0xFFFFFFFF
+        { a: 65535, b: 4294901760, c: 4294967295 }, // 0x0000FFFF ^ 0xFFFF0000 = 0xFFFFFFFF
+      ];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass(
+          { a: testCase.a, b: testCase.b },
+          { c: testCase.c }
+        );
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { a: 4294967296, b: 0 }, // exceeds 32-bit range
+        { a: 0, b: 4294967296 }, // exceeds 32-bit range
+        { a: 8589934592, b: 1000 }, // exceeds 32-bit range
+        { a: -1, b: 0 }, // negative value
+        { a: 0, b: -1 }, // negative value
+        { a: -1000, b: -2000 }, // negative values
       ];
 
       for (const testCase of testCases) {

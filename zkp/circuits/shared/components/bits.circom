@@ -2,6 +2,7 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/sha256/shift.circom";
+include "circomlib/circuits/gates.circom";
 
 /**
  * @param bits - The bit width of the input and mask
@@ -16,15 +17,15 @@ template Mask(bits, mask) {
     signal input {number} in;
     signal output {number} out;
     
-    signal in_bits[bits] <== Num2Bits(bits)(in);
-    signal mask_bits[bits] <== Num2Bits(bits)(mask);
-    signal out_bits[bits];
+    signal inBits[bits] <== Num2Bits(bits)(in);
+    signal maskBits[bits] <== Num2Bits(bits)(mask);
+    signal outBits[bits];
 
     for (var i = 0; i < bits; i++) {
-        out_bits[i] <== in_bits[i]*mask_bits[i];
+        outBits[i] <== inBits[i]*maskBits[i];
     }
 
-    out <== Bits2Num(bits)(out_bits);
+    out <== Bits2Num(bits)(outBits);
 }
 
 /**
@@ -39,7 +40,32 @@ template ShiftRight(bits, offset) {
     signal input {number} in;
     signal output {number} out;
 
-    signal in_bits[bits] <== Num2Bits(bits)(in);
-    signal out_bits[bits] <== ShR(bits,offset)(in_bits);
-    out <== Bits2Num(bits)(out_bits);
+    signal inBits[bits] <== Num2Bits(bits)(in);
+    signal outBits[bits] <== ShR(bits,offset)(inBits);
+    out <== Bits2Num(bits)(outBits);
+}
+
+
+/**
+ * @param bits - The bit width of the input numbers
+ *
+ * Example: XOR two 8-bit numbers
+ *  signal {number} result <== BitwiseXor(8)(170, 85);  // Input a: 10101010 (170)
+ *                                                      // Input b: 01010101  (85)
+ *  result === 255;                                     // Result:  11111111 (255)
+ */
+template BitwiseXor(bits) {
+    signal input {number} a;
+    signal input {number} b;
+    signal output {number} c;
+    
+    signal aBits[bits] <== Num2Bits(bits)(a);
+    signal bBits[bits] <== Num2Bits(bits)(b);
+    signal cBits[bits];
+    
+    for (var i = 0; i < bits; i++) {
+        cBits[i] <== XOR()(aBits[i], bBits[i]);
+    }
+    
+    c <== Bits2Num(bits)(cBits);
 }
