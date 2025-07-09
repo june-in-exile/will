@@ -1,6 +1,6 @@
 import { WitnessTester } from "./utils";
 
-describe.skip("ExpandKey Circuit", function () {
+describe("ExpandKey Circuit", function () {
   let circuit: WitnessTester<["key"], ["expandedKey"]>;
 
   describe("Key Expansion", function (): void {

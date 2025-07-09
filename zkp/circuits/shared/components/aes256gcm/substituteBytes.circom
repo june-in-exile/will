@@ -9,7 +9,7 @@ template SBox() {
 
     var wIn = 1, nIn = 256;
 
-    signal sbox2D[nIn][wIn] <== [
+    signal substitutionBox[nIn][wIn] <== [
         [0x63], [0x7c], [0x77], [0x7b], [0xf2], [0x6b], [0x6f], [0xc5],
         [0x30], [0x01], [0x67], [0x2b], [0xfe], [0xd7], [0xab], [0x76],
         [0xca], [0x82], [0xc9], [0x7d], [0xfa], [0x59], [0x47], [0xf0],
@@ -44,7 +44,7 @@ template SBox() {
         [0x41], [0x99], [0x2d], [0x0f], [0xb0], [0x54], [0xbb], [0x16]
     ];
     
-    signal outs[wIn] <== Multiplexer(wIn,nIn)(sbox2D,in);
+    signal outs[wIn] <== Multiplexer(wIn,nIn)(substitutionBox,in);
     out <== outs[0];
 }
 
