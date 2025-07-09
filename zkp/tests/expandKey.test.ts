@@ -8,11 +8,11 @@ describe("ExpandKey Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256gcm/expandKey.circom",
-        "ExpandKey",
+        "ExpandKey"
       );
       console.info(
         "Key expansion circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -26,7 +26,7 @@ describe("ExpandKey Circuit", function () {
 
       await circuit.expectPass(
         { key: key },
-        { expandedKey: expandedKey.flatMap((expandedKey) => [...expandedKey]) },
+        { expandedKey: expandedKey.flatMap((expandedKey) => [...expandedKey]) }
       );
     });
   });

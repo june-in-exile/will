@@ -3,6 +3,7 @@ pragma circom 2.2.2;
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "substituteBytes.circom";
+include "../bits.circom";
 
 template RotWord() {
     signal input {word} in[4];
@@ -16,10 +17,14 @@ template RotWord() {
 template XORWord() {
     signal input {word} a[4];
     signal input {word} b[4];
-    signal output {word} out[4];
+    signal output {word} c[4];
     
+    signal {number} _a[4];
+    signal {number} _b[4];
     for (var i = 0; i < 4; i++) {
-        out[i] <== XOR()(a[i],b[i]);
+        _a[i] <== a[i];
+        _b[i] <== b[i];
+        c[i] <== BitwiseXor(8)(_a[i],_b[i]);
     }
 }
 
