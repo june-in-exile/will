@@ -3,6 +3,10 @@ pragma circom 2.2.2;
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/multiplexer.circom";
 
+bus Word() {
+    signal {byte,number} bytes[4];
+}
+
 template SBox() {
     signal input {byte} in;
     signal output {byte} out;
@@ -49,11 +53,10 @@ template SBox() {
 }
 
 template SubWord() {
-    signal input {word} _in[4];
-    signal output {word} _out[4];
-
-    signal {byte} _word[4] <== _in;
-    _out <== SubstituteBytes(4)(_word);
+    Word() input _in;
+    Word() output _out;
+    
+    _out.bytes <== SubstituteBytes(4)(_in.bytes);
 }
 
 template SubstituteBytes(byteCount) {

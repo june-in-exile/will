@@ -6,25 +6,23 @@ include "../shared/components/bits.circom";
 include "../shared/components/aes256gcm/substituteBytes.circom";
 
 template RotWord() {
-    signal input {word} in[4];
-    signal output {word} out[4];
+    input Word() in;
+    output Word() out;
     
     for (var i = 0; i < 4; i++) {
-        out[i] <== in[(i + 1) % 4];
+        out.bytes[i] <== in.bytes[(i + 1) % 4];
     }
 }
 
 template XORWord() {
-    signal input {word} a[4];
-    signal input {word} b[4];
-    signal output {word} c[4];
+    input Word() a;
+    input Word() b;
+    output Word() c;
     
-    signal {number} _a[4];
-    signal {number} _b[4];
+    signal _a[4] <== a.bytes;
+    signal _b[4] <== b.bytes;
     for (var i = 0; i < 4; i++) {
-        _a[i] <== a[i];
-        _b[i] <== b[i];
-        c[i] <== BitwiseXor(8)(_a[i],_b[i]);
+        c.bytes[i] <== BitwiseXor(8)(_a[i],_b[i]);
     }
 }
 
@@ -34,7 +32,7 @@ template RCon() {
 
     var wIn = 1, nIn = 14;
 
-    signal roundConstants[nIn][wIn] <== [
+    var roundConstants[nIn][wIn] = [
         [0x01],[0x02],[0x04],[0x08],
         [0x10],[0x20],[0x40],[0x80],
         [0x1b],[0x36],[0x6c],[0xd8],
@@ -46,88 +44,57 @@ template RCon() {
 }
 
 template ExpandKey() {
-    signal input {byte} key[32];
-    signal output {byte} expandedKey[240];
+    input Word() key[8];
+    output Word() expandedKey[60];
     
-    // Copy original key to first 32 bytes of expanded key
-    for (var i = 0; i < 32; i++) {
+    // Copy original key to first 8 words of expanded key
+    for (var i = 0; i < 8; i++) {
         expandedKey[i] <== key[i];
     }
     
     // Key expansion loop
-    signal {word} prevWords[208][4];
-    signal {word} rotatedWords[208][4];
-    signal {word} substitutedWords[208][4];
-    signal {byte} roundConstants[208];
-    signal {word} rconWords[208][4];
-    signal {word} newWords[208][4];
-    signal {word} prevRoundWords[208][4];
-    signal {word} finalWords[208][4];
+    Word() prevWords[52];
+    Word() rotatedWords[52];
+    Word() substitutedWords[52];
+    signal {byte} roundConstants[52];
+    Word() rconWords[52];
+    Word() newWords[52];
+    Word() prevRoundWords[52];
+    Word() finalWords[52];
 
-    for (var i = 32; i < 240; i += 4) {
+    for (var i = 8; i < 60; i++) {
         // Get previous word
-        for (var j = 0; j < 4; j++) {
-            prevWords[i-32][j] <== expandedKey[i - 4 + j];
-            log("prevWords[",i-32,"][",j,"]:", prevWords[i-32][j]);
-        }
+        prevWords[i-8] <== expandedKey[i-1];
         
         // Check if special processing is needed
-        if (i % 32 == 0) {
+        if (i % 8 == 0) {
             // Every 8 words perform rotation and substitution, and xor with round constant
-            rotatedWords[i-32] <== RotWord()(prevWords[i-32]);
+            rotatedWords[i-8] <== RotWord()(prevWords[i-8]);
 
-            substitutedWords[i-32] <== SubWord()(rotatedWords[i-32]);
-
-            for (var j = 0; j < 4; j++) {
-                log("rotatedWords[",i-32,"][",j,"]:", rotatedWords[i-32][j]);
-            }
-            for (var j = 0; j < 4; j++) {
-                log("substitutedWords[",i-32,"][",j,"]:", substitutedWords[i-32][j]);
-            }
+            substitutedWords[i-8] <== SubWord()(rotatedWords[i-8]);
 
             // Get round constant
-            roundConstants[i-32] <== RCon()((i \ 32) - 1);
-            rconWords[i-32] <== [roundConstants[i-32], 0x00, 0x00 , 0x00];
-            for (var j = 0; j < 4; j++) {
-                log("rconWords[",i-32,"][",j,"]:", rconWords[i-32][j]);
-            }
-
-            newWords[i-32] <== XORWord()(substitutedWords[i-32],rconWords[i-32]);
-            for (var j = 0; j < 4; j++) {
-                log("newWords[",i-32,"][",j,"]:", newWords[i-32][j]);
-            }
-
-        } else if (i % 32 == 16) {
-            // At byte 16 of every 32 bytes, perform substitution
-            newWords[i-32] <== SubWord()(prevWords[i-32]);
+            roundConstants[i-8] <== RCon()((i \ 8) - 1);
+            rconWords[i-8].bytes <== [roundConstants[i-8], 0, 0, 0];
+            newWords[i-8] <== XORWord()(substitutedWords[i-8],rconWords[i-8]);
+        } else if (i % 8 == 4) {
+            // At the half of every 8 words, perform substitution
+            newWords[i-8] <== SubWord()(prevWords[i-8]);
         } else {
             // Other cases, direct copy
-            newWords[i-32] <== prevWords[i-32];
+            newWords[i-8] <== prevWords[i-8];
         }
         
         // XOR with corresponding word from previous round
-        for (var j = 0; j < 4; j++) {
-            prevRoundWords[i-32][j] <== expandedKey[i - 32 + j];
-        }
-        finalWords[i-32] <== XORWord()(newWords[i-32],prevRoundWords[i-32]);
-
-        // Write final result to expanded key
-        for (var j = 0; j < 4; j++) {
-            expandedKey[i + j] <== finalWords[i-32][j];
-        }
+        expandedKey[i] <== XORWord()(newWords[i-8],expandedKey[i-8]);
     }
 }
 
 template TestExpandKey() {
-    signal input key[32];
-    signal {byte} _key[32];
-    for (var i = 0; i < 32; i++) {
-        _key[i] <== key[i];
-    }
-    signal output {byte} expandedKey[240];
+    input Word() key[8];
+    output Word() expandedKey[60];
 
-    expandedKey <== ExpandKey()(_key);
+    expandedKey <== ExpandKey()(key);
 }
-
 
 component main = TestExpandKey();
