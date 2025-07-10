@@ -53,17 +53,17 @@ template SBox() {
 }
 
 template SubWord() {
-    Word() input _in;
-    Word() output _out;
+    Word() input in;
+    Word() output out;
     
-    _out.bytes <== SubstituteBytes(4)(_in.bytes);
+    out.bytes <== SubstituteBytes(4)(in.bytes);
 }
 
 template SubstituteBytes(byteCount) {
-    signal input {byte} _in[byteCount];
-    signal output {byte} _out[byteCount];
+    signal input {byte} in[byteCount];
+    signal output {byte} out[byteCount];
     
     for (var i = 0; i < byteCount; i++) {
-        _out[i] <== SBox()(_in[i]);
+        out[i] <== SBox()(in[i]);
     }
 }

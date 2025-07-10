@@ -61,9 +61,9 @@
     ],
     "testTimeout": 30000,
     "globals": {
-      "LOG_LEVEL": "info",
+      "LOG_LEVEL": "debug",
       "CIRCOM_DEFAULTS": {
-        "O": 1,
+        "O": 2,
         "verbose": false,
         "inspect": false,
         "json": false,

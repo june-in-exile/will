@@ -453,7 +453,7 @@ describe("ShiftRight Circuit", function () {
 describe("BitwiseXor Circuit", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
 
-  describe("8-bit XOR Operations", function (): void {
+  describe("8-bit Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
@@ -463,12 +463,12 @@ describe("BitwiseXor Circuit", function () {
         }
       );
       console.info(
-        "8-bit XOR circuit constraints:",
+        "8-bit Xor circuit constraints:",
         await circuit.getConstraintCount()
       );
     });
 
-    it("should perform correct XOR operations", async function (): Promise<void> {
+    it("should perform correct Xor operations", async function (): Promise<void> {
       const testCases = [
         { a: 0, b: 0, c: 0 }, // 0000 0000 ^ 0000 0000 = 0000 0000
         { a: 0, b: 255, c: 255 }, // 0000 0000 ^ 1111 1111 = 1111 1111
@@ -512,11 +512,11 @@ describe("BitwiseXor Circuit", function () {
 
     it("should handle identity operations", async function (): Promise<void> {
       const testCases = [
-        { a: 170, b: 0, c: 170 }, // XOR with 0 returns original
-        { a: 85, b: 0, c: 85 }, // XOR with 0 returns original
-        { a: 255, b: 0, c: 255 }, // XOR with 0 returns original
-        { a: 123, b: 123, c: 0 }, // XOR with self returns 0
-        { a: 200, b: 200, c: 0 }, // XOR with self returns 0
+        { a: 170, b: 0, c: 170 }, // Xor with 0 returns original
+        { a: 85, b: 0, c: 85 }, // Xor with 0 returns original
+        { a: 255, b: 0, c: 255 }, // Xor with 0 returns original
+        { a: 123, b: 123, c: 0 }, // Xor with self returns 0
+        { a: 200, b: 200, c: 0 }, // Xor with self returns 0
       ];
 
       for (const testCase of testCases) {
@@ -544,7 +544,7 @@ describe("BitwiseXor Circuit", function () {
     });
   });
 
-  describe("16-bit XOR Operations", function (): void {
+  describe("16-bit Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
@@ -554,12 +554,12 @@ describe("BitwiseXor Circuit", function () {
         }
       );
       console.info(
-        "16-bit XOR circuit constraints:",
+        "16-bit Xor circuit constraints:",
         await circuit.getConstraintCount()
       );
     });
 
-    it("should perform correct XOR operations", async function (): Promise<void> {
+    it("should perform correct Xor operations", async function (): Promise<void> {
       const testCases = [
         { a: 0, b: 0, c: 0 }, // 0x0000 ^ 0x0000 = 0x0000
         { a: 0, b: 65535, c: 65535 }, // 0x0000 ^ 0xFFFF = 0xFFFF
@@ -595,7 +595,7 @@ describe("BitwiseXor Circuit", function () {
     });
   });
 
-  describe("32-bit XOR Operations", function (): void {
+  describe("32-bit Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
@@ -605,12 +605,12 @@ describe("BitwiseXor Circuit", function () {
         }
       );
       console.info(
-        "32-bit XOR circuit constraints:",
+        "32-bit Xor circuit constraints:",
         await circuit.getConstraintCount()
       );
     });
 
-    it("should perform correct XOR operations", async function (): Promise<void> {
+    it("should perform correct Xor operations", async function (): Promise<void> {
       const testCases = [
         { a: 0, b: 0, c: 0 }, // 0x00000000 ^ 0x00000000 = 0x00000000
         { a: 0, b: 4294967295, c: 4294967295 }, // 0x00000000 ^ 0xFFFFFFFF = 0xFFFFFFFF

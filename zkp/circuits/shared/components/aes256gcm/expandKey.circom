@@ -14,7 +14,7 @@ template RotWord() {
     }
 }
 
-template XORWord() {
+template XorWord() {
     input Word() a;
     input Word() b;
     output Word() c;
@@ -28,64 +28,84 @@ template XORWord() {
 
 template RCon() {
     signal input round;
-    signal output {byte} out;
+    output Word() out;
 
-    var wIn = 1, nIn = 14;
+    var wIn = 1, nIn = 10;
 
     var roundConstants[nIn][wIn] = [
         [0x01],[0x02],[0x04],[0x08],
         [0x10],[0x20],[0x40],[0x80],
-        [0x1b],[0x36],[0x6c],[0xd8],
-        [0xab],[0x4d]
+        [0x1b],[0x36]
     ];
     
-    signal outs[wIn] <== Multiplexer(wIn,nIn)(roundConstants,round);
-    out <== outs[0];
+    signal {byte} outs[wIn] <== Multiplexer(wIn,nIn)(roundConstants,round);
+    out.bytes <== [outs[0], 0, 0 , 0];
 }
 
-template ExpandKey() {
-    input Word() key[8];
-    output Word() expandedKey[60];
-    
-    // Copy original key to first 8 words of expanded key
-    for (var i = 0; i < 8; i++) {
+/**
+ * FIPS 197 AES 5.2 KEYEXPANSION()
+ * 
+ * Symbols:
+ *   Nk: the key size in words
+ *   Nb: the block size in words
+ *   Nr: the number of rounds
+ *   key[i...i+3]: the sequence key[i],key[i+1],key[i+2],key[i+3]. 
+ *   w[i]: the i-th word (a total of 4*Nr+4=60 words).
+ *
+ * Key-Block-Round Combinations:
+ *           Nk(words) Nb(words) Nr(rounds)
+ * AES-128      4          4         10
+ * AES-192      6          4         12
+ * AES-256      8          4         14
+ *
+ * Key expansion rule:
+ *   for i < Nk:
+ *     w[i] = key[4*i...4*i+3]
+ *   for i >= Nk:
+ *     if (i mod Nk == 0)
+ *       w[i] = w[i - Nk] ⊕ SubWord(RotWord(w[i - 1])) ⊕ Rcon[i / Nk]
+ *     else if (Nk > 6 and i mod Nk == 4)
+ *       w[i] = w[i - Nk] ⊕ SubWord(w[i - 1])
+ *     else
+ *       w[i] = w[i - Nk] ⊕ w[i - 1]
+ */
+template ExpandKey(keyBits) {
+    var (Nk, Nb, Nr);
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        (Nk, Nb, Nr) = (4,4,10);
+    } else if (keyBits == 192) {
+        (Nk, Nb, Nr) = (6,4,12);
+    } else {
+        (Nk, Nb, Nr) = (8,4,14);
+    }
+    var expandedNk = 4*(Nr+1);
+
+    input Word() key[Nk];
+    output Word() expandedKey[expandedNk];
+
+    Word() rotatedWords[expandedNk\Nk];
+    Word() substitutedWords[expandedNk\Nk];
+    Word() roundConstants[expandedNk\Nk];
+    Word() toBeXorWords[expandedNk-Nk];
+
+    for (var i = 0; i < Nk; i++) {
         expandedKey[i] <== key[i];
     }
-    
-    // Key expansion loop
-    Word() prevWords[52];
-    Word() rotatedWords[52];
-    Word() substitutedWords[52];
-    signal {byte} roundConstants[52];
-    Word() rconWords[52];
-    Word() newWords[52];
-    Word() prevRoundWords[52];
-    Word() finalWords[52];
 
-    for (var i = 8; i < 60; i++) {
-        // Get previous word
-        prevWords[i-8] <== expandedKey[i-1];
-        
-        // Check if special processing is needed
-        if (i % 8 == 0) {
-            // Every 8 words perform rotation and substitution, and xor with round constant
-            rotatedWords[i-8] <== RotWord()(prevWords[i-8]);
-
-            substitutedWords[i-8] <== SubWord()(rotatedWords[i-8]);
-
-            // Get round constant
-            roundConstants[i-8] <== RCon()((i \ 8) - 1);
-            rconWords[i-8] <== [roundConstants[i-8], 0, 0, 0];
-            newWords[i-8] <== XORWord()(substitutedWords[i-8],rconWords[i-8]);
-        } else if (i % 8 == 4) {
-            // At the half of every 8 words, perform substitution
-            newWords[i-8] <== SubWord()(prevWords[i-8]);
+    for (var i = Nk; i < expandedNk; i++) {
+        if (i % Nk == 0) {
+            rotatedWords[(i\Nk)-1] <== RotWord()(expandedKey[i-1]);
+                
+            substitutedWords[(i\Nk)-1] <== SubWord()(rotatedWords[(i\Nk)-1]);
+                
+            roundConstants[(i\Nk)-1] <== RCon()((i\Nk)-1);
+            toBeXorWords[i-8] <== XorWord()(substitutedWords[(i\Nk)-1],roundConstants[(i\Nk)-1]);
+        } else if (i > 6 && i % Nk == 4) {
+            toBeXorWords[i-8] <== SubWord()(expandedKey[i-1]);
         } else {
-            // Other cases, direct copy
-            newWords[i-8] <== prevWords[i-8];
+            toBeXorWords[i-8] <== expandedKey[i-1];
         }
-        
-        // XOR with corresponding word from previous round
-        expandedKey[i] <== XORWord()(newWords[i-8],expandedKey[i-8]);
+        expandedKey[i] <== XorWord()(expandedKey[i-Nk],toBeXorWords[i-8]);
     }
 }
