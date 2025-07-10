@@ -2,18 +2,20 @@ import { AESKeyExpansion } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("ExpandKey Circuit", function () {
-  let circuit: WitnessTester<["key.bytes"], ["expandedKey"]>;
+  let circuit: WitnessTester<["key"], ["expandedKey"]>;
 
   describe("Key Expansion for AES-256", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/expandKey.circom",
-        "ExpandKey", {
-        templateParams: ["256"],
-      });
+        "circuits/shared/components/aes256gcm/keyExpansion.circom",
+        "ExpandKey",
+        {
+          templateParams: ["256"],
+        },
+      );
       console.info(
         "Key expansion circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -26,8 +28,8 @@ describe("ExpandKey Circuit", function () {
       const expandedKey = AESKeyExpansion.expandKey(Buffer.from(key));
 
       await circuit.expectPass(
-        { "key.bytes": key },
-        { expandedKey: expandedKey.flatMap((expandedKey) => [...expandedKey]) }
+        { key: key },
+        { expandedKey: expandedKey.flatMap((expandedKey) => [...expandedKey]) },
       );
     });
   });

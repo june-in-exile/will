@@ -2,12 +2,12 @@ import { AESSbox, AESUtils } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("SubWord Circuit", function () {
-  let circuit: WitnessTester<["_in"], ["_out"]>;
+  let circuit: WitnessTester<["in"], ["out.bytes"]>;
 
   describe("Word Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/substituteBytes.circom",
+        "circuits/shared/components/aes256gcm/byteSubstitution.circom",
         "SubWord",
       );
       console.info(
@@ -22,8 +22,8 @@ describe("SubWord Circuit", function () {
           _out = AESSbox.substituteBytes(_in);
 
         await circuit.expectPass(
-          { _in: Array.from(_in) },
-          { _out: Array.from(_out) },
+          { in: Array.from(_in) },
+          { "out.bytes": Array.from(_out) },
         );
       }
     });
@@ -31,12 +31,12 @@ describe("SubWord Circuit", function () {
 });
 
 describe("SubstituteBytes Circuit", function () {
-  let circuit: WitnessTester<["_in"], ["_out"]>;
+  let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("Single Byte Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/substituteBytes.circom",
+        "circuits/shared/components/aes256gcm/byteSubstitution.circom",
         "SubstituteBytes",
         {
           templateParams: ["1"],
@@ -54,8 +54,8 @@ describe("SubstituteBytes Circuit", function () {
           _out = AESSbox.substituteBytes(_in);
 
         await circuit.expectPass(
-          { _in: Array.from(_in) },
-          { _out: Array.from(_out) },
+          { in: Array.from(_in) },
+          { out: Array.from(_out) },
         );
       }
     });
@@ -64,7 +64,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("16-Byte Bytes Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/substituteBytes.circom",
+        "circuits/shared/components/aes256gcm/byteSubstitution.circom",
         "SubstituteBytes",
         {
           templateParams: ["16"],
@@ -82,8 +82,8 @@ describe("SubstituteBytes Circuit", function () {
           _out = AESSbox.substituteBytes(_in);
 
         await circuit.expectPass(
-          { _in: Array.from(_in) },
-          { _out: Array.from(_out) },
+          { in: Array.from(_in) },
+          { out: Array.from(_out) },
         );
       }
     });

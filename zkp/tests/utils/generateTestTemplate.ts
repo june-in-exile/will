@@ -30,16 +30,18 @@ export async function generateTestTemplate(
   const template = parseTemplate(content, templateName);
 
   if (!template) {
-    throw new Error(
-      `Template "${templateName}" not found in ${circuitPath}`,
-    );
+    throw new Error(`Template "${templateName}" not found in ${circuitPath}`);
   }
 
   // Find all unique bus types used in the template
   const usedBusTypes = findUsedBusTypes(template);
 
   // Collect all bus definitions needed for test
-  const busDefinitions = await collectBusDefinitions(circuitPath, content, usedBusTypes);
+  const busDefinitions = await collectBusDefinitions(
+    circuitPath,
+    content,
+    usedBusTypes,
+  );
 
   // Create test directory and file
   const testDir = createTestDir(circuitPath);
@@ -337,7 +339,11 @@ function extractPreSignalCode(templateBody: string): string {
     }
 
     // Stop when encountering signal declaration
-    if (trimmed.startsWith("signal ") || trimmed.startsWith("input ") || trimmed.startsWith("output ")) {
+    if (
+      trimmed.startsWith("signal ") ||
+      trimmed.startsWith("input ") ||
+      trimmed.startsWith("output ")
+    ) {
       break;
     }
 
@@ -389,12 +395,12 @@ function generateTaggedSignalHandling(inputs: Signal[]): string {
   if (hasTaggedInputs) {
     content += "\n";
     for (const input of inputs) {
-        if (input.arraySize) {
-          content += `    signal {${input.tag}} _${input.name}[${input.arraySize}];\n`;
-          content += `    _${input.name} <== ${input.name};\n`;
-        } else {
-          content += `    signal {${input.tag}} _${input.name} <== ${input.name};\n`;
-        }
+      if (input.arraySize) {
+        content += `    signal {${input.tag}} _${input.name}[${input.arraySize}];\n`;
+        content += `    _${input.name} <== ${input.name};\n`;
+      } else {
+        content += `    signal {${input.tag}} _${input.name} <== ${input.name};\n`;
+      }
     }
   }
 
@@ -405,9 +411,9 @@ function findUsedBusTypes(template: Template): Set<string> {
   const busTypes = new Set<string>();
 
   // Find bus types in inputs and outputs
-  [...template.inputs, ...template.outputs].forEach(signal => {
+  [...template.inputs, ...template.outputs].forEach((signal) => {
     if (signal.busType) {
-      const busName = signal.busType.replace(/\(\)$/, '');
+      const busName = signal.busType.replace(/\(\)$/, "");
       busTypes.add(busName);
     }
   });
@@ -418,14 +424,14 @@ function findUsedBusTypes(template: Template): Set<string> {
 async function collectBusDefinitions(
   circuitPath: string,
   content: string,
-  usedBusTypes: Set<string>
+  usedBusTypes: Set<string>,
 ): Promise<BusDefinition[]> {
   const busDefinitions: BusDefinition[] = [];
   const processedBuses = new Set<string>();
 
   // Convert Test bus types to original bus types for searching
-  const originalBusTypes = Array.from(usedBusTypes).map(busName =>
-    busName.startsWith('Test') ? busName.replace(/^Test/, '') : busName
+  const originalBusTypes = Array.from(usedBusTypes).map((busName) =>
+    busName.startsWith("Test") ? busName.replace(/^Test/, "") : busName,
   );
 
   // Queue of original bus types to process (including dependencies)
@@ -443,7 +449,11 @@ async function collectBusDefinitions(
 
     // If not found, search in included files
     if (!busDefinition) {
-      busDefinition = await searchBusInIncludes(circuitPath, content, originalBusName);
+      busDefinition = await searchBusInIncludes(
+        circuitPath,
+        content,
+        originalBusName,
+      );
     }
 
     if (busDefinition) {
@@ -452,10 +462,13 @@ async function collectBusDefinitions(
       busDefinitions.push(testBusDefinition);
 
       // Add any bus dependencies to the queue
-      testBusDefinition.signals.forEach(signal => {
+      testBusDefinition.signals.forEach((signal) => {
         if (signal.busType) {
-          const depBusName = signal.busType.replace(/\(\)$/, '');
-          if (!processedBuses.has(`Test${depBusName}`) && !busQueue.includes(depBusName)) {
+          const depBusName = signal.busType.replace(/\(\)$/, "");
+          if (
+            !processedBuses.has(`Test${depBusName}`) &&
+            !busQueue.includes(depBusName)
+          ) {
             busQueue.push(depBusName);
           }
         }
@@ -469,7 +482,7 @@ async function collectBusDefinitions(
 async function searchBusInIncludes(
   circuitPath: string,
   content: string,
-  busName: string
+  busName: string,
 ): Promise<BusDefinition | null> {
   const includeRegex = /include\s+"([^"]+)";/g;
   const circuitDir = path.dirname(circuitPath);
@@ -479,11 +492,11 @@ async function searchBusInIncludes(
     const includePath = match[1];
 
     // Skip circomlib includes
-    if (includePath.startsWith('circomlib/')) continue;
+    if (includePath.startsWith("circomlib/")) continue;
 
     try {
       const resolvedPath = path.resolve(circuitDir, includePath);
-      const includeContent = await fs.promises.readFile(resolvedPath, 'utf8');
+      const includeContent = await fs.promises.readFile(resolvedPath, "utf8");
 
       // First, try to find the bus in this file
       const busDefinition = parseBusDefinition(includeContent, busName);
@@ -492,7 +505,11 @@ async function searchBusInIncludes(
       }
 
       // If not found, recursively search in this file's includes
-      const nestedBus = await searchBusInIncludes(resolvedPath, includeContent, busName);
+      const nestedBus = await searchBusInIncludes(
+        resolvedPath,
+        includeContent,
+        busName,
+      );
       if (nestedBus) {
         return nestedBus;
       }
@@ -506,12 +523,12 @@ async function searchBusInIncludes(
   return null;
 }
 
-function parseBusDefinition(content: string, busName: string): BusDefinition | null {
+function parseBusDefinition(
+  content: string,
+  busName: string,
+): BusDefinition | null {
   // Use a more robust regex to match bus definitions with proper brace handling
-  const busStartRegex = new RegExp(
-    `bus\\s+${busName}\\s*\\(\\)\\s*{`,
-    'gm'
-  );
+  const busStartRegex = new RegExp(`bus\\s+${busName}\\s*\\(\\)\\s*{`, "gm");
 
   const match = busStartRegex.exec(content);
   if (!match) return null;
@@ -522,8 +539,8 @@ function parseBusDefinition(content: string, busName: string): BusDefinition | n
   let i = startIndex;
 
   while (i < content.length && braceCount > 0) {
-    if (content[i] === '{') braceCount++;
-    else if (content[i] === '}') braceCount--;
+    if (content[i] === "{") braceCount++;
+    else if (content[i] === "}") braceCount--;
     i++;
   }
 
@@ -534,27 +551,33 @@ function parseBusDefinition(content: string, busName: string): BusDefinition | n
 
   return {
     name: busName,
-    signals
+    signals,
   };
 }
 
 function parseBusSignals(busBody: string): Signal[] {
   const signals: Signal[] = [];
-  const lines = busBody.split('\n');
+  const lines = busBody.split("\n");
 
   for (const line of lines) {
     const trimmedLine = line.trim();
 
     // Skip empty lines and comments
-    if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
+    if (
+      !trimmedLine ||
+      trimmedLine.startsWith("//") ||
+      trimmedLine.startsWith("/*")
+    ) {
       continue;
     }
 
     // Remove trailing semicolon
-    const cleanLine = trimmedLine.replace(/;$/, '');
+    const cleanLine = trimmedLine.replace(/;$/, "");
 
     // Try to match bus signal first: BusType() {tag}? name[array]?
-    const busSignalMatch = cleanLine.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\(\)\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\[([^\]]+)\])?$/);
+    const busSignalMatch = cleanLine.match(
+      /^([a-zA-Z_][a-zA-Z0-9_]*)\(\)\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\[([^\]]+)\])?$/,
+    );
 
     if (busSignalMatch) {
       signals.push({
@@ -567,7 +590,9 @@ function parseBusSignals(busBody: string): Signal[] {
     }
 
     // Try to match normal signal: signal {tag}? name[array]?
-    const normalSignalMatch = cleanLine.match(/^signal\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\[([^\]]+)\])?$/);
+    const normalSignalMatch = cleanLine.match(
+      /^signal\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\[([^\]]+)\])?$/,
+    );
 
     if (normalSignalMatch) {
       signals.push({
@@ -584,13 +609,13 @@ function parseBusSignals(busBody: string): Signal[] {
 function convertToTestBus(busDefinition: BusDefinition): BusDefinition {
   return {
     name: `Test${busDefinition.name}`,
-    signals: busDefinition.signals.map(signal => ({
+    signals: busDefinition.signals.map((signal) => ({
       name: signal.name,
       arraySize: signal.arraySize,
       busType: signal.busType,
       // Remove tags from test bus
-      tag: undefined
-    }))
+      tag: undefined,
+    })),
   };
 }
 
@@ -599,10 +624,10 @@ function generateTestBusDefinitions(busDefinitions: BusDefinition[]): string {
 
   let content = "";
 
-  busDefinitions.forEach(bus => {
+  busDefinitions.forEach((bus) => {
     content += `bus ${bus.name}() {\n`;
 
-    bus.signals.forEach(signal => {
+    bus.signals.forEach((signal) => {
       const arrayPart = signal.arraySize ? `[${signal.arraySize}]` : "";
 
       if (signal.busType) {

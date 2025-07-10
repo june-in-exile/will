@@ -10,11 +10,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["8", "15"],
-        }
+        },
       );
       console.info(
         "8-bit 0x0F mask circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -98,11 +98,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["16", "255"],
-        }
+        },
       );
       console.info(
         "16-bit 0xFF mask circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -155,11 +155,11 @@ describe("Mask Circuit", function () {
         "Mask",
         {
           templateParams: ["32", "65535"],
-        }
+        },
       );
       console.info(
         "32-bit 0xFFFF mask circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -216,11 +216,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "1"],
-        }
+        },
       );
       console.info(
         "8-bit 1-offset shift circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -269,11 +269,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "2"],
-        }
+        },
       );
       console.info(
         "8-bit 2-offset shift circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -318,11 +318,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["8", "4"],
-        }
+        },
       );
       console.info(
         "8-bit 4-offset shift circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -365,11 +365,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["16", "8"],
-        }
+        },
       );
       console.info(
         "16-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -410,11 +410,11 @@ describe("ShiftRight Circuit", function () {
         "ShiftRight",
         {
           templateParams: ["32", "8"],
-        }
+        },
       );
       console.info(
         "32-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -460,11 +460,11 @@ describe("BitwiseXor Circuit", function () {
         "BitwiseXor",
         {
           templateParams: ["8"],
-        }
+        },
       );
       console.info(
         "8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -485,7 +485,7 @@ describe("BitwiseXor Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
       }
     });
@@ -505,7 +505,7 @@ describe("BitwiseXor Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
       }
     });
@@ -522,7 +522,7 @@ describe("BitwiseXor Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
       }
     });
@@ -551,11 +551,11 @@ describe("BitwiseXor Circuit", function () {
         "BitwiseXor",
         {
           templateParams: ["16"],
-        }
+        },
       );
       console.info(
         "16-bit Xor circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -574,7 +574,7 @@ describe("BitwiseXor Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
       }
     });
@@ -602,11 +602,11 @@ describe("BitwiseXor Circuit", function () {
         "BitwiseXor",
         {
           templateParams: ["32"],
-        }
+        },
       );
       console.info(
         "32-bit Xor circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -625,7 +625,7 @@ describe("BitwiseXor Circuit", function () {
       for (const testCase of testCases) {
         await circuit.expectPass(
           { a: testCase.a, b: testCase.b },
-          { c: testCase.c }
+          { c: testCase.c },
         );
       }
     });

@@ -3,7 +3,7 @@ pragma circom 2.2.2;
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "../shared/components/bits.circom";
-include "../shared/components/aes256gcm/substituteBytes.circom";
+include "../shared/components/aes256gcm/byteSubstitution.circom";
 
 template RotWord() {
     input Word() in;
@@ -133,7 +133,7 @@ template TestExpandKey(keyBits) {
 
     for (var i = 0; i < Nk; i++) {
         _key[i].bytes <== key[i].bytes;
-    } 
+    }
 
     expandedKey <== ExpandKey(keyBits)(_key);
 }

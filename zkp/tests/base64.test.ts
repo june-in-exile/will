@@ -75,7 +75,6 @@ describe("Base64GroupDecoder Cicuit", function () {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
-      {},
     );
     console.info(
       "Base64GroupDecoder circuit constraints:",
