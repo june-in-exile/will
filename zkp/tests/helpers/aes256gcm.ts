@@ -4,7 +4,7 @@
 
 import { createCipheriv, createDecipheriv } from "crypto";
 
-export class AESUtils {
+class AESUtils {
   static bytesToHex(bytes: Buffer): string {
     return bytes.toString("hex");
   }
@@ -52,7 +52,7 @@ export class AESUtils {
   }
 }
 
-export class AESSbox {
+class AESSbox {
   static readonly SBOX = Buffer.from([
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b,
     0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0,
@@ -91,7 +91,7 @@ export class AESSbox {
   }
 }
 
-export class GaloisField {
+class GaloisField {
   static multiply(a: number, b: number): number {
     let result = 0;
     let temp_a = a;
@@ -137,7 +137,7 @@ export class GaloisField {
 
 GaloisField.initMultiplicationTables();
 
-export class AESTransforms {
+class AESTransforms {
   static subBytes(state: Buffer): Buffer {
     return AESSbox.substituteBytes(state);
   }
@@ -197,7 +197,7 @@ export class AESTransforms {
   }
 }
 
-export class AESKeyExpansion {
+class AESKeyExpansion {
   static readonly RCON = Buffer.from([
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8,
     0xab, 0x4d, 0x9a, 0x2f,
@@ -249,7 +249,7 @@ export class AESKeyExpansion {
   }
 }
 
-export class AES256 {
+class AES256 {
   static encryptBlock(plaintext: Buffer, key: Buffer): Buffer {
     if (plaintext.length !== 16) {
       throw new Error("Plaintext must be exactly 16 bytes");
@@ -276,7 +276,7 @@ export class AES256 {
 }
 
 // GF(2^128) operations
-export class GF128 {
+class GF128 {
   // GF(2^128) multiplication using reduction polynomial f(x) = x^128 + x^7 + x^2 + x + 1
   static multiply(x: Buffer, y: Buffer): Buffer {
     const result = Buffer.alloc(16);
@@ -313,7 +313,7 @@ export class GF128 {
   }
 }
 
-export class AES256GCM {
+class AES256GCM {
   static incrementCounter(counter: Buffer): void {
     let carry = 1;
     for (let j = 15; j >= 12 && carry; j--) {
@@ -576,7 +576,7 @@ export class AES256GCM {
   }
 }
 
-export class AES256GCMEasy {
+class AES256GCMEasy {
   static encrypt(
     plaintext: string,
     keyBase64?: string,
@@ -662,7 +662,7 @@ export class AES256GCMEasy {
   }
 }
 
-export class AESVerification {
+class AESVerification {
   static testECBEncrypt(): boolean {
     console.log(
       "\n=== Node.js crypto module AES-256-ECB encryption verification ===",
@@ -926,7 +926,7 @@ export class AESVerification {
 }
 
 // Usage examples
-export class AESGCMExample {
+class AESGCMExample {
   static demonstrateUsage(): void {
     console.log("🔒 AES-256-GCM Usage Examples\n");
 
@@ -975,3 +975,5 @@ if (require.main === module) {
   console.log("\n" + "=".repeat(50) + "\n");
   AESGCMExample.demonstrateUsage();
 }
+
+export { AESUtils, AESSbox, GaloisField, AESTransforms, AESKeyExpansion, AES256, GF128, AES256GCM, AES256GCMEasy, AESVerification, AESGCMExample };

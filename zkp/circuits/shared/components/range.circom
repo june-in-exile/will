@@ -14,8 +14,8 @@ include "circomlib/circuits/bitify.circom";
  * Example: Check if a signal is in range [10,127]
  *  signal x <== 64;
  *  signal y <== 255;
- *  signal {bool} xInRange <== InRange(7)(x,10,127);
- *  signal {bool} yInRange <== InRange(8)(y,10,127);
+ *  signal {bit} xInRange <== InRange(7)(x,10,127);
+ *  signal {bit} yInRange <== InRange(8)(y,10,127);
  *  xInRange === 1;
  *  yInRange === 0;
  */
@@ -23,7 +23,7 @@ template InRange(bits) {
     signal input in;
     signal input min;
     signal input max;
-    signal output {bool} out;
+    signal output {bit} out;
     
     // Constraint the bits of in, min and max
     _ = Num2Bits(bits)(in);

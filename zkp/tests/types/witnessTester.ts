@@ -4,23 +4,31 @@ export type IntegerValueType = `${number}` | number | bigint;
 /** A signal value is a number, or an array of numbers (recursively). */
 export type SignalValueType = IntegerValueType | SignalValueType[];
 
+/** A bus a collection of different but related signals (recursively). */
+export type BusStructType = { [key: string]: SignalValueType | BusStructType } | Array<{ [key: string]: SignalValueType | BusStructType }>;
+
 /**
- * An object with string keys and array of numerical values.
+ * An object mapping signal names to their values, which can be either flat signals or structured (nested) bus signals.
  * Each key represents a signal name as it appears in the circuit.
+ * 
+ * A signal value can be:
+ *   - A single integer value (number, bigint, or numeric string),
+ *   - An array of such values (e.g., for vectors or memory),
+ *   - Or a nested bus object (BusStructType), which recursively groups related signals.
  *
- * By default, signal names are not typed, but you can pass an array of signal names
- * to make them type-safe, e.g. `CircuitSignals<['sig1', 'sig2']>`
+ * By default, signal names are not typed, but you can pass an array of signal names to make them type-safe,
+ *   e.g. `CircuitSignals<['sig1', 'sig2']>`
  */
-export type CircuitSignals<T extends readonly string[] = []> = T extends []
-  ? { [signal: string]: SignalValueType }
-  : { [signal in T[number]]: SignalValueType };
+export type CircuitInputOutput<T extends readonly string[] = []> = T extends []
+  ? { [signal: string]: SignalValueType | BusStructType }
+  : { [signal in T[number]]: SignalValueType | BusStructType };
 
 /** A witness is an array of `bigint`s, corresponding to the values of each wire in the evaluation of the circuit. */
 export type WitnessType = bigint[];
 
 /**
- * Symbols are a mapping of each circuit `wire` to an object with three keys. Within them,
- * the most important is `varIdx` which indicates the position of this signal in the witness array.
+ * Symbols are a mapping of each circuit `wire` to an object with three keys.
+ * Within them, the most important is `varIdx` which indicates the position of this signal in the witness array.
  */
 export type SymbolsType = {
   [symbol: string]: {
@@ -63,7 +71,7 @@ export type CompilationOptions = {
  */
 export type CircomTester = {
   calculateWitness: (
-    input: CircuitSignals,
+    input: CircuitInputOutput,
     sanityCheck: boolean,
   ) => Promise<WitnessType>;
 
@@ -74,7 +82,7 @@ export type CircomTester = {
 
   assertOut: (
     actualOut: WitnessType,
-    expectedOut: CircuitSignals,
+    expectedOut: CircuitInputOutput,
   ) => Promise<void>;
 
   loadSymbols: () => Promise<void>;

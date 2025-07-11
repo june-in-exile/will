@@ -6,6 +6,7 @@ include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/mux2.circom";
 
 bus Utf8() {
+    // TODO: update bytes[4] to word
     signal bytes[4];
     signal {bit} validBytes[4];
 }
@@ -149,6 +150,7 @@ template Utf8Encoder() {
  */
 template Utf8StringEncoder(length) {
     signal input codepoints[length];
+    // TODO: update bytes[length * 4] to Word()[length]
     signal output bytes[length * 4];
     signal output validByteCount;
     

@@ -5,7 +5,7 @@ import { AssertionError } from "node:assert";
 import type {
   CircomTester,
   WitnessType,
-  CircuitSignals,
+  CircuitInputOutput,
   SymbolsType,
   SignalValueType,
   CompilationOptions,
@@ -26,7 +26,7 @@ export class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) {}
+  ) { }
 
   static async construct(
     circuitPath: string,
@@ -42,7 +42,7 @@ export class WitnessTester<
   }
 
   /** Compute witness given the input signals. */
-  async calculateWitness(input: CircuitSignals<IN>): Promise<WitnessType> {
+  async calculateWitness(input: CircuitInputOutput<IN>): Promise<WitnessType> {
     return this.circomTester.calculateWitness(input, false);
   }
 
@@ -116,7 +116,7 @@ export class WitnessTester<
    *
    * If `output` is omitted, it will only check for constraints to pass.
    */
-  async expectPass(input: CircuitSignals<IN>, output?: CircuitSignals<OUT>) {
+  async expectPass(input: CircuitInputOutput<IN>, output?: CircuitInputOutput<OUT>) {
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
     if (output) {
@@ -132,7 +132,7 @@ export class WitnessTester<
    *
    * @returns the error message.
    */
-  async expectFail(input: CircuitSignals<IN>): Promise<string> {
+  async expectFail(input: CircuitInputOutput<IN>): Promise<string> {
     return await this.calculateWitness(input).then(
       () => {
         throw new AssertionError({
@@ -162,9 +162,9 @@ export class WitnessTester<
    * This is a shorthand for calculating the witness and calling {@link readWitnessSignals} on the result.
    */
   async compute(
-    input: CircuitSignals<IN>,
+    input: CircuitInputOutput<IN>,
     signals: string[] | OUT,
-  ): Promise<CircuitSignals> {
+  ): Promise<CircuitInputOutput> {
     // compute witness & check constraints
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
@@ -250,7 +250,7 @@ export class WitnessTester<
   async readWitnessSignals(
     witness: Readonly<WitnessType>,
     signals: string[] | OUT,
-  ): Promise<CircuitSignals> {
+  ): Promise<CircuitInputOutput> {
     await this.loadSymbols();
 
     // for each out signal, process the respective symbol
@@ -341,7 +341,7 @@ export class WitnessTester<
       }
     }
 
-    return Object.fromEntries(entries) as CircuitSignals<OUT>;
+    return Object.fromEntries(entries) as CircuitInputOutput<OUT>;
   }
 
   /**
@@ -367,7 +367,7 @@ export class WitnessTester<
    */
   private assertOut(
     actualOut: WitnessType,
-    expectedOut: CircuitSignals<OUT>,
+    expectedOut: CircuitInputOutput<OUT>,
   ): Promise<void> {
     return this.circomTester.assertOut(actualOut, expectedOut);
   }

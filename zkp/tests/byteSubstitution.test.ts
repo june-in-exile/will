@@ -1,8 +1,9 @@
-import { AESSbox, AESUtils } from "./helpers";
+import { Word } from "./types";
+import { AESSbox, AESUtils, subWord, substituteBytes } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("SubWord Circuit", function () {
-  let circuit: WitnessTester<["in"], ["out.bytes"]>;
+  let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("Word Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
@@ -18,12 +19,14 @@ describe("SubWord Circuit", function () {
 
     it("should substitute random words according to SBOX", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const _in = AESUtils.randomBytes(4),
-          _out = AESSbox.substituteBytes(_in);
+        const bytes = Array.from(AESUtils.randomBytes(4));
+        const _in: Word = { bytes: [bytes[0], bytes[1], bytes[2], bytes[3]] };
+
+        const _out = subWord(_in);
 
         await circuit.expectPass(
-          { in: Array.from(_in) },
-          { "out.bytes": Array.from(_out) },
+          { in: _in },
+          { out: _out },
         );
       }
     });
@@ -50,13 +53,9 @@ describe("SubstituteBytes Circuit", function () {
 
     it("should substitute all bytes according to SBOX", async function (): Promise<void> {
       for (let byte = 0x00; byte <= 0xff; byte++) {
-        const _in = Buffer.from([byte]),
-          _out = AESSbox.substituteBytes(_in);
+        const _in = Array.from(Buffer.from([byte]));
 
-        await circuit.expectPass(
-          { in: Array.from(_in) },
-          { out: Array.from(_out) },
-        );
+        await circuit.expectPass({ in: _in }, { out: substituteBytes(_in) });
       }
     });
   });
@@ -78,13 +77,9 @@ describe("SubstituteBytes Circuit", function () {
 
     it("should substitute random bytes according to SBOX", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const _in = AESUtils.randomBytes(16),
-          _out = AESSbox.substituteBytes(_in);
+        const _in = Array.from(AESUtils.randomBytes(16));
 
-        await circuit.expectPass(
-          { in: Array.from(_in) },
-          { out: Array.from(_out) },
-        );
+        await circuit.expectPass({ in: _in }, { out: substituteBytes(_in) });
       }
     });
   });

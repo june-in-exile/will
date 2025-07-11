@@ -1,4 +1,5 @@
 import { WitnessTester } from "./utils";
+import { Utf8 } from "./types";
 import { utf8ByteLength, encodeUTF8, encodeUTF8String } from "./helpers";
 
 const testCases1Byte = [
@@ -100,7 +101,7 @@ describe("Utf8ByteLength Circuit", function (): void {
 });
 
 describe("Utf8Encoder Circuit", function (): void {
-  let circuit: WitnessTester<["codepoint"], ["utf8.bytes", "utf8.validBytes"]>;
+  let circuit: WitnessTester<["codepoint"], ["utf8"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
@@ -118,7 +119,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const testCase of testCases1Byte) {
         await circuit.expectPass(
           { codepoint: testCase.codepoint },
-          encodeUTF8(testCase.codepoint),
+          { utf8: encodeUTF8(testCase.codepoint) },
         );
       }
     });
@@ -127,7 +128,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const testCase of testCases2Byte) {
         await circuit.expectPass(
           { codepoint: testCase.codepoint },
-          encodeUTF8(testCase.codepoint),
+          { utf8: encodeUTF8(testCase.codepoint) },
         );
       }
     });
@@ -136,7 +137,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const testCase of testCases3Byte) {
         await circuit.expectPass(
           { codepoint: testCase.codepoint },
-          encodeUTF8(testCase.codepoint),
+          { utf8: encodeUTF8(testCase.codepoint) },
         );
       }
     });
@@ -145,7 +146,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const testCase of testCases4Byte) {
         await circuit.expectPass(
           { codepoint: testCase.codepoint },
-          encodeUTF8(testCase.codepoint),
+          { utf8: encodeUTF8(testCase.codepoint) },
         );
       }
     });
