@@ -6,7 +6,6 @@ include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/mux2.circom";
 
 bus Utf8() {
-    // TODO: update bytes[4] to word
     signal bytes[4];
     signal {bit} validBytes[4];
 }
@@ -110,23 +109,6 @@ template Utf8Encoder() {
     utf8.bytes[2] <== Mux2()([0,0,byte3_3byte,byte3_4byte],length);
     utf8.bytes[3] <== Mux2()([0,0,0,byte4_4byte],length);
     
-    // component isLength2 = IsEqual();
-    // isLength2.in[0] <== length[0] + length[1] * 2;
-    // isLength2.in[1] <== 1;  // length = 2
-    
-    // component isLength3 = IsEqual();
-    // isLength3.in[0] <== length[0] + length[1] * 2;
-    // isLength3.in[1] <== 2;  // length = 3
-    
-    // component isLength4 = IsEqual();
-    // isLength4.in[0] <== length[0] + length[1] * 2;
-    // isLength4.in[1] <== 3;  // length = 4
-    
-    // validBytes[0] <== 1;
-    // validBytes[1] <== isLength2.out + isLength3.out + isLength4.out;
-    // validBytes[2] <== isLength3.out + isLength4.out;
-    // validBytes[3] <== isLength4.out;
-    
     utf8.validBytes[0] <== 1;
     utf8.validBytes[1] <== OR()(length[0],length[1]);
     utf8.validBytes[2] <== IsEqual()([length[1],1]);
@@ -150,7 +132,6 @@ template Utf8Encoder() {
  */
 template Utf8StringEncoder(length) {
     signal input codepoints[length];
-    // TODO: update bytes[length * 4] to Word()[length]
     signal output bytes[length * 4];
     signal output validByteCount;
     
