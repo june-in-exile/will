@@ -59,22 +59,10 @@ template SubWord() {
 }
 
 template SubBytes() {
-    signal input {byte} in[4][4];
-    signal output {byte} out[4][4];
+    signal input {byte} in[16];
+    signal output {byte} out[16];
 
-    signal bytes_in[16];
-    for (var r = 0; r < 4; r++) {
-        for (var c = 0; c < 4; c++) {
-            bytes_in[4*r+c] <== in[r][c];
-        }
-    }
-
-    signal bytes_out[16] <== SubstituteBytes(16)(bytes_in);
-    for (var r = 0; r < 4; r++) {
-        for (var c = 0; c < 4; c++) {
-            out[r][c] <== bytes_out[4*r+c];
-        }
-    }
+    out <== SubstituteBytes(16)(in);
 }
 
 template SubstituteBytes(byteCount) {

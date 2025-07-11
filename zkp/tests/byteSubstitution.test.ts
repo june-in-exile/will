@@ -1,5 +1,5 @@
 import { AESUtils, subWord, substituteBytes } from "./helpers";
-import { WitnessTester, bytesToMatrix } from "./utils";
+import { WitnessTester } from "./utils";
 
 describe("SubWord Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -16,7 +16,7 @@ describe("SubWord Circuit", function () {
       );
     });
 
-    it("should substitute random words according to SBOX", async function (): Promise<void> {
+    it("should substitute random words according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(4));
         // TODO: Update this code snippet after the JSON format is fixed.
@@ -35,7 +35,7 @@ describe("SubWord Circuit", function () {
 describe("SubBytes Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
-  describe("Bytes Substitution for Cipher", function (): void {
+  describe("Bytes Substitution in Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256gcm/byteSubstitution.circom",
@@ -47,13 +47,13 @@ describe("SubBytes Circuit", function () {
       );
     });
 
-    it("should substitute random 4x4 bytes according to SBOX", async function (): Promise<void> {
+    it("should substitute random 4x4 bytes according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(16));
 
         await circuit.expectPass(
-          { in: bytesToMatrix(bytes) },
-          { out: bytesToMatrix(substituteBytes(bytes)) },
+          { in: bytes },
+          { out: substituteBytes(bytes) },
         );
       }
     });
@@ -78,7 +78,7 @@ describe("SubstituteBytes Circuit", function () {
       );
     });
 
-    it("should substitute all bytes according to SBOX", async function (): Promise<void> {
+    it("should substitute all bytes according to AES specification", async function (): Promise<void> {
       for (let byte = 0x00; byte <= 0xff; byte++) {
         const bytes = Array.from(Buffer.from([byte]));
 
@@ -102,7 +102,7 @@ describe("SubstituteBytes Circuit", function () {
       );
     });
 
-    it("should substitute random bytes according to SBOX", async function (): Promise<void> {
+    it("should substitute random bytes according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(4));
 
@@ -126,7 +126,7 @@ describe("SubstituteBytes Circuit", function () {
       );
     });
 
-    it("should substitute random bytes according to SBOX", async function (): Promise<void> {
+    it("should substitute random bytes according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(16));
 
