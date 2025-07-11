@@ -1,3 +1,4 @@
+export * from "./bytesToMatrix";
 export * from "./construction";
-export * from "./generateTestTemplate";
+export * from "./template";
 export * from "./witnessTester";

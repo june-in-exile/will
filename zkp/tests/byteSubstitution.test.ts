@@ -1,5 +1,5 @@
 import { AESUtils, subWord, substituteBytes } from "./helpers";
-import { WitnessTester } from "./utils";
+import { WitnessTester, bytesToMatrix } from "./utils";
 
 describe("SubWord Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -21,11 +21,39 @@ describe("SubWord Circuit", function () {
         const bytes = Array.from(AESUtils.randomBytes(4));
         // TODO: Update this code snippet after the JSON format is fixed.
         // const _in: Word = { bytes: [bytes[0], bytes[1], bytes[2], bytes[3]] };
-        const _in: [number, number, number, number] = [bytes[0], bytes[1], bytes[2], bytes[3]];
+        const word: [number, number, number, number] = [bytes[0], bytes[1], bytes[2], bytes[3]];
 
         await circuit.expectPass(
-          { in: _in },
-          { out: subWord(_in) },
+          { in: word },
+          { out: subWord(word) },
+        );
+      }
+    });
+  });
+});
+
+describe("SubBytes Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("Bytes Substitution for Cipher", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256gcm/byteSubstitution.circom",
+        "SubBytes",
+      );
+      console.info(
+        "SubBytes circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should substitute random 4x4 bytes according to SBOX", async function (): Promise<void> {
+      for (let i = 0; i < 3; i++) {
+        const bytes = Array.from(AESUtils.randomBytes(16));
+
+        await circuit.expectPass(
+          { in: bytesToMatrix(bytes) },
+          { out: bytesToMatrix(substituteBytes(bytes)) },
         );
       }
     });
@@ -52,9 +80,33 @@ describe("SubstituteBytes Circuit", function () {
 
     it("should substitute all bytes according to SBOX", async function (): Promise<void> {
       for (let byte = 0x00; byte <= 0xff; byte++) {
-        const _in = Array.from(Buffer.from([byte]));
+        const bytes = Array.from(Buffer.from([byte]));
 
-        await circuit.expectPass({ in: _in }, { out: substituteBytes(_in) });
+        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
+      }
+    });
+  });
+
+  describe("4-Byte Bytes Substitution", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256gcm/byteSubstitution.circom",
+        "SubstituteBytes",
+        {
+          templateParams: ["4"],
+        },
+      );
+      console.info(
+        "4-byte SubstitutionBytes circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should substitute random bytes according to SBOX", async function (): Promise<void> {
+      for (let i = 0; i < 3; i++) {
+        const bytes = Array.from(AESUtils.randomBytes(4));
+
+        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
       }
     });
   });
@@ -76,9 +128,9 @@ describe("SubstituteBytes Circuit", function () {
 
     it("should substitute random bytes according to SBOX", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const _in = Array.from(AESUtils.randomBytes(16));
+        const bytes = Array.from(AESUtils.randomBytes(16));
 
-        await circuit.expectPass({ in: _in }, { out: substituteBytes(_in) });
+        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
       }
     });
   });

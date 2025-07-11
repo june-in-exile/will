@@ -1,5 +1,5 @@
 import type { CircomTester, CompilationOptions } from "../types";
-import { generateTestTemplate } from "./generateTestTemplate";
+import { generateTestTemplate } from "./template";
 import * as fs from "fs";
 import path from "path";
 /* eslint-disable @typescript-eslint/no-require-imports */

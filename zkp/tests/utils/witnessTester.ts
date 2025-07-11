@@ -14,7 +14,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 /** A utility class to test your circuits. Use `expectFail` and `expectPass` to test out evaluations. */
-export class WitnessTester<
+class WitnessTester<
   IN extends readonly string[] = [],
   OUT extends readonly string[] = [],
 > {
@@ -430,3 +430,5 @@ export class WitnessTester<
     }
   }
 }
+
+export { WitnessTester };

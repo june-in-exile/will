@@ -179,10 +179,17 @@ make circuit CIRCUIT=createWill
 
 ## References
 
+### Zero-Knowledge Proof
+
 - [Circom 2 Documentation](https://docs.circom.io/getting-started/installation/)
 - [SnarkJS Documentation](https://github.com/iden3/snarkjs)
 - [Groth16 Protocol](https://eprint.iacr.org/2016/260.pdf)
 - [Powers of Tau Ceremony](https://github.com/privacy-scaling-explorations/perpetualpowersoftau)
+
+### AES-256-GCM
+
+- [FIPS 197 AES](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
+- [Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf)
 
 ## Common Errors for Development
 
