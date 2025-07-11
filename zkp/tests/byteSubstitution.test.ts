@@ -1,5 +1,4 @@
-import { Word } from "./types";
-import { AESSbox, AESUtils, subWord, substituteBytes } from "./helpers";
+import { AESUtils, subWord, substituteBytes } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("SubWord Circuit", function () {
@@ -20,13 +19,13 @@ describe("SubWord Circuit", function () {
     it("should substitute random words according to SBOX", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(4));
-        const _in: Word = { bytes: [bytes[0], bytes[1], bytes[2], bytes[3]] };
-
-        const _out = subWord(_in);
+        // TODO: Update this code snippet after the JSON format is fixed.
+        // const _in: Word = { bytes: [bytes[0], bytes[1], bytes[2], bytes[3]] };
+        const _in: [number, number, number, number] = [bytes[0], bytes[1], bytes[2], bytes[3]];
 
         await circuit.expectPass(
           { in: _in },
-          { out: _out },
+          { out: subWord(_in) },
         );
       }
     });

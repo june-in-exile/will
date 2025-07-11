@@ -1,6 +1,5 @@
 pragma circom 2.2.2;
 
-include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/multiplexer.circom";
 
 bus Word() {

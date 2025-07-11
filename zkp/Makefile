@@ -1,5 +1,4 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = expandKey
 CIRCUIT ?= multiplier2
 
 # Directory structure
