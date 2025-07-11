@@ -51,6 +51,10 @@ template SBox() {
     out <== outs[0];
 }
 
+/**
+ * This is used in the AES key expansion algorithm where words
+ * need to be processed through the S-Box transformation.
+ */
 template SubWord() {
     Word() input in;
     Word() output out;
@@ -58,6 +62,9 @@ template SubWord() {
     out.bytes <== SubstituteBytes(4)(in.bytes);
 }
 
+/**
+ * The 16-byte state represents the 4x4 state matrix in column-major order.
+ */
 template SubBytes() {
     signal input {byte} in[16];
     signal output {byte} out[16];
@@ -65,7 +72,15 @@ template SubBytes() {
     out <== SubstituteBytes(16)(in);
 }
 
-template SubstituteBytes(byteCount) {
+/**
+ * Parameterized template that applies S-Box substitution to any number of bytes.
+ * This provides flexibility for different use cases:
+ * - byteCount = 4: for SubWord operations (key expansion)
+ * - byteCount = 16: for SubBytes operations (main rounds)
+ * 
+ * @param byteCount Number of bytes to process through S-Box
+ */
+ template SubstituteBytes(byteCount) {
     signal input {byte} in[byteCount];
     signal output {byte} out[byteCount];
     

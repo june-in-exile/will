@@ -27,7 +27,7 @@ describe.only("ShiftRows Circuit", function () {
       }
     });
 
-    it("should handle known test vectors correctly", async function (): Promise<void> {
+    it("should handle test vectors in column-major", async function (): Promise<void> {
       await circuit.expectPass(
         {
           in: [
