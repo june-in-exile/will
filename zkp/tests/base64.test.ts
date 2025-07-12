@@ -92,10 +92,10 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64Group: [28, 27, 64, 64], bytes: [113, 0, 0] }, // cb== -> q
       ];
 
-      for (const testCase of testCases) {
+      for (const { base64Group ,bytes} of testCases) {
         await circuit.expectPass(
-          { base64Group: testCase.base64Group },
-          { bytes: testCase.bytes },
+          { base64Group: base64Group },
+          { bytes: bytes },
         );
       }
     });
@@ -107,10 +107,10 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64Group: [26, 39, 53, 64], bytes: [106, 125, 0] }, // an1= -> j}
       ];
 
-      for (const testCase of testCases) {
+      for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
-          { base64Group: testCase.base64Group },
-          { bytes: testCase.bytes },
+          { base64Group: base64Group },
+          { bytes: bytes },
         );
       }
     });
@@ -122,10 +122,10 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64Group: [16, 23, 9, 37], bytes: [65, 114, 101] }, // QXJl -> Are
       ];
 
-      for (const testCase of testCases) {
+      for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
-          { base64Group: testCase.base64Group },
-          { bytes: testCase.bytes },
+          { base64Group: base64Group },
+          { bytes: bytes },
         );
       }
     });
@@ -170,10 +170,10 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64Group: [63, 63, 63, 63], bytes: [255, 255, 255] },
       ];
 
-      for (const testCase of testCases) {
+      for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
-          { base64Group: testCase.base64Group },
-          { bytes: testCase.bytes },
+          { base64Group: base64Group },
+          { bytes: bytes },
         );
       }
     });
