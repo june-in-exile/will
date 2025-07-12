@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 import { AESUtils, mixColumn, mixColumns } from "./helpers";
 
-describe.only("MixColumn Circuit", function () {
+describe("MixColumn Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("MixColumns Transformation for a Single Column", function (): void {
@@ -16,7 +16,7 @@ describe.only("MixColumn Circuit", function () {
       );
     });
 
-    it.only("should correctly transform random columns", async function (): Promise<void> {
+    it("should correctly transform random columns", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const _in = Array.from(AESUtils.randomBytes(4));
 
@@ -32,11 +32,11 @@ describe.only("MixColumn Circuit", function () {
         },
         {
           _in: [0x01, 0x01, 0x01, 0x01], // All ones
-          _out: [0x06, 0x06, 0x06, 0x06],
+          _out: [0x01, 0x01, 0x01, 0x01],
         },
         {
           _in: [0xff, 0xff, 0xff, 0xff], // All 0xff
-          _out: mixColumn([0xff, 0xff, 0xff, 0xff]),
+          _out: [0xff, 0xff, 0xff, 0xff],
         },
         {
           _in: [0x01, 0x00, 0x00, 0x00], // Unit vector e1
@@ -76,7 +76,7 @@ describe.only("MixColumn Circuit", function () {
   });
 });
 
-describe("MixColumns Circuit", function () {
+describe.only("MixColumns Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("MixColumns Transformation for the Entire 16-byte State", function (): void {

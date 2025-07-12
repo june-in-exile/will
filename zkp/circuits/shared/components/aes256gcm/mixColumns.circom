@@ -40,25 +40,10 @@ template MixColumn() {
     signal s3_mul2 <== GFMul2()(in[3]);
     signal s3_mul3 <== GFMul3()(in[3]);
 
-    // Row 0: [2 3 1 1] * [s0 s1 s2 s3]ᵀ = 2*s0 ⊕ 3*s1 ⊕ s2 ⊕ s3
-    signal temp0_1 <== s0_mul2 ^ s1_mul3;
-    signal temp0_2 <== temp0_1 ^ in[2];
-    out[0] <== temp0_2 ^ in[3];
-    
-    // Row 1: [1 2 3 1] * [s0 s1 s2 s3]ᵀ = s0 ⊕ 2*s1 ⊕ 3*s2 ⊕ s3
-    signal temp1_1 <== in[0] ^ s1_mul2;
-    signal temp1_2 <== temp1_1 ^ s2_mul3;
-    out[1] <== temp1_2 ^ in[3];
-    
-    // Row 2: [1 1 2 3] * [s0 s1 s2 s3]ᵀ = s0 ⊕ s1 ⊕ 2*s2 ⊕ 3*s3
-    signal temp2_1 <== in[0] ^ in[1];
-    signal temp2_2 <== temp2_1 ^ s2_mul2;
-    out[2] <== temp2_2 ^ s3_mul3;
-    
-    // Row 3: [3 1 1 2] * [s0 s1 s2 s3]ᵀ = 3*s0 ⊕ s1 ⊕ s2 ⊕ 2*s3
-    signal temp3_1 <== s0_mul3 ^ in[1];
-    signal temp3_2 <== temp3_1 ^ in[2];
-    out[3] <== temp3_2 ^ s3_mul2;
+    out[0] <== MultiBitwiseXor(4,8)([s0_mul2,s1_mul3,in[2],in[3]]);
+    out[1] <== MultiBitwiseXor(4,8)([in[0],s1_mul2,s2_mul3,in[3]]);
+    out[2] <== MultiBitwiseXor(4,8)([in[0],in[1],s2_mul2,s3_mul3]);
+    out[3] <== MultiBitwiseXor(4,8)([s0_mul3,in[1],in[2],s3_mul2]);
 }
 
 /**
