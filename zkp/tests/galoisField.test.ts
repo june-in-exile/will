@@ -114,7 +114,6 @@ describe("Galois Field Multiplication Circuits", function () {
     });
 
     it("should handle edge cases", async function (): Promise<void> {
-      // Test specific edge cases that might cause issues
       const bytes = [
         0x00, // Zero
         0x01, // Identity-like
@@ -127,7 +126,7 @@ describe("Galois Field Multiplication Circuits", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 2) },
+          { out: GaloisField.multiply(byte, 3) },
         );
       }
     });
