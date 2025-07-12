@@ -3,13 +3,7 @@ pragma circom 2.2.2;
 include "galoisField.circom";
 include "../bits.circom";
 
-/**
- * MixColumns transformation for a single column (4 bytes)
- * 
- * This implements the MixColumns step of AES, which treats each column
- * of the state as a polynomial and multiplies it by the fixed polynomial
- * c(x) = 3x³ + x² + x + 2 in GF(2^8).
- * 
+/** 
  * Input:
  *   [s0, s1, s2, s3]
  *
@@ -47,7 +41,6 @@ template MixColumn() {
 }
 
 /**
- * MixColumns transformation for the entire 16-byte state
  * The 16-byte state is stored in column-major order.
  */
 template MixColumns() {
