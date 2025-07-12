@@ -26,7 +26,7 @@ class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) {}
+  ) { }
 
   static async construct(
     circuitPath: string,

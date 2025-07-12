@@ -57,10 +57,10 @@ function utf8Encoder(codepoint: number): Utf8 {
 }
 
 function utf8StringEncoder(codepoints: number[]): {
-  bytes: number[];
+  bytes: Byte[];
   validByteCount: number;
 } {
-  const bytes: number[] = [];
+  const bytes: Byte[] = [];
   let validByteCount = 0;
 
   for (const codepoint of codepoints) {

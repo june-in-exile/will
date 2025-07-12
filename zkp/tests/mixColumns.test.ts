@@ -1,13 +1,13 @@
 import { WitnessTester } from "./utils";
 import { AESUtils, mixColumn, mixColumns } from "./helpers";
 
-describe("MixColumn Circuit", function () {
+describe.only("MixColumn Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("MixColumns Transformation for a Single Column", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/mixColumn.circom",
+        "circuits/shared/components/aes256gcm/mixColumns.circom",
         "MixColumn",
       );
       console.info(
@@ -16,7 +16,7 @@ describe("MixColumn Circuit", function () {
       );
     });
 
-    it("should correctly transform random columns", async function (): Promise<void> {
+    it.only("should correctly transform random columns", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const _in = Array.from(AESUtils.randomBytes(4));
 

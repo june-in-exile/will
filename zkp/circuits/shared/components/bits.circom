@@ -67,3 +67,36 @@ template BitwiseXor(bits) {
     
     c <== Bits2Num(bits)(cBits);
 }
+
+/**
+ * @param n - The number of input elements
+ * @param bits - The bit width of each input number
+ *
+ * Example: XOR three 8-bit numbers
+ *  signal result <== MultiBitwiseXor(3, 8)([15, 51, 85]);  // Input a: 00001111  (15)
+ *                                                          // Input b: 00110011  (51)
+ *                                                          // Input c: 01010101  (85)
+ *  result === 105;                                         // Result:  01101001 (105)
+ */
+template MultiBitwiseXor(n, bits) {
+    assert (n >= 2);
+    signal input in[n];
+    signal output out;
+    
+    signal inBits[n][bits];
+    for (var i = 0; i < n; i++) {
+        inBits[i] <== Num2Bits(bits)(in[i]);
+    }
+    
+    signal outBits[bits];
+    signal tempXor[bits][n-1];
+    for (var bitIdx = 0; bitIdx < bits; bitIdx++) {
+        tempXor[bitIdx][0] <== XOR()(inBits[0][bitIdx], inBits[1][bitIdx]);
+        for (var i = 2; i < n; i++) {
+            tempXor[bitIdx][i-1] <== XOR()(tempXor[bitIdx][i-2], inBits[i][bitIdx]);
+        }
+        outBits[bitIdx] <== tempXor[bitIdx][n-2];
+    }
+    
+    out <== Bits2Num(bits)(outBits);
+}
