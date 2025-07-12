@@ -1,7 +1,7 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
-include "../bits.circom";
+include "../shared/components/bits.circom";
 
 /**
  * Galois Field multiplication by 2 in GF(2^8)
@@ -16,8 +16,8 @@ include "../bits.circom";
  * This is equivalent to polynomial multiplication modulo the AES polynomial.
  */
 template GFMul2() {
-    signal input {byte} in;
-    signal output {byte} out;
+    signal input in;
+    signal output out;
 
     // Extract the most significant bit (bit 7)
     signal bits[8] <== Num2Bits(8)(in);
@@ -37,10 +37,12 @@ template GFMul2() {
  * This uses the distributive property in GF(2^8) where addition is XOR.
  */
 template GFMul3() {
-    signal input {byte} in;
-    signal output {byte} out;
+    signal input in;
+    signal output out;
     
     signal mul2 <== GFMul2()(in);
     
     out <== BitwiseXor(8)(mul2,in);
 }
+
+component main = GFMul3();
