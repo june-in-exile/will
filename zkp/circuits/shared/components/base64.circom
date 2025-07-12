@@ -5,6 +5,7 @@ include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/bitify.circom";
 include "arithmetic.circom";
 include "range.circom";
+include "bits.circom";
 
 /**
  * Base64 Mapping Table:

@@ -40,9 +40,7 @@ template ShiftRight(bits, offset) {
     signal input in;
     signal output out;
 
-    signal inBits[bits] <== Num2Bits(bits)(in);
-    signal outBits[bits] <== ShR(bits,offset)(inBits);
-    out <== Bits2Num(bits)(outBits);
+    out <== Bits2Num(bits)(ShR(bits,offset)(Num2Bits(bits)(in)));
 }
 
 

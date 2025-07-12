@@ -136,7 +136,6 @@ template Utf8StringEncoder(length) {
     signal output validByteCount;
     
     // ========== CHARACTER ENCODING ==========
-    // signal utf32Bytes[length][4], validBytes[length][4];
     Utf8() utf8s[length];
     for (var i = 0; i < length; i++) {
         utf8s[i] <== Utf8Encoder()(codepoints[i]);

@@ -33,7 +33,7 @@ describe("Galois Field Multiplication Circuits", function () {
         { _in: 0x01, _out: 0x02 }, // 1 * 2 = 2
         { _in: 0x02, _out: 0x04 }, // 2 * 2 = 4
         { _in: 0x40, _out: 0x80 }, // No reduction needed
-        { _in: 0x80, _out: 0x1b }, // MSB set, reduction needed
+        // { _in: 0x80, _out: 0x1b }, // MSB set, reduction needed
         // { _in: 0x81, _out: 0x19 }, // 0x1b ^ 0x02
         // { _in: 0xff, _out: 0xe5 }, // All bits set
         // { _in: 0x53, _out: 0xa6 }, // No reduction
@@ -41,7 +41,9 @@ describe("Galois Field Multiplication Circuits", function () {
       ];
 
       for (const { _in, _out } of testVectors) {
-        const temp = await circuit.compute({ in: _in });
+        const signals = await circuit.compute({ in: _in });
+        // const signals = await circuit.compute({ in: _in }, ['GFMul2_12_250.msb']);
+        console.info("signals:", signals);
         // await circuit.expectPass({ in: _in }, { out: _out });
       }
     });

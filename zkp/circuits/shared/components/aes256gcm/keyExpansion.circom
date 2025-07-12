@@ -84,28 +84,16 @@ template ExpandKey(keyBits) {
     input Word() key[Nk];
     output Word() expandedKey[expandedNk];
 
-    Word() rotatedWords[expandedNk\Nk];
-    Word() substitutedWords[expandedNk\Nk];
-    Word() roundConstants[expandedNk\Nk];
-    Word() toBeXorWords[expandedNk-Nk];
-
     for (var i = 0; i < Nk; i++) {
         expandedKey[i] <== key[i];
     }
-
     for (var i = Nk; i < expandedNk; i++) {
         if (i % Nk == 0) {
-            rotatedWords[(i\Nk)-1] <== RotWord()(expandedKey[i-1]);
-                
-            substitutedWords[(i\Nk)-1] <== SubWord()(rotatedWords[(i\Nk)-1]);
-                
-            roundConstants[(i\Nk)-1] <== RCon()((i\Nk)-1);
-            toBeXorWords[i-8] <== XorWord()(substitutedWords[(i\Nk)-1],roundConstants[(i\Nk)-1]);
+            expandedKey[i] <== XorWord()(expandedKey[i-Nk], XorWord()(SubWord()(RotWord()(expandedKey[i-1])), RCon()((i\Nk)-1)));
         } else if (i > 6 && i % Nk == 4) {
-            toBeXorWords[i-8] <== SubWord()(expandedKey[i-1]);
+            expandedKey[i] <== XorWord()(expandedKey[i-Nk], SubWord()(expandedKey[i-1]));
         } else {
-            toBeXorWords[i-8] <== expandedKey[i-1];
+            expandedKey[i] <== XorWord()(expandedKey[i-Nk], expandedKey[i-1]);
         }
-        expandedKey[i] <== XorWord()(expandedKey[i-Nk],toBeXorWords[i-8]);
     }
 }

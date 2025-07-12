@@ -162,7 +162,7 @@ class WitnessTester<
 
   /**
    * Computes the witness.
-   * This is a shorthand for calculating the witness and calling {@link readWitnessSignals} on the result.
+   * This is a shorthand for calculating the witness and calling {@link readSignals}, {@link readSymbols} on the result.
    */
   async compute(
     input: CircuitInputOutput<IN>,
@@ -172,7 +172,7 @@ class WitnessTester<
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
 
-    return signals ? await this.readWitnessSignals(witness, signals) : await this.readWitness(witness);
+    return signals ? await this.readSignals(witness, signals) : await this.readSymbols(witness);
   }
 
   /**
@@ -216,7 +216,7 @@ class WitnessTester<
   }
 
   /** Read symbol values from a witness. */
-  async readWitness(
+  async readSymbols(
     witness: Readonly<WitnessType>,
     symbols?: string[],
   ): Promise<Record<string, bigint>> {
@@ -250,14 +250,14 @@ class WitnessTester<
   /**
    * Read signals from a witness.
    *
-   * This is not the same as {@link readWitness} in the sense that the entire value represented by a signal
+   * This is not the same as {@link readSymbols} in the sense that the entire value represented by a signal
    * will be returned here. For example, instead of reading `main.out[0], main.out[1], main.out[2]` with `readWitness`,
    * you can simply query `out` in this function and an object with `{out: [...]}` will be returned.
    *
    * To read signals within a component, simply refer to them as `component.signal`. In other words, omit the `main.` prefix
    * and array dimensions.
    */
-  async readWitnessSignals(
+  async readSignals(
     witness: Readonly<WitnessType>,
     signals: string[] | OUT,
   ): Promise<CircuitInputOutput> {
