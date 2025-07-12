@@ -18,14 +18,12 @@ describe("SubWord Circuit", function () {
 
     it("should substitute random words according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const bytes = Array.from(AESUtils.randomBytes(4));
-        const _in: [number, number, number, number] = [
-          bytes[0],
-          bytes[1],
-          bytes[2],
-          bytes[3],
-        ];
-        await circuit.expectPass({ in: _in }, { out: subWord({ bytes: _in as Byte4 }) });
+        const _in = Array.from(AESUtils.randomBytes(4));
+
+        await circuit.expectPass(
+          { in: _in },
+          { out: subWord({ bytes: _in as Byte4 }) },
+        );
       }
     });
   });
@@ -50,10 +48,7 @@ describe("SubBytes Circuit", function () {
       for (let i = 0; i < 3; i++) {
         const _in = Array.from(AESUtils.randomBytes(16));
 
-        await circuit.expectPass(
-          { in: _in },
-          { out: subBytes(_in as Byte16) },
-        );
+        await circuit.expectPass({ in: _in }, { out: subBytes(_in as Byte16) });
       }
     });
   });

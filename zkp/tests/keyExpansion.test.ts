@@ -28,7 +28,9 @@ describe("ExpandKey Circuit", function () {
 
       const keyBytes: Word[] = [];
       for (let i = 0; i < key.length; i += 4) {
-        keyBytes.push({ bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte] });
+        keyBytes.push({
+          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
+        });
       }
 
       await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });

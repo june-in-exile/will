@@ -1,6 +1,10 @@
 declare global {
-  type Range<N extends number, Result extends Array<unknown> = []> =
-    Result['length'] extends N ? Result : Range<N, [...Result, Result['length']]>;
+  type Range<
+    N extends number,
+    Result extends Array<unknown> = [],
+  > = Result["length"] extends N
+    ? Result
+    : Range<N, [...Result, Result["length"]]>;
 
   // Bit
   type Bit = Range<2>[number];
@@ -10,14 +14,30 @@ declare global {
   // Base64
   type Base64 = Range<64>[number];
 
+  // ASCII
+  type Ascii = Range<128>[number];
+
   // Byte
   type Byte = Range<256>[number];
   type Byte4 = [Byte, Byte, Byte, Byte];
-  type Byte16 =
-    [Byte, Byte, Byte, Byte,
-      Byte, Byte, Byte, Byte,
-      Byte, Byte, Byte, Byte,
-      Byte, Byte, Byte, Byte];
+  type Byte16 = [
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+  ];
 
   // Synthetic
   type Utf8 = {

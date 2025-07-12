@@ -20,7 +20,10 @@ describe.only("ShiftRows Circuit", function () {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(16));
 
-        await circuit.expectPass({ in: bytes }, { out: shiftRows(bytes as Byte16) });
+        await circuit.expectPass(
+          { in: bytes },
+          { out: shiftRows(bytes as Byte16) },
+        );
       }
     });
 

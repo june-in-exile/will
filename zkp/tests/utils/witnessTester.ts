@@ -26,7 +26,7 @@ class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) { }
+  ) {}
 
   static async construct(
     circuitPath: string,
@@ -172,7 +172,9 @@ class WitnessTester<
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
 
-    return signals ? await this.readSignals(witness, signals) : await this.readSymbols(witness);
+    return signals
+      ? await this.readSignals(witness, signals)
+      : await this.readSymbols(witness);
   }
 
   /**

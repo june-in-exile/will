@@ -22,8 +22,8 @@ describe("AsciiToBase64 Cicuit", function () {
 
       for (let i = 0; i < base64Chars.length; i++) {
         const char: string = base64Chars[i];
-        const ascii: number = char.charCodeAt(0);
-        const base64: number = i;
+        const ascii: Ascii = char.charCodeAt(0) as Ascii;
+        const base64: Base64 = i as Base64;
 
         await circuit.expectPass({ ascii }, { base64 });
       }
