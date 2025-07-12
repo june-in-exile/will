@@ -24,7 +24,7 @@ template GFMul2() {
     signal msb <== bits[7];
     
     // Left shift by 1 and mask to keep only lower 8 bits
-    signal shifted <== Mask(9,255)(in * 2);
+    signal shifted <== Mask(9,0xff)(in * 2);
     
     // Apply polynomial reduction if MSB was set
     out <== BitwiseXor(8)(shifted, msb * 0x1b);

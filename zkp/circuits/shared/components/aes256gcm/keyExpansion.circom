@@ -79,7 +79,7 @@ template ExpandKey(keyBits) {
     } else {
         (Nk, Nb, Nr) = (8,4,14);
     }
-    var expandedNk = 4*(Nr+1);
+    var expandedNk = 4 * (Nr + 1);
 
     input Word() key[Nk];
     output Word() expandedKey[expandedNk];

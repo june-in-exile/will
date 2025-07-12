@@ -44,7 +44,7 @@ template AsciiToBase64() {
  * 
  * Example: base64 values = [19,22,5,46] ("TWFu" -> "Man")
  * byte1 = (19 << 2) | (22 >> 4) = 76 + 1 = 77 ('M')
- * byte2 = ((22 & 15) << 4) | (5 >> 2) = 96 + 1 = 97 ('a') 
+ * byte2 = ((22 & 15) << 4) | (5 >> 2) = 96 + 1 = 97 ('a')
  * byte3 = ((5 & 3) << 6) | 46 = 64 + 46 = 110 ('n')
  */
 template Base64GroupDecoder() {
@@ -85,7 +85,7 @@ template Base64GroupDecoder() {
     
     // Bit shift and mask operations
     // values[0] << 2
-    signal first_base64_left_2 <== effectiveBase64Group[0] * 4;
+    signal first_base64_left_2 <== effectiveBase64Group[0] * 0x04;
 
     // values[1] >> 4
     signal socond_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[1]);
@@ -101,7 +101,7 @@ template Base64GroupDecoder() {
         socond_base64_and_15_bits[i] <== 0;
     }
     signal socond_base64_and_15 <== Bits2Num(6)(socond_base64_and_15_bits);
-    signal socond_base64_masked_left_4 <== socond_base64_and_15 * 16;         
+    signal socond_base64_masked_left_4 <== socond_base64_and_15 * 0x10;
     
     // values[2] >> 2
     signal third_base64_bits[6] <== Num2Bits(6)(effectiveBase64Group[2]);
@@ -117,7 +117,7 @@ template Base64GroupDecoder() {
         third_base64_and_3_bits[i] <== 0;
     }
     signal third_base64_and_3 <== Bits2Num(6)(third_base64_and_3_bits);
-    signal third_base64_masked_left_6 <== third_base64_and_3 * 64;  
+    signal third_base64_masked_left_6 <== third_base64_and_3 * 0x40;
 
     // values[3]
     signal fourth_base64 <== effectiveBase64Group[3];

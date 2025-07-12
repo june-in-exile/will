@@ -4,7 +4,7 @@ CIRCUIT ?= multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/downloaded/pot12.ptau
+PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_12.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs

@@ -9,9 +9,9 @@ include "circomlib/circuits/gates.circom";
  * @param mask - The mask value to apply
  *
  * Example: Extract lower 4 bits using mask
- *  signal masked <== Mask(8,15)(171); // Input:   10101011 (171)
- *                                     // Mask:    00001111  (15)
- *  masked === 11;                     // Result:  00001011  (11)  
+ *  signal masked <== Mask(8,0x0F)(171); // Input:   10101011 (171)
+ *                                       // Mask:    00001111  (15)
+ *  masked === 11;                       // Result:  00001011  (11)  
  */
 template Mask(bits, mask) {
     signal input in;

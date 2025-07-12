@@ -84,14 +84,14 @@ describe("Galois Field Multiplication Circuits", function () {
       }
     });
 
-    it.only("should handle known test vectors correctly", async function (): Promise<void> {
+    it("should handle known test vectors correctly", async function (): Promise<void> {
       const testCases = [
         { _in: 0x00, _out: 0x00 }, // 0 * 3 = 0
         { _in: 0x01, _out: 0x03 }, // 1 * 3 = 3
         { _in: 0x02, _out: 0x06 }, // 2 * 3 = 6
         { _in: 0x80, _out: 0x9b }, // MSB cases
         { _in: 0x81, _out: 0x98 }, // 0x19 ^ 0x81
-        // { _in: 0xff, _out: 0xe6 }, // All bits set
+        { _in: 0xff, _out: 0x1a }, // All bits set
         { _in: 0x53, _out: 0xf5 }, // Mixed case
         { _in: 0xca, _out: 0x45 }, // Complex case
       ];
