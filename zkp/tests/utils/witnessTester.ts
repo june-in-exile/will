@@ -26,7 +26,7 @@ class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) {}
+  ) { }
 
   static async construct(
     circuitPath: string,
@@ -166,13 +166,13 @@ class WitnessTester<
    */
   async compute(
     input: CircuitInputOutput<IN>,
-    signals: string[] | OUT,
+    signals?: string[] | OUT,
   ): Promise<CircuitInputOutput> {
     // compute witness & check constraints
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
 
-    return await this.readWitnessSignals(witness, signals);
+    return signals ? await this.readWitnessSignals(witness, signals) : await this.readWitness(witness);
   }
 
   /**
@@ -218,22 +218,29 @@ class WitnessTester<
   /** Read symbol values from a witness. */
   async readWitness(
     witness: Readonly<WitnessType>,
-    symbols: string[],
+    symbols?: string[],
   ): Promise<Record<string, bigint>> {
-    await this.loadSpecificSymbols(symbols);
+    if (symbols) {
+      await this.loadSpecificSymbols(symbols);
+    } else {
+      await this.loadSymbols();
+    }
+
+    if (!this.symbols) {
+      throw new Error("Symbols are not loaded.");
+    }
+
+    const symbolsToRead = symbols ?? Object.keys(this.symbols);
 
     const ans: Record<string, bigint> = {};
-    for (const symbolName of symbols) {
+    for (const symbolName of symbolsToRead) {
       // get corresponding symbol
-      if (!this.symbols) {
-        throw new Error("Symbols are not loaded.");
-      }
       const symbolInfo = this.symbols[symbolName];
       if (symbolInfo === undefined) {
         throw new Error("Invalid symbol name: " + symbolName);
       }
 
-      // override with user value
+      // add symbol value to result
       ans[symbolName] = witness[symbolInfo.varIdx];
     }
 
