@@ -168,25 +168,30 @@ class AESTransforms {
     return result;
   }
 
+  static mixColumn(state: Buffer): Buffer {
+    const result = Buffer.alloc(4);
+
+    const s0 = state[0];
+    const s1 = state[1];
+    const s2 = state[2];
+    const s3 = state[3];
+
+    result[0] = GaloisField.fastMul2(s0) ^ GaloisField.fastMul3(s1) ^ s2 ^ s3;
+    result[1] = s0 ^ GaloisField.fastMul2(s1) ^ GaloisField.fastMul3(s2) ^ s3;
+    result[2] = s0 ^ s1 ^ GaloisField.fastMul2(s2) ^ GaloisField.fastMul3(s3);
+    result[3] = GaloisField.fastMul3(s0) ^ s1 ^ s2 ^ GaloisField.fastMul2(s3);
+
+    return result;
+  }
+
   static mixColumns(state: Buffer): Buffer {
     const result = Buffer.alloc(16);
 
     for (let col = 0; col < 4; col++) {
       const offset = col * 4;
-
-      const s0 = state[offset];
-      const s1 = state[offset + 1];
-      const s2 = state[offset + 2];
-      const s3 = state[offset + 3];
-
-      result[offset] =
-        GaloisField.fastMul2(s0) ^ GaloisField.fastMul3(s1) ^ s2 ^ s3;
-      result[offset + 1] =
-        s0 ^ GaloisField.fastMul2(s1) ^ GaloisField.fastMul3(s2) ^ s3;
-      result[offset + 2] =
-        s0 ^ s1 ^ GaloisField.fastMul2(s2) ^ GaloisField.fastMul3(s3);
-      result[offset + 3] =
-        GaloisField.fastMul3(s0) ^ s1 ^ s2 ^ GaloisField.fastMul2(s3);
+      const column = state.subarray(offset, offset + 4);
+      const mixed = this.mixColumn(column);
+      mixed.copy(result, offset);
     }
 
     return result;

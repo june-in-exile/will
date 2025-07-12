@@ -1,23 +1,22 @@
 import { AESSbox } from "./aes256gcm";
-import { Word } from "../types";
 
-// TODO: Update this code snippet after the JSON format is fixed.
-// function subWord(_in: Word): Word {
-//   const substituted = substituteBytes(_in.bytes);
-//   return { bytes: [substituted[0], substituted[1], substituted[2], substituted[3]] };
-// }
-function subWord(_in: [number, number, number, number]): Word {
-  const substituted = substituteBytes(_in);
+function subWord(_in: Word): Word {
+  const substituted = substituteBytes(_in.bytes);
   return {
-    bytes: [substituted[0], substituted[1], substituted[2], substituted[3]],
+    bytes: substituted as Byte4,
   };
 }
 
-function substituteBytes(_in: number[]): number[] {
+function subBytes(_in: Byte16): Byte16 {
+  const substituted = substituteBytes(_in);
+  return substituted as Byte16;
+}
+
+function substituteBytes(_in: Byte[]): Byte[] {
   const inBuffer = Buffer.from(_in);
   const outBuffer = AESSbox.substituteBytes(inBuffer);
   const _out = Array.from(outBuffer);
-  return _out;
+  return _out as Byte[];
 }
 
-export { subWord, substituteBytes };
+export { subWord, subBytes, substituteBytes };

@@ -1,41 +1,15 @@
 import { AESKeyExpansion } from "./aes256gcm";
-import { Word } from "../types";
 
-// TODO: Update this code snippet after the JSON format is fixed.
-// function expandKey(key: Word[]): Word[] {
-//     const keyBytes = Buffer.concat(key.map(keyWord => Buffer.from(keyWord.bytes)));
-
-// const expandedKey = AESKeyExpansion.expandKey(keyBytes);
-
-// const flattenedBytes = expandedKey.flatMap(buf => Array.from(buf));
-
-// const words: Word[] = [];
-// for (let i = 0; i < flattenedBytes.length; i += 4) {
-//     const group = flattenedBytes.slice(i, i + 4);
-//     if (group.length !== 4) {
-//         throw new Error(`Invalid group of bytes at index ${i}: ${group}`);
-//     }
-//     words.push({ bytes: group as [number, number, number, number] });
-// }
-
-// return words;
-// }
-function expandKey(key: number[]): Word[] {
-  const keyBytes = Buffer.from(key);
-
-  const expandedKey = AESKeyExpansion.expandKey(keyBytes);
-
-  const flattenedBytes = expandedKey.flatMap((buf) => Array.from(buf));
+function expandKey(key: Word[]): Word[] {
+  const keyBuffer = Buffer.concat(key.map(w => Buffer.from(w.bytes)));
+  const expanded = AESKeyExpansion.expandKey(keyBuffer);
+  const expandedKey = expanded.flatMap((buf) => Array.from(buf)) as Byte[];
 
   const words: Word[] = [];
-  for (let i = 0; i < flattenedBytes.length; i += 4) {
-    const group = flattenedBytes.slice(i, i + 4);
-    if (group.length !== 4) {
-      throw new Error(`Invalid group of bytes at index ${i}: ${group}`);
-    }
-    words.push({ bytes: group as [number, number, number, number] });
+  for (let i = 0; i < expandedKey.length; i += 4) {
+      words.push({ bytes: expandedKey.slice(i, i + 4) as Byte4 });
   }
-
+  
   return words;
 }
 

@@ -1,7 +1,12 @@
 import { LOG_LEVELS, LogLevel } from "./types";
 
+interface GlobalWithLogLevel {
+  LOG_LEVEL?: LogLevel;
+}
+
 const logLevel =
-  (globalThis as unknown as GlobalWithLogLevel).LOG_LEVEL || "error";
+  // (globalThis as unknown as GlobalWithLogLevel).LOG_LEVEL || "error";
+  (globalThis as GlobalWithLogLevel).LOG_LEVEL || "error";
 
 const currentLogLevel = LOG_LEVELS[logLevel as LogLevel] || 0;
 
@@ -22,4 +27,4 @@ beforeEach((): void => {
   jest.clearAllMocks();
 });
 
-afterEach((): void => {});
+afterEach((): void => { });

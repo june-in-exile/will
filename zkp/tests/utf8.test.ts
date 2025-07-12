@@ -1,6 +1,5 @@
 import { WitnessTester } from "./utils";
-// import { Utf8 } from "./types";
-import { utf8ByteLength, encodeUTF8, encodeUTF8String } from "./helpers";
+import { utf8ByteLength, utf8Encoder, utf8StringEncoder } from "./helpers";
 
 const testCases1Byte = [
   { codepoint: 65 }, // A
@@ -107,7 +106,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const { codepoint } of testCases1Byte) {
         await circuit.expectPass(
           { codepoint },
-          { utf8: encodeUTF8(codepoint) },
+          { utf8: utf8Encoder(codepoint) },
         );
       }
     });
@@ -116,7 +115,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const { codepoint } of testCases1Byte) {
         await circuit.expectPass(
           { codepoint },
-          { utf8: encodeUTF8(codepoint) },
+          { utf8: utf8Encoder(codepoint) },
         );
       }
     });
@@ -125,7 +124,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const { codepoint } of testCases1Byte) {
         await circuit.expectPass(
           { codepoint },
-          { utf8: encodeUTF8(codepoint) },
+          { utf8: utf8Encoder(codepoint) },
         );
       }
     });
@@ -134,7 +133,7 @@ describe("Utf8Encoder Circuit", function (): void {
       for (const { codepoint } of testCases1Byte) {
         await circuit.expectPass(
           { codepoint },
-          { utf8: encodeUTF8(codepoint) },
+          { utf8: utf8Encoder(codepoint) },
         );
       }
     });
@@ -167,7 +166,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
 
@@ -179,7 +178,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
 
@@ -191,7 +190,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
 
@@ -202,7 +201,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
   });
@@ -243,7 +242,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
 
@@ -312,7 +311,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
 
@@ -381,7 +380,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       ];
 
       for (const { codepoints } of testCases) {
-        await circuit.expectPass({ codepoints }, encodeUTF8String(codepoints));
+        await circuit.expectPass({ codepoints }, utf8StringEncoder(codepoints));
       }
     });
   });

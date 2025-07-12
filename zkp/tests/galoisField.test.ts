@@ -1,10 +1,10 @@
 import { WitnessTester } from "./utils";
 import { GaloisField } from "./helpers";
 
-describe("Galois Field Multiplication Circuits", function () {
+describe("GFMul2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
-  describe("GFMul2 Circuit", function (): void {
+  describe("Galois Field Multiplication by 2 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256gcm/galoisField.circom",
@@ -28,7 +28,7 @@ describe("Galois Field Multiplication Circuits", function () {
     });
 
     it("should handle known test vectors correctly", async function (): Promise<void> {
-      const testVectors = [
+      const testCases = [
         { _in: 0x00, _out: 0x00 }, // 0 * 2 = 0
         { _in: 0x01, _out: 0x02 }, // 1 * 2 = 2
         { _in: 0x02, _out: 0x04 }, // 2 * 2 = 4
@@ -40,16 +40,12 @@ describe("Galois Field Multiplication Circuits", function () {
         { _in: 0xca, _out: 0x8f }, // With reduction
       ];
 
-      for (const { _in, _out } of testVectors) {
-        const signals = await circuit.compute({ in: _in });
-        // const signals = await circuit.compute({ in: _in }, ['GFMul2_12_250.msb']);
-        console.info("signals:", signals);
-        // await circuit.expectPass({ in: _in }, { out: _out });
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
       }
     });
 
-    it("should handle boundary values", async function (): Promise<void> {
-      // Test all values that trigger polynomial reduction (MSB = 1)
+    it("should handle boundary values that trigger polynomial reduction (MSB = 1)", async function (): Promise<void> {
       const bytes = [0x80, 0x81, 0xaa, 0xcc, 0xff];
 
       for (const byte of bytes) {
@@ -60,8 +56,11 @@ describe("Galois Field Multiplication Circuits", function () {
       }
     });
   });
+});
 
-  describe("GFMul3 Circuit", function (): void {
+describe("GFMul3 Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+  describe("Galois Field Multiplication by 3 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256gcm/galoisField.circom",

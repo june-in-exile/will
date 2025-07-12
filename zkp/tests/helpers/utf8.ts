@@ -1,7 +1,5 @@
-import { Utf8 } from "../types";
-
-function utf8ByteLength(codepoint: number): { length: [number, number] } {
-  let length: [number, number];
+function utf8ByteLength(codepoint: number): { length: Bit2 } {
+  let length: Bit2;
   if (codepoint < 0x0080) {
     length = [0, 0];
   } else if (codepoint < 0x0800) {
@@ -23,33 +21,34 @@ function utf8Encoder(codepoint: number): Utf8 {
 
   if (codepoint <= 0x7f) {
     // 1 byte
+    const byte1 = codepoint as Byte;
     return {
-      bytes: [codepoint, 0, 0, 0],
+      bytes: [byte1, 0, 0, 0],
       validBytes: [1, 0, 0, 0],
     };
   } else if (codepoint <= 0x7ff) {
     // 2 bytes
-    const byte1 = 0xc0 | (codepoint >> 6);
-    const byte2 = 0x80 | (codepoint & 0x3f);
+    const byte1 = (0xc0 | (codepoint >> 6)) as Byte;
+    const byte2 = (0x80 | (codepoint & 0x3f)) as Byte;
     return {
       bytes: [byte1, byte2, 0, 0],
       validBytes: [1, 1, 0, 0],
     };
   } else if (codepoint <= 0xffff) {
     // 3 bytes
-    const byte1 = 0xe0 | (codepoint >> 12);
-    const byte2 = 0x80 | ((codepoint >> 6) & 0x3f);
-    const byte3 = 0x80 | (codepoint & 0x3f);
+    const byte1 = (0xe0 | (codepoint >> 12)) as Byte;
+    const byte2 = (0x80 | ((codepoint >> 6) & 0x3f)) as Byte;
+    const byte3 = (0x80 | (codepoint & 0x3f)) as Byte;
     return {
       bytes: [byte1, byte2, byte3, 0],
       validBytes: [1, 1, 1, 0],
     };
   } else {
     // 4 bytes
-    const byte1 = 0xf0 | (codepoint >> 18);
-    const byte2 = 0x80 | ((codepoint >> 12) & 0x3f);
-    const byte3 = 0x80 | ((codepoint >> 6) & 0x3f);
-    const byte4 = 0x80 | (codepoint & 0x3f);
+    const byte1 = (0xf0 | (codepoint >> 18)) as Byte;
+    const byte2 = (0x80 | ((codepoint >> 12) & 0x3f)) as Byte;
+    const byte3 = (0x80 | ((codepoint >> 6) & 0x3f)) as Byte;
+    const byte4 = (0x80 | (codepoint & 0x3f)) as Byte;
     return {
       bytes: [byte1, byte2, byte3, byte4],
       validBytes: [1, 1, 1, 1],
@@ -84,6 +83,6 @@ function utf8StringEncoder(codepoints: number[]): {
 
 export {
   utf8ByteLength,
-  utf8Encoder as encodeUTF8,
-  utf8StringEncoder as encodeUTF8String,
+  utf8Encoder,
+  utf8StringEncoder,
 };

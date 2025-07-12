@@ -6,7 +6,7 @@ include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/mux2.circom";
 
 bus Utf8() {
-    signal bytes[4];
+    signal {byte} bytes[4];
     signal {bit} validBytes[4];
 }
 
@@ -36,10 +36,10 @@ template Utf8ByteLength() {
     signal input codepoint;
     signal output {bit} length[2];
     
-    signal lt0x0080 <== LessThan(32)([codepoint,128]);
-    signal lt0x0800 <== LessThan(32)([codepoint,2048]);
-    signal lt0x10000 <== LessThan(32)([codepoint,65536]);
-    signal lt0x110000 <== LessThan(32)([codepoint,1114112]);
+    signal lt0x0080 <== LessThan(32)([codepoint,0x0080]);
+    signal lt0x0800 <== LessThan(32)([codepoint,0x0800]);
+    signal lt0x10000 <== LessThan(32)([codepoint,0x10000]);
+    signal lt0x110000 <== LessThan(32)([codepoint,0x110000]);
     
     signal is1byte <== lt0x0080;
     signal is2byte <== (1 - lt0x0080) * lt0x0800;
