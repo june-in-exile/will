@@ -69,7 +69,7 @@ template BitwiseXor(bits) {
 }
 
 /**
- * @param n - The number of input elements
+ * @param n - The number of input elements (only takes more than 2 inputs)
  * @param bits - The bit width of each input number
  *
  * Example: XOR three 8-bit numbers
@@ -79,7 +79,7 @@ template BitwiseXor(bits) {
  *  result === 105;                                         // Result:  01101001 (105)
  */
 template MultiBitwiseXor(n, bits) {
-    assert (n >= 2);
+    assert (n >= 3); // If n == 2, use BitwiseXor instead.
     signal input in[n];
     signal output out;
     
