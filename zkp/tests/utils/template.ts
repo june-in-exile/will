@@ -108,17 +108,17 @@ function parseSignals(
   const signals: Signal[] = [];
 
   const normalSignalRegex = new RegExp(
-    `signal\\s+${signalType}\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+    `\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
     "g",
   );
 
   const busSignalRegex1 = new RegExp(
-    `${signalType}\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+    `\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
     "g",
   );
 
   const busSignalRegex2 = new RegExp(
-    `([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+${signalType}\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+    `([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
     "g",
   );
 
@@ -266,7 +266,7 @@ function generateNestedLoopAssignment(
 
   let content = "";
   let indent = "    ";
-  let indexVars = [];
+  const indexVars = [];
 
   // Generate nested for loops
   for (let i = 0; i < dimensions.length; i++) {
@@ -331,11 +331,9 @@ function extractPreSignalCode(templateBody: string): string {
       continue;
     }
 
-    // Stop at signal declarations
     if (
-      trimmed.startsWith("signal ") ||
-      trimmed.startsWith("input ") ||
-      trimmed.startsWith("output ")
+      /\bsignal\s+(input|output)\b/.test(trimmed) ||
+      /\b(input|output)\b\s+[a-zA-Z_]/.test(trimmed)
     ) {
       break;
     }
@@ -370,6 +368,12 @@ function extractPreSignalCode(templateBody: string): string {
         !trimmed.includes("<==") &&
         !trimmed.includes("==>"))
     ) {
+      const indentedLine = line.startsWith("    ") ? line : "    " + trimmed;
+      preSignalLines.push(indentedLine);
+    }
+
+    // Include regular signal declarations (not input/output)
+    if (/^\s*signal\s+(?!input|output)[a-zA-Z_]/.test(trimmed)) {
       const indentedLine = line.startsWith("    ") ? line : "    " + trimmed;
       preSignalLines.push(indentedLine);
     }
@@ -495,7 +499,7 @@ async function searchBusInIncludes(
       if (nestedBus) {
         return nestedBus;
       }
-    } catch (error) {
+    } catch {
       console.warn(`Warning: Could not read include file: ${includePath}`);
       continue;
     }
