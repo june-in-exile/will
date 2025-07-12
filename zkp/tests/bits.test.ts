@@ -507,7 +507,7 @@ describe("BitwiseXor Circuit", function () {
     it("should handle identity operations", async function (): Promise<void> {
       const testCases = [
         { a: 170, b: 0, c: 170 }, // Xor with 0 returns original
-        { a: 85, b: 0, c: 85 }, // Xor with 0 returns original
+        { a: 85, b: 0, c: 85 },   // Xor with 0 returns original
         { a: 255, b: 0, c: 255 }, // Xor with 0 returns original
         { a: 123, b: 123, c: 0 }, // Xor with self returns 0
         { a: 200, b: 200, c: 0 }, // Xor with self returns 0
@@ -636,23 +636,97 @@ describe("MultiBitwiseXor Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   it("should reject single input (n=1)", async function (): Promise<void> {
-    await expect(WitnessTester.construct(
-      "circuits/shared/components/bits.circom",
-      "MultiBitwiseXor",
-      {
-        templateParams: ["1", "8"],
-      },
-    )).rejects.toThrow();
+    await expect(
+      WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "MultiBitwiseXor",
+        {
+          templateParams: ["1", "8"],
+        },
+      ),
+    ).rejects.toThrow();
   });
 
-  it("should reject two inputs (n=2)", async function (): Promise<void> {
-    await expect(WitnessTester.construct(
-      "circuits/shared/components/bits.circom",
-      "MultiBitwiseXor",
-      {
-        templateParams: ["2", "8"],
-      },
-    )).rejects.toThrow();
+  describe("2 inputs, 8-bit Multi-Xor Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "MultiBitwiseXor",
+        {
+          templateParams: ["2", "8"],
+        },
+      );
+      console.info(
+        "2x8-bit Multi-Xor circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should perform correct multi-xor operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0], _out: 0 }, // 0000 0000 ^ 0000 0000 = 0000 0000
+        { _in: [0, 255], _out: 255 }, // 0000 0000 ^ 1111 1111 = 1111 1111
+        { _in: [255, 0], _out: 255 }, // 1111 1111 ^ 0000 0000 = 1111 1111
+        { _in: [255, 255], _out: 0 }, // 1111 1111 ^ 1111 1111 = 0000 0000
+        { _in: [170, 85], _out: 255 }, // 1010 1010 ^ 0101 0101 = 1111 1111
+        { _in: [85, 170], _out: 255 }, // 0101 0101 ^ 1010 1010 = 1111 1111
+        { _in: [51, 204], _out: 255 }, // 0011 0011 ^ 1100 1100 = 1111 1111
+        { _in: [204, 51], _out: 255 }, // 1100 1100 ^ 0011 0011 = 1111 1111
+        { _in: [15, 240], _out: 255 }, // 0000 1111 ^ 1111 0000 = 1111 1111
+        { _in: [240, 15], _out: 255 }, // 1111 0000 ^ 0000 1111 = 1111 1111
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should handle power of 2 values correctly", async function (): Promise<void> {
+      const testCases = [
+        { _in: [1, 1], _out: 0 }, // 2^0 ^ 2^0 = 0
+        { _in: [2, 2], _out: 0 }, // 2^1 ^ 2^1 = 0
+        { _in: [4, 4], _out: 0 }, // 2^2 ^ 2^2 = 0
+        { _in: [8, 8], _out: 0 }, // 2^3 ^ 2^3 = 0
+        { _in: [16, 16], _out: 0 }, // 2^4 ^ 2^4 = 0
+        { _in: [32, 32], _out: 0 }, // 2^5 ^ 2^5 = 0
+        { _in: [64, 64], _out: 0 }, // 2^6 ^ 2^6 = 0
+        { _in: [128, 128], _out: 0 }, // 2^7 ^ 2^7 = 0
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should handle identity operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [170, 0], _out: 170 }, // Xor with 0 returns original
+        { _in: [85, 0], _out: 85 },   // Xor with 0 returns original
+        { _in: [255, 0], _out: 255 }, // Xor with 0 returns original
+        { _in: [123, 123], _out: 0 }, // Xor with self returns 0
+        { _in: [200, 200], _out: 0 }, // Xor with self returns 0
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { _in: [256, 0] }, // exceeds 8-bit range
+        { _in: [0, 256] }, // exceeds 8-bit range
+        { _in: [512, 100] }, // exceeds 8-bit range
+        { _in: [100, 512] }, // exceeds 8-bit range
+        { _in: [-1, 0] }, // negative value
+        { _in: [0, -1] }, // negative value
+        { _in: [-10, -20] }, // negative values
+      ];
+
+      for (const { _in } of testCases) {
+        await circuit.expectFail({ in: _in });
+      }
+    });
   });
 
   describe("3 inputs, 8-bit Multi-Xor Operations", function (): void {
@@ -767,13 +841,61 @@ describe("MultiBitwiseXor Circuit", function () {
     });
   });
 
+  describe("2 inputs, 16-bit Multi-Xor Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "MultiBitwiseXor",
+        {
+          templateParams: ["2", "16"],
+        },
+      );
+      console.info(
+        "2x16-bit Multi-Xor circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should perform correct multi-xor operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0], _out: 0 }, // 0x0000 ^ 0x0000 = 0x0000
+        { _in: [0, 65535], _out: 65535 }, // 0x0000 ^ 0xFFFF = 0xFFFF
+        { _in: [65535, 0], _out: 65535 }, // 0xFFFF ^ 0x0000 = 0xFFFF
+        { _in: [65535, 65535], _out: 0 }, // 0xFFFF ^ 0xFFFF = 0x0000
+        { _in: [43690, 21845], _out: 65535 }, // 0xAAAA ^ 0x5555 = 0xFFFF
+        { _in: [21845, 43690], _out: 65535 }, // 0x5555 ^ 0xAAAA = 0xFFFF
+        { _in: [61680, 3855], _out: 65535 }, // 0xF0F0 ^ 0x0F0F = 0xFFFF
+        { _in: [255, 65280], _out: 65535 }, // 0x00FF ^ 0xFF00 = 0xFFFF
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { _in: [65536, 0] }, // exceeds 16-bit range
+        { _in: [0, 65536] }, // exceeds 16-bit range
+        { _in: [131072, 1000] }, // exceeds 16-bit range
+        { _in: [-1, 0] }, // negative value
+        { _in: [0, -1] }, // negative value
+        { _in: [-100, -200] }, // negative values
+      ];
+
+      for (const { _in } of testCases) {
+        await circuit.expectFail({ in: _in });
+      }
+    });
+  });
+
   describe("3 inputs, 16-bit Multi-Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
         "MultiBitwiseXor",
         {
-          templateParams: ["3", "16"], // 3 inputs, 16-bit each
+          templateParams: ["3", "16"],
         },
       );
       console.info(
@@ -804,7 +926,7 @@ describe("MultiBitwiseXor Circuit", function () {
         "circuits/shared/components/bits.circom",
         "MultiBitwiseXor",
         {
-          templateParams: ["5", "16"], // 5 inputs, 16-bit each
+          templateParams: ["5", "16"],
         },
       );
       console.info(
@@ -839,7 +961,7 @@ describe("MultiBitwiseXor Circuit", function () {
         "circuits/shared/components/bits.circom",
         "MultiBitwiseXor",
         {
-          templateParams: ["10", "4"], // 10 inputs, 4-bit each
+          templateParams: ["10", "4"],
         },
       );
       console.info(
@@ -868,13 +990,61 @@ describe("MultiBitwiseXor Circuit", function () {
     });
   });
 
+  describe("2 inputs, 32-bit Multi-Xor Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "MultiBitwiseXor",
+        {
+          templateParams: ["2", "32"],
+        },
+      );
+      console.info(
+        "2x32-bit Multi-Xor circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should perform correct multi-Xor operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0], _out: 0 }, // 0x00000000 ^ 0x00000000 = 0x00000000
+        { _in: [0, 4294967295], _out: 4294967295 }, // 0x00000000 ^ 0xFFFFFFFF = 0xFFFFFFFF
+        { _in: [4294967295, 0], _out: 4294967295 }, // 0xFFFFFFFF ^ 0x00000000 = 0xFFFFFFFF
+        { _in: [4294967295, 4294967295], _out: 0 }, // 0xFFFFFFFF ^ 0xFFFFFFFF = 0x00000000
+        { _in: [2863311530, 1431655765], _out: 4294967295 }, // 0xAAAAAAAA ^ 0x55555555 = 0xFFFFFFFF
+        { _in: [1431655765, 2863311530], _out: 4294967295 }, // 0x55555555 ^ 0xAAAAAAAA = 0xFFFFFFFF
+        { _in: [4042322160, 252645135], _out: 4294967295 }, // 0xF0F0F0F0 ^ 0x0F0F0F0F = 0xFFFFFFFF
+        { _in: [65535, 4294901760], _out: 4294967295 }, // 0x0000FFFF ^ 0xFFFF0000 = 0xFFFFFFFF
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should reject out-of-range values", async function (): Promise<void> {
+      const testCases = [
+        { _in: [4294967296, 0] }, // exceeds 32-bit range
+        { _in: [0, 4294967296] }, // exceeds 32-bit range
+        { _in: [8589934592, 1000] }, // exceeds 32-bit range
+        { _in: [-1, 0] }, // negative value
+        { _in: [0, -1] }, // negative value
+        { _in: [-1000, -2000] }, // negative values
+      ];
+
+      for (const { _in } of testCases) {
+        await circuit.expectFail({ in: _in });
+      }
+    });
+  });
+
   describe("3 inputs, 32-bit Multi-Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
         "MultiBitwiseXor",
         {
-          templateParams: ["3", "32"], // 3 inputs, 32-bit each
+          templateParams: ["3", "32"],
         },
       );
       console.info(
