@@ -22,7 +22,7 @@ template XorWord() {
     signal _a[4] <== a.bytes;
     signal _b[4] <== b.bytes;
     for (var i = 0; i < 4; i++) {
-        c.bytes[i] <== BitwiseXor(8)(_a[i],_b[i]);
+        c.bytes[i] <== BitwiseXor(2,8)([_a[i],_b[i]]);
     }
 }
 

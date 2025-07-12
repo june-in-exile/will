@@ -43,42 +43,22 @@ template ShiftRight(bits, offset) {
     out <== Bits2Num(bits)(ShR(bits,offset)(Num2Bits(bits)(in)));
 }
 
-
-/**
- * @param bits - The bit width of the input numbers
- *
- * Example: XOR two 8-bit numbers
- *  signal result <== BitwiseXor(8)(170, 85);  // Input a: 10101010 (170)
-*                                              // Input b: 01010101  (85)
- *  result === 255;                            // Result:  11111111 (255)
- */
-template BitwiseXor(bits) {
-    signal input a;
-    signal input b;
-    signal output c;
-    
-    signal aBits[bits] <== Num2Bits(bits)(a);
-    signal bBits[bits] <== Num2Bits(bits)(b);
-    signal cBits[bits];
-    
-    for (var i = 0; i < bits; i++) {
-        cBits[i] <== XOR()(aBits[i], bBits[i]);
-    }
-    
-    c <== Bits2Num(bits)(cBits);
-}
-
 /**
  * @param n - The number of input elements
  * @param bits - The bit width of each input number
  *
+ * Example: XOR two 8-bit numbers
+ *  signal result <== BitwiseXor(2, 8)([170, 85]);  // Input a: 10101010 (170)
+ *                                                  // Input b: 01010101  (85)
+ *  result === 255;                                 // Result:  11111111 (255)
+ *
  * Example: XOR three 8-bit numbers
- *  signal result <== MultiBitwiseXor(3, 8)([15, 51, 85]);  // Input a: 00001111  (15)
+ *  signal result <== BitwiseXor(3, 8)([15, 51, 85]);  // Input a: 00001111  (15)
  *                                                          // Input b: 00110011  (51)
  *                                                          // Input c: 01010101  (85)
  *  result === 105;                                         // Result:  01101001 (105)
  */
-template MultiBitwiseXor(n, bits) {
+template BitwiseXor(n, bits) {
     assert (n >= 2);
     signal input in[n];
     signal output out;

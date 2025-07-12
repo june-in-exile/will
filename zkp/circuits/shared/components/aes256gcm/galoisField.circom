@@ -27,7 +27,7 @@ template GFMul2() {
     signal shifted <== Mask(9,0xff)(in * 2);
     
     // Apply polynomial reduction if MSB was set
-    out <== BitwiseXor(8)(shifted, msb * 0x1b);
+    out <== BitwiseXor(2,8)([shifted, msb * 0x1b]);
 }
 
 /**
@@ -42,5 +42,5 @@ template GFMul3() {
     
     signal mul2 <== GFMul2()(in);
     
-    out <== BitwiseXor(8)(mul2,in);
+    out <== BitwiseXor(2,8)([mul2,in]);
 }
