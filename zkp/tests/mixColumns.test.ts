@@ -76,7 +76,7 @@ describe("MixColumn Circuit", function () {
   });
 });
 
-describe.only("MixColumns Circuit", function () {
+describe("MixColumns Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("MixColumns Transformation for the Entire 16-byte State", function (): void {

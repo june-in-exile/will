@@ -53,28 +53,44 @@ template MixColumn() {
 template MixColumns() {
     signal input {byte} in[16];
     signal output {byte} out[16];
-    
-    signal col0_out[4] <== MixColumn()([in[0], in[1], in[2], in[3]]);
-    out[0] <== col0_out[0];
-    out[1] <== col0_out[1]; 
-    out[2] <== col0_out[2];
-    out[3] <== col0_out[3];
-    
-    signal col1_out[4] <== MixColumn()([in[4], in[5], in[6], in[7]]);
-    out[4] <== col1_out[0];
-    out[5] <== col1_out[1];
-    out[6] <== col1_out[2];
-    out[7] <== col1_out[3];
-    
-    signal col2_out[4] <== MixColumn()([in[8], in[9], in[10], in[11]]);
-    out[8] <== col2_out[0];
-    out[9] <== col2_out[1];
-    out[10] <== col2_out[2];
-    out[11] <== col2_out[3];
-    
-    signal col3_out[4] <== MixColumn()([in[12], in[13], in[14], in[15]]);
-    out[12] <== col3_out[0];
-    out[13] <== col3_out[1];
-    out[14] <== col3_out[2];
-    out[15] <== col3_out[3];
+
+    component col0 = MixColumn();
+    col0.in[0] <== in[0];
+    col0.in[1] <== in[1];
+    col0.in[2] <== in[2];
+    col0.in[3] <== in[3];
+    out[0] <== col0.out[0];
+    out[1] <== col0.out[1]; 
+    out[2] <== col0.out[2];
+    out[3] <== col0.out[3];
+
+    component col1 = MixColumn();
+    col1.in[0] <== in[4];
+    col1.in[1] <== in[5];
+    col1.in[2] <== in[6];
+    col1.in[3] <== in[7];
+    out[4] <== col1.out[0];
+    out[5] <== col1.out[1];
+    out[6] <== col1.out[2];
+    out[7] <== col1.out[3];
+
+    component col2 = MixColumn();
+    col2.in[0] <== in[8];
+    col2.in[1] <== in[9];
+    col2.in[2] <== in[10];
+    col2.in[3] <== in[11];
+    out[8] <== col2.out[0];
+    out[9] <== col2.out[1];
+    out[10] <== col2.out[2];
+    out[11] <== col2.out[3];
+
+    component col3 = MixColumn();
+    col3.in[0] <== in[12];
+    col3.in[1] <== in[13];
+    col3.in[2] <== in[14];
+    col3.in[3] <== in[15];
+    out[12] <== col3.out[0];
+    out[13] <== col3.out[1];
+    out[14] <== col3.out[2];
+    out[15] <== col3.out[3];
 }
