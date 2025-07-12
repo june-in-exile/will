@@ -8,7 +8,9 @@ import { Word } from "../types";
 // }
 function subWord(_in: [number, number, number, number]): Word {
   const substituted = substituteBytes(_in);
-  return { bytes: [substituted[0], substituted[1], substituted[2], substituted[3]] };
+  return {
+    bytes: [substituted[0], substituted[1], substituted[2], substituted[3]],
+  };
 }
 
 function substituteBytes(_in: number[]): number[] {

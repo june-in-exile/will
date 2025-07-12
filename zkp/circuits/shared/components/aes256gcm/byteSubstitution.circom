@@ -3,7 +3,7 @@ pragma circom 2.2.2;
 include "circomlib/circuits/multiplexer.circom";
 
 bus Word() {
-    signal {byte,number} bytes[4];
+    signal {byte} bytes[4];
 }
 
 template SBox() {

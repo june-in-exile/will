@@ -21,12 +21,14 @@ describe("SubWord Circuit", function () {
         const bytes = Array.from(AESUtils.randomBytes(4));
         // TODO: Update this code snippet after the JSON format is fixed.
         // const _in: Word = { bytes: [bytes[0], bytes[1], bytes[2], bytes[3]] };
-        const word: [number, number, number, number] = [bytes[0], bytes[1], bytes[2], bytes[3]];
+        const word: [number, number, number, number] = [
+          bytes[0],
+          bytes[1],
+          bytes[2],
+          bytes[3],
+        ];
 
-        await circuit.expectPass(
-          { in: word },
-          { out: subWord(word) },
-        );
+        await circuit.expectPass({ in: word }, { out: subWord(word) });
       }
     });
   });
@@ -82,7 +84,10 @@ describe("SubstituteBytes Circuit", function () {
       for (let byte = 0x00; byte <= 0xff; byte++) {
         const bytes = Array.from(Buffer.from([byte]));
 
-        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
+        await circuit.expectPass(
+          { in: bytes },
+          { out: substituteBytes(bytes) },
+        );
       }
     });
   });
@@ -106,7 +111,10 @@ describe("SubstituteBytes Circuit", function () {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(4));
 
-        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
+        await circuit.expectPass(
+          { in: bytes },
+          { out: substituteBytes(bytes) },
+        );
       }
     });
   });
@@ -130,7 +138,10 @@ describe("SubstituteBytes Circuit", function () {
       for (let i = 0; i < 3; i++) {
         const bytes = Array.from(AESUtils.randomBytes(16));
 
-        await circuit.expectPass({ in: bytes }, { out: substituteBytes(bytes) });
+        await circuit.expectPass(
+          { in: bytes },
+          { out: substituteBytes(bytes) },
+        );
       }
     });
   });

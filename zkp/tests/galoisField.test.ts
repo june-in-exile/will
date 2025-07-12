@@ -29,22 +29,19 @@ describe("Galois Field Multiplication Circuits", function () {
 
     it("should handle known test vectors correctly", async function (): Promise<void> {
       const testVectors = [
-        { _in: 0x00, _out: 0x00 },  // 0 * 2 = 0
-        { _in: 0x01, _out: 0x02 },  // 1 * 2 = 2
-        { _in: 0x02, _out: 0x04 },  // 2 * 2 = 4
-        { _in: 0x40, _out: 0x80 },  // No reduction needed
-        { _in: 0x80, _out: 0x1b },  // MSB set, reduction needed
-        { _in: 0x81, _out: 0x19 },  // 0x1b ^ 0x02
-        { _in: 0xff, _out: 0xe5 },  // All bits set
-        { _in: 0x53, _out: 0xa6 },  // No reduction
-        { _in: 0xca, _out: 0x8f }   // With reduction
+        { _in: 0x00, _out: 0x00 }, // 0 * 2 = 0
+        { _in: 0x01, _out: 0x02 }, // 1 * 2 = 2
+        { _in: 0x02, _out: 0x04 }, // 2 * 2 = 4
+        { _in: 0x40, _out: 0x80 }, // No reduction needed
+        { _in: 0x80, _out: 0x1b }, // MSB set, reduction needed
+        { _in: 0x81, _out: 0x19 }, // 0x1b ^ 0x02
+        { _in: 0xff, _out: 0xe5 }, // All bits set
+        { _in: 0x53, _out: 0xa6 }, // No reduction
+        { _in: 0xca, _out: 0x8f }, // With reduction
       ];
 
       for (const { _in, _out } of testVectors) {
-        await circuit.expectPass(
-          { in: _in },
-          { out: _out },
-        );
+        await circuit.expectPass({ in: _in }, { out: _out });
       }
     });
 
@@ -86,21 +83,18 @@ describe("Galois Field Multiplication Circuits", function () {
 
     it("should handle known test vectors correctly", async function (): Promise<void> {
       const testCases = [
-        { _in: 0x00, _out: 0x00 },  // 0 * 3 = 0
-        { _in: 0x01, _out: 0x03 },  // 1 * 3 = 3
-        { _in: 0x02, _out: 0x06 },  // 2 * 3 = 6
-        { _in: 0x80, _out: 0x9b },  // MSB cases
-        { _in: 0x81, _out: 0x98 },  // 0x19 ^ 0x81
-        { _in: 0xff, _out: 0xe6 },  // All bits set
-        { _in: 0x53, _out: 0xf5 },  // Mixed case
-        { _in: 0xca, _out: 0x45 }   // Complex case
+        { _in: 0x00, _out: 0x00 }, // 0 * 3 = 0
+        { _in: 0x01, _out: 0x03 }, // 1 * 3 = 3
+        { _in: 0x02, _out: 0x06 }, // 2 * 3 = 6
+        { _in: 0x80, _out: 0x9b }, // MSB cases
+        { _in: 0x81, _out: 0x98 }, // 0x19 ^ 0x81
+        { _in: 0xff, _out: 0xe6 }, // All bits set
+        { _in: 0x53, _out: 0xf5 }, // Mixed case
+        { _in: 0xca, _out: 0x45 }, // Complex case
       ];
 
       for (const { _in, _out } of testCases) {
-        await circuit.expectPass(
-          { in: _in },
-          { out: _out },
-        );
+        await circuit.expectPass({ in: _in }, { out: _out });
       }
     });
 
@@ -125,7 +119,7 @@ describe("Galois Field Multiplication Circuits", function () {
         0xaa, // Inverse alternating bits
         0x7f, // Just below MSB threshold
         0x80, // MSB threshold
-      ]
+      ];
 
       for (const byte of bytes) {
         await circuit.expectPass(

@@ -976,4 +976,16 @@ if (require.main === module) {
   AESGCMExample.demonstrateUsage();
 }
 
-export { AESUtils, AESSbox, GaloisField, AESTransforms, AESKeyExpansion, AES256, GF128, AES256GCM, AES256GCMEasy, AESVerification, AESGCMExample };
+export {
+  AESUtils,
+  AESSbox,
+  GaloisField,
+  AESTransforms,
+  AESKeyExpansion,
+  AES256,
+  GF128,
+  AES256GCM,
+  AES256GCMEasy,
+  AESVerification,
+  AESGCMExample,
+};

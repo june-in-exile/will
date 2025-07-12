@@ -92,7 +92,7 @@ describe("Base64GroupDecoder Cicuit", function () {
         { base64Group: [28, 27, 64, 64], bytes: [113, 0, 0] }, // cb== -> q
       ];
 
-      for (const { base64Group ,bytes} of testCases) {
+      for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
           { base64Group: base64Group },
           { bytes: bytes },

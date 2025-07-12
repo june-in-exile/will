@@ -39,10 +39,7 @@ describe("ExpandKey Circuit", function () {
 
       const expandedKey = expandKey(key);
 
-      await circuit.expectPass(
-        { key },
-        { expandedKey },
-      );
+      await circuit.expectPass({ key }, { expandedKey });
     });
   });
 });

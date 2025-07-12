@@ -45,10 +45,13 @@ describe("Divide Circuit", function () {
       ];
 
       for (const { dividend, divisor } of testCases) {
-        await circuit.expectPass({ dividend, divisor }, {
-          quotient: BigInt(Math.floor(dividend / divisor)),
-          remainder: BigInt(dividend % divisor),
-        });
+        await circuit.expectPass(
+          { dividend, divisor },
+          {
+            quotient: BigInt(Math.floor(dividend / divisor)),
+            remainder: BigInt(dividend % divisor),
+          },
+        );
       }
     });
 
@@ -140,10 +143,13 @@ describe("Divide Circuit", function () {
       ];
 
       for (const { dividend, divisor } of testCases) {
-        await circuit.expectPass({ dividend, divisor }, {
-          quotient: BigInt(Math.floor(dividend / divisor)),
-          remainder: BigInt(dividend % divisor),
-        });
+        await circuit.expectPass(
+          { dividend, divisor },
+          {
+            quotient: BigInt(Math.floor(dividend / divisor)),
+            remainder: BigInt(dividend % divisor),
+          },
+        );
       }
     });
 
@@ -234,10 +240,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -261,10 +264,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -276,10 +276,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
   });
@@ -310,10 +307,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -337,10 +331,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
   });
@@ -385,10 +376,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
   });
@@ -428,10 +416,7 @@ describe("MultiplyArray Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
   });

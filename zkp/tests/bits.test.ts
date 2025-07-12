@@ -483,10 +483,7 @@ describe("BitwiseXor Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -503,10 +500,7 @@ describe("BitwiseXor Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -520,10 +514,7 @@ describe("BitwiseXor Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -572,10 +563,7 @@ describe("BitwiseXor Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 
@@ -623,10 +611,7 @@ describe("BitwiseXor Circuit", function () {
       ];
 
       for (const { a, b, c } of testCases) {
-        await circuit.expectPass(
-          { a, b },
-          { c },
-        );
+        await circuit.expectPass({ a, b }, { c });
       }
     });
 

@@ -26,7 +26,7 @@ class WitnessTester<
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
-  ) { }
+  ) {}
 
   static async construct(
     circuitPath: string,
@@ -116,7 +116,10 @@ class WitnessTester<
    *
    * If `output` is omitted, it will only check for constraints to pass.
    */
-  async expectPass(input: CircuitInputOutput<IN>, output?: CircuitInputOutput<OUT>) {
+  async expectPass(
+    input: CircuitInputOutput<IN>,
+    output?: CircuitInputOutput<OUT>,
+  ) {
     const witness = await this.calculateWitness(input);
     await this.expectConstraintPass(witness);
     if (output) {

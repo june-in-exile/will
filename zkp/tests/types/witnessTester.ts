@@ -5,12 +5,14 @@ export type IntegerValueType = `${number}` | number | bigint;
 export type SignalValueType = IntegerValueType | SignalValueType[];
 
 /** A bus a collection of different but related signals (recursively). */
-export type BusStructType = { [key: string]: SignalValueType | BusStructType } | Array<{ [key: string]: SignalValueType | BusStructType }>;
+export type BusStructType =
+  | { [key: string]: SignalValueType | BusStructType }
+  | Array<{ [key: string]: SignalValueType | BusStructType }>;
 
 /**
  * An object mapping signal names to their values, which can be either flat signals or structured (nested) bus signals.
  * Each key represents a signal name as it appears in the circuit.
- * 
+ *
  * A signal value can be:
  *   - A single integer value (number, bigint, or numeric string),
  *   - An array of such values (e.g., for vectors or memory),

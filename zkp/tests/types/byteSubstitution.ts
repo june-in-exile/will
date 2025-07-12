@@ -1,3 +1,3 @@
 export type Word = {
-  bytes: [number, number, number, number],
-}
+  bytes: [number, number, number, number];
+};

@@ -9,13 +9,13 @@ include "circomlib/circuits/gates.circom";
  * @param mask - The mask value to apply
  *
  * Example: Extract lower 4 bits using mask
- *  signal {number} masked <== Mask(8,15)(171); // Input:   10101011 (171)
- *                                      // Mask:    00001111  (15)
- *  masked === 11;                      // Result:  00001011  (11)  
+ *  signal masked <== Mask(8,15)(171); // Input:   10101011 (171)
+ *                                     // Mask:    00001111  (15)
+ *  masked === 11;                     // Result:  00001011  (11)  
  */
 template Mask(bits, mask) {
-    signal input {number} in;
-    signal output {number} out;
+    signal input in;
+    signal output out;
     
     signal inBits[bits] <== Num2Bits(bits)(in);
     signal maskBits[bits] <== Num2Bits(bits)(mask);
@@ -33,12 +33,12 @@ template Mask(bits, mask) {
  * @param offset - Number of positions to shift right
  * 
  * Example: Divide by 2^4 using right shift
- *  signal {number} shifted = ShiftRight(8,4)(171);  // Input: 10101011
- *  shifted === 10;                         // Result: 00001010
+ *  signal shifted <== ShiftRight(8,4)(171);  // Input: 10101011
+ *  shifted === 10;                           // Result: 00001010
  */
 template ShiftRight(bits, offset) {
-    signal input {number} in;
-    signal output {number} out;
+    signal input in;
+    signal output out;
 
     signal inBits[bits] <== Num2Bits(bits)(in);
     signal outBits[bits] <== ShR(bits,offset)(inBits);
@@ -50,14 +50,14 @@ template ShiftRight(bits, offset) {
  * @param bits - The bit width of the input numbers
  *
  * Example: XOR two 8-bit numbers
- *  signal {number} result <== BitwiseXor(8)(170, 85);  // Input a: 10101010 (170)
- *                                                      // Input b: 01010101  (85)
- *  result === 255;                                     // Result:  11111111 (255)
+ *  signal result <== BitwiseXor(8)(170, 85);  // Input a: 10101010 (170)
+*                                              // Input b: 01010101  (85)
+ *  result === 255;                            // Result:  11111111 (255)
  */
 template BitwiseXor(bits) {
-    signal input {number} a;
-    signal input {number} b;
-    signal output {number} c;
+    signal input a;
+    signal input b;
+    signal output c;
     
     signal aBits[bits] <== Num2Bits(bits)(a);
     signal bBits[bits] <== Num2Bits(bits)(b);

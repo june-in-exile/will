@@ -82,4 +82,8 @@ function utf8StringEncoder(codepoints: number[]): {
   return { bytes, validByteCount };
 }
 
-export { utf8ByteLength, utf8Encoder as encodeUTF8, utf8StringEncoder as encodeUTF8String };
+export {
+  utf8ByteLength,
+  utf8Encoder as encodeUTF8,
+  utf8StringEncoder as encodeUTF8String,
+};

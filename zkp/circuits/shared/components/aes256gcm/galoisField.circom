@@ -1,6 +1,7 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
+include "../bits.circom";
 
 /**
  * Galois Field multiplication by 2 in GF(2^8)
@@ -22,11 +23,12 @@ template GFMul2() {
     signal bits[8] <== Num2Bits(8)(in);
     signal msb <== bits[7];
     
-    // Left shift by 1 and keep only lower 8 bits
-    signal shifted <== (in * 2) % 256;
+    // Left shift by 1 and mask to keep only lower 8 bits
+    signal shifted <== in * 2;
+    signal masked <== Mask(8, 0xff)(shifted);
     
     // Apply polynomial reduction if MSB was set
-    out <== shifted ^ (msb * 0x1b);
+    out <== BitwiseXor(8)(masked,msb * 0x1b);
 }
 
 /**
@@ -41,5 +43,5 @@ template GFMul3() {
     
     signal mul2 <== GFMul2()(in);
     
-    out <== mul2 ^ in;
+    out <== BitwiseXor(8)(mul2,in);
 }
