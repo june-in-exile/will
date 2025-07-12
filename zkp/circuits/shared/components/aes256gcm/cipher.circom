@@ -3,8 +3,8 @@ pragma circom 2.0.0;
 // Include your existing templates
 include "keyExpansion.circom";
 include "byteSubstitution.circom";
-include "shiftRows.circom";
-include "mixColumns.circom";
+include "rowShift.circom";
+include "columnMix.circom";
 include "../bits.circom";
 
 // Helper template to convert byte array to Word array
@@ -54,10 +54,16 @@ template AddRoundKey() {
 }
 
 // Main AES-256 encryption block template
-template Cipher() {
-    // AES-256 uses 14 rounds
-    var Nr = 14;
-    var Nk = 8; // 256 bits / 32 bits per word
+template Cipher(keyBits) {
+    var (Nk, Nb, Nr);
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        (Nk, Nb, Nr) = (4,4,10);
+    } else if (keyBits == 192) {
+        (Nk, Nb, Nr) = (6,4,12);
+    } else {
+        (Nk, Nb, Nr) = (8,4,14);
+    }
     
     // Inputs
     signal input {byte} plaintext[16];

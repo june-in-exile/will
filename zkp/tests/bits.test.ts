@@ -519,7 +519,7 @@ describe("BitwiseXor Circuit", function () {
     it("should handle identity operations", async function (): Promise<void> {
       const testCases = [
         { _in: [170, 0], _out: 170 }, // Xor with 0 returns original
-        { _in: [85, 0], _out: 85 },   // Xor with 0 returns original
+        { _in: [85, 0], _out: 85 }, // Xor with 0 returns original
         { _in: [255, 0], _out: 255 }, // Xor with 0 returns original
         { _in: [123, 123], _out: 0 }, // Xor with self returns 0
         { _in: [200, 200], _out: 0 }, // Xor with self returns 0
