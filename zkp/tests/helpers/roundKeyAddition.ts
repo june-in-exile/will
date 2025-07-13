@@ -1,20 +1,19 @@
 import { AESTransforms } from "./aes-gcm";
 
-function addRoundKey(state: Byte16, roundKey: Word4): Byte16 {
+function addRoundKey(state: Byte16, roundKey: Word4): { out: Byte16 } {
     const stateBuffer = Buffer.from(state);
 
     const roundKeyBytes = [];
-    for (let i = 0; i < 4; i++) { 
+    for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
             roundKeyBytes.push(roundKey[i].bytes[j]);
         }
     }
     const roundKeyBuffer = Buffer.from(roundKeyBytes);
-    
+
     const outBuffer = AESTransforms.addRoundKey(stateBuffer, roundKeyBuffer);
-    
-    const out = Array.from(outBuffer);
-    return out as Byte16;
+
+    return { out: Array.from(outBuffer) as Byte16 };
 }
 
 export { addRoundKey };
