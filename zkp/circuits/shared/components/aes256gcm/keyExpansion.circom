@@ -3,6 +3,7 @@ pragma circom 2.2.2;
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "byteSubstitution.circom";
+include "../bus.circom";
 include "../bits.circom";
 
 template RotWord() {

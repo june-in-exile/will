@@ -4,11 +4,7 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/gates.circom";
 include "circomlib/circuits/mux2.circom";
-
-bus Utf8() {
-    signal {byte} bytes[4];
-    signal {bit} validBytes[4];
-}
+include "bus.circom";
 
 /**
  * UTF-8 Encoding Ranges:

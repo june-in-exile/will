@@ -1,10 +1,7 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/multiplexer.circom";
-
-bus Word() {
-    signal {byte} bytes[4];
-}
+include "../bus.circom";
 
 template SBox() {
     signal input {byte} in;
