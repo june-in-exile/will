@@ -25,80 +25,44 @@ template EncryptBlock(keyBits) {
     signal output {byte} ciphertext[16];
     
     // Expand the key
-    // component keyExpansion = ExpandKey(keyBits);
-    // for (var i = 0; i < Nk; i++) {
-    //     keyExpansion.key[i] <== key[i];
-    // }
-    
-    // State array to track transformations
-    signal {byte} state[Nr + 1][16];
-    
-    // Initial round - AddRoundKey only
     Word() roundKey[expandedNk] <== ExpandKey(keyBits)(key);
     Word() roundKeyGroup[Nr + 1][4];
-    (roundKeyGroup[0][0],roundKeyGroup[0][1],roundKeyGroup[0][2],roundKeyGroup[0][3]) <== (roundKey[0],roundKey[1],roundKey[2],roundKey[3]);
+    for (var i = 0; i <= Nr; i++) {
+        (roundKeyGroup[i][0],roundKeyGroup[i][1],roundKeyGroup[i][2],roundKeyGroup[i][3]) <== (roundKey[4 * i],roundKey[4 * i + 1],roundKey[4 * i + 2],roundKey[4 * i + 3]);
+    }
+    
+    // State array to track transformations
+    signal {byte} state[Nr][16];
+    
+    // Initial round - AddRoundKey only
     state[0] <== AddRoundKey()(plaintext,roundKeyGroup[0]);
     
     // Main rounds (1 to Nr-1)
-    component subBytes[Nr];
-    component shiftRows[Nr];
-    component mixColumns[Nr - 1]; // No MixColumns in final round
-    component addRoundKey[Nr];
-    
+    signal {byte} byteSubstituted[Nr][16];
+    signal {byte} rowShifted[Nr][16];
+    signal {byte} columnMixed[Nr - 1][16]; // No MixColumns in final round
+
     for (var round = 1; round <= Nr - 1; round++) {
         // SubBytes
-        subBytes[round - 1] = SubBytes();
-        for (var i = 0; i < 16; i++) {
-            subBytes[round - 1].in[i] <== state[round - 1][i];
-        }
+        byteSubstituted[round - 1] <== SubBytes()(state[round - 1]);
         
         // ShiftRows
-        shiftRows[round - 1] = ShiftRows();
-        for (var i = 0; i < 16; i++) {
-            shiftRows[round - 1].in[i] <== subBytes[round - 1].out[i];
-        }
+        rowShifted[round - 1] <== ShiftRows()(byteSubstituted[round - 1]);
         
         // MixColumns
-        mixColumns[round - 1] = MixColumns();
-        for (var i = 0; i < 16; i++) {
-            mixColumns[round - 1].in[i] <== shiftRows[round - 1].out[i];
-        }
+        columnMixed[round - 1] <== MixColumns()(rowShifted[round - 1]);
         
         // AddRoundKey
-        addRoundKey[round - 1] = AddRoundKey();
-        for (var i = 0; i < 16; i++) {
-            addRoundKey[round - 1].state[i] <== mixColumns[round - 1].out[i];
-        }
-        for (var i = 0; i < 4; i++) {
-            addRoundKey[round - 1].roundKey[i] <== roundKey[round * 4 + i];
-        }
-        for (var i = 0; i < 16; i++) {
-            state[round][i] <== addRoundKey[round - 1].out[i];
-        }
+        state[round] <== AddRoundKey()(columnMixed[round - 1],roundKeyGroup[round]);
     }
     
     // Final round (no MixColumns)
     // SubBytes
-    subBytes[Nr - 1] = SubBytes();
-    for (var i = 0; i < 16; i++) {
-        subBytes[Nr - 1].in[i] <== state[Nr - 1][i];
-    }
+    byteSubstituted[Nr - 1] <== SubBytes()(state[Nr - 1]);
     
     // ShiftRows
-    shiftRows[Nr - 1] = ShiftRows();
-    for (var i = 0; i < 16; i++) {
-        shiftRows[Nr - 1].in[i] <== subBytes[Nr - 1].out[i];
-    }
+    rowShifted[Nr - 1] <== ShiftRows()(byteSubstituted[Nr - 1]);
     
     // AddRoundKey
-    addRoundKey[Nr - 1] = AddRoundKey();
-    for (var i = 0; i < 16; i++) {
-        addRoundKey[Nr - 1].state[i] <== shiftRows[Nr - 1].out[i];
-    }
-    for (var i = 0; i < 4; i++) {
-        addRoundKey[Nr - 1].roundKey[i] <== roundKey[Nr * 4 + i];
-    }
-    for (var i = 0; i < 16; i++) {
-        ciphertext[i] <== addRoundKey[Nr - 1].out[i];
-    }
+    ciphertext <== AddRoundKey()(rowShifted[Nr - 1],roundKeyGroup[Nr]);
 }
