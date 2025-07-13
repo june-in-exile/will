@@ -7,7 +7,7 @@ describe.only("ShiftRows Circuit", function () {
   describe("Row Shifting for Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/rowShifting.circom",
+        "circuits/shared/components/aes256ctr/rowShifting.circom",
         "ShiftRows",
       );
       console.info(

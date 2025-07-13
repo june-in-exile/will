@@ -7,7 +7,7 @@ describe("EncryptBlock Circuit", function () {
   describe.only("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/encryptBlock.circom",
+        "circuits/shared/components/aes256ctr/encryptBlock.circom",
         "EncryptBlock", {
         templateParams: ["256"],
       });

@@ -7,7 +7,7 @@ describe("GFMul2 Circuit", function () {
   describe("Galois Field Multiplication by 2 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/galoisField.circom",
+        "circuits/shared/components/aes256ctr/galoisField.circom",
         "GFMul2",
       );
       console.info(
@@ -63,7 +63,7 @@ describe("GFMul3 Circuit", function () {
   describe("Galois Field Multiplication by 3 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/galoisField.circom",
+        "circuits/shared/components/aes256ctr/galoisField.circom",
         "GFMul3",
       );
       console.info(

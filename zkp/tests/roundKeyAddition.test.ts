@@ -7,7 +7,7 @@ describe("AddRoundKey Circuit", function () {
     describe("AddRoundKey Transformation", function (): void {
         beforeAll(async function (): Promise<void> {
             circuit = await WitnessTester.construct(
-                "circuits/shared/components/aes256gcm/roundKeyAddition.circom",
+                "circuits/shared/components/aes256ctr/roundKeyAddition.circom",
                 "AddRoundKey",
             );
             console.info(
