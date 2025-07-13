@@ -46,6 +46,7 @@ declare global {
   };
 
   type Word = { bytes: Byte4 };
+  type Word4 = [Word, Word, Word, Word];
 }
 
 export { LOG_LEVELS };

@@ -16,6 +16,6 @@ template AddRoundKey() {
     }
     
     for (var i = 0; i < 16; i++) {
-        out[i] <== BitwiseXor(2,8)(state[i],roundKeyBytes[i]);
+        out[i] <== BitwiseXor(2,8)([state[i],roundKeyBytes[i]]);
     }
 }
