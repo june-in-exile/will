@@ -63,7 +63,6 @@ describe("ExpandKey Circuit", function () {
           bytes: key.slice(i, i + 4) as Byte4,
         });
       }
-
       await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
     });
   });

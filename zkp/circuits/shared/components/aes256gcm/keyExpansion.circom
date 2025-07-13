@@ -90,7 +90,7 @@ template ExpandKey(keyBits) {
     for (var i = Nk; i < expandedNk; i++) {
         if (i % Nk == 0) {
             expandedKey[i] <== XorWord()(expandedKey[i-Nk], XorWord()(SubWord()(RotWord()(expandedKey[i-1])), RCon()((i\Nk)-1)));
-        } else if (i > 6 && i % Nk == 4) {
+        } else if (Nk > 6 && i % Nk == 4) {
             expandedKey[i] <== XorWord()(expandedKey[i-Nk], SubWord()(expandedKey[i-1]));
         } else {
             expandedKey[i] <== XorWord()(expandedKey[i-Nk], expandedKey[i-1]);
