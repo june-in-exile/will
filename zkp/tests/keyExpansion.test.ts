@@ -2,7 +2,7 @@ import { expandKey } from "./helpers";
 import { WitnessTester } from "./utils";
 
 describe("ExpandKey Circuit", function () {
-  let circuit: WitnessTester<["key"], ["expandedKey"]>;
+  let circuit: WitnessTester<["key"], ["roundKey"]>;
 
   describe("Key Expansion for AES-128", function (): void {
     beforeAll(async function (): Promise<void> {
@@ -32,7 +32,7 @@ describe("ExpandKey Circuit", function () {
         });
       }
 
-      await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
+      await circuit.expectPass({ key }, { roundKey: expandKey(keyBytes) });
     });
   });
 
@@ -63,7 +63,7 @@ describe("ExpandKey Circuit", function () {
           bytes: key.slice(i, i + 4) as Byte4,
         });
       }
-      await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
+      await circuit.expectPass({ key }, { roundKey: expandKey(keyBytes) });
     });
   });
 
@@ -96,7 +96,7 @@ describe("ExpandKey Circuit", function () {
         });
       }
 
-      await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
+      await circuit.expectPass({ key }, { roundKey: expandKey(keyBytes) });
     });
   });
 });

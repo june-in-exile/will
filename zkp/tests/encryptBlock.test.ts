@@ -4,7 +4,7 @@ import { AESUtils, encryptBlock } from "./helpers";
 describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;
 
-  describe("AES-256 Block Cipher", function (): void {
+  describe.only("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256gcm/encryptBlock.circom",
@@ -13,7 +13,7 @@ describe("EncryptBlock Circuit", function () {
       });
       console.info(
         "AES-256 block cipher circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 123264
       );
     });
 

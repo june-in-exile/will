@@ -9,37 +9,46 @@ include "../bus.circom";
 include "../bits.circom";
 
 template EncryptBlock(keyBits) {
-    // AES-256 uses 14 rounds
-    var Nr = 14;
-    var Nk = 8; // 256 bits / 32 bits per word
+    var (Nk, Nb, Nr);
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        (Nk, Nb, Nr) = (4,4,10);
+    } else if (keyBits == 192) {
+        (Nk, Nb, Nr) = (6,4,12);
+    } else {
+        (Nk, Nb, Nr) = (8,4,14);
+    }
+    var expandedNk = 4 * (Nr + 1);
     
-    // Inputs
     signal input {byte} plaintext[16];
     input Word() key[Nk];
-    
-    // Output
     signal output {byte} ciphertext[16];
     
     // Expand the key
-    component keyExpansion = ExpandKey(256);
-    for (var i = 0; i < Nk; i++) {
-        keyExpansion.key[i] <== key[i];
-    }
+    // component keyExpansion = ExpandKey(keyBits);
+    // for (var i = 0; i < Nk; i++) {
+    //     keyExpansion.key[i] <== key[i];
+    // }
     
     // State array to track transformations
     signal {byte} state[Nr + 1][16];
     
     // Initial round - AddRoundKey only
-    component addRoundKey0 = AddRoundKey();
-    for (var i = 0; i < 16; i++) {
-        addRoundKey0.state[i] <== plaintext[i];
-    }
-    for (var i = 0; i < 4; i++) {
-        addRoundKey0.roundKey[i] <== keyExpansion.expandedKey[i];
-    }
-    for (var i = 0; i < 16; i++) {
-        state[0][i] <== addRoundKey0.out[i];
-    }
+    // component addRoundKey0 = AddRoundKey();
+    // for (var i = 0; i < 16; i++) {
+    //     addRoundKey0.state[i] <== plaintext[i];
+    // }
+    // for (var i = 0; i < 4; i++) {
+    //     addRoundKey0.roundKey[i] <== keyExpansion.expandedKey[i];
+    // }
+    // for (var i = 0; i < 16; i++) {
+    //     state[0][i] <== addRoundKey0.out[i];
+    // }
+    
+    Word() roundKey[expandedNk] <== ExpandKey(keyBits)(key);
+    Word() roundKey0[4];
+    (roundKey0[0],roundKey0[1],roundKey0[2],roundKey0[3]) <== (roundKey[0],roundKey[1],roundKey[2],roundKey[3]);
+    state[0] <== AddRoundKey()(plaintext,roundKey0);
     
     // Main rounds (1 to Nr-1)
     component subBytes[Nr];
@@ -72,7 +81,7 @@ template EncryptBlock(keyBits) {
             addRoundKey[round - 1].state[i] <== mixColumns[round - 1].out[i];
         }
         for (var i = 0; i < 4; i++) {
-            addRoundKey[round - 1].roundKey[i] <== keyExpansion.expandedKey[round * 4 + i];
+            addRoundKey[round - 1].roundKey[i] <== roundKey[round * 4 + i];
         }
         for (var i = 0; i < 16; i++) {
             state[round][i] <== addRoundKey[round - 1].out[i];
@@ -98,7 +107,7 @@ template EncryptBlock(keyBits) {
         addRoundKey[Nr - 1].state[i] <== shiftRows[Nr - 1].out[i];
     }
     for (var i = 0; i < 4; i++) {
-        addRoundKey[Nr - 1].roundKey[i] <== keyExpansion.expandedKey[Nr * 4 + i];
+        addRoundKey[Nr - 1].roundKey[i] <== roundKey[Nr * 4 + i];
     }
     for (var i = 0; i < 16; i++) {
         ciphertext[i] <== addRoundKey[Nr - 1].out[i];

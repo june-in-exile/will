@@ -83,18 +83,18 @@ template ExpandKey(keyBits) {
     var expandedNk = 4 * (Nr + 1);
 
     input Word() key[Nk];
-    output Word() expandedKey[expandedNk];
+    output Word() roundKey[expandedNk];
 
     for (var i = 0; i < Nk; i++) {
-        expandedKey[i] <== key[i];
+        roundKey[i] <== key[i];
     }
     for (var i = Nk; i < expandedNk; i++) {
         if (i % Nk == 0) {
-            expandedKey[i] <== XorWord()(expandedKey[i-Nk], XorWord()(SubWord()(RotWord()(expandedKey[i-1])), RCon()((i\Nk)-1)));
+            roundKey[i] <== XorWord()(roundKey[i-Nk], XorWord()(SubWord()(RotWord()(roundKey[i-1])), RCon()((i\Nk)-1)));
         } else if (Nk > 6 && i % Nk == 4) {
-            expandedKey[i] <== XorWord()(expandedKey[i-Nk], SubWord()(expandedKey[i-1]));
+            roundKey[i] <== XorWord()(roundKey[i-Nk], SubWord()(roundKey[i-1]));
         } else {
-            expandedKey[i] <== XorWord()(expandedKey[i-Nk], expandedKey[i-1]);
+            roundKey[i] <== XorWord()(roundKey[i-Nk], roundKey[i-1]);
         }
     }
 }
