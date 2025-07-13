@@ -80,8 +80,8 @@ describe("EncryptBlock Circuit", function () {
         const ciphertext = encryptBlock(plaintext, byteToWord(key));
 
         await circuit.expectPass(
-          { plaintext: plaintext, key: key },
-          { ciphertext: ciphertext }
+          { plaintext, key },
+          { ciphertext }
         );
       }
     });
