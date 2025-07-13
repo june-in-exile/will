@@ -8,6 +8,13 @@ include "columnMixing.circom";
 include "../bus.circom";
 include "../bits.circom";
 
+/**
+ * AES Block Encryption Circuit
+ * Implements the AES encryption algorithm for 128/192/256-bit keys
+ * Following NIST FIPS 197 standard
+ * 
+ * @param keyBits - Key size in bits (128, 192, or 256)
+ */
 template EncryptBlock(keyBits) {
     var (Nk, Nb, Nr);
     assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
@@ -26,43 +33,36 @@ template EncryptBlock(keyBits) {
     
     // Expand the key
     Word() roundKey[expandedNk] <== ExpandKey(keyBits)(key);
+
+    // Group by 4 words for each round
     Word() roundKeyGroup[Nr + 1][4];
     for (var i = 0; i <= Nr; i++) {
-        (roundKeyGroup[i][0],roundKeyGroup[i][1],roundKeyGroup[i][2],roundKeyGroup[i][3]) <== (roundKey[4 * i],roundKey[4 * i + 1],roundKey[4 * i + 2],roundKey[4 * i + 3]);
+        for (var j = 0; j < 4; j++) {
+            roundKeyGroup[i][j] <== roundKey[4 * i + j];
+        }
     }
     
     // State array to track transformations
     signal {byte} state[Nr][16];
-    
-    // Initial round - AddRoundKey only
-    state[0] <== AddRoundKey()(plaintext,roundKeyGroup[0]);
-    
-    // Main rounds (1 to Nr-1)
+
+    // Intermediate signals for each transformation step
     signal {byte} byteSubstituted[Nr][16];
     signal {byte} rowShifted[Nr][16];
     signal {byte} columnMixed[Nr - 1][16]; // No MixColumns in final round
 
+    // Initial round - AddRoundKey only
+    state[0] <== AddRoundKey()(plaintext,roundKeyGroup[0]);
+
+    // Main rounds (1 to Nr-1): SubBytes -> ShiftRows -> MixColumns -> AddRoundKey
     for (var round = 1; round <= Nr - 1; round++) {
-        // SubBytes
         byteSubstituted[round - 1] <== SubBytes()(state[round - 1]);
-        
-        // ShiftRows
         rowShifted[round - 1] <== ShiftRows()(byteSubstituted[round - 1]);
-        
-        // MixColumns
         columnMixed[round - 1] <== MixColumns()(rowShifted[round - 1]);
-        
-        // AddRoundKey
         state[round] <== AddRoundKey()(columnMixed[round - 1],roundKeyGroup[round]);
     }
     
     // Final round (no MixColumns)
-    // SubBytes
     byteSubstituted[Nr - 1] <== SubBytes()(state[Nr - 1]);
-    
-    // ShiftRows
     rowShifted[Nr - 1] <== ShiftRows()(byteSubstituted[Nr - 1]);
-    
-    // AddRoundKey
     ciphertext <== AddRoundKey()(rowShifted[Nr - 1],roundKeyGroup[Nr]);
 }

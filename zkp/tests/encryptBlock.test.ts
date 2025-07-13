@@ -13,7 +13,7 @@ describe("EncryptBlock Circuit", function () {
       });
       console.info(
         "AES-256 block cipher circuit constraints:",
-        await circuit.getConstraintCount(), // 123264
+        await circuit.getConstraintCount(),
       );
     });
 
