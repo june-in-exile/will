@@ -1,14 +1,14 @@
-import { WitnessTester } from "./utils";
-import { AESUtils } from "./helpers";
+import { byteToWord, WitnessTester, wordToByte } from "./utils";
+import { AESUtils, encryptBlock } from "./helpers";
 
-describe("AesCipher Circuit", function () {
+describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;
 
   describe("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256gcm/aesCipher.circom",
-        "AesCipher", {
+        "circuits/shared/components/aes256gcm/encryptBlock.circom",
+        "EncryptBlock", {
         templateParams: ["256"],
       });
       console.info(
@@ -18,7 +18,6 @@ describe("AesCipher Circuit", function () {
     });
 
     it("should correctly encrypt using NIST test vectors", async function (): Promise<void> {
-      // NIST AES-256 test vectors from FIPS 197 and SP 800-38A
       const testCases = [
         {
           // NIST FIPS 197 Appendix C.3
@@ -42,7 +41,7 @@ describe("AesCipher Circuit", function () {
           ]
         },
         {
-          // NIST SP 800-38A F.1.5 ECB-AES256.Encrypt
+          // NIST SP 800-38A F.1.5 ECB-AES256.Encrypt Block #1
           plaintext: [
             0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96,
             0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a
@@ -66,36 +65,24 @@ describe("AesCipher Circuit", function () {
 
       for (const { plaintext, key, ciphertext } of testCases) {
         await circuit.expectPass(
-          { plaintext: plaintext, key: key },
-          { ciphertext: ciphertext }
+          { plaintext, key: wordToByte(key as Word[]) },
+          { ciphertext }
         );
       }
     });
 
 
-    it.only("should handle random inputs consistently", async function (): Promise<void> {
-      // Test that the same input always produces the same output
+    it("should handle random inputs consistently", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const plaintext = Array.from(AESUtils.randomBytes(16));
-        const keyBytes = Array.from(AESUtils.randomBytes(32));
+        const plaintext = Array.from(AESUtils.randomBytes(16)) as Byte16;
+        const key = Array.from(AESUtils.randomBytes(32)) as Byte[];
 
-        // Convert key bytes to Word format
-        const key = [];
-        for (let j = 0; j < 8; j++) {
-          key.push({
-            bytes: keyBytes.slice(j * 4, (j + 1) * 4)
-          });
-        }
+        const ciphertext = encryptBlock(plaintext, byteToWord(key));
 
-        // Get the result once
-        const result1 = await circuit.compute({ plaintext: plaintext, key: key });
-        console.debug("ciphertext:", result1.ciphertext);
-
-        // Verify same input produces same output
-        // await circuit.expectPass(
-        //   { plaintext: plaintext, key: key },
-        //   { ciphertext: result1.ciphertext }
-        // );
+        await circuit.expectPass(
+          { plaintext: plaintext, key: key },
+          { ciphertext: ciphertext }
+        );
       }
     });
   });

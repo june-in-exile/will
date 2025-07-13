@@ -17,4 +17,16 @@ function byteToWord(bytes: Byte[]): Word[] {
     return words;
 }
 
-export { byteToWord };
+/**
+ * @param words - Word array
+ * @returns Flattened Byte array
+ */
+function wordToByte(words: Word[]): Byte[] {
+    const bytes: Byte[] = [];
+    for (const word of words) {
+        bytes.push(...word.bytes);
+    }
+    return bytes;
+}
+
+export { byteToWord, wordToByte };

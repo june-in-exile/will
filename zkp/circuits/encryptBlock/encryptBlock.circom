@@ -8,7 +8,7 @@ include "../shared/components/aes256gcm/columnMixing.circom";
 include "../shared/components/bus.circom";
 include "../shared/components/bits.circom";
 
-template AesCipher(keyBits) {
+template EncryptBlock(keyBits) {
     // AES-256 uses 14 rounds
     var Nr = 14;
     var Nk = 8; // 256 bits / 32 bits per word
@@ -106,4 +106,4 @@ template AesCipher(keyBits) {
 }
 
 // Example instantiation
-component main = AesCipher(256);
+component main = EncryptBlock(256);
