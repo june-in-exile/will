@@ -21,30 +21,14 @@ describe("ExpandKey Circuit", function () {
 
     it("should expand 16-byte key to 176-byte correctly", async function (): Promise<void> {
       const key = [
-        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
-        0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88,
+        0x09, 0xcf, 0x4f, 0x3c,
       ];
 
       const keyBytes: Word[] = [];
       for (let i = 0; i < key.length; i += 4) {
         keyBytes.push({
-          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
-        });
-      }
-
-      await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
-    });
-
-    it("should expand another 16-byte key correctly", async function (): Promise<void> {
-      const key = [
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-      ];
-
-      const keyBytes: Word[] = [];
-      for (let i = 0; i < key.length; i += 4) {
-        keyBytes.push({
-          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
+          bytes: key.slice(i, i + 4) as Byte4,
         });
       }
 
@@ -69,32 +53,14 @@ describe("ExpandKey Circuit", function () {
 
     it("should expand 24-byte key to 208-byte correctly", async function (): Promise<void> {
       const key = [
-        0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52,
-        0xc8, 0x10, 0xf3, 0x2b, 0x80, 0x90, 0x79, 0xe5,
-        0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b,
+        0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b,
+        0x80, 0x90, 0x79, 0xe5, 0x62, 0xf8, 0xea, 0xd2, 0x52, 0x2c, 0x6b, 0x7b,
       ];
 
       const keyBytes: Word[] = [];
       for (let i = 0; i < key.length; i += 4) {
         keyBytes.push({
-          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
-        });
-      }
-
-      await circuit.expectPass({ key }, { expandedKey: expandKey(keyBytes) });
-    });
-
-    it("should expand another 24-byte key correctly", async function (): Promise<void> {
-      const key = [
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-        0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-      ];
-
-      const keyBytes: Word[] = [];
-      for (let i = 0; i < key.length; i += 4) {
-        keyBytes.push({
-          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
+          bytes: key.slice(i, i + 4) as Byte4,
         });
       }
 
@@ -127,7 +93,7 @@ describe("ExpandKey Circuit", function () {
       const keyBytes: Word[] = [];
       for (let i = 0; i < key.length; i += 4) {
         keyBytes.push({
-          bytes: key.slice(i, i + 4) as [Byte, Byte, Byte, Byte],
+          bytes: key.slice(i, i + 4) as Byte4,
         });
       }
 

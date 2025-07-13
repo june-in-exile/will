@@ -2,22 +2,27 @@
  * AES-128/192/256-GCM TypeScript Implementation (Supports Arbitrary Length IV)
  */
 
-import { CipherGCM, createCipheriv, createDecipheriv, DecipherGCM } from "crypto";
+import {
+  CipherGCM,
+  createCipheriv,
+  createDecipheriv,
+  DecipherGCM,
+} from "crypto";
 
 // Define supported AES key sizes
 export type AESKeySize = 128 | 192 | 256;
 
 // Configuration for different AES variants
 interface AESConfig {
-  keyLength: number;      // Key length in bytes
-  rounds: number;         // Number of rounds
+  keyLength: number; // Key length in bytes
+  rounds: number; // Number of rounds
   expandedKeyLength: number; // Expanded key length in bytes
 }
 
 const AES_CONFIGS: Record<AESKeySize, AESConfig> = {
   128: { keyLength: 16, rounds: 10, expandedKeyLength: 176 },
   192: { keyLength: 24, rounds: 12, expandedKeyLength: 208 },
-  256: { keyLength: 32, rounds: 14, expandedKeyLength: 240 }
+  256: { keyLength: 32, rounds: 14, expandedKeyLength: 240 },
 };
 
 class AESUtils {
@@ -85,7 +90,9 @@ class AESUtils {
         config = AES_CONFIGS[256];
         break;
       default:
-        throw new Error(`Invalid key length: ${keyLength} bytes. Supported lengths: 16 (AES-128), 24 (AES-192), 32 (AES-256)`);
+        throw new Error(
+          `Invalid key length: ${keyLength} bytes. Supported lengths: 16 (AES-128), 24 (AES-192), 32 (AES-256)`,
+        );
     }
 
     return config;
@@ -96,10 +103,14 @@ class AESUtils {
    */
   static getAESVariant(keyLength: number): string {
     switch (keyLength) {
-      case 16: return "AES-128";
-      case 24: return "AES-192";
-      case 32: return "AES-256";
-      default: throw new Error(`Unsupported key length: ${keyLength}`);
+      case 16:
+        return "AES-128";
+      case 24:
+        return "AES-192";
+      case 32:
+        return "AES-256";
+      default:
+        throw new Error(`Unsupported key length: ${keyLength}`);
     }
   }
 }
@@ -302,7 +313,7 @@ class AESKeyExpansion {
         const rconValue = Buffer.from([this.RCON[rconIndex], 0, 0, 0]);
         newWord = AESUtils.xor(substituted, rconValue);
         rconIndex++;
-      } else if (keySize === 32 && (i % keySize === 16)) {
+      } else if (keySize === 32 && i % keySize === 16) {
         // For AES-256 only: apply SubWord every 4 words after the first SubWord+RotWord
         newWord = this.subWord(prevWord);
       } else {
@@ -678,7 +689,9 @@ class AESGCMEasy {
 
     // Validate key size matches expected
     if (keyBytes.length !== config.keyLength) {
-      throw new Error(`Key size mismatch: expected ${config.keyLength} bytes for ${AESUtils.getAESVariant(config.keyLength)}, got ${keyBytes.length} bytes`);
+      throw new Error(
+        `Key size mismatch: expected ${config.keyLength} bytes for ${AESUtils.getAESVariant(config.keyLength)}, got ${keyBytes.length} bytes`,
+      );
     }
 
     const plaintextBytes = AESUtils.stringToBytes(plaintext);
@@ -758,7 +771,9 @@ class AESVerification {
    * Test ECB encryption for all AES variants
    */
   static testECBEncrypt(): boolean {
-    console.log("\n=== Node.js crypto module AES ECB encryption verification ===");
+    console.log(
+      "\n=== Node.js crypto module AES ECB encryption verification ===",
+    );
 
     let allPassed = true;
 
@@ -767,7 +782,9 @@ class AESVerification {
     const keys = {
       128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
       192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
-      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
+      256: AESUtils.base64ToBytes(
+        "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
+      ), // 32 bytes
     };
 
     for (const [keySize, key] of Object.entries(keys)) {
@@ -779,7 +796,10 @@ class AESVerification {
 
       let expectedCiphertext = cipher.update(plaintext);
       expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
-      console.log("Node.js crypto:", AESUtils.bytesToBase64(expectedCiphertext));
+      console.log(
+        "Node.js crypto:",
+        AESUtils.bytesToBase64(expectedCiphertext),
+      );
 
       const ourCiphertext = AES.encryptBlock(plaintext, key);
       const isEqual = ourCiphertext.equals(expectedCiphertext);
@@ -800,7 +820,9 @@ class AESVerification {
    * Test GCM encryption for all AES variants
    */
   static testGCMEncrypt(): boolean {
-    console.log("\n=== Node.js crypto module AES GCM encryption verification ===");
+    console.log(
+      "\n=== Node.js crypto module AES GCM encryption verification ===",
+    );
 
     let allPassed = true;
 
@@ -810,7 +832,9 @@ class AESVerification {
     const keys = {
       128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
       192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
-      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
+      256: AESUtils.base64ToBytes(
+        "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
+      ), // 32 bytes
     };
 
     for (const [keySize, key] of Object.entries(keys)) {
@@ -854,7 +878,9 @@ class AESVerification {
    * Test GCM decryption for all AES variants
    */
   static testGCMDecrypt(): boolean {
-    console.log("\n=== Node.js crypto module AES GCM decryption verification ===");
+    console.log(
+      "\n=== Node.js crypto module AES GCM decryption verification ===",
+    );
 
     let allPassed = true;
 
@@ -865,8 +891,16 @@ class AESVerification {
 
     const keys = [
       { size: 128, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ==") },
-      { size: 192, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT") },
-      { size: 256, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=") },
+      {
+        size: 192,
+        key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"),
+      },
+      {
+        size: 256,
+        key: AESUtils.base64ToBytes(
+          "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
+        ),
+      },
     ];
 
     for (const { size, key } of keys) {
@@ -951,7 +985,12 @@ class AESVerification {
         allPassed = allPassed && success;
 
         // Test 2: Easy interface
-        const easyEncrypted = AESGCMEasy.encrypt(originalText, undefined, undefined, keySize);
+        const easyEncrypted = AESGCMEasy.encrypt(
+          originalText,
+          undefined,
+          undefined,
+          keySize,
+        );
         console.log(`  Easy ${easyEncrypted.variant} encryption successful ✅`);
 
         const easyDecrypted = AESGCMEasy.decryptResult(easyEncrypted);
@@ -960,7 +999,6 @@ class AESVerification {
         console.log("  Easy round trip successful:", easySuccess ? "✅" : "❌");
 
         allPassed = allPassed && easySuccess;
-
       } catch (error) {
         console.log(`  AES-${keySize} failed:`, String(error), "❌");
         allPassed = false;
@@ -1055,7 +1093,11 @@ class AESVerification {
 }
 
 // If this file is executed directly, run examples
-if (typeof process !== 'undefined' && process.argv?.[1] && (process.argv[1].endsWith('aes-gcm.ts'))) {
+if (
+  typeof process !== "undefined" &&
+  process.argv?.[1] &&
+  process.argv[1].endsWith("aes-gcm.ts")
+) {
   AESVerification.runAllTests();
 }
 
