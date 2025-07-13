@@ -1,5 +1,5 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = galoisField
+CIRCUIT = aesCipher
 CIRCUIT ?= multiplier2
 
 # Directory structure

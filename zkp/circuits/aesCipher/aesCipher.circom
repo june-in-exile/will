@@ -1,12 +1,12 @@
 pragma circom 2.2.2;
 
-include "keyExpansion.circom";
-include "roundKeyAddition.circom";
-include "byteSubstitution.circom";
-include "rowShifting.circom";
-include "columnMixing.circom";
-include "../bus.circom";
-include "../bits.circom";
+include "../shared/components/aes256gcm/keyExpansion.circom";
+include "../shared/components/aes256gcm/roundKeyAddition.circom";
+include "../shared/components/aes256gcm/byteSubstitution.circom";
+include "../shared/components/aes256gcm/rowShifting.circom";
+include "../shared/components/aes256gcm/columnMixing.circom";
+include "../shared/components/bus.circom";
+include "../shared/components/bits.circom";
 
 template AesCipher(keyBits) {
     // AES-256 uses 14 rounds
@@ -104,3 +104,6 @@ template AesCipher(keyBits) {
         ciphertext[i] <== addRoundKey[Nr - 1].out[i];
     }
 }
+
+// Example instantiation
+component main = AesCipher(256);

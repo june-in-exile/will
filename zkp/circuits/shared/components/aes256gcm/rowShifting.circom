@@ -3,7 +3,7 @@ pragma circom 2.2.2;
 /**
  * The 16-byte state is stored in column-major order.
  */
-template shiftRows() {
+template ShiftRows() {
     signal input {byte} in[16];
     signal output {byte} out[16];
 
