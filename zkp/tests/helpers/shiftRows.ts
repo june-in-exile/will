@@ -1,4 +1,4 @@
-import { AESTransforms } from "./aes256gcm";
+import { AESTransforms } from "./aes-gcm";
 
 function shiftRows(_in: Byte16): Byte16 {
   const inBuffer = Buffer.from(_in);

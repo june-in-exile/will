@@ -1,8 +1,24 @@
 /**
- * AES-256-GCM TypeScript Implementation (Fixed Version - Supports Arbitrary Length IV)
+ * AES-128/192/256-GCM TypeScript Implementation (Supports Arbitrary Length IV)
  */
 
-import { createCipheriv, createDecipheriv } from "crypto";
+import { CipherGCM, createCipheriv, createDecipheriv, DecipherGCM } from "crypto";
+
+// Define supported AES key sizes
+export type AESKeySize = 128 | 192 | 256;
+
+// Configuration for different AES variants
+interface AESConfig {
+  keyLength: number;      // Key length in bytes
+  rounds: number;         // Number of rounds
+  expandedKeyLength: number; // Expanded key length in bytes
+}
+
+const AES_CONFIGS: Record<AESKeySize, AESConfig> = {
+  128: { keyLength: 16, rounds: 10, expandedKeyLength: 176 },
+  192: { keyLength: 24, rounds: 12, expandedKeyLength: 208 },
+  256: { keyLength: 32, rounds: 14, expandedKeyLength: 240 }
+};
 
 class AESUtils {
   static bytesToHex(bytes: Buffer): string {
@@ -49,6 +65,42 @@ class AESUtils {
 
   static bytesToString(bytes: Buffer): string {
     return bytes.toString("utf8");
+  }
+
+  /**
+   * Validate key size and return configuration
+   */
+  static validateKeySize(key: Buffer): AESConfig {
+    const keyLength = key.length;
+    let config: AESConfig | undefined;
+
+    switch (keyLength) {
+      case 16:
+        config = AES_CONFIGS[128];
+        break;
+      case 24:
+        config = AES_CONFIGS[192];
+        break;
+      case 32:
+        config = AES_CONFIGS[256];
+        break;
+      default:
+        throw new Error(`Invalid key length: ${keyLength} bytes. Supported lengths: 16 (AES-128), 24 (AES-192), 32 (AES-256)`);
+    }
+
+    return config;
+  }
+
+  /**
+   * Get AES variant name from key length
+   */
+  static getAESVariant(keyLength: number): string {
+    switch (keyLength) {
+      case 16: return "AES-128";
+      case 24: return "AES-192";
+      case 32: return "AES-256";
+      default: throw new Error(`Unsupported key length: ${keyLength}`);
+    }
   }
 }
 
@@ -145,21 +197,25 @@ class AESTransforms {
   static shiftRows(state: Buffer): Buffer {
     const result = Buffer.alloc(16);
 
+    // Row 0: no shift
     result[0] = state[0];
     result[4] = state[4];
     result[8] = state[8];
     result[12] = state[12];
 
+    // Row 1: left shift by 1
     result[1] = state[5];
     result[5] = state[9];
     result[9] = state[13];
     result[13] = state[1];
 
+    // Row 2: left shift by 2
     result[2] = state[10];
     result[6] = state[14];
     result[10] = state[2];
     result[14] = state[6];
 
+    // Row 3: left shift by 3
     result[3] = state[15];
     result[7] = state[3];
     result[11] = state[7];
@@ -216,37 +272,54 @@ class AESKeyExpansion {
     return AESSbox.substituteBytes(word);
   }
 
+  /**
+   * Expand key for AES-128, AES-192, or AES-256
+   * Automatically detects key size and expands accordingly
+   */
   static expandKey(key: Buffer): Buffer[] {
-    if (key.length !== 32) {
-      throw new Error("AES-256 requires a 32-byte key");
-    }
+    const config = AESUtils.validateKeySize(key);
+    const keySize = key.length;
+    const rounds = config.rounds;
+    const expandedKeyLength = config.expandedKeyLength;
 
     const roundKeys: Buffer[] = [];
-    const expandedKey = Buffer.alloc(240);
+    const expandedKey = Buffer.alloc(expandedKeyLength);
 
+    // Copy original key
     key.copy(expandedKey, 0);
 
-    for (let i = 32; i < 240; i += 4) {
+    let i = keySize;
+    let rconIndex = 0;
+
+    while (i < expandedKeyLength) {
       const prevWord = expandedKey.subarray(i - 4, i);
       let newWord: Buffer;
 
-      if (i % 32 === 0) {
+      if (i % keySize === 0) {
+        // For all AES variants: apply SubWord and RotWord every Nk words
         const rotated = this.rotWord(prevWord);
         const substituted = this.subWord(rotated);
-        const rconValue = Buffer.from([this.RCON[i / 32 - 1], 0, 0, 0]);
+        const rconValue = Buffer.from([this.RCON[rconIndex], 0, 0, 0]);
         newWord = AESUtils.xor(substituted, rconValue);
-      } else if (i % 32 === 16) {
+        rconIndex++;
+      } else if (keySize === 32 && (i % keySize === 16)) {
+        // For AES-256 only: apply SubWord every 4 words after the first SubWord+RotWord
         newWord = this.subWord(prevWord);
       } else {
+        // Standard case: copy previous word
         newWord = Buffer.from(prevWord);
       }
 
-      const prevRoundWord = expandedKey.subarray(i - 32, i - 28);
+      // XOR with the word from Nk positions back
+      const prevRoundWord = expandedKey.subarray(i - keySize, i - keySize + 4);
       const finalWord = AESUtils.xor(newWord, prevRoundWord);
       finalWord.copy(expandedKey, i);
+
+      i += 4;
     }
 
-    for (let round = 0; round < 15; round++) {
+    // Extract round keys (16 bytes each)
+    for (let round = 0; round <= rounds; round++) {
       roundKeys.push(expandedKey.subarray(round * 16, (round + 1) * 16));
     }
 
@@ -254,35 +327,47 @@ class AESKeyExpansion {
   }
 }
 
-class AES256 {
+class AES {
+  /**
+   * Encrypt a single 16-byte block using AES
+   * Supports AES-128, AES-192, and AES-256 based on key size
+   */
   static encryptBlock(plaintext: Buffer, key: Buffer): Buffer {
     if (plaintext.length !== 16) {
       throw new Error("Plaintext must be exactly 16 bytes");
     }
 
+    const config = AESUtils.validateKeySize(key);
+    const rounds = config.rounds;
     const roundKeys = AESKeyExpansion.expandKey(key);
+
     let state = Buffer.from(plaintext);
 
+    // Initial round
     state = AESTransforms.addRoundKey(state, roundKeys[0]);
 
-    for (let round = 1; round <= 13; round++) {
+    // Main rounds
+    for (let round = 1; round < rounds; round++) {
       state = AESTransforms.subBytes(state);
       state = AESTransforms.shiftRows(state);
       state = AESTransforms.mixColumns(state);
       state = AESTransforms.addRoundKey(state, roundKeys[round]);
     }
 
+    // Final round (without MixColumns)
     state = AESTransforms.subBytes(state);
     state = AESTransforms.shiftRows(state);
-    state = AESTransforms.addRoundKey(state, roundKeys[14]);
+    state = AESTransforms.addRoundKey(state, roundKeys[rounds]);
 
     return state;
   }
 }
 
-// GF(2^128) operations
+// GF(2^128) operations for GHASH
 class GF128 {
-  // GF(2^128) multiplication using reduction polynomial f(x) = x^128 + x^7 + x^2 + x + 1
+  /**
+   * GF(2^128) multiplication using reduction polynomial f(x) = x^128 + x^7 + x^2 + x + 1
+   */
   static multiply(x: Buffer, y: Buffer): Buffer {
     const result = Buffer.alloc(16);
     const v = Buffer.from(y);
@@ -318,7 +403,10 @@ class GF128 {
   }
 }
 
-class AES256GCM {
+class AESGCM {
+  /**
+   * Increment counter for CTR mode (increments last 4 bytes only)
+   */
   static incrementCounter(counter: Buffer): void {
     let carry = 1;
     for (let j = 15; j >= 12 && carry; j--) {
@@ -328,6 +416,9 @@ class AES256GCM {
     }
   }
 
+  /**
+   * CTR mode encryption/decryption
+   */
   static ctrEncrypt(plaintext: Buffer, key: Buffer, j0: Buffer): Buffer {
     const numBlocks = Math.ceil(plaintext.length / 16);
     const ciphertext = Buffer.alloc(plaintext.length);
@@ -339,7 +430,7 @@ class AES256GCM {
       this.incrementCounter(counter);
 
       // Encrypt current counter
-      const keystream = AES256.encryptBlock(counter, key);
+      const keystream = AES.encryptBlock(counter, key);
 
       // XOR with plaintext
       const blockStart = i * 16;
@@ -354,6 +445,9 @@ class AES256GCM {
     return ciphertext;
   }
 
+  /**
+   * GHASH authentication function
+   */
   static ghash(data: Buffer, hashKey: Buffer): Buffer {
     let result = Buffer.alloc(16);
 
@@ -416,19 +510,18 @@ class AES256GCM {
     }
   }
 
+  /**
+   * AES-GCM encryption (supports AES-128, AES-192, AES-256)
+   */
   static encrypt(
     plaintext: Buffer,
     key: Buffer,
     iv: Buffer,
     additionalData: Buffer = Buffer.alloc(0),
   ): { ciphertext: Buffer; authTag: Buffer } {
-    if (key.length !== 32) {
-      throw new Error("AES-256-GCM requires a 32-byte key");
-    }
-
     // 1. Generate hash subkey: H = CIPH_K(0^128)
     const zeroBlock = Buffer.alloc(16);
-    const hashKey = AES256.encryptBlock(zeroBlock, key);
+    const hashKey = AES.encryptBlock(zeroBlock, key);
 
     // 2. Compute J0 (supports arbitrary length IV)
     const j0 = this.computeJ0(iv, hashKey);
@@ -475,7 +568,7 @@ class AES256GCM {
     let S = this.ghash(authData, hashKey);
 
     // 6. Final tag calculation: T = GCTR_K(J0, S) = S xor CIPH_K(J0)
-    const tagMask = AES256.encryptBlock(j0, key);
+    const tagMask = AES.encryptBlock(j0, key);
     S = AESUtils.xor(S, tagMask);
 
     // 7. Return ciphertext and tag
@@ -483,14 +576,7 @@ class AES256GCM {
   }
 
   /**
-   * AES-256-GCM decryption function
-   * @param ciphertext Ciphertext
-   * @param key 32-byte key
-   * @param iv Initialization vector (arbitrary length)
-   * @param authTag Authentication tag (16 bytes)
-   * @param additionalData Additional authenticated data (optional)
-   * @returns Decrypted plaintext
-   * @throws Error if authentication fails
+   * AES-GCM decryption (supports AES-128, AES-192, AES-256)
    */
   static decrypt(
     ciphertext: Buffer,
@@ -499,17 +585,14 @@ class AES256GCM {
     authTag: Buffer,
     additionalData: Buffer = Buffer.alloc(0),
   ): Buffer {
-    // 1. Key and authentication tag must be specified lengths
-    if (key.length !== 32) {
-      throw new Error("AES-256-GCM requires a 32-byte key");
-    }
+    // 1. Validate inputs
     if (authTag.length !== 16) {
       throw new Error("Authentication tag must be 16 bytes");
     }
 
     // 2. Generate hash subkey: H = CIPH_K(0^128)
     const zeroBlock = Buffer.alloc(16);
-    const hashKey = AES256.encryptBlock(zeroBlock, key);
+    const hashKey = AES.encryptBlock(zeroBlock, key);
 
     // 3. Compute J0 (supports arbitrary length IV)
     const j0 = this.computeJ0(iv, hashKey);
@@ -553,10 +636,10 @@ class AES256GCM {
     authData.writeUInt32BE(ciphertextLengthBits & 0xffffffff, offset + 12);
 
     // Calculate GHASH
-    let S = this.ghash(authData, hashKey);
+    const S = this.ghash(authData, hashKey);
 
     // 7. Final tag calculation: T = GCTR_K(J0, S) = S xor CIPH_K(J0)
-    const tagMask = AES256.encryptBlock(j0, key);
+    const tagMask = AES.encryptBlock(j0, key);
     const expectedAuthTag = AESUtils.xor(S, tagMask);
 
     // 8. Verify authentication tag and return plaintext
@@ -566,38 +649,43 @@ class AES256GCM {
 
     return plaintext;
   }
-
-  /**
-   * Decrypt with given additional authenticated data (including AAD)
-   */
-  static decryptWithAAD(
-    ciphertext: Buffer,
-    key: Buffer,
-    iv: Buffer,
-    authTag: Buffer,
-    additionalData: Buffer,
-  ): Buffer {
-    return this.decrypt(ciphertext, key, iv, authTag, additionalData);
-  }
 }
 
-class AES256GCMEasy {
+// Universal easy-to-use interface
+class AESGCMEasy {
+  /**
+   * Auto-detect AES variant and encrypt
+   */
   static encrypt(
     plaintext: string,
     keyBase64?: string,
     ivBase64?: string,
-  ): { key: string; iv: string; ciphertext: string; authTag: string } {
+    keySize: AESKeySize = 256,
+  ): {
+    variant: string;
+    key: string;
+    iv: string;
+    ciphertext: string;
+    authTag: string;
+  } {
+    const config = AES_CONFIGS[keySize];
     const keyBytes = keyBase64
       ? AESUtils.base64ToBytes(keyBase64)
-      : AESUtils.randomBytes(32);
+      : AESUtils.randomBytes(config.keyLength);
     const ivBytes = ivBase64
       ? AESUtils.base64ToBytes(ivBase64)
       : AESUtils.randomBytes(12);
-    const plaintextBytes = AESUtils.stringToBytes(plaintext);
 
-    const result = AES256GCM.encrypt(plaintextBytes, keyBytes, ivBytes);
+    // Validate key size matches expected
+    if (keyBytes.length !== config.keyLength) {
+      throw new Error(`Key size mismatch: expected ${config.keyLength} bytes for ${AESUtils.getAESVariant(config.keyLength)}, got ${keyBytes.length} bytes`);
+    }
+
+    const plaintextBytes = AESUtils.stringToBytes(plaintext);
+    const result = AESGCM.encrypt(plaintextBytes, keyBytes, ivBytes);
 
     return {
+      variant: AESUtils.getAESVariant(keyBytes.length),
       key: AESUtils.bytesToBase64(keyBytes),
       iv: AESUtils.bytesToBase64(ivBytes),
       ciphertext: AESUtils.bytesToBase64(result.ciphertext),
@@ -605,19 +693,24 @@ class AES256GCMEasy {
     };
   }
 
+  /**
+   * Auto-detect AES variant and encrypt block
+   */
   static encryptBlock(
     plaintext: string,
     keyBase64: string,
-  ): { key: string; plaintext: string; ciphertext: string } {
+  ): { variant: string; key: string; plaintext: string; ciphertext: string } {
     const keyBytes = AESUtils.base64ToBytes(keyBase64);
+    const variant = AESUtils.getAESVariant(keyBytes.length);
     const plaintextBytes = AESUtils.stringToBytes(plaintext);
 
     const paddedPlaintext = Buffer.alloc(16);
     plaintextBytes.subarray(0, 16).copy(paddedPlaintext);
 
-    const ciphertext = AES256.encryptBlock(paddedPlaintext, keyBytes);
+    const ciphertext = AES.encryptBlock(paddedPlaintext, keyBytes);
 
     return {
+      variant,
       key: keyBase64,
       plaintext: plaintext,
       ciphertext: AESUtils.bytesToBase64(ciphertext),
@@ -625,12 +718,7 @@ class AES256GCMEasy {
   }
 
   /**
-   * Simple string decryption interface
-   * @param ciphertextBase64 Base64 encoded ciphertext
-   * @param keyBase64 Base64 encoded key
-   * @param ivBase64 Base64 encoded IV
-   * @param authTagBase64 Base64 encoded authentication tag
-   * @returns Decrypted string
+   * Auto-detect AES variant and decrypt
    */
   static decrypt(
     ciphertextBase64: string,
@@ -643,14 +731,12 @@ class AES256GCMEasy {
     const iv = AESUtils.base64ToBytes(ivBase64);
     const authTag = AESUtils.base64ToBytes(authTagBase64);
 
-    const plaintext = AES256GCM.decrypt(ciphertext, key, iv, authTag);
+    const plaintext = AESGCM.decrypt(ciphertext, key, iv, authTag);
     return AESUtils.bytesToString(plaintext);
   }
 
   /**
    * Decrypt encryption result object
-   * @param encryptedData Object returned by encrypt method
-   * @returns Original string
    */
   static decryptResult(encryptedData: {
     key: string;
@@ -668,236 +754,277 @@ class AES256GCMEasy {
 }
 
 class AESVerification {
+  /**
+   * Test ECB encryption for all AES variants
+   */
   static testECBEncrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES-256-ECB encryption verification ===",
-    );
+    console.log("\n=== Node.js crypto module AES ECB encryption verification ===");
 
+    let allPassed = true;
+
+    // Test data
     const plaintext = AESUtils.stringToBytes("This is a secret");
-    const key = AESUtils.base64ToBytes(
-      "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-    );
+    const keys = {
+      128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
+      192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
+      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
+    };
 
-    const cipher = createCipheriv("aes-256-ecb", key, null);
-    cipher.setAutoPadding(false);
+    for (const [keySize, key] of Object.entries(keys)) {
+      console.log(`\n--- AES-${keySize} ---`);
 
-    let expectedCiphertext = cipher.update(plaintext);
-    expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
-    console.log("Node.js crypto:", AESUtils.bytesToBase64(expectedCiphertext));
+      const cipherName = `aes-${keySize}-ecb`;
+      const cipher = createCipheriv(cipherName, key, null);
+      cipher.setAutoPadding(false);
 
-    const ourCiphertext = AES256.encryptBlock(plaintext, key);
-    const isEqual = ourCiphertext.equals(expectedCiphertext);
+      let expectedCiphertext = cipher.update(plaintext);
+      expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
+      console.log("Node.js crypto:", AESUtils.bytesToBase64(expectedCiphertext));
 
-    console.log(
-      "Our implementation:",
-      AESUtils.bytesToBase64(ourCiphertext),
-      isEqual ? "✅" : "❌",
-    );
+      const ourCiphertext = AES.encryptBlock(plaintext, key);
+      const isEqual = ourCiphertext.equals(expectedCiphertext);
 
-    return isEqual;
-  }
+      console.log(
+        "Our implementation:",
+        AESUtils.bytesToBase64(ourCiphertext),
+        isEqual ? "✅" : "❌",
+      );
 
-  static testGCMEncrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES-256-GCM encryption verification ===",
-    );
+      allPassed = allPassed && isEqual;
+    }
 
-    const plaintext = AESUtils.stringToBytes("Text");
-    const key = AESUtils.base64ToBytes(
-      "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-    );
-    const iv = AESUtils.base64ToBytes("YjgZJzfIXjAYvwt/");
-
-    const cipher = createCipheriv("aes-256-gcm", key, iv);
-
-    let expectedCiphertext = cipher.update(plaintext);
-    expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
-    const expectedAuthTag = cipher.getAuthTag();
-
-    console.log("\nNode.js crypto:");
-    console.log(
-      "Ciphertext (base64):",
-      AESUtils.bytesToBase64(expectedCiphertext),
-    );
-    console.log("Auth tag (base64):", AESUtils.bytesToBase64(expectedAuthTag));
-
-    const result = AES256GCM.encrypt(plaintext, key, iv);
-    const ciphertextMatches = result.ciphertext.equals(expectedCiphertext);
-    const authTagMatches = result.authTag.equals(expectedAuthTag);
-
-    console.log("\nOur implementation:");
-    console.log(
-      "Ciphertext (base64):",
-      AESUtils.bytesToBase64(result.ciphertext),
-      ciphertextMatches ? "✅" : "❌",
-    );
-    console.log(
-      "Auth tag (base64):",
-      AESUtils.bytesToBase64(result.authTag),
-      authTagMatches ? "✅" : "❌",
-    );
-
-    return ciphertextMatches && authTagMatches;
-  }
-
-  static testGCMDecrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES-256-GCM decryption verification ===",
-    );
-
-    const ciphertext = AESUtils.base64ToBytes("PgG52g==");
-    const key = AESUtils.base64ToBytes(
-      "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-    );
-    const iv = AESUtils.base64ToBytes("YjgZJzfIXjAYvwt/");
-    const authTag = AESUtils.base64ToBytes("u1NxL5uXKyM/8qbZiBtUvQ==");
-
-    const decipher = createDecipheriv("aes-256-gcm", key, iv);
-
-    decipher.setAuthTag(authTag);
-
-    let expectedPlaintext = decipher.update(ciphertext);
-    expectedPlaintext = Buffer.concat([expectedPlaintext, decipher.final()]);
-
-    console.log("\nNode.js crypto:");
-    console.log("Plaintext:", AESUtils.bytesToString(expectedPlaintext));
-
-    const plaintext = AES256GCM.decrypt(ciphertext, key, iv, authTag);
-    const plaintextMatches = plaintext.equals(expectedPlaintext);
-
-    console.log("\nOur implementation:");
-    console.log(
-      "Plaintext:",
-      AESUtils.bytesToString(plaintext),
-      plaintextMatches ? "✅" : "❌",
-    );
-
-    return plaintextMatches;
+    return allPassed;
   }
 
   /**
-   * Test GCM mode encryption-decryption round trip
+   * Test GCM encryption for all AES variants
+   */
+  static testGCMEncrypt(): boolean {
+    console.log("\n=== Node.js crypto module AES GCM encryption verification ===");
+
+    let allPassed = true;
+
+    // Test data
+    const plaintext = AESUtils.stringToBytes("Test message");
+    const iv = AESUtils.base64ToBytes("YjgZJzfIXjAYvwt/");
+    const keys = {
+      128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
+      192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
+      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
+    };
+
+    for (const [keySize, key] of Object.entries(keys)) {
+      console.log(`\n--- AES-${keySize}-GCM ---`);
+
+      const cipherName = `aes-${keySize}-gcm`;
+      const cipher = createCipheriv(cipherName, key, iv) as CipherGCM;
+
+      let expectedCiphertext = cipher.update(plaintext);
+      expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
+      const expectedAuthTag = cipher.getAuthTag();
+
+      console.log("Node.js crypto:");
+      console.log("  Ciphertext:", AESUtils.bytesToBase64(expectedCiphertext));
+      console.log("  Auth tag:", AESUtils.bytesToBase64(expectedAuthTag));
+
+      const result = AESGCM.encrypt(plaintext, key, iv);
+      const ciphertextMatches = result.ciphertext.equals(expectedCiphertext);
+      const authTagMatches = result.authTag.equals(expectedAuthTag);
+
+      console.log("Our implementation:");
+      console.log(
+        "  Ciphertext:",
+        AESUtils.bytesToBase64(result.ciphertext),
+        ciphertextMatches ? "✅" : "❌",
+      );
+      console.log(
+        "  Auth tag:",
+        AESUtils.bytesToBase64(result.authTag),
+        authTagMatches ? "✅" : "❌",
+      );
+
+      const variantPassed = ciphertextMatches && authTagMatches;
+      allPassed = allPassed && variantPassed;
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test GCM decryption for all AES variants
+   */
+  static testGCMDecrypt(): boolean {
+    console.log("\n=== Node.js crypto module AES GCM decryption verification ===");
+
+    let allPassed = true;
+
+    // Generate valid test vectors by first encrypting with Node.js crypto
+    const testPlaintext = "Test message";
+    const plaintextBytes = AESUtils.stringToBytes(testPlaintext);
+    const iv = AESUtils.base64ToBytes("YjgZJzfIXjAYvwt/");
+
+    const keys = [
+      { size: 128, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ==") },
+      { size: 192, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT") },
+      { size: 256, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=") },
+    ];
+
+    for (const { size, key } of keys) {
+      console.log(`\n--- AES-${size}-GCM ---`);
+
+      // First encrypt with Node.js crypto to get valid test vector
+      const cipherName = `aes-${size}-gcm`;
+      const cipher = createCipheriv(cipherName, key, iv) as CipherGCM;
+
+      let nodeCiphertext = cipher.update(plaintextBytes);
+      nodeCiphertext = Buffer.concat([nodeCiphertext, cipher.final()]);
+      const nodeAuthTag = cipher.getAuthTag();
+
+      console.log("Node.js crypto created:");
+      console.log("  Ciphertext:", AESUtils.bytesToBase64(nodeCiphertext));
+      console.log("  Auth tag:", AESUtils.bytesToBase64(nodeAuthTag));
+
+      // Now verify decryption with Node.js crypto
+      const decipher = createDecipheriv(cipherName, key, iv) as DecipherGCM;
+      decipher.setAuthTag(nodeAuthTag);
+
+      let expectedPlaintext = decipher.update(nodeCiphertext);
+      expectedPlaintext = Buffer.concat([expectedPlaintext, decipher.final()]);
+
+      console.log("Node.js crypto decrypted:");
+      console.log("  Plaintext:", AESUtils.bytesToString(expectedPlaintext));
+
+      // Test our implementation
+      const plaintext = AESGCM.decrypt(nodeCiphertext, key, iv, nodeAuthTag);
+      const plaintextMatches = plaintext.equals(expectedPlaintext);
+
+      console.log("Our implementation:");
+      console.log(
+        "  Plaintext:",
+        AESUtils.bytesToString(plaintext),
+        plaintextMatches ? "✅" : "❌",
+      );
+
+      allPassed = allPassed && plaintextMatches;
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test round trip for all AES variants
    */
   static testGCMRoundTrip(): boolean {
-    console.log("\n=== AES-256-GCM encryption-decryption round trip test ===");
+    console.log("\n=== AES GCM encryption-decryption round trip test ===");
 
-    const originalText = "Hello, AES-256-GCM World! 🔒";
+    let allPassed = true;
+    const originalText = "Hello, AES-GCM World! 🔒";
     console.log("Original text:", originalText);
 
-    // Test 1: Standard 12-byte IV
-    console.log("\n📋 Test 1: 12-byte IV");
-    const key12 = AESUtils.randomBytes(32);
-    const iv12 = AESUtils.randomBytes(12);
-    const plaintext12 = AESUtils.stringToBytes(originalText);
+    const keySizes: AESKeySize[] = [128, 192, 256];
 
-    const encrypted12 = AES256GCM.encrypt(plaintext12, key12, iv12);
-    console.log("Encryption successful ✅");
+    for (const keySize of keySizes) {
+      console.log(`\n📋 Test AES-${keySize} Round Trip`);
 
-    try {
-      const decrypted12 = AES256GCM.decrypt(
-        encrypted12.ciphertext,
-        key12,
-        iv12,
-        encrypted12.authTag,
-      );
-      const decryptedText12 = AESUtils.bytesToString(decrypted12);
-      const success12 = decryptedText12 === originalText;
-      console.log("Decryption result:", decryptedText12);
-      console.log("Decryption successful:", success12 ? "✅" : "❌");
-    } catch (error) {
-      console.log("Decryption failed:", String(error), "❌");
-      return false;
+      try {
+        // Test 1: Standard 12-byte IV
+        const config = AES_CONFIGS[keySize];
+        const key = AESUtils.randomBytes(config.keyLength);
+        const iv = AESUtils.randomBytes(12);
+        const plaintext = AESUtils.stringToBytes(originalText);
+
+        const encrypted = AESGCM.encrypt(plaintext, key, iv);
+        console.log("  Encryption successful ✅");
+
+        const decrypted = AESGCM.decrypt(
+          encrypted.ciphertext,
+          key,
+          iv,
+          encrypted.authTag,
+        );
+        const decryptedText = AESUtils.bytesToString(decrypted);
+        const success = decryptedText === originalText;
+
+        console.log("  Decryption result:", decryptedText);
+        console.log("  Round trip successful:", success ? "✅" : "❌");
+
+        allPassed = allPassed && success;
+
+        // Test 2: Easy interface
+        const easyEncrypted = AESGCMEasy.encrypt(originalText, undefined, undefined, keySize);
+        console.log(`  Easy ${easyEncrypted.variant} encryption successful ✅`);
+
+        const easyDecrypted = AESGCMEasy.decryptResult(easyEncrypted);
+        const easySuccess = easyDecrypted === originalText;
+        console.log("  Easy decryption result:", easyDecrypted);
+        console.log("  Easy round trip successful:", easySuccess ? "✅" : "❌");
+
+        allPassed = allPassed && easySuccess;
+
+      } catch (error) {
+        console.log(`  AES-${keySize} failed:`, String(error), "❌");
+        allPassed = false;
+      }
     }
 
-    // Test 2: Non-standard length IV
-    console.log("\n📋 Test 2: 16-byte IV");
-    const key16 = AESUtils.randomBytes(32);
-    const iv16 = AESUtils.randomBytes(16);
-    const plaintext16 = AESUtils.stringToBytes(originalText);
-
-    const encrypted16 = AES256GCM.encrypt(plaintext16, key16, iv16);
-    console.log("Encryption successful ✅");
-
-    try {
-      const decrypted16 = AES256GCM.decrypt(
-        encrypted16.ciphertext,
-        key16,
-        iv16,
-        encrypted16.authTag,
-      );
-      const decryptedText16 = AESUtils.bytesToString(decrypted16);
-      const success16 = decryptedText16 === originalText;
-      console.log("Decryption result:", decryptedText16);
-      console.log("Decryption successful:", success16 ? "✅" : "❌");
-    } catch (error) {
-      console.log("Decryption failed:", String(error), "❌");
-      return false;
-    }
-
-    // Test 3: Simplified interface test
-    console.log("\n📋 Test 3: Simplified interface");
-    const easyEncrypted = AES256GCMEasy.encrypt(originalText);
-    console.log("Simple encryption successful ✅");
-
-    try {
-      const easyDecrypted = AES256GCMEasy.decryptResult(easyEncrypted);
-      const success3 = easyDecrypted === originalText;
-      console.log("Decryption result:", easyDecrypted);
-      console.log("Simple decryption successful:", success3 ? "✅" : "❌");
-    } catch (error) {
-      console.log("Simple decryption failed:", String(error), "❌");
-      return false;
-    }
-
-    return true;
+    return allPassed;
   }
 
   /**
-   * Test authentication tag verification
+   * Test authentication failure detection for all variants
    */
   static testAuthenticationFailure(): boolean {
     console.log("\n=== Authentication failure test ===");
 
+    let allPassed = true;
     const originalText = "Secret message";
-    const key = AESUtils.randomBytes(32);
-    const iv = AESUtils.randomBytes(12);
-    const plaintext = AESUtils.stringToBytes(originalText);
+    const keySizes: AESKeySize[] = [128, 192, 256];
 
-    const encrypted = AES256GCM.encrypt(plaintext, key, iv);
+    for (const keySize of keySizes) {
+      console.log(`\n📋 Test AES-${keySize} Authentication`);
 
-    // Test 1: Wrong authentication tag
-    console.log("\n📋 Test 1: Modified authentication tag");
-    const wrongAuthTag = Buffer.from(encrypted.authTag);
-    wrongAuthTag[0] ^= 0x01; // Modify one bit
+      const config = AES_CONFIGS[keySize];
+      const key = AESUtils.randomBytes(config.keyLength);
+      const iv = AESUtils.randomBytes(12);
+      const plaintext = AESUtils.stringToBytes(originalText);
 
-    try {
-      AES256GCM.decrypt(encrypted.ciphertext, key, iv, wrongAuthTag);
-      console.log("Should have failed but didn't ❌");
-      return false;
-    } catch (error) {
-      console.log("Correctly detected authentication failure ✅");
+      const encrypted = AESGCM.encrypt(plaintext, key, iv);
+
+      // Test 1: Wrong authentication tag
+      const wrongAuthTag = Buffer.from(encrypted.authTag);
+      wrongAuthTag[0] ^= 0x01; // Modify one bit
+
+      try {
+        AESGCM.decrypt(encrypted.ciphertext, key, iv, wrongAuthTag);
+        console.log("  Should have failed but didn't ❌");
+        allPassed = false;
+      } catch {
+        console.log("  Correctly detected auth failure ✅");
+      }
+
+      // Test 2: Modified ciphertext
+      const wrongCiphertext = Buffer.from(encrypted.ciphertext);
+      if (wrongCiphertext.length > 0) {
+        wrongCiphertext[0] ^= 0x01; // Modify one bit
+      }
+
+      try {
+        AESGCM.decrypt(wrongCiphertext, key, iv, encrypted.authTag);
+        console.log("  Should have failed but didn't ❌");
+        allPassed = false;
+      } catch {
+        console.log("  Correctly detected modification ✅");
+      }
     }
 
-    // Test 2: Modified ciphertext
-    console.log("\n📋 Test 2: Modified ciphertext");
-    const wrongCiphertext = Buffer.from(encrypted.ciphertext);
-    if (wrongCiphertext.length > 0) {
-      wrongCiphertext[0] ^= 0x01; // Modify one bit
-    }
-
-    try {
-      AES256GCM.decrypt(wrongCiphertext, key, iv, encrypted.authTag);
-      console.log("Should have failed but didn't ❌");
-      return false;
-    } catch (error) {
-      console.log("Correctly detected authentication failure ✅");
-    }
-
-    return true;
+    return allPassed;
   }
 
+  /**
+   * Run all verification tests
+   */
   static runAllTests(): boolean {
-    console.log("🧪 Starting AES-256-GCM verification...\n");
+    console.log("🧪 Starting AES multi-variant verification...\n");
 
     const ecbPassed = this.testECBEncrypt();
     const gcmEncryptPassed = this.testGCMEncrypt();
@@ -909,11 +1036,8 @@ class AESVerification {
     console.log("ECB mode encryption:", ecbPassed ? "✅" : "❌");
     console.log("GCM mode encryption:", gcmEncryptPassed ? "✅" : "❌");
     console.log("GCM mode decryption:", gcmDecryptPassed ? "✅" : "❌");
-    console.log(
-      "Encryption-decryption round trip:",
-      roundTripPassed ? "✅" : "❌",
-    );
-    console.log("Authentication verification:", authFailPassed ? "✅" : "❌");
+    console.log("Round trip tests:", roundTripPassed ? "✅" : "❌");
+    console.log("Authentication tests:", authFailPassed ? "✅" : "❌");
 
     const allPassed =
       ecbPassed &&
@@ -923,62 +1047,16 @@ class AESVerification {
       authFailPassed;
     console.log(
       "Overall status:",
-      allPassed ? "🎉 All tests passed!" : "⚠️  Issues still need debugging",
+      allPassed ? "🎉 All tests passed!" : "⚠️  Issues need debugging",
     );
 
     return allPassed;
   }
 }
 
-// Usage examples
-class AESGCMExample {
-  static demonstrateUsage(): void {
-    console.log("🔒 AES-256-GCM Usage Examples\n");
-
-    // Example 1: Basic encryption and decryption
-    console.log("=== Basic Usage ===");
-    const message = "This is a confidential message! 🔐";
-    const encrypted = AES256GCMEasy.encrypt(message);
-
-    console.log("Original message:", message);
-    console.log("Encryption result:");
-    console.log("  Key:", encrypted.key);
-    console.log("  IV:", encrypted.iv);
-    console.log("  Ciphertext:", encrypted.ciphertext);
-    console.log("  Auth tag:", encrypted.authTag);
-
-    const decrypted = AES256GCMEasy.decryptResult(encrypted);
-    console.log("Decryption result:", decrypted);
-    console.log(
-      "Verification:",
-      message === decrypted ? "✅ Success" : "❌ Failed",
-    );
-
-    // Example 2: Using fixed key and IV
-    console.log("\n=== Using Fixed Parameters ===");
-    const fixedKey = "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=";
-    const fixedIV = "YjgZJzfIXjAYvwt/";
-
-    const encrypted2 = AES256GCMEasy.encrypt(message, fixedKey, fixedIV);
-    const decrypted2 = AES256GCMEasy.decrypt(
-      encrypted2.ciphertext,
-      encrypted2.key,
-      encrypted2.iv,
-      encrypted2.authTag,
-    );
-
-    console.log(
-      "Fixed parameter encryption-decryption:",
-      message === decrypted2 ? "✅ Success" : "❌ Failed",
-    );
-  }
-}
-
 // If this file is executed directly, run examples
-if (require.main === module) {
+if (typeof process !== 'undefined' && process.argv?.[1] && (process.argv[1].endsWith('aes-gcm.ts'))) {
   AESVerification.runAllTests();
-  console.log("\n" + "=".repeat(50) + "\n");
-  AESGCMExample.demonstrateUsage();
 }
 
 export {
@@ -987,10 +1065,9 @@ export {
   GaloisField,
   AESTransforms,
   AESKeyExpansion,
-  AES256,
+  AES,
   GF128,
-  AES256GCM,
-  AES256GCMEasy,
+  AESGCM,
+  AESGCMEasy,
   AESVerification,
-  AESGCMExample,
 };

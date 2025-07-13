@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "scripts": {
-    "test": "jest --verbose",
+    "test": "tsx ./tests/helpers/aes-gcm.ts && jest --verbose",
     "test:simple": "jest",
     "test:single": "jest --verbose --testNamePattern=",
     "lint": "eslint '**/*.ts'",
@@ -62,7 +62,7 @@
     ],
     "testTimeout": 30000,
     "globals": {
-      "LOG_LEVEL": "debug",
+      "LOG_LEVEL": "log",
       "CIRCOM_DEFAULTS": {
         "O": 2,
         "verbose": false,

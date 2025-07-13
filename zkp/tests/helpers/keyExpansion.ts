@@ -1,4 +1,4 @@
-import { AESKeyExpansion } from "./aes256gcm";
+import { AESKeyExpansion } from "./aes-gcm";
 
 function expandKey(key: Word[]): Word[] {
   const keyBuffer = Buffer.concat(key.map((w) => Buffer.from(w.bytes)));

@@ -1,4 +1,4 @@
-import { AESSbox } from "./aes256gcm";
+import { AESSbox } from "./aes-gcm";
 
 function subWord(_in: Word): Word {
   const substituted = substituteBytes(_in.bytes);

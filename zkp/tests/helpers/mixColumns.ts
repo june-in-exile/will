@@ -1,4 +1,4 @@
-import { AESTransforms } from "./aes256gcm";
+import { AESTransforms } from "./aes-gcm";
 
 function mixColumn(_in: Byte4): Byte4 {
   const inBuffer = Buffer.from(_in);
