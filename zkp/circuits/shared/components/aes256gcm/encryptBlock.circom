@@ -34,21 +34,10 @@ template EncryptBlock(keyBits) {
     signal {byte} state[Nr + 1][16];
     
     // Initial round - AddRoundKey only
-    // component addRoundKey0 = AddRoundKey();
-    // for (var i = 0; i < 16; i++) {
-    //     addRoundKey0.state[i] <== plaintext[i];
-    // }
-    // for (var i = 0; i < 4; i++) {
-    //     addRoundKey0.roundKey[i] <== keyExpansion.expandedKey[i];
-    // }
-    // for (var i = 0; i < 16; i++) {
-    //     state[0][i] <== addRoundKey0.out[i];
-    // }
-    
     Word() roundKey[expandedNk] <== ExpandKey(keyBits)(key);
-    Word() roundKey0[4];
-    (roundKey0[0],roundKey0[1],roundKey0[2],roundKey0[3]) <== (roundKey[0],roundKey[1],roundKey[2],roundKey[3]);
-    state[0] <== AddRoundKey()(plaintext,roundKey0);
+    Word() roundKeyGroup[Nr + 1][4];
+    (roundKeyGroup[0][0],roundKeyGroup[0][1],roundKeyGroup[0][2],roundKeyGroup[0][3]) <== (roundKey[0],roundKey[1],roundKey[2],roundKey[3]);
+    state[0] <== AddRoundKey()(plaintext,roundKeyGroup[0]);
     
     // Main rounds (1 to Nr-1)
     component subBytes[Nr];
