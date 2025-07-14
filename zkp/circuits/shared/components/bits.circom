@@ -47,7 +47,7 @@ template ShiftRight(bits, offset) {
  * @param n - The number of input elements
  * @param bits - The bit width of each input number
  *
- * Example: XOR two 8-bit numbers
+ * Example: XOR two 8-bit numbers (i.e., Galois Field addition in GF(2^8))
  *  signal result <== BitwiseXor(2, 8)([170, 85]);  // Input a: 10101010 (170)
  *                                                  // Input b: 01010101  (85)
  *  result === 255;                                 // Result:  11111111 (255)
