@@ -44,3 +44,42 @@ template GFMul3() {
     
     out <== BitwiseXor(2,8)([mul2,in]);
 }
+
+/**
+ * GHASH function for AES-GCM
+ * Processes fixed-length input (must be padded to multiple of 16 bytes)
+ */
+template GHash(numBlocks) {
+    signal input {byte} data[numBlocks * 16];
+    signal input {byte} hashKey[16];
+    signal output {byte} result[16];
+    
+    // Intermediate results for each block
+    signal intermediateResults[numBlocks + 1][16];
+    
+    // Initialize with zeros
+    for (var i = 0; i < 16; i++) {
+        intermediateResults[0][i] <== 0;
+    }
+    
+    // Process each 16-byte block
+    component gf128Multiply[numBlocks];
+    signal xorResult[numBlocks][16];
+    for (var block = 0; block < numBlocks; block++) {
+        // XOR current result with data block
+        for (var i = 0; i < 16; i++) {
+            xorResult[block][i] <== BitwiseXor(2,8)(intermediateResults[block][i],data[block * 16 + i]);
+        }
+        
+        // Multiply by hashKey in GF(2^128)
+        gf128Multiply[block] = GF128Multiply();
+        for (var i = 0; i < 16; i++) {
+            gf128Multiply[block].x[i] <== xorResult[block][i];
+            gf128Multiply[block].y[i] <== hashKey[i];
+            intermediateResults[block + 1][i] <== gf128Multiply[block].result[i];
+        }
+    }
+    
+    // Output final result
+    result <== intermediateResults[numBlocks];
+}

@@ -1,5 +1,5 @@
 import { WitnessTester } from "./utils";
-import { GaloisField } from "./helpers";
+import { GaloisField, AESUtils, AESGCM, GF128 } from "./helpers";
 
 describe("GFMul2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -128,6 +128,212 @@ describe("GFMul3 Circuit", function () {
           { out: GaloisField.multiply(byte, 3) },
         );
       }
+    });
+  });
+});
+
+describe("GHash Circuit", function () {
+  let circuit: WitnessTester<["data", "hashKey"], ["result"]>;
+
+  describe("GHASH with 1 block (16 bytes)", function () {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256gcm/galoisField.circom",
+        "GHash",
+        {
+          templateParams: ["1"],
+        },
+      );
+      console.info(
+        "GHASH (1 block) circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should compute GHASH for simple sequential data", async function (): Promise<void> {
+      const data = Array.from({ length: 16 }, (_, i) => i + 1);
+      const hashKey = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
+        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+      ];
+
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it("should compute GHASH for all zeros data (and should result in all zeros)", async function (): Promise<void> {
+      const data = new Array(16).fill(0x00);
+      const hashKey = Array.from(AESUtils.randomBytes(16));
+      const result = new Array(16).fill(0x00);
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it("should compute GHASH for random data and key", async function (): Promise<void> {
+      const data = Array.from(AESUtils.randomBytes(16));
+      const hashKey = Array.from(AESUtils.randomBytes(16));
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+  });
+
+  describe("GHASH with 2 blocks (32 bytes)", function () {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256gcm/computeJ0.circom",
+        "GHash",
+        {
+          templateParams: ["2"],
+        },
+      );
+      console.info(
+        "GHASH (2 blocks) circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should compute GHASH for sequential data across two blocks", async function (): Promise<void> {
+      const data = Array.from({ length: 32 }, (_, i) => i);
+      const hashKey = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
+        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+      ];
+
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it("should compute GHASH for first block zeros, second block ones", async function (): Promise<void> {
+      const data = [
+        ...new Array(16).fill(0x00),
+        ...new Array(16).fill(0xff)
+      ];
+      const hashKey = Array.from(AESUtils.randomBytes(16));
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it("should compute GHASH for random data", async function (): Promise<void> {
+      const data = Array.from(AESUtils.randomBytes(32));
+      const hashKey = Array.from(AESUtils.randomBytes(16));
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it.skip("should demonstrate GHASH accumulation", async function (): Promise<void> {
+      // This test shows how GHASH accumulates results across blocks
+      const block1 = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+        0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10];
+      const block2 = [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+        0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20];
+      const data = [...block1, ...block2];
+
+      const hashKey = [
+        0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22,
+        0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00
+      ];
+
+      // Calculate expected result using TypeScript implementation
+      const expectedResult = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data: data, hashKey: hashKey },
+        { result: expectedResult }
+      );
+
+      console.log("GHASH accumulation example:");
+      console.log("Block 1:", block1.map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log("Block 2:", block2.map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log("Result:", expectedResult.map(b => b.toString(16).padStart(2, '0')).join(' '));
+    });
+  });
+
+  describe("GHASH with 4 blocks (64 bytes)", function () {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256gcm/computeJ0.circom",
+        "GHash",
+        {
+          templateParams: ["4"],
+        },
+      );
+      console.info(
+        "GHASH (4 blocks) circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should compute GHASH for pattern data", async function (): Promise<void> {
+      const pattern = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
+        0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10];
+      const data = [...pattern, ...pattern, ...pattern, ...pattern];
+
+      const hashKey = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
+        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+      ];
+
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
+    });
+
+    it("should handle mixed block patterns", async function (): Promise<void> {
+      const block1 = new Array(16).fill(0xaa);
+      const block2 = new Array(16).fill(0x55);
+      const block3 = Array.from({ length: 16 }, (_, i) => i);
+      const block4 = Array.from({ length: 16 }, (_, i) => 0xff - i);
+      const data = [...block1, ...block2, ...block3, ...block4];
+
+      const hashKey = Array.from(AESUtils.randomBytes(16));
+      const result = Array.from(
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+      );
+
+      await circuit.expectPass(
+        { data, hashKey },
+        { result }
+      );
     });
   });
 });
