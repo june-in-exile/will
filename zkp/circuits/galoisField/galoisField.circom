@@ -16,7 +16,7 @@ template GF128Multiply() {
     signal input {byte} bBytes[16];
     signal output {byte} cBytes[16];
     
-    // Convert 16-byte a, b to 128-bit (MSB first order), initialize v = b, c = 0
+    // Convert 16-byte a, b to 128-bit (LSB first order), initialize v = b, c = 0
     signal aBitGroup[16][8];
     signal b[129];
     signal c[129];
@@ -33,11 +33,11 @@ template GF128Multiply() {
     // p(x) = x^128 + x^7 + x^2 + x + 1
     var p = 2**128 + 2**7 + 2**2 + 2**1 + 2**0;
     
-    signal options[128][2];
+    // signal options[128][2];
 
     // Process each bit of a
     for (var round = 1; round < 129; round++) {
-        var byte = round \ 8, bit = 7 - round % 8;
+        var byte = (round - 1) \ 8, bit = (round - 1) % 8;
 
         // Step 1: If a[round], c += b << round
         c[round] <== c[round - 1] + aBitGroup[byte][bit] * b[round - 1];
@@ -50,10 +50,11 @@ template GF128Multiply() {
     signal cBits[128] <== Num2Bits(128)(c[128]);
     signal cBitGroup[16][8];
     for (var byte = 0; byte < 16; byte++) {
-        for (var bit = 0; bit < 16; bit++) {
+        for (var bit = 0; bit < 8; bit++) {
             cBitGroup[byte][bit] <== cBits[byte * 8 + bit];
         }
         cBytes[byte] <== Bits2Num(8)(cBitGroup[byte]);
+        log(cBytes[byte]);
     }
 }
 
