@@ -54,9 +54,9 @@ template ShiftRight(bits, offset) {
  *
  * Example: XOR three 8-bit numbers
  *  signal result <== BitwiseXor(3, 8)([15, 51, 85]);  // Input a: 00001111  (15)
- *                                                          // Input b: 00110011  (51)
- *                                                          // Input c: 01010101  (85)
- *  result === 105;                                         // Result:  01101001 (105)
+ *                                                     // Input b: 00110011  (51)
+ *                                                     // Input c: 01010101  (85)
+ *  result === 105;                                    // Result:  01101001 (105)
  */
 template BitwiseXor(n, bits) {
     assert (n >= 2);
