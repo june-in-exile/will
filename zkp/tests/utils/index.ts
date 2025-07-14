@@ -1,4 +1,4 @@
 export * from "./construction";
 export * from "./conversion";
-export * from "./template";
+export * from "./untagTemplate";
 export * from "./witnessTester";

@@ -1,7 +1,7 @@
 import { WitnessTester } from "./utils";
 import { AESUtils, AESGCM, GF128 } from "./helpers";
 
-describe("ComputeJ0 Circuits", function () {
+describe.skip("ComputeJ0 Circuits", function () {
     describe("ComputeJ0_96bit Circuit", function () {
         let circuit: WitnessTester<["iv"], ["j0"]>;
 

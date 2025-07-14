@@ -2,6 +2,9 @@
 CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
+TEMPLATE = GF128Multiply
+TEMPLATE ?= Multiplier2
+
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
 PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_12.ptau
@@ -21,6 +24,7 @@ help:
 	@echo ""
 	@echo "⚗️  Circuit Operations (current: $(CIRCUIT)):"
 	@echo "  make circuit             - Complete circuit setup (compile + keys + verifier)"
+	@echo "  make untag               - Untag template for current circuit"
 	@echo "  make compile             - Compile current circuit"
 	@echo "  make witness             - Generate witness for current circuit"
 	@echo "  make prove               - Generate proof for current circuit"
@@ -32,6 +36,11 @@ help:
 	@echo "  make trusted-setup-phase1            - Setup Powers of Tau (shared)"
 	@echo "  make trusted-setup-phase1-download   - Download Powers of Tau (shared)"
 	@echo "  make trusted-setup-phase2            - Setup circuit-specific keys"
+	@echo ""
+	@echo "🧹 Test:"
+	@echo "  make test                - Test current circuit"
+	@echo "  make test-circuits       - Test all circuits"
+	@echo "  make test-all            - Test AES-256-GCM helper and all circuits"
 	@echo ""
 	@echo "🧹 Cleanup:"
 	@echo "  make clean               - Clean current circuit ($(CIRCUIT))"
@@ -75,9 +84,12 @@ trusted-setup-phase1:
 	fi
 
 # Circuit operations
-circuit: compile witness trusted-setup-phase2 prove verify solidity generate-call
+circuit: untag compile witness trusted-setup-phase2 prove verify solidity generate-call
 	@echo "✅ Circuit $(CIRCUIT) setup completed!"
 
+untag:
+	@pnpm exec tsx ./tests/utils/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
+	
 compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
@@ -161,6 +173,18 @@ clean-all:
 	done
 	@rm -rf ./circuits/shared/keys
 	@echo "✅ All circuits and Powers of Tau cleaned!"
+
+
+# Test
+test:
+	@npm run test:single ./tests/$(CIRCUIT).test.ts
+
+test-circuits:
+	@npx jest --verbose
+
+test-all:
+	@npm run test
+
 
 # Project status
 status:

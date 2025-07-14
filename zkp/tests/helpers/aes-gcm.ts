@@ -1092,12 +1092,7 @@ class AESVerification {
   }
 }
 
-// If this file is executed directly, run examples
-if (
-  typeof process !== "undefined" &&
-  process.argv?.[1] &&
-  process.argv[1].endsWith("aes-gcm.ts")
-) {
+if (require.main === module) {
   AESVerification.runAllTests();
 }
 

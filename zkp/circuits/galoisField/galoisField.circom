@@ -57,4 +57,20 @@ template GF128Multiply() {
     }
 }
 
-component main = GF128Multiply();
+// component main = Multiply();
+
+// Auto updated: 2025-07-14T23:01:29.554Z
+template UntaggedGF128Multiply() {
+    signal input aBytes[16];
+    signal input bBytes[16];
+    signal output {byte} cBytes[16];
+
+    signal {byte} _aBytes[16];
+    _aBytes <== aBytes;
+    signal {byte} _bBytes[16];
+    _bBytes <== bBytes;
+
+    cBytes <== GF128Multiply()(_aBytes, _bBytes);
+}
+
+component main = UntaggedGF128Multiply();
