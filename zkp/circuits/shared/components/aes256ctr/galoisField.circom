@@ -58,12 +58,12 @@ template GF128Multiply() {
     signal c[129];
     
     for (var byte = 0; byte < 16; byte++) {
-        aBitGroup[byte] <== Num2Bits(8)(aBytes[byte]);
+        aBitGroup[15 - byte] <== Num2Bits(8)(aBytes[byte]);
     }
     // a <== aBytes[0] * 2**15 + aBytes[1] * 2**14 + aBytes[2] * 2**13 + aBytes[3] * 2**12 + aBytes[4] * 2**11 + aBytes[5] * 2**10 + aBytes[6] * 2**9 + aBytes[7] * 2**8
     //         + aBytes[8] * 2**7 + aBytes[9] * 2**6 + aBytes[10] * 2**5 + aBytes[11] * 2**4 + aBytes[12] * 2**3 + aBytes[13] * 2**2 + aBytes[14] * 2**1 + aBytes[15] * 2**0;
-    b[0] <== bBytes[0] * 2**15 + bBytes[1] * 2**14 + bBytes[2] * 2**13 + bBytes[3] * 2**12 + bBytes[4] * 2**11 + bBytes[5] * 2**10 + bBytes[6] * 2**9 + bBytes[7] * 2**8
-            + bBytes[8] * 2**7 + bBytes[9] * 2**6 + bBytes[10] * 2**5 + bBytes[11] * 2**4 + bBytes[12] * 2**3 + bBytes[13] * 2**2 + bBytes[14] * 2**1 + bBytes[15] * 2**0;
+    b[0] <== bBytes[0] * 2**120 + bBytes[1] * 2**112 + bBytes[2] * 2**104 + bBytes[3] * 2**96 + bBytes[4] * 2**88 + bBytes[5] * 2**80 + bBytes[6] * 2**72 + bBytes[7] * 2**64
+            + bBytes[8] * 2**56 + bBytes[9] * 2**48 + bBytes[10] * 2**40 + bBytes[11] * 2*32 + bBytes[12] * 2**24 + bBytes[13] * 2**16 + bBytes[14] * 2**8 + bBytes[15] * 2**0;
     c[0] <== 0;
 
     // p(x) = x^128 + x^7 + x^2 + x + 1

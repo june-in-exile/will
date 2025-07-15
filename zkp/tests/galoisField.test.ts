@@ -160,7 +160,7 @@ describe.only("GF128Multiply Circuit", function () {
   });
 
   it.only("should correctly multiply by one", async function (): Promise<void> {
-    // In GF(2^128), "1" is represented as 0x80000...0 (MSB set)
+    // In GF(2^128), "1" is represented as 0x80000...0 (LSB set)
     const aBytes = [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
     const bBytes = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
@@ -168,6 +168,8 @@ describe.only("GF128Multiply Circuit", function () {
 
     // Multiplying by 1 should return b unchanged
     const cBytes = [...bBytes];
+    // const sym = await circuit.compute({ aBytes, bBytes });
+    // console.debug(sym);
 
     await circuit.expectPass(
       { aBytes, bBytes },
