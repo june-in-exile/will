@@ -123,7 +123,9 @@ describe.skip("ComputeJ0 Circuits", function () {
                 circuit = await WitnessTester.construct(
                     "circuits/shared/components/aes256ctr/j0Computation.circom",
                     "ComputeJ0_Variable",
-                    { ivLengthBytes: 8 }
+                    {
+                        templateParams: ["8"],
+                    }
                 );
                 console.info(
                     "ComputeJ0_Variable(8) circuit constraints:",
@@ -154,7 +156,9 @@ describe.skip("ComputeJ0 Circuits", function () {
                 circuit = await WitnessTester.construct(
                     "circuits/shared/components/aes256ctr/j0Computation.circom",
                     "ComputeJ0_Variable",
-                    { ivLengthBytes: 16 }
+                    {
+                        templateParams: ["8"],
+                    }
                 );
                 console.info(
                     "ComputeJ0_Variable(16) circuit constraints:",
@@ -220,7 +224,9 @@ describe.skip("ComputeJ0 Circuits", function () {
                     const circuit = await WitnessTester.construct(
                         "circuits/shared/components/aes256ctr/j0Computation.circom",
                         "ComputeJ0_Variable",
-                        { ivLengthBytes: length }
+                        {
+                            templateParams: ["8"],
+                        }
                     );
 
                     const iv = Array.from(AESUtils.randomBytes(length));
