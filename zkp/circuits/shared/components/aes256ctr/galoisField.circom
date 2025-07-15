@@ -44,8 +44,14 @@ template GF8Mul3() {
 /**
  * Galois Field multiplication in GF(2^128) with reduction polynomial x^128 + x^7 + x^2 + x + 1 (0xe1 || 30 zeros in LSB order)
  *
+ * Idea of Galois Field multiplication with reduction polynomial p(x):
+ *   c = Σ (a[i] == 1 ? b << i : 0) mod p(x)
+ *
  * Algorithm:
- * c = Σ (a[i] == 1 ? b << i : 0) mod p(x)
+ * - For each bit i of 'a' (from LSB to MSB):
+ *   - If a[i] == 1, add (XOR) the current value of b to result c
+ *   - Left shift b by 1 position
+ *   - If b overflows (bit 128 would be set), reduce using the polynomial
  */
 template GF128Multiply() {
     signal input {byte,lsb} aBytes[16];
@@ -59,11 +65,14 @@ template GF128Multiply() {
     signal aBits[128];
     signal bBits[129][128];
     signal cBits[129][128];
-    signal carry[128];
     
     for (var byte = 0; byte < 16; byte++) {
+        // Convert each byte to 8 bits
         aBitGroup[byte] <== Num2Bits(8)(aBytes[byte]);
         bBitGroup[byte] <== Num2Bits(8)(bBytes[byte]);
+        
+        // Rearrange bits: within each byte, reverse bit order (7-bit becomes LSB)
+        // This creates LSB-first bit ordering for the entire 128-bit value
         for (var bit = 0; bit < 8; bit++) {
             aBits[byte * 8 + bit] <== aBitGroup[byte][7 - bit];
             bBits[0][byte * 8 + bit] <== bBitGroup[byte][7 - bit];
@@ -71,25 +80,33 @@ template GF128Multiply() {
         }
     }
     
+    // Main multiplication loop: process each bit of 'a' from LSB to MSB
     for (var round = 1; round < 129; round++) {
-        carry[round - 1] <== bBits[round - 1][127];
         for (var bit = 0; bit < 128; bit++) {
+            // Step 1: If a[round-1] == 1, XOR current b into c
+            // c = c ⊕ (a[round-1] ? b : 0)
             cBits[round][bit] <== XOR()(cBits[round - 1][bit], aBits[round - 1] * bBits[round - 1][bit]);
+            
+            // Step 2: Left shift b by 1 bit (equivalent to multiplying by x)
+            // Handle the reduction polynomial when MSB overflows
+            // By XOR it into positions 0, 1, 2, 7
             if (bit == 0) {
-                bBits[round][bit] <== carry[round - 1];
+                bBits[round][bit] <== bBits[round - 1][127];
             } else if (bit == 1 || bit == 2 || bit == 7) {
-                bBits[round][bit] <== XOR()(carry[round - 1], bBits[round - 1][bit - 1]);
+                bBits[round][bit] <== XOR()(bBits[round - 1][127], bBits[round - 1][bit - 1]);
             } else {
                 bBits[round][bit] <== bBits[round - 1][bit - 1];
             }
         }
     }
 
-    // Convert final result to bytes (LSB first order)
+    // Convert final result bits back to bytes (LSB first order)
     for (var byte = 0; byte < 16; byte++) {
+        // Reverse bit order within each byte to match expected byte representation
         for (var bit = 0; bit < 8; bit++) {
             cBitGroup[byte][7 - bit] <== cBits[128][byte * 8 + bit];
         }
+        // Convert 8 bits back to a byte
         cBytes[byte] <== Bits2Num(8)(cBitGroup[byte]);
     }
 }
