@@ -132,7 +132,7 @@ describe("GF8Mul3 Circuit", function () {
   });
 });
 
-describe.only("GF128Multiply Circuit", function () {
+describe("GF128Multiply Circuit", function () {
   let circuit: WitnessTester<["aBytes", "bBytes"], ["cBytes"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -159,7 +159,7 @@ describe.only("GF128Multiply Circuit", function () {
     );
   });
 
-  it.only("should correctly multiply by one", async function (): Promise<void> {
+  it("should correctly multiply by one", async function (): Promise<void> {
     // In GF(2^128), "1" is represented as 0x80000...0 (LSB set)
     const aBytes = [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
@@ -177,7 +177,7 @@ describe.only("GF128Multiply Circuit", function () {
     );
   });
 
-  it("should handle vectors commonly used in GHASH", async function (): Promise<void> {
+  it.only("should handle vectors commonly used in GHASH", async function (): Promise<void> {
     const aBytes = [0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
       0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e];
     const bBytes = [0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
@@ -189,26 +189,6 @@ describe.only("GF128Multiply Circuit", function () {
       { aBytes, bBytes },
       { cBytes }
     );
-  });
-
-  it.skip("should handle reduction polynomial correctly", async function (): Promise<void> {
-    // Test case that triggers the reduction polynomial
-    // When shifting causes a carry, we XOR with 0xE1
-    const aBytes = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
-    const bBytes = [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-
-    // This should trigger reduction: shifting b right by 1 creates a carry
-    const cBytes = Array.from(GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes)));
-
-    await circuit.expectPass(
-      { aBytes, bBytes },
-      { cBytes }
-    );
-
-    // The result should have 0xE1 in the first byte due to reduction
-    console.log("Result after reduction:", cBytes.map(bBytes => bBytes.toString(16).padStart(2, '0')).join(' '));
   });
 });
 

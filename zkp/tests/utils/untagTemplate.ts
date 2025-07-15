@@ -203,7 +203,6 @@ async function modifyComponentMainInFile(
 async function generateAppendedContent(config: GenerationConfig, originalContent: string): Promise<string> {
   // Comment existing main component
   const modifiedContent = commentComponentMain(originalContent);
-  console.log(modifiedContent);
 
   // Generate untagged template content
   const untaggedTemplateContent = generateUntaggedTemplateContent(config, false);
