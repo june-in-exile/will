@@ -74,7 +74,7 @@ template GF128Multiply() {
     for (var round = 1; round < 129; round++) {
         carry[round - 1] <== bBits[round - 1][127];
         for (var bit = 0; bit < 128; bit++) {
-            cBits[round][bit] <== cBits[round - 1][bit] + aBits[round - 1] * bBits[round - 1][bit];
+            cBits[round][bit] <== XOR()(cBits[round - 1][bit], aBits[round - 1] * bBits[round - 1][bit]);
             if (bit == 0) {
                 bBits[round][bit] <== carry[round - 1];
             } else if (bit == 1 || bit == 2 || bit == 7) {

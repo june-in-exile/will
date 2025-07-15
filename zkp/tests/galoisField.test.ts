@@ -1,5 +1,5 @@
+import { AESGCM, AESUtils, GaloisField, GF128 } from "./helpers";
 import { WitnessTester } from "./utils";
-import { GaloisField, AESUtils, AESGCM, GF128 } from "./helpers";
 
 describe("GF8Mul2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -8,11 +8,11 @@ describe("GF8Mul2 Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF8Mul2",
+        "GF8Mul2"
       );
       console.info(
         "GF8Mul2 circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -22,7 +22,7 @@ describe("GF8Mul2 Circuit", function () {
 
         await circuit.expectPass(
           { in: input },
-          { out: GaloisField.multiply(input, 2) },
+          { out: GaloisField.multiply(input, 2) }
         );
       }
     });
@@ -51,7 +51,7 @@ describe("GF8Mul2 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 2) },
+          { out: GaloisField.multiply(byte, 2) }
         );
       }
     });
@@ -64,11 +64,11 @@ describe("GF8Mul3 Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF8Mul3",
+        "GF8Mul3"
       );
       console.info(
         "GF8Mul3 circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
@@ -78,7 +78,7 @@ describe("GF8Mul3 Circuit", function () {
 
         await circuit.expectPass(
           { in: input },
-          { out: GaloisField.multiply(input, 3) },
+          { out: GaloisField.multiply(input, 3) }
         );
       }
     });
@@ -107,7 +107,7 @@ describe("GF8Mul3 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 2) ^ byte },
+          { out: GaloisField.multiply(byte, 2) ^ byte }
         );
       }
     });
@@ -125,7 +125,7 @@ describe("GF8Mul3 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 3) },
+          { out: GaloisField.multiply(byte, 3) }
         );
       }
     });
@@ -138,57 +138,57 @@ describe("GF128Multiply Circuit", function () {
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/aes256ctr/galoisField.circom",
-      "GF128Multiply",
+      "GF128Multiply"
     );
     console.info(
       "GF128 multiplication circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount()
     );
   });
 
   it("should correctly multiply by zero and yield zero", async function (): Promise<void> {
     const aBytes = new Array(16).fill(0x00);
-    const bBytes = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-      0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10];
+    const bBytes = [
+      0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
+      0x76, 0x54, 0x32, 0x10,
+    ];
 
     const cBytes = new Array(16).fill(0x00);
 
-    await circuit.expectPass(
-      { aBytes, bBytes },
-      { cBytes }
-    );
+    await circuit.expectPass({ aBytes, bBytes }, { cBytes });
   });
 
-  it("should correctly multiply by one", async function (): Promise<void> {
-    // In GF(2^128), "1" is represented as 0x80000...0 (LSB set)
-    const aBytes = [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    const bBytes = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-      0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10];
+  it("should correctly multiply by one and yield unchanged multiplicant", async function (): Promise<void> {
+    const aBytes = [
+      0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+    ]; // "1" in GF(2^128) (LSB set)
+    const bBytes = [
+      0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
+      0x76, 0x54, 0x32, 0x10,
+    ];
 
     // Multiplying by 1 should return b unchanged
     const cBytes = [...bBytes];
-    // const sym = await circuit.compute({ aBytes, bBytes });
-    // console.debug(sym);
 
-    await circuit.expectPass(
-      { aBytes, bBytes },
-      { cBytes }
-    );
+    await circuit.expectPass({ aBytes, bBytes }, { cBytes });
   });
 
-  it.only("should handle vectors commonly used in GHASH", async function (): Promise<void> {
-    const aBytes = [0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
-      0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e];
-    const bBytes = [0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92,
-      0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe, 0x78];
+  it("should handle vectors commonly used in GHASH", async function (): Promise<void> {
+    const aBytes = [
+      0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59,
+      0xca, 0x34, 0x2b, 0x2e,
+    ];
+    const bBytes = [
+      0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9,
+      0x71, 0xb2, 0xfe, 0x78,
+    ];
 
-    const cBytes = Array.from(GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes)));
-
-    await circuit.expectPass(
-      { aBytes, bBytes },
-      { cBytes }
+    const cBytes = Array.from(
+      GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes))
     );
+
+    await circuit.expectPass({ aBytes, bBytes }, { cBytes });
   });
 });
 
@@ -202,29 +202,26 @@ describe.skip("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["1"],
-        },
+        }
       );
       console.info(
         "GHASH (1 block) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
     it("should compute GHASH for simple sequential data", async function (): Promise<void> {
       const data = Array.from({ length: 16 }, (_, i) => i + 1);
       const hashKey = [
-        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
-        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59,
+        0xca, 0x34, 0x2b, 0x2e,
       ];
 
       const result = Array.from(
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it("should compute GHASH for all zeros data and yield all zeros", async function (): Promise<void> {
@@ -232,10 +229,7 @@ describe.skip("GHash Circuit", function () {
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = new Array(16).fill(0x00);
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it("should compute GHASH for random data and key", async function (): Promise<void> {
@@ -245,10 +239,7 @@ describe.skip("GHash Circuit", function () {
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
   });
 
@@ -259,45 +250,36 @@ describe.skip("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["2"],
-        },
+        }
       );
       console.info(
         "GHASH (2 blocks) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
     it("should compute GHASH for sequential data across two blocks", async function (): Promise<void> {
       const data = Array.from({ length: 32 }, (_, i) => i);
       const hashKey = [
-        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
-        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59,
+        0xca, 0x34, 0x2b, 0x2e,
       ];
 
       const result = Array.from(
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it("should compute GHASH for first block zeros, second block ones", async function (): Promise<void> {
-      const data = [
-        ...new Array(16).fill(0x00),
-        ...new Array(16).fill(0xff)
-      ];
+      const data = [...new Array(16).fill(0x00), ...new Array(16).fill(0xff)];
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = Array.from(
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it("should compute GHASH for random data", async function (): Promise<void> {
@@ -307,23 +289,24 @@ describe.skip("GHash Circuit", function () {
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it.skip("should demonstrate GHASH accumulation", async function (): Promise<void> {
       // This test shows how GHASH accumulates results across blocks
-      const block1 = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-        0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10];
-      const block2 = [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-        0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20];
+      const block1 = [
+        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+        0x0d, 0x0e, 0x0f, 0x10,
+      ];
+      const block2 = [
+        0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
+        0x1d, 0x1e, 0x1f, 0x20,
+      ];
       const data = [...block1, ...block2];
 
       const hashKey = [
-        0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22,
-        0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00
+        0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66,
+        0x77, 0x88, 0x99, 0x00,
       ];
 
       // Calculate expected result using TypeScript implementation
@@ -337,9 +320,18 @@ describe.skip("GHash Circuit", function () {
       );
 
       console.log("GHASH accumulation example:");
-      console.log("Block 1:", block1.map(b => b.toString(16).padStart(2, '0')).join(' '));
-      console.log("Block 2:", block2.map(b => b.toString(16).padStart(2, '0')).join(' '));
-      console.log("Result:", expectedResult.map(b => b.toString(16).padStart(2, '0')).join(' '));
+      console.log(
+        "Block 1:",
+        block1.map((b) => b.toString(16).padStart(2, "0")).join(" ")
+      );
+      console.log(
+        "Block 2:",
+        block2.map((b) => b.toString(16).padStart(2, "0")).join(" ")
+      );
+      console.log(
+        "Result:",
+        expectedResult.map((b) => b.toString(16).padStart(2, "0")).join(" ")
+      );
     });
   });
 
@@ -350,32 +342,31 @@ describe.skip("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["4"],
-        },
+        }
       );
       console.info(
         "GHASH (4 blocks) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount()
       );
     });
 
     it("should compute GHASH for pattern data", async function (): Promise<void> {
-      const pattern = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-        0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10];
+      const pattern = [
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
+        0x76, 0x54, 0x32, 0x10,
+      ];
       const data = [...pattern, ...pattern, ...pattern, ...pattern];
 
       const hashKey = [
-        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b,
-        0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59,
+        0xca, 0x34, 0x2b, 0x2e,
       ];
 
       const result = Array.from(
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
 
     it("should handle mixed block patterns", async function (): Promise<void> {
@@ -390,10 +381,7 @@ describe.skip("GHash Circuit", function () {
         AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
       );
 
-      await circuit.expectPass(
-        { data, hashKey },
-        { result }
-      );
+      await circuit.expectPass({ data, hashKey }, { result });
     });
   });
 });

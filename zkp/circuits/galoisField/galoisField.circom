@@ -34,11 +34,18 @@ template GF128Multiply() {
             cBits[0][byte * 8 + bit] <== 0;
         }
     }
-    
+
+    for (var bit = 0; bit < 128; bit++) {
+        log("aBits[", bit, "]:", aBits[bit]);
+    }
+    for (var bit = 0; bit < 128; bit++) {
+        log("bBits[0][", bit, "]:", bBits[0][bit]);
+    }
+
     for (var round = 1; round < 129; round++) {
         carry[round - 1] <== bBits[round - 1][127];
         for (var bit = 0; bit < 128; bit++) {
-            cBits[round][bit] <== cBits[round - 1][bit] + aBits[round - 1] * bBits[round - 1][bit];
+            cBits[round][bit] <== XOR()(cBits[round - 1][bit], aBits[round - 1] * bBits[round - 1][bit]);
             if (bit == 0) {
                 bBits[round][bit] <== carry[round - 1];
             } else if (bit == 1 || bit == 2 || bit == 7) {
@@ -47,6 +54,10 @@ template GF128Multiply() {
                 bBits[round][bit] <== bBits[round - 1][bit - 1];
             }
         }
+    }
+
+    for (var bit = 0; bit < 128; bit++) {
+        log("cBits[128][", bit, "]:", cBits[128][bit]);
     }
 
     // Convert final result to bytes (LSB first order)
@@ -58,9 +69,7 @@ template GF128Multiply() {
     }
 }
 
-// component main = GF128Multiply();
-
-// Auto updated: 2025-07-15T02:40:06.782Z
+// Auto updated: 2025-07-15T03:50:57.718Z
 template UntaggedGF128Multiply() {
     signal input aBytes[16];
     signal input bBytes[16];
