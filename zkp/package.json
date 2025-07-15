@@ -62,7 +62,7 @@
     ],
     "testTimeout": 30000,
     "globals": {
-      "LOG_LEVEL": "debug",
+      "LOG_LEVEL": "log",
       "CIRCOM_DEFAULTS": {
         "O": 2,
         "verbose": false,
