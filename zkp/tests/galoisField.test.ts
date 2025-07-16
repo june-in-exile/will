@@ -134,15 +134,24 @@ describe("GF8Mul3 Circuit", function () {
 
 describe("GF128Multiply Circuit", function () {
   let circuit: WitnessTester<["aBytes", "bBytes"], ["cBytes"]>;
+  let circuitOptimized: WitnessTester<["aBytes", "bBytes"], ["cBytes"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/aes256ctr/galoisField.circom",
       "GF128Multiply"
     );
+    circuitOptimized = await WitnessTester.construct(
+      "circuits/shared/components/aes256ctr/galoisField.circom",
+      "GF128MultiplyOptimized"
+    );
     console.info(
       "GF128 multiplication circuit constraints:",
       await circuit.getConstraintCount() // 33280
+    );
+    console.info(
+      "Optimized GF128 multiplication circuit constraints:",
+      await circuitOptimized.getConstraintCount() // 16768
     );
   });
 
@@ -156,6 +165,7 @@ describe("GF128Multiply Circuit", function () {
     const cBytes = new Array(16).fill(0x00);
 
     await circuit.expectPass({ aBytes, bBytes }, { cBytes });
+    await circuitOptimized.expectPass({ aBytes, bBytes }, { cBytes });
   });
 
   it("should correctly multiply by one and yield unchanged multiplicant", async function (): Promise<void> {
@@ -172,6 +182,7 @@ describe("GF128Multiply Circuit", function () {
     const cBytes = [...bBytes];
 
     await circuit.expectPass({ aBytes, bBytes }, { cBytes });
+    await circuitOptimized.expectPass({ aBytes, bBytes }, { cBytes });
   });
 
   it("should handle vectors commonly used in GHASH", async function (): Promise<void> {
@@ -190,6 +201,7 @@ describe("GF128Multiply Circuit", function () {
 
     // console.debug("Result after reduction:", cBytes.map(b => b.toString(16).padStart(2, '0')).join(' '));
     await circuit.expectPass({ aBytes, bBytes }, { cBytes });
+    await circuitOptimized.expectPass({ aBytes, bBytes }, { cBytes });
   });
 });
 

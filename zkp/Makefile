@@ -2,7 +2,7 @@
 CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
-TEMPLATE = GF128Multiply
+TEMPLATE = GF128MultiplyOptimized
 TEMPLATE ?= Multiplier2
 
 # Directory structure
