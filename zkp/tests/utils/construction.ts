@@ -3,7 +3,6 @@ import {
   generateUntaggedTemplate,
   modifyComponentMainInFile,
 } from "./untagTemplate";
-import * as fs from "fs";
 import path from "path";
 /* eslint-disable @typescript-eslint/no-require-imports */
 const circom_tester = require("circom_tester");

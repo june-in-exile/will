@@ -68,19 +68,19 @@ describe("Utf8ByteLength Circuit", function (): void {
     });
 
     it("should correctly calculate byte length of 2", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases2Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
 
     it("should correctly calculate byte length of 3", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases3Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
 
     it("should correctly calculate byte length of 4", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases4Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
@@ -112,7 +112,7 @@ describe("Utf8Encoder Circuit", function (): void {
     });
 
     it("should correctly encode character of byte length 2", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases2Byte) {
         await circuit.expectPass(
           { codepoint },
           { utf8: utf8Encoder(codepoint) },
@@ -121,7 +121,7 @@ describe("Utf8Encoder Circuit", function (): void {
     });
 
     it("should correctly encode character of byte length 3", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases3Byte) {
         await circuit.expectPass(
           { codepoint },
           { utf8: utf8Encoder(codepoint) },
@@ -130,7 +130,7 @@ describe("Utf8Encoder Circuit", function (): void {
     });
 
     it("should correctly encode character of byte length 4", async () => {
-      for (const { codepoint } of testCases1Byte) {
+      for (const { codepoint } of testCases4Byte) {
         await circuit.expectPass(
           { codepoint },
           { utf8: utf8Encoder(codepoint) },
