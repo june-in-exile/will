@@ -42,7 +42,7 @@ template GF8Mul3() {
 }
 
 /**
- * Output Bit Array Mapping:
+ * Bit Array Mapping:
  * - bits[0] = x^0 coefficient → bytes[0] bit 7
  * - bits[1] = x^1 coefficient → bytes[0] bit 6
  * - ...
@@ -72,7 +72,7 @@ template GF128BytesToBits() {
 }
 
 /**
- * Input Bit Array Mapping:
+ * Bit Array Mapping:
  * - bits[0] = x^0 coefficient → bytes[0] bit 7
  * - bits[1] = x^1 coefficient → bytes[0] bit 6
  * - ...
@@ -178,64 +178,56 @@ template GF128Multiply() {
  *
  *     ====================== Round 1 ======================
  *
- *       a:    1  0  0  1  0  0  0  1
- *       b:    1  1  1  0  1  1  1  1
+ *   ctr1[8][8]:
  *
- *    aBit:    0:7
- *    bBit:    0:7
- *
- *    ctr1:    1  1  1  0  1  1  1  1                     
- *                1  1  0  1  1  1  1  0                  
- *                   1  0  1  1  1  1  0  0               
- *                      1  2  2  1  2  1  1  1            
- *                         2  2  1  2  1  1  1  0         
- *                            2  1  2  1  1  1  0  0      
- *                               1  2  1  1  1  0  0  0   
- *                                  3  2  2  1  1  1  1  1
- *             ______________________
- *  valid1:    1  1  1  1  2  2  1  3
- *   over1:    2  2  1  1  1  1  1
+ *         bBit 0  1  2  3  4  5  6  7
+ *    aBit                            ..7
+ *       0      1  1  1  0  1  1  1  1   ..7
+ *       1         1  1  0  1  1  1  1  0   ..7
+ *       2            1  0  1  1  1  1  0  0   ..7
+ *       3               1  2  2  1  2  1  1  1   ..7
+ *       4                  2  2  1  2  1  1  1  0   ..7
+ *       5                     2  1  2  1  1  1  0  0   ..7
+ *       6                        1  2  1  1  1  0  0  0   
+ *       7                           3  2  2  1  1  1  1  1
+ *              ______________________  ___________________
+ *  contr1:     1  1  1  1  2  2  1  3, ctr2[0]
  *
  *     ====================== Round 2 ======================
  *
- *     p_x:    [0,1,3,4]
- *   over1:    2  2  1  1  1  1  1
+ *   ctr2[4][7]:
  *
- *    pIdx:    0:3
- * overBit:    0:6
- *
- *    ctr2:    2  2  1  1  1  1  1            
- *                4  3  2  2  2  2  1         
- *                      4  4  3  3  2  1  1   
- *                         6  5  4  3  2  2  1
- *             ______________________
- *  valid2:    2  4  3  4  6  5  4  3
- *   over2:    2  2  1
+ *         bit  0  1  2  3  4  5  6
+ *    pIdx                         ..6
+ *       0      2  2  1  1  1  1  1   ..5  6
+ *       1         4  3  2  2  2  2  1      ..6
+ *       2               4  4  3  3  2  1  1   
+ *       3                  6  5  4  3  2  2  1
+ *              ______________________  _______
+ *  contr2:     2  4  3  4  6  5  4  3, ctr3[0]
  *
  *     ====================== Round 3 ======================
  *
- *     p_x:    [0,1,3,4]
- *   over2:    2  2  1
+ *   ctr3[4][3]:
  *
- *    pIdx:    0:3
- * overBit:    0:2
- *
- *    ctr3:    2  2  1            
- *                4  3  1         
- *                      3  2  1   
- *                         4  3  1
- *             ___________________
- *  valid3:    2  4  3  3  4  3  1
+ *         bit  0  1  2
+ *    pIdx             ..2
+ *       0      2  2  1   ..1  2
+ *       1         4  3  1      ..2
+ *       2               3  2  1   
+ *       3                  4  3  1
+ *              ___________________
+ *  contr3:     2  4  3  3  4  3  1
  *
  *     ===================== Sum & Mod =====================
  *
- *   valid1    1  1  1  1  2  2  1  3
- * + valid2    2  4  3  4  6  5  4  3
- * + valid3    2  4  3  3  4  3  1
- * =    sum    5  9  7  8 12 10  6  6
- *
- *    mod2:    1  1  1  0  0  0  0  0
- *      c =    11100000 (0xe0)
+ *   contr1     1  1  1  1  2  2  1  3
+ * + contr2     2  4  3  4  6  5  4  3
+ * + contr3     2  4  3  3  4  3  1
+ * =    sum     5  9  7  8 12 10  6  6
+ * 
+ *    mod2:     1  1  1  0  0  0  0  0
+ *      c =     11100000 (0xe0)
  */
 template GF128MultiplyOptimized() {
     signal input {byte} aBytes[16];
@@ -244,34 +236,25 @@ template GF128MultiplyOptimized() {
     
     signal {bit} aBits[128];
     signal {bit} bBits[128];
-    
-    // Convert 16-byte a, b to 128-bit
-    aBits <== GF128BytesToBits()(aBytes);
-    bBits <== GF128BytesToBits()(bBytes);
+    signal {bit} cBits[128];
 
     // Reduction polynomial coefficients: 1 + x + x^2 + x^7
     var p_x[4] = [0, 1, 2, 7];
 
     // Counter arrays for accumulating contributions
     signal counter1[128][128];
-    signal counter2[4][127];
-    signal counter3[4][6];
+    signal counter2[4][127];    // Maximum 127 overflow bits from round 1
+    signal counter3[4][6];      // Maximum 6 overflow bits from round 2
 
-    // Valid bits that fit within 128-bit result
-    signal valid1[128];
-    signal valid2[128];
-    signal valid3[13];  // Only bits 0-12 can have contributions from round 3
-
-    // Overflow bits that need reduction
-    signal overflow1[127];  // Maximum 127 overflow bits from round 1
-    signal overflow2[6];    // Maximum 6 overflow bits from round 2
+    // Convert 16-byte a, b to 128-bit
+    aBits <== GF128BytesToBits()(aBytes);
+    bBits <== GF128BytesToBits()(bBytes);
 
     // ===== Round 1: Main multiplication =====
     // For each bit of 'a', accumulate b shifted right by that bit position
     for (var aBit = 0; aBit < 128; aBit++) {
         for (var bBit = 0; bBit < 128; bBit++) {
             var prevBBit = bBit + 1;
-            
             // Base case: first a-bit or no previous b-bit to carry
             if (aBit == 0 || prevBBit >= 128) {
                 counter1[aBit][bBit] <== aBits[aBit] * bBits[bBit];
@@ -282,94 +265,54 @@ template GF128MultiplyOptimized() {
         }
     }
 
-    // Extract valid bits (0-127) and overflow bits (128+) from round 1
-    for (var i = 0; i < 128; i++) {
-        valid1[i] <== counter1[i][0];
-
-        if (i < 127) {
-            overflow1[i] <== counter1[127][i + 1];
-        }
-    }
-
     // ===== Round 2: Process first-level overflows =====
-    // Apply reduction polynomial to overflow bits from round 1
-    for (var pIdx = 0; pIdx < 4; pIdx++) {
-        for (var over1Bit = 0; over1Bit < 127; over1Bit++) {
-            if (pIdx == 0) {
-                // Initialize with overflow values
-                counter2[pIdx][over1Bit] <== overflow1[over1Bit];
-            } else {
-                // Calculate previous overflow bit position based on polynomial terms
-                var prevOver1Bit = over1Bit + (p_x[pIdx] - p_x[pIdx - 1]);
-                if (prevOver1Bit < 127) {
-                    // Accumulate from previous polynomial term
-                    counter2[pIdx][over1Bit] <== counter2[pIdx - 1][prevOver1Bit] + overflow1[over1Bit];
-                } else {
-                    // No previous term to accumulate
-                    counter2[pIdx][over1Bit] <== overflow1[over1Bit];
-                }
-            }
-        }
+    // Initialize with overflow bits (128+) from round 1
+    for (var i = 0; i < 127; i++) {
+        counter2[0][i] <== counter1[127][i + 1];
     }
-    
-    // Extract contributions to valid bits and remaining overflows from round 2
-    for (var i = 0; i < 128; i++) {
-        if (i < p_x[1]) {
-            valid2[i] <== counter2[0][i - p_x[0]];
-        } else if (i < p_x[2]) {
-            valid2[i] <== counter2[1][i - p_x[1]];
-        } else if (i < p_x[3]) {
-            valid2[i] <== counter2[2][i - p_x[2]];
-        } else {
-            valid2[i] <== counter2[3][i - p_x[3]];
-        }
 
-        if (i < 6) {
-            overflow2[i] <== counter2[3][i + (128 - 7)];
+    // Apply reduction polynomial to overflow bits from round 1
+    for (var pIdx = 1; pIdx < 4; pIdx++) {
+        // Accumulate from previous polynomial term if it exists
+        var offset = p_x[pIdx] - p_x[pIdx - 1];
+        for (var bit = 0; bit < 127; bit++) {
+            var prevTerm = (bit < 127 - offset) ? counter2[pIdx - 1][bit + offset] + counter2[0][bit] : counter2[0][bit];
+            counter2[pIdx][bit] <== prevTerm;
         }
     }
 
     // ===== Round 3: Process second-level overflows =====
+    // Initialize with overflow bits (128+) from round 2
+    for (var i = 0; i < 6; i++) {
+        counter3[0][i] <== counter2[3][i + (128 - 7)];
+    }
+
     // Apply reduction polynomial to remaining overflow bits
-    for (var pIdx = 0; pIdx < 4; pIdx++) {
-        for (var over2Bit = 0; over2Bit < 6; over2Bit++) {
-            if (pIdx == 0) {
-                counter3[pIdx][over2Bit] <== overflow2[over2Bit];
-            } else {
-                var prevOver2Bit = over2Bit + (p_x[pIdx] - p_x[pIdx - 1]);
-                if (prevOver2Bit < 6) {
-                    counter3[pIdx][over2Bit] <== counter3[pIdx - 1][prevOver2Bit] + overflow2[over2Bit];
-                } else {
-                    counter3[pIdx][over2Bit] <== overflow2[over2Bit];
-                }
-            }
+    for (var pIdx = 1; pIdx < 4; pIdx++) {
+        // Accumulate from previous polynomial term if it exists
+        var offset = p_x[pIdx] - p_x[pIdx - 1];
+        for (var bit = 0; bit < 6; bit++) {
+            var prevTerm = (bit < 6 - offset) ? counter3[pIdx - 1][bit + offset] + counter3[0][bit] : counter3[0][bit];
+            counter3[pIdx][bit] <== prevTerm;
         }
     }
     
-    // Extract final contributions from round 3 (only affects bits 0-12)
-    for (var i = 0; i < 13; i++) {
-        if (i < p_x[1]) {
-            valid3[i] <== counter3[0][i - p_x[0]];
-        } else if (i < p_x[2]) {
-            valid3[i] <== counter3[1][i - p_x[1]];
-        } else if (i < p_x[3]) {
-            valid3[i] <== counter3[2][i - p_x[2]];
-        } else {
-            valid3[i] <== counter3[3][i - p_x[3]];
-        }
-    }
-
     // ===== Final step: Sum all contributions and reduce modulo 2 =====
-    signal {bit} cBits[128];
-
-    for (var cBit = 0; cBit < 128; cBit++) {
-        if (cBit < 13) {
-            cBits[cBit] <== Mod2()(valid1[cBit] + valid2[cBit] + valid3[cBit]);
+    for (var cBit = 0, contribution1, contribution2, contribution3; cBit < 128; cBit++) {
+        contribution1 = counter1[cBit][0];
+        if (cBit < p_x[1]) {
+            (contribution2, contribution3) = (counter2[0][cBit - p_x[0]], counter3[0][cBit - p_x[0]]);
+        } else if (cBit < p_x[2]) {
+            (contribution2, contribution3) = (counter2[1][cBit - p_x[1]], counter3[1][cBit - p_x[1]]);
+        } else if (cBit < p_x[3]) {
+            (contribution2, contribution3) = (counter2[2][cBit - p_x[2]], counter3[2][cBit - p_x[2]]);
         } else {
-            cBits[cBit] <== Mod2()(valid1[cBit] + valid2[cBit]);
+            // Only bits 0-12 can have contributions from round 3
+            (contribution2, contribution3) = (counter2[3][cBit - p_x[3]], (cBit < 13) ? counter3[3][cBit - p_x[3]] : 0);
         }
+        cBits[cBit] <== Mod2()(contribution1 + contribution2 + contribution3);
     }
-    
+
     // Convert final result bits back to bytes
     cBytes <== GF128BitsToBytes()(cBits);
 }

@@ -37,7 +37,10 @@ interface GenerationConfig {
  */
 function hasUntaggedTemplate(content: string, templateName: string): boolean {
   const untaggedTemplateName = `Untagged${templateName}`;
-  const templateRegex = new RegExp(`template\\s+${untaggedTemplateName}\\s*\\(`, "gm");
+  const templateRegex = new RegExp(
+    `template\\s+${untaggedTemplateName}\\s*\\(`,
+    "gm",
+  );
   return templateRegex.test(content);
 }
 
@@ -51,7 +54,7 @@ function hasUntaggedTemplate(content: string, templateName: string): boolean {
 async function generateUntaggedTemplate(
   circuitPath: string,
   templateName: string,
-  append: boolean = false
+  append: boolean = false,
 ): Promise<string> {
   const content = await fs.promises.readFile(circuitPath, "utf8");
 
@@ -67,14 +70,18 @@ async function generateUntaggedTemplate(
   }
 
   const usedBusTypes = findUsedBusTypes(template);
-  const busDefinitions = await collectBusDefinitions(circuitPath, content, usedBusTypes);
+  const busDefinitions = await collectBusDefinitions(
+    circuitPath,
+    content,
+    usedBusTypes,
+  );
 
   const config: GenerationConfig = {
     template,
     circuitPath,
     outDir: append ? path.dirname(circuitPath) : createOutDir(circuitPath),
     busDefinitions,
-    isAppend: append
+    isAppend: append,
   };
 
   const outPath = append
@@ -151,12 +158,15 @@ function uncommentComponentMain(content: string): string {
 function removeComponentMain(content: string, templateName?: string): string {
   if (templateName) {
     // Remove specific template main component
-    const mainComponentRegex = new RegExp(`\\s*component\\s+main\\s*=\\s*${templateName}\\s*\\([^)]*\\)\\s*;\\s*`, 'gm');
-    return content.replace(mainComponentRegex, '');
+    const mainComponentRegex = new RegExp(
+      `\\s*component\\s+main\\s*=\\s*${templateName}\\s*\\([^)]*\\)\\s*;\\s*`,
+      "gm",
+    );
+    return content.replace(mainComponentRegex, "");
   } else {
     // Remove any component main declaration
     const mainComponentRegex = /^\s*component\s+main\s*=.*?;\s*$/gm;
-    return content.replace(mainComponentRegex, '');
+    return content.replace(mainComponentRegex, "");
   }
 }
 
@@ -200,12 +210,18 @@ async function modifyComponentMainInFile(
  * @param originalContent - Original file content
  * @returns Modified content for append mode
  */
-async function generateAppendedContent(config: GenerationConfig, originalContent: string): Promise<string> {
+async function generateAppendedContent(
+  config: GenerationConfig,
+  originalContent: string,
+): Promise<string> {
   // Comment existing main component
   const modifiedContent = commentComponentMain(originalContent);
 
   // Generate untagged template content
-  const untaggedTemplateContent = generateUntaggedTemplateContent(config, false);
+  const untaggedTemplateContent = generateUntaggedTemplateContent(
+    config,
+    false,
+  );
 
   // Generate main component
   const mainComponent = generateMainComponent(config.template);
@@ -229,9 +245,14 @@ function extractPragma(content: string): string {
  * @param originalContent - Original file content to extract pragma from
  * @returns Complete content for standalone file
  */
-function generateStandaloneContent(config: GenerationConfig, originalContent: string): string {
+function generateStandaloneContent(
+  config: GenerationConfig,
+  originalContent: string,
+): string {
   const timestamp = new Date().toISOString();
-  const relativePath = path.relative(config.outDir, config.circuitPath).replace(/\\/g, "/");
+  const relativePath = path
+    .relative(config.outDir, config.circuitPath)
+    .replace(/\\/g, "/");
   const pragmaDirective = extractPragma(originalContent);
 
   let content = `// Auto generated: ${timestamp}\n`;
@@ -248,7 +269,10 @@ function generateStandaloneContent(config: GenerationConfig, originalContent: st
  * @param includeBusDefinitions - Whether to include bus definitions
  * @returns Generated template content
  */
-function generateUntaggedTemplateContent(config: GenerationConfig, includeBusDefinitions: boolean): string {
+function generateUntaggedTemplateContent(
+  config: GenerationConfig,
+  includeBusDefinitions: boolean,
+): string {
   const { template, busDefinitions, isAppend } = config;
 
   let content = "";
@@ -264,7 +288,8 @@ function generateUntaggedTemplateContent(config: GenerationConfig, includeBusDef
   }
 
   // Generate template definition
-  const paramsStr = template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
+  const paramsStr =
+    template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
   content += `template Untagged${template.name}${paramsStr} {\n`;
   content += extractPreSignalCode(template.body);
   content += generateUntaggedInputSignals(template.inputs);
@@ -284,7 +309,8 @@ function generateUntaggedTemplateContent(config: GenerationConfig, includeBusDef
  * @returns Main component declaration string
  */
 function generateMainComponent(template: Template): string {
-  const paramsStr = template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
+  const paramsStr =
+    template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
   return `component main = Untagged${template.name}${paramsStr};\n`;
 }
 
@@ -295,12 +321,17 @@ function generateMainComponent(template: Template): string {
  * @returns Parsed template or null if not found
  */
 function parseTemplate(content: string, templateName: string): Template | null {
-  const templateRegex = new RegExp(`template\\s+${templateName}\\s*\\(([^)]*)\\)\\s*{`, "gm");
+  const templateRegex = new RegExp(
+    `template\\s+${templateName}\\s*\\(([^)]*)\\)\\s*{`,
+    "gm",
+  );
   const match = templateRegex.exec(content);
   if (!match) return null;
 
   const paramsString = match[1].trim();
-  const params = paramsString ? paramsString.split(",").map(p => p.trim()) : [];
+  const params = paramsString
+    ? paramsString.split(",").map((p) => p.trim())
+    : [];
   const body = extractTemplateBody(content, match.index + match[0].length);
 
   if (!body) return null;
@@ -320,7 +351,10 @@ function parseTemplate(content: string, templateName: string): Template | null {
  * @param startIndex - Starting index after opening brace
  * @returns Template body content or null if malformed
  */
-function extractTemplateBody(content: string, startIndex: number): string | null {
+function extractTemplateBody(
+  content: string,
+  startIndex: number,
+): string | null {
   let braceCount = 1;
   let i = startIndex;
 
@@ -339,15 +373,27 @@ function extractTemplateBody(content: string, startIndex: number): string | null
  * @param signalType - Type of signal to parse ("input" or "output")
  * @returns Array of parsed signals
  */
-function parseSignals(templateBody: string, signalType: "input" | "output"): Signal[] {
+function parseSignals(
+  templateBody: string,
+  signalType: "input" | "output",
+): Signal[] {
   const signals: Signal[] = [];
   const regexPatterns = [
     // Normal signals: signal input/output {tag} name[array]
-    new RegExp(`\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`, "g"),
+    new RegExp(
+      `\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      "g",
+    ),
     // Bus signals pattern 1: input/output BusType() name[array]
-    new RegExp(`\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`, "g"),
+    new RegExp(
+      `\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      "g",
+    ),
     // Bus signals pattern 2: BusType() input/output name[array]
-    new RegExp(`([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`, "g"),
+    new RegExp(
+      `([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      "g",
+    ),
   ];
 
   regexPatterns.forEach((regex, index) => {
@@ -387,15 +433,22 @@ function parseSignals(templateBody: string, signalType: "input" | "output"): Sig
  * @returns Generated input signal declarations
  */
 function generateUntaggedInputSignals(inputs: Signal[]): string {
-  return inputs.map(signal => {
-    const arrayPart = signal.arraySize || "";
-    if (signal.busType) {
-      const untaggedBusType = signal.busType.replace(/(\w+)\(\)/, "Untagged$1()");
-      return `    input ${untaggedBusType} ${signal.name}${arrayPart};`;
-    } else {
-      return `    signal input ${signal.name}${arrayPart};`;
-    }
-  }).join("\n") + (inputs.length > 0 ? "\n" : "");
+  return (
+    inputs
+      .map((signal) => {
+        const arrayPart = signal.arraySize || "";
+        if (signal.busType) {
+          const untaggedBusType = signal.busType.replace(
+            /(\w+)\(\)/,
+            "Untagged$1()",
+          );
+          return `    input ${untaggedBusType} ${signal.name}${arrayPart};`;
+        } else {
+          return `    signal input ${signal.name}${arrayPart};`;
+        }
+      })
+      .join("\n") + (inputs.length > 0 ? "\n" : "")
+  );
 }
 
 /**
@@ -404,17 +457,24 @@ function generateUntaggedInputSignals(inputs: Signal[]): string {
  * @param type - Signal type ("input" or "output")
  * @returns Generated signal declarations
  */
-function generateSignalDeclarations(signals: Signal[], type: "input" | "output"): string {
-  return signals.map(signal => {
-    const arrayPart = signal.arraySize || "";
-    if (signal.busType) {
-      return `    ${type} ${signal.busType} ${signal.name}${arrayPart};`;
-    } else if (signal.tag && type === "output") {
-      return `    signal ${type} {${signal.tag}} ${signal.name}${arrayPart};`;
-    } else {
-      return `    signal ${type} ${signal.name}${arrayPart};`;
-    }
-  }).join("\n") + (signals.length > 0 ? "\n" : "");
+function generateSignalDeclarations(
+  signals: Signal[],
+  type: "input" | "output",
+): string {
+  return (
+    signals
+      .map((signal) => {
+        const arrayPart = signal.arraySize || "";
+        if (signal.busType) {
+          return `    ${type} ${signal.busType} ${signal.name}${arrayPart};`;
+        } else if (signal.tag && type === "output") {
+          return `    signal ${type} {${signal.tag}} ${signal.name}${arrayPart};`;
+        } else {
+          return `    signal ${type} ${signal.name}${arrayPart};`;
+        }
+      })
+      .join("\n") + (signals.length > 0 ? "\n" : "")
+  );
 }
 
 /**
@@ -423,13 +483,15 @@ function generateSignalDeclarations(signals: Signal[], type: "input" | "output")
  * @returns Generated intermediate signal declarations
  */
 function generateBusInputIntermediateSignals(inputs: Signal[]): string {
-  const busInputs = inputs.filter(input => input.busType);
+  const busInputs = inputs.filter((input) => input.busType);
   if (busInputs.length === 0) return "";
 
-  const declarations = busInputs.map(input => {
-    const arrayPart = input.arraySize || "";
-    return `    ${input.busType} _${input.name}${arrayPart};`;
-  }).join("\n");
+  const declarations = busInputs
+    .map((input) => {
+      const arrayPart = input.arraySize || "";
+      return `    ${input.busType} _${input.name}${arrayPart};`;
+    })
+    .join("\n");
 
   return `\n${declarations}\n`;
 }
@@ -440,19 +502,21 @@ function generateBusInputIntermediateSignals(inputs: Signal[]): string {
  * @returns Generated bus signal assignments
  */
 function generateBusSignalAssignments(inputs: Signal[]): string {
-  const busInputs = inputs.filter(input => input.busType);
+  const busInputs = inputs.filter((input) => input.busType);
   if (busInputs.length === 0) return "";
 
-  const assignments = busInputs.map(input => {
-    if (input.arraySize) {
-      const dimensions = extractArrayDimensions(input.arraySize);
-      return generateNestedLoopAssignment(input.name, dimensions);
-    } else {
-      return `    _${ input.name }.bytes <== ${ input.name }.bytes; `;
-    }
-  }).join("\n");
+  const assignments = busInputs
+    .map((input) => {
+      if (input.arraySize) {
+        const dimensions = extractArrayDimensions(input.arraySize);
+        return generateNestedLoopAssignment(input.name, dimensions);
+      } else {
+        return `    _${input.name}.bytes <== ${input.name}.bytes; `;
+      }
+    })
+    .join("\n");
 
-  return `\n${ assignments } \n`;
+  return `\n${assignments} \n`;
 }
 
 /**
@@ -462,7 +526,7 @@ function generateBusSignalAssignments(inputs: Signal[]): string {
  */
 function extractArrayDimensions(arraySize: string): string[] {
   const matches = arraySize.match(/\[([^\]]+)\]/g);
-  return matches ? matches.map(match => match.slice(1, -1)) : [];
+  return matches ? matches.map((match) => match.slice(1, -1)) : [];
 }
 
 /**
@@ -471,7 +535,10 @@ function extractArrayDimensions(arraySize: string): string[] {
  * @param dimensions - Array dimensions
  * @returns Generated nested loop assignment code
  */
-function generateNestedLoopAssignment(name: string, dimensions: string[]): string {
+function generateNestedLoopAssignment(
+  name: string,
+  dimensions: string[],
+): string {
   if (dimensions.length === 0) return "";
 
   let content = "";
@@ -485,7 +552,7 @@ function generateNestedLoopAssignment(name: string, dimensions: string[]): strin
   });
 
   // Generate the assignment
-  const indexing = indexVars.map(v => `[${v}]`).join("");
+  const indexing = indexVars.map((v) => `[${v}]`).join("");
   content += `${indent}_${name}${indexing}.bytes <== ${name}${indexing}.bytes;\n`;
 
   // Close the loops
@@ -503,9 +570,12 @@ function generateNestedLoopAssignment(name: string, dimensions: string[]): strin
  * @returns Generated template instantiation code
  */
 function generateTemplateInstantiation(template: Template): string {
-  const paramsStr = template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
+  const paramsStr =
+    template.params.length > 0 ? `(${template.params.join(", ")})` : "()";
   const inputArgs = template.inputs
-    .map(input => (input.busType || input.tag) ? `_${input.name}` : input.name)
+    .map((input) =>
+      input.busType || input.tag ? `_${input.name}` : input.name,
+    )
     .join(", ");
 
   let content = "\n";
@@ -515,7 +585,9 @@ function generateTemplateInstantiation(template: Template): string {
   } else if (template.outputs.length === 1) {
     content += `    ${template.outputs[0].name} <== ${template.name}${paramsStr}(${inputArgs});\n`;
   } else {
-    const outputNames = template.outputs.map(output => output.name).join(", ");
+    const outputNames = template.outputs
+      .map((output) => output.name)
+      .join(", ");
     content += `    (${outputNames}) <== ${template.name}${paramsStr}(${inputArgs});\n`;
   }
 
@@ -545,7 +617,10 @@ function extractPreSignalCode(templateBody: string): string {
     }
 
     // Stop at signal declarations
-    if (/\bsignal\s+(input|output)\b/.test(trimmed) || /\b(input|output)\b\s+[a-zA-Z_]/.test(trimmed)) {
+    if (
+      /\bsignal\s+(input|output)\b/.test(trimmed) ||
+      /\b(input|output)\b\s+[a-zA-Z_]/.test(trimmed)
+    ) {
       break;
     }
 
@@ -573,7 +648,9 @@ function extractPreSignalCode(templateBody: string): string {
       trimmed.startsWith("else") ||
       trimmed === "}" ||
       insideBlock ||
-      (trimmed.includes("=") && !trimmed.includes("<==") && !trimmed.includes("==>")) ||
+      (trimmed.includes("=") &&
+        !trimmed.includes("<==") &&
+        !trimmed.includes("==>")) ||
       /^\s*signal\s+(?!input|output)[a-zA-Z_]/.test(trimmed);
 
     if (shouldInclude) {
@@ -593,17 +670,19 @@ function extractPreSignalCode(templateBody: string): string {
  * @returns Generated tagged signal handling code
  */
 function generateTaggedSignalHandling(inputs: Signal[]): string {
-  const taggedInputs = inputs.filter(input => input.tag && !input.busType);
+  const taggedInputs = inputs.filter((input) => input.tag && !input.busType);
   if (taggedInputs.length === 0) return "";
 
-  const declarations = taggedInputs.map(input => {
-    const arrayPart = input.arraySize || "";
-    if (input.arraySize) {
-      return `    signal {${input.tag}} _${input.name}${arrayPart};\n    _${input.name} <== ${input.name};`;
-    } else {
-      return `    signal {${input.tag}} _${input.name} <== ${input.name};`;
-    }
-  }).join("\n");
+  const declarations = taggedInputs
+    .map((input) => {
+      const arrayPart = input.arraySize || "";
+      if (input.arraySize) {
+        return `    signal {${input.tag}} _${input.name}${arrayPart};\n    _${input.name} <== ${input.name};`;
+      } else {
+        return `    signal {${input.tag}} _${input.name} <== ${input.name};`;
+      }
+    })
+    .join("\n");
 
   return `\n${declarations}\n`;
 }
@@ -615,7 +694,7 @@ function generateTaggedSignalHandling(inputs: Signal[]): string {
  */
 function findUsedBusTypes(template: Template): Set<string> {
   const busTypes = new Set<string>();
-  [...template.inputs, ...template.outputs].forEach(signal => {
+  [...template.inputs, ...template.outputs].forEach((signal) => {
     if (signal.busType) {
       const busName = signal.busType.replace(/\(\)$/, "");
       busTypes.add(busName);
@@ -650,7 +729,11 @@ async function collectBusDefinitions(
 
     let busDefinition = parseBusDefinition(content, originalBusName);
     if (!busDefinition) {
-      busDefinition = await searchBusInIncludes(circuitPath, content, originalBusName);
+      busDefinition = await searchBusInIncludes(
+        circuitPath,
+        content,
+        originalBusName,
+      );
     }
 
     if (busDefinition) {
@@ -658,10 +741,13 @@ async function collectBusDefinitions(
       busDefinitions.push(untaggedBusDefinition);
 
       // Add dependencies to queue
-      untaggedBusDefinition.signals.forEach(signal => {
+      untaggedBusDefinition.signals.forEach((signal) => {
         if (signal.busType) {
           const depBusName = signal.busType.replace(/\(\)$/, "");
-          if (!processedBuses.has(`Untagged${depBusName}`) && !busQueue.includes(depBusName)) {
+          if (
+            !processedBuses.has(`Untagged${depBusName}`) &&
+            !busQueue.includes(depBusName)
+          ) {
             busQueue.push(depBusName);
           }
         }
@@ -699,7 +785,11 @@ async function searchBusInIncludes(
       let busDefinition = parseBusDefinition(includeContent, busName);
       if (busDefinition) return busDefinition;
 
-      busDefinition = await searchBusInIncludes(resolvedPath, includeContent, busName);
+      busDefinition = await searchBusInIncludes(
+        resolvedPath,
+        includeContent,
+        busName,
+      );
       if (busDefinition) return busDefinition;
     } catch {
       console.warn(`Warning: Could not read include file: ${includePath}`);
@@ -715,7 +805,10 @@ async function searchBusInIncludes(
  * @param busName - Name of the bus to parse
  * @returns Parsed bus definition or null if not found
  */
-function parseBusDefinition(content: string, busName: string): BusDefinition | null {
+function parseBusDefinition(
+  content: string,
+  busName: string,
+): BusDefinition | null {
   const busStartRegex = new RegExp(`bus\\s+${busName}\\s*\\(\\)\\s*{`, "gm");
   const match = busStartRegex.exec(content);
   if (!match) return null;
@@ -749,13 +842,14 @@ function parseBusSignals(busBody: string): Signal[] {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("/*")) continue;
+    if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("/*"))
+      continue;
 
     const cleanLine = trimmed.replace(/;$/, "");
 
     // Bus signals with multi-dimensional arrays
     const busSignalMatch = cleanLine.match(
-      /^([a-zA-Z_][a-zA-Z0-9_]*)\(\)\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*((?:\[[^\]]+\])+))?$/
+      /^([a-zA-Z_][a-zA-Z0-9_]*)\(\)\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*((?:\[[^\]]+\])+))?$/,
     );
 
     if (busSignalMatch) {
@@ -770,7 +864,7 @@ function parseBusSignals(busBody: string): Signal[] {
 
     // Normal signals with multi-dimensional arrays
     const normalSignalMatch = cleanLine.match(
-      /^signal\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*((?:\[[^\]]+\])+))?$/
+      /^signal\s*(?:{([^}]+)})?\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*((?:\[[^\]]+\])+))?$/,
     );
 
     if (normalSignalMatch) {
@@ -793,7 +887,7 @@ function parseBusSignals(busBody: string): Signal[] {
 function convertToUntaggedBus(busDefinition: BusDefinition): BusDefinition {
   return {
     name: `Untagged${busDefinition.name}`,
-    signals: busDefinition.signals.map(signal => ({
+    signals: busDefinition.signals.map((signal) => ({
       name: signal.name,
       arraySize: signal.arraySize,
       busType: signal.busType,
@@ -807,19 +901,27 @@ function convertToUntaggedBus(busDefinition: BusDefinition): BusDefinition {
  * @param busDefinitions - Array of bus definitions
  * @returns Generated bus definitions string
  */
-function generateUntaggedBusDefinitions(busDefinitions: BusDefinition[]): string {
+function generateUntaggedBusDefinitions(
+  busDefinitions: BusDefinition[],
+): string {
   if (busDefinitions.length === 0) return "";
 
-  return busDefinitions.map(bus => {
-    const signalDeclarations = bus.signals.map(signal => {
-      const arrayPart = signal.arraySize || "";
-      return signal.busType
-        ? `    ${signal.busType} ${signal.name}${arrayPart};`
-        : `    signal ${signal.name}${arrayPart};`;
-    }).join("\n");
+  return (
+    busDefinitions
+      .map((bus) => {
+        const signalDeclarations = bus.signals
+          .map((signal) => {
+            const arrayPart = signal.arraySize || "";
+            return signal.busType
+              ? `    ${signal.busType} ${signal.name}${arrayPart};`
+              : `    signal ${signal.name}${arrayPart};`;
+          })
+          .join("\n");
 
-    return `bus ${bus.name}() {\n${signalDeclarations}\n}`;
-  }).join("\n\n") + "\n\n";
+        return `bus ${bus.name}() {\n${signalDeclarations}\n}`;
+      })
+      .join("\n\n") + "\n\n"
+  );
 }
 
 /**
@@ -829,7 +931,9 @@ async function main() {
   const [circuitPath, templateName, append] = process.argv.slice(2);
 
   if (!circuitPath || !templateName) {
-    console.log('Usage: pnpm exec tsx template.ts <circuitPath> <templateName> [append]');
+    console.log(
+      "Usage: pnpm exec tsx template.ts <circuitPath> <templateName> [append]",
+    );
     process.exit(1);
   }
 
@@ -838,7 +942,7 @@ async function main() {
   try {
     await generateUntaggedTemplate(circuitPath, templateName, appendBool);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     process.exit(1);
   }
 }

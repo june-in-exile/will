@@ -8,11 +8,11 @@ describe("GF8Mul2 Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF8Mul2"
+        "GF8Mul2",
       );
       console.info(
         "GF8Mul2 circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -22,7 +22,7 @@ describe("GF8Mul2 Circuit", function () {
 
         await circuit.expectPass(
           { in: input },
-          { out: GaloisField.multiply(input, 2) }
+          { out: GaloisField.multiply(input, 2) },
         );
       }
     });
@@ -51,7 +51,7 @@ describe("GF8Mul2 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 2) }
+          { out: GaloisField.multiply(byte, 2) },
         );
       }
     });
@@ -64,11 +64,11 @@ describe("GF8Mul3 Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF8Mul3"
+        "GF8Mul3",
       );
       console.info(
         "GF8Mul3 circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -78,7 +78,7 @@ describe("GF8Mul3 Circuit", function () {
 
         await circuit.expectPass(
           { in: input },
-          { out: GaloisField.multiply(input, 3) }
+          { out: GaloisField.multiply(input, 3) },
         );
       }
     });
@@ -107,7 +107,7 @@ describe("GF8Mul3 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 2) ^ byte }
+          { out: GaloisField.multiply(byte, 2) ^ byte },
         );
       }
     });
@@ -125,7 +125,7 @@ describe("GF8Mul3 Circuit", function () {
       for (const byte of bytes) {
         await circuit.expectPass(
           { in: byte },
-          { out: GaloisField.multiply(byte, 3) }
+          { out: GaloisField.multiply(byte, 3) },
         );
       }
     });
@@ -139,11 +139,11 @@ describe("GF128BytesToBits Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF128BytesToBits"
+        "GF128BytesToBits",
       );
       console.info(
         "GF128 16-byte to 128-bit circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -151,10 +151,7 @@ describe("GF128BytesToBits Circuit", function () {
       const bytes = new Array(16).fill(0);
       const bits = new Array(128).fill(0);
 
-      await circuit.expectPass(
-        { bytes },
-        { bits }
-      );
+      await circuit.expectPass({ bytes }, { bits });
     });
 
     it("should put MSB of first byte to bit 0", async function (): Promise<void> {
@@ -164,10 +161,7 @@ describe("GF128BytesToBits Circuit", function () {
       const bits = new Array(128).fill(0);
       bits[0] = 1;
 
-      await circuit.expectPass(
-        { bytes },
-        { bits }
-      );
+      await circuit.expectPass({ bytes }, { bits });
     });
 
     it("should put LSB of first byte to bit 7", async function (): Promise<void> {
@@ -177,10 +171,7 @@ describe("GF128BytesToBits Circuit", function () {
       const bits = new Array(128).fill(0);
       bits[7] = 1;
 
-      await circuit.expectPass(
-        { bytes },
-        { bits }
-      );
+      await circuit.expectPass({ bytes }, { bits });
     });
   });
 });
@@ -192,11 +183,11 @@ describe("GF128BitsToBytes Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/galoisField.circom",
-        "GF128BitsToBytes"
+        "GF128BitsToBytes",
       );
       console.info(
         "GF128 128-bit to 16-byte circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -204,10 +195,7 @@ describe("GF128BitsToBytes Circuit", function () {
       const bits = new Array(128).fill(0);
       const bytes = new Array(16).fill(0);
 
-      await circuit.expectPass(
-        { bits },
-        { bytes }
-      );
+      await circuit.expectPass({ bits }, { bytes });
     });
 
     it("should put bit 0 to MSB of first byte", async function (): Promise<void> {
@@ -217,10 +205,7 @@ describe("GF128BitsToBytes Circuit", function () {
       const bytes = new Array(16).fill(0);
       bytes[0] = 0x80;
 
-      await circuit.expectPass(
-        { bits },
-        { bytes }
-      );
+      await circuit.expectPass({ bits }, { bytes });
     });
 
     it("should put bit 7 to LSB of first byte", async function (): Promise<void> {
@@ -230,10 +215,7 @@ describe("GF128BitsToBytes Circuit", function () {
       const bytes = new Array(16).fill(0);
       bytes[0] = 0x01;
 
-      await circuit.expectPass(
-        { bits },
-        { bytes }
-      );
+      await circuit.expectPass({ bits }, { bytes });
     });
   });
 });
@@ -245,19 +227,19 @@ describe("GF128Multiply Circuit", function () {
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/aes256ctr/galoisField.circom",
-      "GF128Multiply"
+      "GF128Multiply",
     );
     circuitOptimized = await WitnessTester.construct(
       "circuits/shared/components/aes256ctr/galoisField.circom",
-      "GF128MultiplyOptimized"
+      "GF128MultiplyOptimized",
     );
     console.info(
       "GF128 multiplication circuit constraints:",
-      await circuit.getConstraintCount() // 33280
+      await circuit.getConstraintCount(), // 33280
     );
     console.info(
       "Optimized GF128 multiplication circuit constraints:",
-      await circuitOptimized.getConstraintCount() // 16768
+      await circuitOptimized.getConstraintCount(), // 16768
     );
   });
 
@@ -302,7 +284,7 @@ describe("GF128Multiply Circuit", function () {
     ];
 
     const cBytes = Array.from(
-      GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes))
+      GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes)),
     );
 
     // console.debug("Result after reduction:", cBytes.map(b => b.toString(16).padStart(2, '0')).join(' '));
@@ -325,11 +307,11 @@ describe("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["1"],
-        }
+        },
       );
       console.info(
         "GHASH (1 block) circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -337,7 +319,7 @@ describe("GHash Circuit", function () {
       const data = Array.from({ length: 16 }, (_, i) => i + 1);
 
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY)),
       );
 
       await circuit.expectPass({ data, hashKey: HASH_KEY }, { result });
@@ -355,7 +337,7 @@ describe("GHash Circuit", function () {
       const data = Array.from(AESUtils.randomBytes(16));
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey)),
       );
 
       await circuit.expectPass({ data, hashKey }, { result });
@@ -369,11 +351,11 @@ describe("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["2"],
-        }
+        },
       );
       console.info(
         "GHASH (2 blocks) circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -381,7 +363,7 @@ describe("GHash Circuit", function () {
       const data = Array.from({ length: 32 }, (_, i) => i);
 
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY)),
       );
 
       await circuit.expectPass({ data, hashKey: HASH_KEY }, { result });
@@ -391,7 +373,7 @@ describe("GHash Circuit", function () {
       const data = [...new Array(16).fill(0x00), ...new Array(16).fill(0xff)];
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey)),
       );
 
       await circuit.expectPass({ data, hashKey }, { result });
@@ -401,7 +383,7 @@ describe("GHash Circuit", function () {
       const data = Array.from(AESUtils.randomBytes(32));
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey)),
       );
 
       await circuit.expectPass({ data, hashKey }, { result });
@@ -415,11 +397,11 @@ describe("GHash Circuit", function () {
         "GHash",
         {
           templateParams: ["4"],
-        }
+        },
       );
       console.info(
         "GHASH (4 blocks) circuit constraints:",
-        await circuit.getConstraintCount()
+        await circuit.getConstraintCount(),
       );
     });
 
@@ -431,7 +413,7 @@ describe("GHash Circuit", function () {
       const data = [...pattern, ...pattern, ...pattern, ...pattern];
 
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY)),
       );
 
       await circuit.expectPass({ data, hashKey: HASH_KEY }, { result });
@@ -446,7 +428,7 @@ describe("GHash Circuit", function () {
 
       const hashKey = Array.from(AESUtils.randomBytes(16));
       const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey))
+        AESGCM.ghash(Buffer.from(data), Buffer.from(hashKey)),
       );
 
       await circuit.expectPass({ data, hashKey }, { result });

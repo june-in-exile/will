@@ -403,7 +403,7 @@ class GF128 {
         carry = newCarry;
       }
 
-      // If the right shift caused a carry-out (i.e., the lowest bit of the 
+      // If the right shift caused a carry-out (i.e., the lowest bit of the
       // highest-order byte was 1), we need to apply the reduction polynomial.
       //
       // In GF(2), x^128 ≡ x^7 + x^2 + x + 1  (mod f(x))

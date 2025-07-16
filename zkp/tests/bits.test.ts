@@ -32,7 +32,10 @@ describe("Mod2 Circuit", function () {
     });
 
     it("should handle large numbers correctly", async function (): Promise<void> {
-      const numbers = [1000000, 1000001, 9999998, 9999999, 16777216, 16777217, 33554432, 33554433];
+      const numbers = [
+        1000000, 1000001, 9999998, 9999999, 16777216, 16777217, 33554432,
+        33554433,
+      ];
 
       for (const num of numbers) {
         await circuit.expectPass({ in: num }, { out: num % 2 });

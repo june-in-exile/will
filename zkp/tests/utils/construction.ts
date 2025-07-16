@@ -1,5 +1,8 @@
 import type { CircomTester, CompilationOptions } from "../types";
-import { generateUntaggedTemplate, modifyComponentMainInFile } from "./untagTemplate";
+import {
+  generateUntaggedTemplate,
+  modifyComponentMainInFile,
+} from "./untagTemplate";
 import * as fs from "fs";
 import path from "path";
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -32,7 +35,10 @@ async function construct_wasm(
 ): Promise<CircomTester> {
   await modifyComponentMainInFile(circuitPath, "comment");
 
-  const testCircuitPath = await generateUntaggedTemplate(circuitPath, templateName);
+  const testCircuitPath = await generateUntaggedTemplate(
+    circuitPath,
+    templateName,
+  );
 
   const circomlibPath = await getCircomlibPath();
 
