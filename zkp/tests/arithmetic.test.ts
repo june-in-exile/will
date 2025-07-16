@@ -267,18 +267,6 @@ describe("MultiplyArray Circuit", function () {
         await circuit.expectPass({ a, b }, { c });
       }
     });
-
-    test.skip("should handle negative numbers (if supported)", async function (): Promise<void> {
-      const testCases = [
-        { a: [-1], b: [5], c: [-5] },
-        { a: [3], b: [-2], c: [-6] },
-        { a: [-4], b: [-3], c: [12] },
-      ];
-
-      for (const { a, b, c } of testCases) {
-        await circuit.expectPass({ a, b }, { c });
-      }
-    });
   });
 
   describe("3-bit Array Multiplication Operations", function (): void {
