@@ -1,8 +1,9 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = galoisField
+CIRCUIT = mod2
+# CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
-TEMPLATE = GHash
+TEMPLATE = GF128Multiply
 TEMPLATE ?= Multiplier2
 
 # Directory structure
@@ -90,7 +91,7 @@ circuit: untag compile witness trusted-setup-phase2 prove verify solidity genera
 untag:
 	@pnpm exec tsx ./tests/utils/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
 	
-compile: untag
+compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
 	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD) -l node_modules --O2 --inspect

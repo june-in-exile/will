@@ -5,6 +5,28 @@ include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/gates.circom";
 
 /**
+* @param in - The input number to check parity for
+* @return out - The result: 0 if even, 1 if odd
+* 
+* Example:
+*  signal parity <== Mod2()(7);   // Returns 1 (odd)
+*  signal parity <== Mod2()(8);   // Returns 0 (even)
+*/
+template Mod2() {
+    signal input in;
+    signal output out;
+    
+    signal quotient;
+    
+    quotient <-- in \ 2;
+    out <-- in % 2;
+    
+    in === quotient * 2 + out;
+    
+    out * (out - 1) === 0;
+}
+
+/**
  * @param bits - The bit width of the input and mask
  * @param mask - The mask value to apply
  *

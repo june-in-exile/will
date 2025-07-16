@@ -2,44 +2,61 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/gates.circom";
-include "../arithmetic.circom";
-include "../bits.circom";
+include "../shared/components/arithmetic.circom";
+include "../shared/components/bits.circom";
 
-/**
- * Galois Field multiplication by 2 in GF(2^8) with reduction polynomial x^8 + x^4 + x^3 + x + 1 (0x11b in MSB order)
- * 
- * Algorithm:
- * 1. Left shift the input by 1 bit
- * 2. If the original value had bit 7 set (>= 0x80), XOR with 0x1b
- */
-template GF8Mul2() {
-    signal input {byte} in;
-    signal output {byte} out;
 
-    // Extract the most significant bit (bit 7)
-    signal bits[8] <== Num2Bits(8)(in);
-    signal msb <== bits[7];
-    
-    // Left shift by 1 and mask to keep only lower 8 bits
-    signal shifted <== Mask(9,0xff)(in * 2);
-    
-    // Apply polynomial reduction if MSB was set
-    out <== BitwiseXor(2,8)([shifted, msb * 0x1b]);
-}
+    idx:    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14
+      a:    1  0  0  1  0  0  0  1
+      b:    1  1  1  0  1  1  1  1
+   p(x):    1  1  0  1  1
 
-/**
- * Galois Field multiplication by 3 in GF(2^8)
- * 
- * Algorithm: 3 * x = (2 * x) ⊕ x
- */
-template GF8Mul3() {
-    signal input {byte} in;
-    signal output {byte} out;
-    
-    signal mul2 <== GF8Mul2()(in);
-    
-    out <== BitwiseXor(2,8)([mul2,in]);
-}
+   aBit:    0:7
+   bBit:    0:7
+
+   ctr1:    1  1  1  0  1  1  1  1  0  0  0  0  0  0  0
+            1  1  1  0  1  1  1  1  0  0  0  0  0  0  0
+            1  1  1  0  1  1  1  1  0  0  0  0  0  0  0
+            1  1  1  1  2  2  1  2  1  1  1  0  0  0  0
+            1  1  1  1  2  2  1  2  1  1  1  0  0  0  0
+            1  1  1  1  2  2  1  2  1  1  1  0  0  0  0
+            1  1  1  1  2  2  1  2  1  1  1  0  0  0  0
+            1  1  1  1  2  2  1  3  2  2  1  1  1  1  1
+            valid1                , over1
+
+   p(x):    1  1  0  1  1
+  over1:    2  2  1  1  1  1  1
+
+   pBit:    0:4
+overBit:    0:6
+
+   ctr2:    2  2  1  1  1  1  1  0  0  0  0
+            2  4  3  2  2  2  2  1  0  0  0
+            2  4  3  2  2  2  2  1  0  0  0
+            2  4  3  4  4  3  3  2  1  1  0
+            2  4  3  4  6  5  4  3  2  2  1
+            valid2                , over2
+  
+   p(x):    1  1  0  1  1
+  over2:    2  2  1
+
+   pBit:    0:4
+overBit:    0:2
+
+   ctr3:    2  2  1  0  0  0  0
+            2  4  3  1  0  0  0
+            2  4  3  1  0  0  0
+            2  4  3  3  2  1  0
+            2  4  3  3  4  3  1
+            valid3
+
+       c
+= valid1    1  1  1  1  2  2  1  3
++ valid2    2  4  3  4  6  5  4  3
++ valid3    2  4  3  3  4  3  1
+=           5  9  7  8 12 10  6  6       
+
+   mod2:    1  1  1  0  0  0  0  0
 
 /**
  * Galois Field multiplication in GF(2^128) with reduction polynomial x^128 + x^7 + x^2 + x + 1 (0xe1 || 30 zeros in LSB order)
@@ -62,8 +79,8 @@ template GF128Multiply() {
     signal bBitGroup[16][8];
     signal cBitGroup[16][8];
     signal aBits[128];
-    signal bBits[129][128];
-    signal cBits[129][128];
+    signal bBits[128];
+    signal cBits[128];
     
     // Convert 16-byte a, b to 128-bit, initialize c = 0
     for (var byte = 0; byte < 16; byte++) {
@@ -73,10 +90,17 @@ template GF128Multiply() {
         // between-byte: LSB first -> MSB first
         for (var bit = 0; bit < 8; bit++) {
             aBits[byte * 8 + bit] <== aBitGroup[byte][7 - bit];
-            bBits[0][byte * 8 + bit] <== bBitGroup[byte][7 - bit];
-            cBits[0][byte * 8 + bit] <== 0;
+            bBits[byte * 8 + bit] <== bBitGroup[byte][7 - bit];
         }
     }
+
+    signal counter1[129][255]; // First round: overflow to bit 128 + 128 - 1 = 255
+    signal counter2[129][255]; // Second round: overflow to bit 127 + 8 - 1 = 134
+    signal counter3[129][255]; // Third round: overflow to bit 6 + 8 - 1 = 15
+127 + 
+    
+    0127
+
     
     // Process each bit of 'a' from MSB to LSB
     for (var round = 1; round <= 128; round++) {
@@ -108,38 +132,4 @@ template GF128Multiply() {
         // in-byte: LSB first -> MSB first
         cBytes[byte] <== Bits2Num(8)(cBitGroup[byte]);
     }
-}
-
-/**
- * GHASH function for AES-GCM
- * Processes fixed-length input (must be padded to multiple of 16 bytes)
- */
-template GHash(numBlocks) {
-    signal input {byte} data[numBlocks * 16];
-    signal input {byte} hashKey[16];
-    signal output {byte} result[16];
-    
-    // Intermediate results for each block
-    signal {byte} intermediateResults[numBlocks + 1][16];
-    
-    // Initialize with zeros
-    for (var i = 0; i < 16; i++) {
-        intermediateResults[0][i] <== 0;
-    }
-    
-    // Process each 16-byte block
-    component gf128Multiply[numBlocks];
-    signal {byte} xorResult[numBlocks][16];
-    for (var block = 0; block < numBlocks; block++) {
-        // XOR current result with data block
-        for (var i = 0; i < 16; i++) {
-            xorResult[block][i] <== BitwiseXor(2,8)([intermediateResults[block][i],data[block * 16 + i]]);
-        }
-        
-        // Multiply by hashKey in GF(2^128)
-        intermediateResults[block + 1] <== GF128Multiply()(xorResult[block],hashKey);
-    }
-    
-    // Output final result
-    result <== intermediateResults[numBlocks];
 }

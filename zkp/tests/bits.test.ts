@@ -1,5 +1,54 @@
 import { WitnessTester } from "./utils";
 
+describe("Mod2 Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("Modulo 2 Operations (Parity Check)", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "Mod2",
+      );
+      console.info(
+        "Mod2 circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should correctly identify even numbers", async function (): Promise<void> {
+      const numbers = [0, 2, 4, 6, 8, 10, 100, 1000];
+
+      for (const num of numbers) {
+        await circuit.expectPass({ in: num }, { out: num % 2 });
+      }
+    });
+
+    it("should correctly identify odd numbers", async function (): Promise<void> {
+      const numbers = [1, 3, 5, 7, 9, 11, 101, 1001];
+
+      for (const num of numbers) {
+        await circuit.expectPass({ in: num }, { out: num % 2 });
+      }
+    });
+
+    it("should handle large numbers correctly", async function (): Promise<void> {
+      const numbers = [1000000, 1000001, 9999998, 9999999, 16777216, 16777217, 33554432, 33554433];
+
+      for (const num of numbers) {
+        await circuit.expectPass({ in: num }, { out: num % 2 });
+      }
+    });
+
+    it("should handle edge cases correctly", async function (): Promise<void> {
+      const numbers = [0, 1, 2, 255, 256, 65535, 65536];
+
+      for (const num of numbers) {
+        await circuit.expectPass({ in: num }, { out: num % 2 });
+      }
+    });
+  });
+});
+
 describe("Mask Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
