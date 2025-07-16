@@ -111,10 +111,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
         AESGCM.computeJ0(Buffer.from(iv), Buffer.from(hashKey)),
       );
 
-      await circuit.expectPass(
-        { iv, hashKey },
-        { j0 },
-      );
+      await circuit.expectPass({ iv, hashKey }, { j0 });
     });
   });
 
@@ -159,17 +156,14 @@ describe("ComputeJ0NonStandard Circuit", function () {
           AESGCM.computeJ0(Buffer.from(iv), Buffer.from(hashKey)),
         );
 
-        await circuit.expectPass(
-          { iv, hashKey },
-          { j0 },
-        );
+        await circuit.expectPass({ iv, hashKey }, { j0 });
       }
     });
   });
 
-  describe("1-to-64-byte IV Lengths (Except for 12-Byte)", function () {
+  describe("1-to-32-byte IV Lengths (Except for 12-Byte)", function () {
     it("should correctly compute J0 for different IV lengths", async function (): Promise<void> {
-      const ivLengths = [1, 4, 7, 8, 13, 15, 16, 31, 32, 64];
+      const ivLengths = [1, 4, 7, 8, 13, 15, 16, 31, 32, 63, 64];
 
       for (const length of ivLengths) {
         const circuit = await WitnessTester.construct(
@@ -192,10 +186,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
             AESGCM.computeJ0(Buffer.from(iv), Buffer.from(hashKey)),
           );
 
-          await circuit.expectPass(
-            { iv, hashKey },
-            { j0 },
-          );
+          await circuit.expectPass({ iv, hashKey }, { j0 });
         }
       }
     });

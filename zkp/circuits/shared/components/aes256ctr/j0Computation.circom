@@ -22,35 +22,35 @@ template ComputeJ0Standard() {
  * Supports IV lengths from 1 to 16 bytes
  * J0 = GHASH_H(IV || 0^s || 0^64 || [len(IV)]64)
  */
-template ComputeJ0NonStandard(ivLengthBytes) {
-    assert(ivLengthBytes > 0 && ivLengthBytes <= 64);
-    assert(ivLengthBytes != 12); // Use ComputeJ0Standard for 12-byte IVs
+template ComputeJ0NonStandard(ivLengthInBytes) {
+    assert(ivLengthInBytes > 0 && ivLengthInBytes <= 64);
+    assert(ivLengthInBytes != 12); // Use ComputeJ0Standard for 12-byte IVs
     
-    signal input {byte} iv[ivLengthBytes];
+    signal input {byte} iv[ivLengthInBytes];
     signal input {byte} hashKey[16];
     signal output {byte} j0[16];
     
     // Calculate padding needed
-    var ivLengthBits = ivLengthBytes * 8;
-    var s = (128 - (ivLengthBits % 128)) % 128;
-    var paddingBytes = s / 8;
+    var ivLengthInBits = ivLengthInBytes * 8;
+    var s = (128 - (ivLengthInBits % 128)) % 128;
+    var paddingBytes = s \ 8;
     
     // Calculate total GHASH input length
     // IV + padding + 8 bytes zeros + 8 bytes length
-    var totalBytes = ivLengthBytes + paddingBytes + 8 + 8;
-    var numBlocks = totalBytes / 16;
-    assert(numBlocks * 16 == totalBytes); // Ensure it's a multiple of 16
+    var totalBytes = ivLengthInBytes + paddingBytes + 8 + 8;
+    var numBlocks = totalBytes \ 16;
+    assert(numBlocks * 16 == totalBytes);
     
     // Build GHASH input
-    signal ghashInput[numBlocks * 16];
+    signal {byte} ghashInput[numBlocks * 16];
     
     var offset = 0;
     
     // Copy IV
-    for (var i = 0; i < ivLengthBytes; i++) {
+    for (var i = 0; i < ivLengthInBytes; i++) {
         ghashInput[offset + i] <== iv[i];
     }
-    offset += ivLengthBytes;
+    offset += ivLengthInBytes;
     
     // Add padding zeros
     for (var i = 0; i < paddingBytes; i++) {
@@ -65,44 +65,21 @@ template ComputeJ0NonStandard(ivLengthBytes) {
     offset += 8;
     
     // Add IV length in bits as 64-bit big-endian
-    // Since ivLengthBits < 2^32, upper 32 bits are zero
-    for (var i = 0; i < 4; i++) {
+    // Since ivLengthInBits <= 512 (2^9), at least upper 48 bits are zero
+    for (var i = 0; i < 6; i++) {
         ghashInput[offset + i] <== 0;
     }
+    offset += 6;
     
-    // Convert ivLengthBits to big-endian bytes
-    component lengthToBytes = Num2Bits(32);
-    lengthToBytes.in <== ivLengthBits;
-    
-    component bytePack[4];
-    for (var i = 0; i < 4; i++) {
-        bytePack[i] = Bits2Num(8);
-        for (var j = 0; j < 8; j++) {
-            bytePack[i].in[j] <== lengthToBytes.out[24 - i * 8 + j];
-        }
-        ghashInput[offset + 4 + i] <== bytePack[i].out;
+    // Convert ivLengthInBits to big-endian bits
+    signal ivLengthBits[16] <== Num2Bits(16)(ivLengthInBits);
+    signal ivLengthMSB[8], ivLengthLSB[8];
+
+    for (var i = 0; i < 8; i++) {
+        (ivLengthMSB[i], ivLengthLSB[i]) <== (ivLengthBits[i + 8], ivLengthBits[i]);
     }
-    
+    (ghashInput[offset], ghashInput[offset + 1]) <== (Bits2Num(8)(ivLengthMSB), Bits2Num(8)(ivLengthLSB));
+
     // Compute GHASH
-    component ghash = GHash(numBlocks);
-    for (var i = 0; i < numBlocks * 16; i++) {
-        ghash.data[i] <== ghashInput[i];
-    }
-    for (var i = 0; i < 16; i++) {
-        ghash.hashKey[i] <== hashKey[i];
-        j0[i] <== ghash.result[i];
-    }
+    j0 <== GHash(numBlocks)(ghashInput, hashKey);
 }
-
-/**
- * Example usage for different IV lengths
- */
-
-// For 12-byte IV (standard case)
-// component main = ComputeJ0_96bit();
-
-// For 8-byte IV
-// component main = ComputeJ0_Variable(8);
-
-// For 16-byte IV
-// component main = ComputeJ0_Variable(16);
