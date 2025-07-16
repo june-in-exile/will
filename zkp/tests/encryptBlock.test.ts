@@ -4,7 +4,7 @@ import { AESUtils, encryptBlock } from "./helpers";
 describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;
 
-  describe.only("AES-256 Block Cipher", function (): void {
+  describe("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/encryptBlock.circom",

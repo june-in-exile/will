@@ -1,7 +1,7 @@
 import { AESUtils, shiftRows } from "./helpers";
 import { WitnessTester } from "./utils";
 
-describe.only("ShiftRows Circuit", function () {
+describe("ShiftRows Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
 
   describe("Row Shifting for Cipher", function (): void {
