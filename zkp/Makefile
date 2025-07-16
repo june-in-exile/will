@@ -1,8 +1,6 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
-TEMPLATE = GF128MultiplyOptimized
 TEMPLATE ?= Multiplier2
 
 # Directory structure

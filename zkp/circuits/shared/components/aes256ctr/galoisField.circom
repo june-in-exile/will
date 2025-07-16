@@ -42,7 +42,68 @@ template GF8Mul3() {
 }
 
 /**
- * Galois Field multiplication in GF(2^128) with reduction polynomial x^128 + x^7 + x^2 + x + 1 (0xe1 || 30 zeros in LSB order)
+ * Output Bit Array Mapping:
+ * - bits[0] = x^0 coefficient → bytes[0] bit 7
+ * - bits[1] = x^1 coefficient → bytes[0] bit 6
+ * - ...
+ * - bits[7] = x^7 coefficient → bytes[0] bit 0
+ * - bits[8] = x^8 coefficient → bytes[1] bit 7
+ * - ...
+ * - bits[127] = x^127 coefficient → bytes[15] bit 0
+ * 
+ * Example:
+ * - Input bytes[0] = 0x80 (10000000₂) → bits[0-7] = [1,0,0,0,0,0,0,0]
+ * - Input bytes[0] = 0x01 (00000001₂) → bits[0-7] = [0,0,0,0,0,0,0,1]
+ */
+template GF128BytesToBits() {
+    signal input {byte} bytes[16];
+    signal output {bit} bits[128];
+    
+    component byteToBits[16];
+    
+    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
+        byteToBits[byteIdx] = Num2Bits(8);
+        byteToBits[byteIdx].in <== bytes[byteIdx];
+        
+        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
+            bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[7 - bitIdx];
+        }
+    }
+}
+
+/**
+ * Input Bit Array Mapping:
+ * - bits[0] = x^0 coefficient → bytes[0] bit 7
+ * - bits[1] = x^1 coefficient → bytes[0] bit 6
+ * - ...
+ * - bits[7] = x^7 coefficient → bytes[0] bit 0
+ * - bits[8] = x^8 coefficient → bytes[1] bit 7
+ * - ...
+ * - bits[127] = x^127 coefficient → bytes[15] bit 0
+ * 
+ * Example:
+ * - Input bits[0-7] = [1,0,0,0,0,0,0,0] → bytes[0] = 0x80 (10000000₂)
+ * - Input bits[0-7] = [0,0,0,0,0,0,0,1] → bytes[0] = 0x01 (00000001₂)
+ */
+template GF128BitsToBytes() {
+    signal input {bit} bits[128];
+    signal output {byte} bytes[16];
+    
+    component bitsToBytes[16];
+    
+    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
+        bitsToBytes[byteIdx] = Bits2Num(8);
+        
+        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
+            bitsToBytes[byteIdx].in[7 - bitIdx] <== bits[byteIdx * 8 + bitIdx];
+        }
+        
+        bytes[byteIdx] <== bitsToBytes[byteIdx].out;
+    }
+}
+
+/**
+ * Galois Field multiplication in GF(2^128) with reduction polynomial x^128 + x^7 + x^2 + x + 1 (0xe1 || 30 zeros in LSB-first order)
  *
  * Idea of Galois Field multiplication with reduction polynomial p(x):
  *   c = Σ (a[i] == 1 ? b >> i : 0) mod p(x)
@@ -58,24 +119,16 @@ template GF128Multiply() {
     signal input {byte} bBytes[16];
     signal output {byte} cBytes[16];
     
-    signal aBitGroup[16][8];
-    signal bBitGroup[16][8];
-    signal cBitGroup[16][8];
-    signal aBits[128];
-    signal bBits[129][128];
-    signal cBits[129][128];
-    
+    signal {bit} aBits[128];
+    signal {bit} bBits[129][128];
+    signal {bit} cBits[129][128];
+
     // Convert 16-byte a, b to 128-bit, initialize c = 0
-    for (var byte = 0; byte < 16; byte++) {
-        // in-byte: MSB first -> LSB first
-        aBitGroup[byte] <== Num2Bits(8)(aBytes[byte]);
-        bBitGroup[byte] <== Num2Bits(8)(bBytes[byte]);
-        // between-byte: LSB first -> MSB first
-        for (var bit = 0; bit < 8; bit++) {
-            aBits[byte * 8 + bit] <== aBitGroup[byte][7 - bit];
-            bBits[0][byte * 8 + bit] <== bBitGroup[byte][7 - bit];
-            cBits[0][byte * 8 + bit] <== 0;
-        }
+    aBits <== GF128BytesToBits()(aBytes);
+    bBits[0] <== GF128BytesToBits()(bBytes);
+
+    for (var bit = 0; bit < 128; bit++) {
+        cBits[0][bit] <== 0;
     }
     
     // Process each bit of 'a' from MSB to LSB
@@ -100,14 +153,7 @@ template GF128Multiply() {
     }
 
     // Convert final result bits back to bytes
-    for (var byte = 0; byte < 16; byte++) {
-        // between-byte: MSB first -> LSB first
-        for (var bit = 0; bit < 8; bit++) {
-            cBitGroup[byte][7 - bit] <== cBits[128][byte * 8 + bit];
-        }
-        // in-byte: LSB first -> MSB first
-        cBytes[byte] <== Bits2Num(8)(cBitGroup[byte]);
-    }
+    cBytes <== GF128BitsToBytes()(cBits[128]);
 }
 
 /**
@@ -196,25 +242,12 @@ template GF128MultiplyOptimized() {
     signal input {byte} bBytes[16];
     signal output {byte} cBytes[16];
     
-    signal aBitGroup[16][8];
-    signal bBitGroup[16][8];
-    signal cBitGroup[16][8];
-    signal aBits[128];
-    signal bBits[128];
-    signal cBits[128];
+    signal {bit} aBits[128];
+    signal {bit} bBits[128];
     
-    // Convert 16-byte input to 128-bit
-    for (var byte = 0; byte < 16; byte++) {
-        // in-byte: MSB first -> LSB first
-        aBitGroup[byte] <== Num2Bits(8)(aBytes[byte]);
-        bBitGroup[byte] <== Num2Bits(8)(bBytes[byte]);
-        
-        // between-byte: LSB first -> MSB first
-        for (var bit = 0; bit < 8; bit++) {
-            aBits[byte * 8 + bit] <== aBitGroup[byte][7 - bit];
-            bBits[byte * 8 + bit] <== bBitGroup[byte][7 - bit];
-        }
-    }
+    // Convert 16-byte a, b to 128-bit
+    aBits <== GF128BytesToBits()(aBytes);
+    bBits <== GF128BytesToBits()(bBytes);
 
     // Reduction polynomial coefficients: 1 + x + x^2 + x^7
     var p_x[4] = [0, 1, 2, 7];
@@ -327,6 +360,8 @@ template GF128MultiplyOptimized() {
     }
 
     // ===== Final step: Sum all contributions and reduce modulo 2 =====
+    signal {bit} cBits[128];
+
     for (var cBit = 0; cBit < 128; cBit++) {
         if (cBit < 13) {
             cBits[cBit] <== Mod2()(valid1[cBit] + valid2[cBit] + valid3[cBit]);
@@ -336,14 +371,7 @@ template GF128MultiplyOptimized() {
     }
     
     // Convert final result bits back to bytes
-    for (var byte = 0; byte < 16; byte++) {
-        // between-byte: MSB first -> LSB first
-        for (var bit = 0; bit < 8; bit++) {
-            cBitGroup[byte][7 - bit] <== cBits[byte * 8 + bit];
-        }
-        // in-byte: LSB first -> MSB first
-        cBytes[byte] <== Bits2Num(8)(cBitGroup[byte]);
-    }
+    cBytes <== GF128BitsToBytes()(cBits);
 }
 
 /**

@@ -132,6 +132,112 @@ describe("GF8Mul3 Circuit", function () {
   });
 });
 
+describe("GF128BytesToBits Circuit", function () {
+  let circuit: WitnessTester<["bytes"], ["bits"]>;
+
+  describe("Bytes to Bits Conversion for GF(2^128)", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/galoisField.circom",
+        "GF128BytesToBits"
+      );
+      console.info(
+        "GF128 16-byte to 128-bit circuit constraints:",
+        await circuit.getConstraintCount()
+      );
+    });
+
+    it("should correctly convert all zero bytes", async function (): Promise<void> {
+      const bytes = new Array(16).fill(0);
+      const bits = new Array(128).fill(0);
+
+      await circuit.expectPass(
+        { bytes },
+        { bits }
+      );
+    });
+
+    it("should put MSB of first byte to bit 0", async function (): Promise<void> {
+      const bytes = new Array(16).fill(0);
+      bytes[0] = 0x80;
+
+      const bits = new Array(128).fill(0);
+      bits[0] = 1;
+
+      await circuit.expectPass(
+        { bytes },
+        { bits }
+      );
+    });
+
+    it("should put LSB of first byte to bit 7", async function (): Promise<void> {
+      const bytes = new Array(16).fill(0);
+      bytes[0] = 0x01;
+
+      const bits = new Array(128).fill(0);
+      bits[7] = 1;
+
+      await circuit.expectPass(
+        { bytes },
+        { bits }
+      );
+    });
+  });
+});
+
+describe("GF128BitsToBytes Circuit", function () {
+  let circuit: WitnessTester<["bits"], ["bytes"]>;
+
+  describe("Bits to Bytes Conversion for GF(2^128)", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/galoisField.circom",
+        "GF128BitsToBytes"
+      );
+      console.info(
+        "GF128 128-bit to 16-byte circuit constraints:",
+        await circuit.getConstraintCount()
+      );
+    });
+
+    it("should correctly convert all zero bits", async function (): Promise<void> {
+      const bits = new Array(128).fill(0);
+      const bytes = new Array(16).fill(0);
+
+      await circuit.expectPass(
+        { bits },
+        { bytes }
+      );
+    });
+
+    it("should put bit 0 to MSB of first byte", async function (): Promise<void> {
+      const bits = new Array(128).fill(0);
+      bits[0] = 1;
+
+      const bytes = new Array(16).fill(0);
+      bytes[0] = 0x80;
+
+      await circuit.expectPass(
+        { bits },
+        { bytes }
+      );
+    });
+
+    it("should put bit 7 to LSB of first byte", async function (): Promise<void> {
+      const bits = new Array(128).fill(0);
+      bits[7] = 1;
+
+      const bytes = new Array(16).fill(0);
+      bytes[0] = 0x01;
+
+      await circuit.expectPass(
+        { bits },
+        { bytes }
+      );
+    });
+  });
+});
+
 describe("GF128Multiply Circuit", function () {
   let circuit: WitnessTester<["aBytes", "bBytes"], ["cBytes"]>;
   let circuitOptimized: WitnessTester<["aBytes", "bBytes"], ["cBytes"]>;
@@ -172,7 +278,7 @@ describe("GF128Multiply Circuit", function () {
     const aBytes = [
       0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00,
-    ]; // "1" in GF(2^128) (LSB set)
+    ]; // "1" in GF(2^128)
     const bBytes = [
       0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
       0x76, 0x54, 0x32, 0x10,

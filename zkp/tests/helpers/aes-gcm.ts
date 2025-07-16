@@ -403,8 +403,13 @@ class GF128 {
         carry = newCarry;
       }
 
-      // If there's a carry, subtract the reduction polynomial
-      // f(x) = x^128 + x^7 + x^2 + x + 1 corresponds to 11100001 00000000 ... 00000000
+      // If the right shift caused a carry-out (i.e., the lowest bit of the 
+      // highest-order byte was 1), we need to apply the reduction polynomial.
+      //
+      // In GF(2), x^128 ≡ x^7 + x^2 + x + 1  (mod f(x))
+      //
+      // So we XOR 0xe1 (binary 11100001) into the lowest byte of v (v[0]),
+      // which sets the coefficients for x^7, x^2, x^1, and x^0.
       if (carry) {
         v[0] ^= 0xe1;
       }
