@@ -1,6 +1,5 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = mod2
-# CIRCUIT = galoisField
+CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
 TEMPLATE = GF128Multiply
