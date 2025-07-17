@@ -13,7 +13,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CTREncrypt",
         {
-          templateParams: ["128", "4"],
+          templateParams: ["128", "2"],
         },
       );
       console.info(
@@ -200,7 +200,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CTREncrypt",
         {
-          templateParams: ["192", "2"],
+          templateParams: ["192", "1"],
         },
       );
 
@@ -230,7 +230,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CTREncrypt",
         {
-          templateParams: ["256", "2"],
+          templateParams: ["256", "1"],
         },
       );
 
