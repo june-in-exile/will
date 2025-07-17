@@ -106,7 +106,6 @@ describe("ComputeJ0NonStandard Circuit", function () {
       const iv = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
       const hashKey = Array.from(AESUtils.randomBytes(16));
 
-      // Compute expected J0 using TypeScript implementation
       const j0 = Array.from(
         AESGCM.computeJ0(Buffer.from(iv), Buffer.from(hashKey)),
       );

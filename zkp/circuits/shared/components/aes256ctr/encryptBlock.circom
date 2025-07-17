@@ -16,14 +16,14 @@ include "../bits.circom";
  * @param keyBits - Key size in bits (128, 192, or 256)
  */
 template EncryptBlock(keyBits) {
-    var (Nk, Nb, Nr);
+    var (Nk, Nr);
     assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
     if (keyBits == 128) {
-        (Nk, Nb, Nr) = (4,4,10);
+        (Nk, Nr) = (4,10);
     } else if (keyBits == 192) {
-        (Nk, Nb, Nr) = (6,4,12);
+        (Nk, Nr) = (6,12);
     } else {
-        (Nk, Nb, Nr) = (8,4,14);
+        (Nk, Nr) = (8,14);
     }
     var expandedNk = 4 * (Nr + 1);
     
