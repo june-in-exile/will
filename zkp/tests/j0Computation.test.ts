@@ -1,5 +1,5 @@
 import { WitnessTester } from "./utils";
-import { AESUtils, AESGCM } from "./helpers";
+import { AESUtils, computeJ0Standard, computeJ0NonStandard } from "./helpers";
 
 describe("ComputeJ0Standard Circuits", function () {
   describe("Compute J0 Standard Circuit", function () {
@@ -18,43 +18,23 @@ describe("ComputeJ0Standard Circuits", function () {
 
     it("should correctly compute J0 for 12-byte IV", async function (): Promise<void> {
       const testCases = [
-        {
-          iv: new Array(12).fill(0x00),
-          j0: [
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x01,
-          ],
-        },
-        {
-          iv: [
-            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
-            0x0c,
-          ],
-          j0: [
-            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
-            0x0c, 0x00, 0x00, 0x00, 0x01,
-          ],
-        },
-        {
-          iv: new Array(12).fill(0xff),
-          j0: [
-            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-            0xff, 0x00, 0x00, 0x00, 0x01,
-          ],
-        },
-      ];
+        new Array(12).fill(0x00),
+        new Array(12).fill(0xff),
+        [
+          0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
+          0x0c,
+        ]] as Byte12[];
 
-      for (const { iv, j0 } of testCases) {
-        await circuit.expectPass({ iv }, { j0 });
+      for (const iv of testCases) {
+        await circuit.expectPass({ iv: iv }, { j0: computeJ0Standard(iv) });
       }
     });
 
     it("should handle random 12-byte IVs", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
-        const iv = Array.from(AESUtils.randomBytes(12));
-        const j0 = [...iv, 0x00, 0x00, 0x00, 0x01];
+        const iv = Array.from(AESUtils.randomBytes(12)) as Byte12;
 
-        await circuit.expectPass({ iv }, { j0 });
+        await circuit.expectPass({ iv }, { j0: computeJ0Standard(iv) });
       }
     });
   });

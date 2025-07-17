@@ -41,9 +41,6 @@ describe("CtrEncrypt Circuits", function () {
                 const witness = await circuit.calculateWitness({ plaintext, key, j0, numBlocks });
                 const ciphertext = witness.slice(-64); // Get last 64 outputs
                 // First block should be non-zero (encrypted counter), rest
-
-
-                ciphertext
                 
                 circuit.expectPass({ plaintext, key, j0, numBlocks }, {ciphertext})
             }

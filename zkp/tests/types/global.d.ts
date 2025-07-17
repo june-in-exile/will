@@ -20,6 +20,20 @@ declare global {
   // Byte
   type Byte = Range<256>[number];
   type Byte4 = [Byte, Byte, Byte, Byte];
+  type Byte12 = [
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+    Byte,
+  ];
   type Byte16 = [
     Byte,
     Byte,
