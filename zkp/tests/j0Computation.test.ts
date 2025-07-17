@@ -23,7 +23,8 @@ describe("ComputeJ0Standard Circuits", function () {
         [
           0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
           0x0c,
-        ]] as Byte12[];
+        ],
+      ] as Byte12[];
 
       for (const iv of testCases) {
         await circuit.expectPass({ iv: iv }, { j0: computeJ0Standard(iv) });
@@ -86,7 +87,10 @@ describe("ComputeJ0NonStandard Circuit", function () {
       const iv = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08] as Byte[];
       const hashKey = Array.from(AESUtils.randomBytes(16)) as Byte16;
 
-      await circuit.expectPass({ iv, hashKey }, { j0: computeJ0NonStandard(iv, hashKey) });
+      await circuit.expectPass(
+        { iv, hashKey },
+        { j0: computeJ0NonStandard(iv, hashKey) },
+      );
     });
   });
 
@@ -124,10 +128,13 @@ describe("ComputeJ0NonStandard Circuit", function () {
           iv: new Array(16).fill(0xff),
           hashKey: new Array(16).fill(0x55),
         },
-      ] as { iv: Byte[], hashKey: Byte16 }[];
+      ] as { iv: Byte[]; hashKey: Byte16 }[];
 
       for (const { iv, hashKey } of testCases) {
-        await circuit.expectPass({ iv, hashKey }, { j0: computeJ0NonStandard(iv, hashKey) });
+        await circuit.expectPass(
+          { iv, hashKey },
+          { j0: computeJ0NonStandard(iv, hashKey) },
+        );
       }
     });
   });
@@ -153,7 +160,10 @@ describe("ComputeJ0NonStandard Circuit", function () {
           const iv = Array.from(AESUtils.randomBytes(length)) as Byte[];
           const hashKey = Array.from(AESUtils.randomBytes(16)) as Byte16;
 
-          await circuit.expectPass({ iv, hashKey }, { j0: computeJ0NonStandard(iv, hashKey) });
+          await circuit.expectPass(
+            { iv, hashKey },
+            { j0: computeJ0NonStandard(iv, hashKey) },
+          );
         }
       }
     });

@@ -4,6 +4,77 @@ import { AESUtils, encryptBlock } from "./helpers";
 describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;
 
+  it("should reject key size other than 128/192/256", async function (): Promise<void> {
+    const keySizes = [0, 1, 2, 127, 193, 255];
+    for (const keySize of keySizes) {
+      await expect(
+        WitnessTester.construct(
+          "circuits/shared/components/aes256ctr/encryptBlock.circom",
+          "EncryptBlock",
+          {
+            templateParams: [String(keySize)],
+          },
+        ),
+      ).rejects.toThrow();
+    }
+  });
+
+  describe("AES-128 Block Cipher", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/encryptBlock.circom",
+        "EncryptBlock",
+        {
+          templateParams: ["128"],
+        },
+      );
+      console.info(
+        "AES-128 block cipher circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should handle random inputs consistently", async function (): Promise<void> {
+      for (let i = 0; i < 3; i++) {
+        const plaintext = Array.from(AESUtils.randomBytes(16)) as Byte16;
+        const key = Array.from(AESUtils.randomBytes(16)) as Byte[];
+
+        await circuit.expectPass(
+          { plaintext, key },
+          { ciphertext: encryptBlock(plaintext, byteToWord(key)) },
+        );
+      }
+    });
+  });
+
+  describe("AES-192 Block Cipher", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/encryptBlock.circom",
+        "EncryptBlock",
+        {
+          templateParams: ["192"],
+        },
+      );
+      console.info(
+        "AES-192 block cipher circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should handle random inputs consistently", async function (): Promise<void> {
+      for (let i = 0; i < 3; i++) {
+        const plaintext = Array.from(AESUtils.randomBytes(16)) as Byte16;
+        const key = Array.from(AESUtils.randomBytes(24)) as Byte[];
+
+        await circuit.expectPass(
+          { plaintext, key },
+          { ciphertext: encryptBlock(plaintext, byteToWord(key)) },
+        );
+      }
+    });
+  });
+
   describe("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -78,9 +149,10 @@ describe("EncryptBlock Circuit", function () {
         const plaintext = Array.from(AESUtils.randomBytes(16)) as Byte16;
         const key = Array.from(AESUtils.randomBytes(32)) as Byte[];
 
-        const ciphertext = encryptBlock(plaintext, byteToWord(key));
-
-        await circuit.expectPass({ plaintext, key }, { ciphertext });
+        await circuit.expectPass(
+          { plaintext, key },
+          { ciphertext: encryptBlock(plaintext, byteToWord(key)) },
+        );
       }
     });
   });
