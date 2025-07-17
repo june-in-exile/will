@@ -3,6 +3,7 @@ export * from "./byteSubstitution";
 export * from "./columnMixing";
 export * from "./counterIncrement";
 export * from "./encryptBlock";
+export * from "./ctrEncrypt";
 export * from "./j0Computation";
 export * from "./keyExpansion";
 export * from "./roundKeyAddition";
