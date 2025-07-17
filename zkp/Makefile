@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = j0Computation
+CIRCUIT = ctrEncrypt
 CIRCUIT ?= multiplier2
 
-TEMPLATE = ComputeJ0NonStandard
+TEMPLATE = CTREncrypt
 TEMPLATE ?= Multiplier2
 
 # Directory structure

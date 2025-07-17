@@ -1,6 +1,7 @@
 export * from "./aes-gcm";
 export * from "./byteSubstitution";
 export * from "./columnMixing";
+export * from "./counterIncrement";
 export * from "./encryptBlock";
 export * from "./keyExpansion";
 export * from "./roundKeyAddition";

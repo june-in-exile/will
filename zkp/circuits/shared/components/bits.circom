@@ -102,3 +102,32 @@ template BitwiseXor(n, bits) {
     
     out <== Bits2Num(bits)(outBits);
 }
+
+/**
+ * @param a - First 8-bit input operand
+ * @param b - Second 8-bit input operand  
+ * @param carry_in - Input carry bit from previous addition
+ * @param c - 8-bit sum output (a + b + carry_in) mod 256
+ * @param carry_out - Output carry bit (1 if sum >= 256, 0 otherwise)
+ * 
+ * Example: Add two bytes with carry
+ *  signal result, carry <== ByteAdder()(200, 100, 1);  // Input: 200 + 100 + 1 = 301
+ *  result === 45;                                      // Result: 301 - 256 = 45
+ *  carry === 1;                                        // Carry: 301 >= 256, so carry = 1
+ */
+template ByteAdder() {
+    signal input {byte} a;
+    signal input {byte} b;
+    signal input {bit} carry_in;
+    signal output {byte} c;
+    signal output {bit} carry_out;
+
+    signal sum <== a + b + carry_in;
+
+    carry_out <== GreaterEqThan(9)([sum,256]);
+    c <== sum - carry_out * 256;    
+
+    _ = Num2Bits(8)(a);
+    _ = Num2Bits(8)(b);
+    _ = Num2Bits(8)(c);
+}

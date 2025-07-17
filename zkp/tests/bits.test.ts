@@ -939,3 +939,61 @@ describe("BitwiseXor Circuit", function () {
     });
   });
 });
+
+describe("ByteAdder Circuits", function () {
+  describe("Byte Adder Circuit", function () {
+    let circuit: WitnessTester<["a", "b", "carry_in"], ["c", "carry_out"]>;
+
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "ByteAdder",
+      );
+      console.info(
+        "ByteAdder circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should correctly add bytes without carry", async function (): Promise<void> {
+      const testCases = [
+        { a: 0x01, b: 0x02, carry_in: 0, c: 0x03, carry_out: 0 },
+        { a: 0x10, b: 0x20, carry_in: 0, c: 0x30, carry_out: 0 },
+        { a: 0x7f, b: 0x7f, carry_in: 0, c: 0xfe, carry_out: 0 },
+        { a: 0x00, b: 0x00, carry_in: 0, c: 0x00, carry_out: 0 },
+        { a: 0x00, b: 0x00, carry_in: 1, c: 0x01, carry_out: 0 },
+      ];
+
+      for (const { a, b, carry_in, c, carry_out } of testCases) {
+        await circuit.expectPass({ a, b, carry_in }, { c, carry_out });
+      }
+    });
+
+    it("should correctly handle carry generation", async function (): Promise<void> {
+      const testCases = [
+        { a: 0xff, b: 0x01, carry_in: 0, c: 0x00, carry_out: 1 },
+        { a: 0x80, b: 0x80, carry_in: 0, c: 0x00, carry_out: 1 },
+        { a: 0xfe, b: 0x01, carry_in: 1, c: 0x00, carry_out: 1 },
+        { a: 0xff, b: 0x00, carry_in: 1, c: 0x00, carry_out: 1 },
+        { a: 0xff, b: 0xff, carry_in: 1, c: 0xff, carry_out: 1 },
+      ];
+
+      for (const { a, b, carry_in, c, carry_out } of testCases) {
+        await circuit.expectPass({ a, b, carry_in }, { c, carry_out });
+      }
+    });
+
+    it("should handle edge cases", async function (): Promise<void> {
+      const testCases = [
+        { a: 0x00, b: 0xff, carry_in: 0, c: 0xff, carry_out: 0 },
+        { a: 0xff, b: 0x00, carry_in: 0, c: 0xff, carry_out: 0 },
+        { a: 0x7f, b: 0x80, carry_in: 1, c: 0x00, carry_out: 1 },
+        { a: 0x55, b: 0xaa, carry_in: 1, c: 0x00, carry_out: 1 },
+      ];
+
+      for (const { a, b, carry_in, c, carry_out } of testCases) {
+        await circuit.expectPass({ a, b, carry_in }, { c, carry_out });
+      }
+    });
+  });
+});
