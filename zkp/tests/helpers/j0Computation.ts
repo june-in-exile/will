@@ -9,7 +9,7 @@ function computeJ0Standard(iv: Byte12): Byte16 {
 }
 
 
-function computeJ0NonStandard(iv: Byte12, hashKey: Byte16): Byte16 {
+function computeJ0NonStandard(iv: Byte[], hashKey: Byte16): Byte16 {
     const ivBuffer = Buffer.from(iv);
     const hashKeyBuffer = Buffer.from(hashKey);
 
