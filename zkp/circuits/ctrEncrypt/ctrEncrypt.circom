@@ -36,11 +36,11 @@ template CtrEncrypt(keyBits, numblocks) {
     
     // Counter state array - stores counter value for each block
     signal {byte} counters[numblocks][16];
-    counters[0] <== iv; // Initialize with J0
+    counters[0] <== iv;
     
     // Generate incremented (for last 4 bytes only) counters for each block
     for (var i = 1; i < numblocks; i++) {
-        counters[i] <== IncrementCounter()(counters[i - 1]);
+        counters[i] <== IncrementCounterOptimized()(counters[i - 1]);
     }
     
     // Encrypt each counter to generate keystream
@@ -51,7 +51,6 @@ template CtrEncrypt(keyBits, numblocks) {
     
     // XOR plaintext with keystream to produce ciphertext
     for (var i = 0; i < numblocks; i++) {
-        // Perform XOR operation for each byte in the block
         for (var j = 0; j < 16; j++) {
             ciphertext[i * 16 + j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
         }
@@ -59,7 +58,7 @@ template CtrEncrypt(keyBits, numblocks) {
 }
 
 
-// Auto updated: 2025-07-18T10:25:04.505Z
+// Auto updated: 2025-07-18T22:16:33.207Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -99,4 +98,4 @@ template UntaggedCtrEncrypt(keyBits, numblocks) {
     ciphertext <== ctrencryptComponent.ciphertext;
 }
 
-component main = UntaggedCtrEncrypt(128, 4);
+component main = UntaggedCtrEncrypt(128, 1);

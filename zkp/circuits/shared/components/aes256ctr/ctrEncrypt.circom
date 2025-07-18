@@ -40,7 +40,7 @@ template CtrEncrypt(keyBits, numblocks) {
     
     // Generate incremented (for last 4 bytes only) counters for each block
     for (var i = 1; i < numblocks; i++) {
-        counters[i] <== IncrementCounter()(counters[i - 1]);
+        counters[i] <== IncrementCounterOptimized()(counters[i - 1]);
     }
     
     // Encrypt each counter to generate keystream
