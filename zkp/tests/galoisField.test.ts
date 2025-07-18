@@ -287,7 +287,7 @@ describe("GF128Multiply Circuit", function () {
       GF128.multiply(Buffer.from(aBytes), Buffer.from(bBytes)),
     );
 
-    // console.debug("Result after reduction:", cBytes.map(b => b.toString(16).padStart(2, '0')).join(' '));
+    // console.info("Result after reduction:", cBytes.map(b => b.toString(16).padStart(2, '0')).join(' '));
     await circuit.expectPass({ aBytes, bBytes }, { cBytes });
     await circuitOptimized.expectPass({ aBytes, bBytes }, { cBytes });
   });

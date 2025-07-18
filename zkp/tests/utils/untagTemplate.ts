@@ -218,9 +218,7 @@ async function generateAppendedContent(
   const modifiedContent = commentComponentMain(originalContent);
 
   // Generate untagged template content
-  const untaggedTemplateContent = generateUntaggedTemplateContent(
-    config,
-  );
+  const untaggedTemplateContent = generateUntaggedTemplateContent(config);
 
   // Generate main component
   const mainComponent = generateMainComponent(config.template);
@@ -268,9 +266,7 @@ function generateStandaloneContent(
  * @param includeBusDefinitions - Whether to include bus definitions
  * @returns Generated template content
  */
-function generateUntaggedTemplateContent(
-  config: GenerationConfig,
-): string {
+function generateUntaggedTemplateContent(config: GenerationConfig): string {
   const { template, busDefinitions, isAppend } = config;
 
   let content = "";
@@ -351,19 +347,25 @@ function parseSignalsInOrder(
   signalType: "input" | "output",
 ): Signal[] {
   const signals: Signal[] = [];
-  const lines = templateBody.split('\n');
-  
+  const lines = templateBody.split("\n");
+
   for (const line of lines) {
     const trimmedLine = line.trim();
-    if (!trimmedLine || trimmedLine.startsWith('//') || trimmedLine.startsWith('/*')) {
+    if (
+      !trimmedLine ||
+      trimmedLine.startsWith("//") ||
+      trimmedLine.startsWith("/*")
+    ) {
       continue;
     }
-    
+
     // Pattern 1: signal input/output {tag} name[array]
     const normalSignalMatch = trimmedLine.match(
-      new RegExp(`\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`)
+      new RegExp(
+        `\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      ),
     );
-    
+
     if (normalSignalMatch) {
       signals.push({
         name: normalSignalMatch[2],
@@ -372,12 +374,14 @@ function parseSignalsInOrder(
       });
       continue;
     }
-    
+
     // Pattern 2: input/output BusType() name[array]
     const busSignalMatch1 = trimmedLine.match(
-      new RegExp(`\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`)
+      new RegExp(
+        `\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      ),
     );
-    
+
     if (busSignalMatch1) {
       signals.push({
         name: busSignalMatch1[2],
@@ -386,12 +390,14 @@ function parseSignalsInOrder(
       });
       continue;
     }
-    
+
     // Pattern 3: BusType() input/output name[array]
     const busSignalMatch2 = trimmedLine.match(
-      new RegExp(`([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`)
+      new RegExp(
+        `([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      ),
     );
-    
+
     if (busSignalMatch2) {
       signals.push({
         name: busSignalMatch2[2],
@@ -638,34 +644,37 @@ function generateTemplateInstantiation(template: Template): string {
   if (template.outputs.length === 0) {
     // No outputs - use component instantiation with proper input assignment
     content += `    component ${template.name.toLowerCase()}Component = ${template.name}${paramsStr};\n`;
-    
+
     // Assign inputs in original order
     template.inputs.forEach((input) => {
-      const inputName = input.busType || input.tag ? `_${input.name}` : input.name;
+      const inputName =
+        input.busType || input.tag ? `_${input.name}` : input.name;
       content += `    ${template.name.toLowerCase()}Component.${input.name} <== ${inputName};\n`;
     });
   } else if (template.outputs.length === 1) {
     // Single output - use component instantiation with proper input assignment
     content += `    component ${template.name.toLowerCase()}Component = ${template.name}${paramsStr};\n`;
-    
+
     // Assign inputs in original order
     template.inputs.forEach((input) => {
-      const inputName = input.busType || input.tag ? `_${input.name}` : input.name;
+      const inputName =
+        input.busType || input.tag ? `_${input.name}` : input.name;
       content += `    ${template.name.toLowerCase()}Component.${input.name} <== ${inputName};\n`;
     });
-    
+
     // Assign output
     content += `    ${template.outputs[0].name} <== ${template.name.toLowerCase()}Component.${template.outputs[0].name};\n`;
   } else {
     // Multiple outputs - use component instantiation with proper input assignment
     content += `    component ${template.name.toLowerCase()}Component = ${template.name}${paramsStr};\n`;
-    
+
     // Assign inputs in original order
     template.inputs.forEach((input) => {
-      const inputName = input.busType || input.tag ? `_${input.name}` : input.name;
+      const inputName =
+        input.busType || input.tag ? `_${input.name}` : input.name;
       content += `    ${template.name.toLowerCase()}Component.${input.name} <== ${inputName};\n`;
     });
-    
+
     // Assign outputs
     template.outputs.forEach((output) => {
       content += `    ${output.name} <== ${template.name.toLowerCase()}Component.${output.name};\n`;

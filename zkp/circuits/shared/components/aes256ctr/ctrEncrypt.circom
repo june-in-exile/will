@@ -38,16 +38,13 @@ template CtrEncrypt(keyBits, numblocks) {
     signal {byte} counters[numblocks][16];
     counters[0] <== iv; // Initialize with J0
     
-    // Generate incremented counters for each block
-    // In GCM, only the last 4 bytes of the counter are incremented
+    // Generate incremented (for last 4 bytes only) counters for each block
     for (var i = 1; i < numblocks; i++) {
         counters[i] <== IncrementCounter()(counters[i - 1]);
     }
     
-    // AES encryption components - one per block
-    signal {byte} keystreams[numblocks][16];
-    
     // Encrypt each counter to generate keystream
+    signal {byte} keystreams[numblocks][16];
     for (var i = 0; i < numblocks; i++) {
         keystreams[i] <== EncryptBlock(keyBits)(counters[i], key);
     }
