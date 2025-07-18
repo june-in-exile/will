@@ -2,7 +2,7 @@
 CIRCUIT = ctrEncrypt
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CTREncrypt
+TEMPLATE = CtrEncrypt
 TEMPLATE ?= Multiplier2
 
 # Directory structure

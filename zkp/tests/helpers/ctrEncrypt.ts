@@ -7,20 +7,22 @@ function ctrEncrypt(
   j0: Byte16,
   numBlocks: number,
 ): Byte[] {
-  const slicedPlaintext = plaintext.slice(0, numBlocks * 16);
-  const slicedPlaintextBuffer = Buffer.from(slicedPlaintext);
+  const plaintextBuffer = Buffer.from(plaintext);
   const keyBuffer = wordToBuffer(key);
   const j0Buffer = Buffer.from(j0);
 
-  const slicedCiphertextBuffer = AESGCM.ctrEncrypt(
-    slicedPlaintextBuffer,
+  const ciphertextBuffer = AESGCM.ctrEncrypt(
+    plaintextBuffer,
     keyBuffer,
     j0Buffer,
   );
-  const slicedCiphertext = Array.from(slicedCiphertextBuffer);
-  const ciphertext = slicedCiphertext.concat(plaintext.slice(numBlocks * 16));
+  const ciphertext = Array.from(ciphertextBuffer);
 
-  return ciphertext as Byte[];
+  const reuslt: Byte[] = [];
+  reuslt.push(...ciphertext.slice(0, numBlocks * 16) as Byte[]);
+  reuslt.push(...plaintext.slice(numBlocks * 16) as Byte[]);
+
+  return reuslt;
 }
 
 export { ctrEncrypt };

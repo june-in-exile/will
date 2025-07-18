@@ -2,10 +2,9 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/mux1.circom";
-include "counterIncrement.circom";
-include "encryptBlock.circom";
-include "../bus.circom";
-include "../bits.circom";
+include "../shared/components/aes256ctr/counterIncrement.circom";
+include "../shared/components/aes256ctr/encryptBlock.circom";
+include "../shared/components/bits.circom";
 
 /**
  * AES CTR Mode Encryption Circuit
@@ -78,3 +77,49 @@ template CtrEncrypt(keyBits, maxBlocksBits) {
         }
     }
 }
+
+
+// Auto updated: 2025-07-18T00:29:12.193Z
+bus UntaggedWord() {
+    signal bytes[4];
+}
+
+template UntaggedCtrEncrypt(keyBits, maxBlocksBits) {
+    var Nk;
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        Nk = 4;
+    } else if (keyBits == 192) {
+        Nk = 6;
+    } else {
+        Nk = 8;
+    }
+    var maxBlocks = 2 ** maxBlocksBits;
+
+    signal input plaintext[maxBlocks * 16];
+    input UntaggedWord() key[Nk];
+    signal input j0[16];
+    signal input numBlocks;
+    signal output {byte} ciphertext[maxBlocks * 16];
+
+    signal {byte} _plaintext[maxBlocks * 16];
+    _plaintext <== plaintext;
+    signal {byte} _j0[16];
+    _j0 <== j0;
+
+    Word() _key[Nk];
+
+    for (var i = 0; i < Nk; i++) {
+        _key[i].bytes <== key[i].bytes;
+    }
+
+
+    component ctrencryptComponent = CtrEncrypt(keyBits, maxBlocksBits);
+    ctrencryptComponent.plaintext <== _plaintext;
+    ctrencryptComponent.key <== _key;
+    ctrencryptComponent.j0 <== _j0;
+    ctrencryptComponent.numBlocks <== numBlocks;
+    ciphertext <== ctrencryptComponent.ciphertext;
+}
+
+component main = UntaggedCtrEncrypt(128, 2);
