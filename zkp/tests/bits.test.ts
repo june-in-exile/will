@@ -502,14 +502,24 @@ describe("ShiftRight Circuit", function () {
   });
 });
 
-describe("BitwiseXor Circuit", function () {
+describe.only("BitwiseXor Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
+  let circuitOptimized: WitnessTester<["in"], ["out"]>;
 
   it("should reject single input (n=1)", async function (): Promise<void> {
     await expect(
       WitnessTester.construct(
         "circuits/shared/components/bits.circom",
         "BitwiseXor",
+        {
+          templateParams: ["1", "8"],
+        },
+      ),
+    ).rejects.toThrow();
+    await expect(
+      WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
         {
           templateParams: ["1", "8"],
         },
@@ -526,9 +536,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "8"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["2", "8"],
+        },
+      );
       console.info(
         "2x8-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 2x8-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -608,9 +629,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "8"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["3", "8"],
+        },
+      );
       console.info(
         "3x8-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 3x8-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -690,9 +722,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "8"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["5", "8"],
+        },
+      );
       console.info(
         "5x8-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 5x8-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -720,9 +763,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "16"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["2", "16"],
+        },
+      );
       console.info(
         "2x16-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 2x16-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -768,9 +822,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "16"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["3", "16"],
+        },
+      );
       console.info(
-        "3x16-bit Xor circuit constraints:",
+        "3x8-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 3x8-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -799,9 +864,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "16"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["5", "16"],
+        },
+      );
       console.info(
         "5x16-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 5x16-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -834,9 +910,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["10", "4"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["10", "4"],
+        },
+      );
       console.info(
         "10x4-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 10x4-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -869,9 +956,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "32"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["2", "32"],
+        },
+      );
       console.info(
         "2x32-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 2x32-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -917,9 +1015,20 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "32"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["3", "32"],
+        },
+      );
       console.info(
         "3x32-bit Xor circuit constraints:",
         await circuit.getConstraintCount(),
+      );
+      console.info(
+        "Optimized 3x32-bit Xor circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 

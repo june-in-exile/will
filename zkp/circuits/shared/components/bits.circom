@@ -14,7 +14,7 @@ include "circomlib/circuits/gates.circom";
 */
 template Mod2() {
     signal input in;
-    signal output out;
+    signal output {bit} out;
     
     signal quotient;
     
@@ -98,6 +98,34 @@ template BitwiseXor(n, bits) {
             tempXor[bitIdx][i-1] <== XOR()(tempXor[bitIdx][i-2], inBits[i][bitIdx]);
         }
         outBits[bitIdx] <== tempXor[bitIdx][n-2];
+    }
+    
+    out <== Bits2Num(bits)(outBits);
+}
+
+/**
+ * Optimized version that uses modulo arithmetic instead of chained XOR gates for better efficiency
+ *
+ * Note: The optimization advantage is most significant when n > 2, as it reduces the number of
+ * intermediate constraints compared to chained XOR operations
+ */
+template BitwiseXorOptimized(n, bits) {
+    assert (n > 2);
+    signal input in[n];
+    signal output out;
+    
+    signal inBits[n][bits];
+    for (var i = 0; i < n; i++) {
+        inBits[i] <== Num2Bits(bits)(in[i]);
+    }
+    
+    signal outBits[bits];
+    for (var bitIdx = 0; bitIdx < bits; bitIdx++) {
+        var tempSum = inBits[0][bitIdx] + inBits[1][bitIdx];
+        for (var i = 2; i < n; i++) {
+            tempSum += inBits[i][bitIdx];
+        }
+        outBits[bitIdx] <== Mod2()(tempSum);
     }
     
     out <== Bits2Num(bits)(outBits);

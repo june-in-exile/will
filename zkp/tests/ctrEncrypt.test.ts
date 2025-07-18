@@ -15,7 +15,7 @@ describe("CtrEncrypt Circuits", function () {
       );
       console.info(
         "AES-128 CTR encryption circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 347363
       );
     });
 
@@ -88,7 +88,7 @@ describe("CtrEncrypt Circuits", function () {
       );
       console.info(
         "AES-192 CTR encryption circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 399843
       );
     });
 
@@ -142,8 +142,8 @@ describe("CtrEncrypt Circuits", function () {
         },
       );
       console.info(
-        "AES-192 CTR encryption circuit constraints:",
-        await circuit.getConstraintCount(),
+        "AES-256 CTR encryption circuit constraints:",
+        await circuit.getConstraintCount(), // 481379
       );
     });
 

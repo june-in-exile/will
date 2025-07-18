@@ -12,7 +12,7 @@ describe("ShiftRows Circuit", function () {
       );
       console.info(
         "ShiftRows circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 0
       );
     });
 

@@ -12,7 +12,7 @@ describe("MixColumn Circuit", function () {
       );
       console.info(
         "MixColumn circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 792
       );
     });
 
@@ -87,7 +87,7 @@ describe("MixColumns Circuit", function () {
       );
       console.info(
         "MixColumns circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 3168
       );
     });
 
