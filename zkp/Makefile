@@ -93,7 +93,7 @@ untag:
 compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
-	circom $(DIR)/$(CIRCUIT).circom --r1cs --wasm --sym --output $(BUILD) -l node_modules --O2 --inspect
+	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm --O2 --inspect --output $(BUILD) -l node_modules
 	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
 
 witness: compile

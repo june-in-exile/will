@@ -19,11 +19,11 @@ template EncryptBlock(keyBits) {
     var (Nk, Nr);
     assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
     if (keyBits == 128) {
-        (Nk, Nr) = (4,10);
+        (Nk, Nr) = (4, 10);
     } else if (keyBits == 192) {
-        (Nk, Nr) = (6,12);
+        (Nk, Nr) = (6, 12);
     } else {
-        (Nk, Nr) = (8,14);
+        (Nk, Nr) = (8, 14);
     }
     var expandedNk = 4 * (Nr + 1);
     
@@ -51,18 +51,18 @@ template EncryptBlock(keyBits) {
     signal {byte} columnMixed[Nr - 1][16]; // No MixColumns in final round
 
     // Initial round - AddRoundKey only
-    state[0] <== AddRoundKey()(plaintext,roundKeyGroup[0]);
+    state[0] <== AddRoundKey()(plaintext, roundKeyGroup[0]);
 
     // Main rounds (1 to Nr-1): SubBytes -> ShiftRows -> MixColumns -> AddRoundKey
     for (var round = 1; round <= Nr - 1; round++) {
         byteSubstituted[round - 1] <== SubBytes()(state[round - 1]);
         rowShifted[round - 1] <== ShiftRows()(byteSubstituted[round - 1]);
         columnMixed[round - 1] <== MixColumns()(rowShifted[round - 1]);
-        state[round] <== AddRoundKey()(columnMixed[round - 1],roundKeyGroup[round]);
+        state[round] <== AddRoundKey()(columnMixed[round - 1], roundKeyGroup[round]);
     }
     
     // Final round (no MixColumns)
     byteSubstituted[Nr - 1] <== SubBytes()(state[Nr - 1]);
     rowShifted[Nr - 1] <== ShiftRows()(byteSubstituted[Nr - 1]);
-    ciphertext <== AddRoundKey()(rowShifted[Nr - 1],roundKeyGroup[Nr]);
+    ciphertext <== AddRoundKey()(rowShifted[Nr - 1], roundKeyGroup[Nr]);
 }

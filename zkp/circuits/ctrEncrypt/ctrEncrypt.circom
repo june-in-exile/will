@@ -1,9 +1,9 @@
 pragma circom 2.2.2;
 
-include "counterIncrement.circom";
-include "encryptBlock.circom";
-include "../bus.circom";
-include "../bits.circom";
+include "../shared/components/aes256ctr/counterIncrement.circom";
+include "../shared/components/aes256ctr/encryptBlock.circom";
+include "../shared/components/bus.circom";
+include "../shared/components/bits.circom";
 
 /**
  * AES CTR Mode Encryption Circuit
@@ -36,7 +36,7 @@ template CtrEncrypt(keyBits, numblocks) {
     
     // Counter state array - stores counter value for each block
     signal {byte} counters[numblocks][16];
-    counters[0] <== iv;
+    counters[0] <== iv; // Initialize with J0
     
     // Generate incremented (for last 4 bytes only) counters for each block
     for (var i = 1; i < numblocks; i++) {
@@ -51,8 +51,52 @@ template CtrEncrypt(keyBits, numblocks) {
     
     // XOR plaintext with keystream to produce ciphertext
     for (var i = 0; i < numblocks; i++) {
+        // Perform XOR operation for each byte in the block
         for (var j = 0; j < 16; j++) {
             ciphertext[i * 16 + j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
         }
     }
 }
+
+
+// Auto updated: 2025-07-18T10:25:04.505Z
+bus UntaggedWord() {
+    signal bytes[4];
+}
+
+template UntaggedCtrEncrypt(keyBits, numblocks) {
+    var Nk;
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        Nk = 4;
+    } else if (keyBits == 192) {
+        Nk = 6;
+    } else {
+        Nk = 8;
+    }
+
+    signal input plaintext[numblocks * 16];
+    input UntaggedWord() key[Nk];
+    signal input iv[16];
+    signal output {byte} ciphertext[numblocks * 16];
+
+    signal {byte} _plaintext[numblocks * 16];
+    _plaintext <== plaintext;
+    signal {byte} _iv[16];
+    _iv <== iv;
+
+    Word() _key[Nk];
+
+    for (var i = 0; i < Nk; i++) {
+        _key[i].bytes <== key[i].bytes;
+    }
+
+
+    component ctrencryptComponent = CtrEncrypt(keyBits, numblocks);
+    ctrencryptComponent.plaintext <== _plaintext;
+    ctrencryptComponent.key <== _key;
+    ctrencryptComponent.iv <== _iv;
+    ciphertext <== ctrencryptComponent.ciphertext;
+}
+
+component main = UntaggedCtrEncrypt(128, 4);

@@ -30,10 +30,10 @@ template MixColumn() {
     signal (s2_mul2, s2_mul3) <== (GF8Mul2()(in[2]), GF8Mul3()(in[2]));
     signal (s3_mul2, s3_mul3) <== (GF8Mul2()(in[3]), GF8Mul3()(in[3]));
 
-    out[0] <== BitwiseXor(4,8)([s0_mul2,s1_mul3,in[2],in[3]]);
-    out[1] <== BitwiseXor(4,8)([in[0],s1_mul2,s2_mul3,in[3]]);
-    out[2] <== BitwiseXor(4,8)([in[0],in[1],s2_mul2,s3_mul3]);
-    out[3] <== BitwiseXor(4,8)([s0_mul3,in[1],in[2],s3_mul2]);
+    out[0] <== BitwiseXor(4, 8)([s0_mul2, s1_mul3, in[2], in[3]]);
+    out[1] <== BitwiseXor(4, 8)([in[0], s1_mul2, s2_mul3, in[3]]);
+    out[2] <== BitwiseXor(4, 8)([in[0], in[1], s2_mul2, s3_mul3]);
+    out[3] <== BitwiseXor(4, 8)([s0_mul3, in[1], in[2], s3_mul2]);
 }
 
 /**
