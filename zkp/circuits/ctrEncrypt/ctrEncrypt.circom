@@ -73,53 +73,8 @@ template CtrEncrypt(keyBits, maxBlocksBits) {
             cipherBlocks[i][j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
             
             // Output XOR result for active blocks, plaintext for inactive blocks
-            ciphertext[i * 16 + j] <== Mux1()([cipherBlocks[i][j], plaintext[i * 16 + j]], selected[i]);
+            ciphertext[i * 16 + j] <== Mux1()([plaintext[i * 16 + j], cipherBlocks[i][j]], selected[i]);
+            log("ciphertext[", i * 16 + j, "]:", ciphertext[i * 16 + j]);
         }
     }
 }
-
-
-// Auto updated: 2025-07-18T00:29:12.193Z
-bus UntaggedWord() {
-    signal bytes[4];
-}
-
-template UntaggedCtrEncrypt(keyBits, maxBlocksBits) {
-    var Nk;
-    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
-    if (keyBits == 128) {
-        Nk = 4;
-    } else if (keyBits == 192) {
-        Nk = 6;
-    } else {
-        Nk = 8;
-    }
-    var maxBlocks = 2 ** maxBlocksBits;
-
-    signal input plaintext[maxBlocks * 16];
-    input UntaggedWord() key[Nk];
-    signal input j0[16];
-    signal input numBlocks;
-    signal output {byte} ciphertext[maxBlocks * 16];
-
-    signal {byte} _plaintext[maxBlocks * 16];
-    _plaintext <== plaintext;
-    signal {byte} _j0[16];
-    _j0 <== j0;
-
-    Word() _key[Nk];
-
-    for (var i = 0; i < Nk; i++) {
-        _key[i].bytes <== key[i].bytes;
-    }
-
-
-    component ctrencryptComponent = CtrEncrypt(keyBits, maxBlocksBits);
-    ctrencryptComponent.plaintext <== _plaintext;
-    ctrencryptComponent.key <== _key;
-    ctrencryptComponent.j0 <== _j0;
-    ctrencryptComponent.numBlocks <== numBlocks;
-    ciphertext <== ctrencryptComponent.ciphertext;
-}
-
-component main = UntaggedCtrEncrypt(128, 2);

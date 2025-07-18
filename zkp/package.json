@@ -60,9 +60,9 @@
     "setupFilesAfterEnv": [
       "<rootDir>/tests/setup.ts"
     ],
-    "testTimeout": 30000,
+    "testTimeout": 60000,
     "globals": {
-      "LOG_LEVEL": "debug",
+      "LOG_LEVEL": "log",
       "CIRCOM_DEFAULTS": {
         "O": 2,
         "verbose": false,

@@ -2,27 +2,22 @@
  * AES-128/192/256-GCM TypeScript Implementation (Supports Arbitrary Length IV)
  */
 
-import {
-  CipherGCM,
-  createCipheriv,
-  createDecipheriv,
-  DecipherGCM,
-} from "crypto";
+import { CipherGCM, createCipheriv, createDecipheriv, DecipherGCM } from "crypto";
 
 // Define supported AES key sizes
 export type AESKeySize = 128 | 192 | 256;
 
 // Configuration for different AES variants
 interface AESConfig {
-  keyLength: number; // Key length in bytes
-  rounds: number; // Number of rounds
+  keyLength: number;      // Key length in bytes
+  rounds: number;         // Number of rounds
   expandedKeyLength: number; // Expanded key length in bytes
 }
 
 const AES_CONFIGS: Record<AESKeySize, AESConfig> = {
   128: { keyLength: 16, rounds: 10, expandedKeyLength: 176 },
   192: { keyLength: 24, rounds: 12, expandedKeyLength: 208 },
-  256: { keyLength: 32, rounds: 14, expandedKeyLength: 240 },
+  256: { keyLength: 32, rounds: 14, expandedKeyLength: 240 }
 };
 
 class AESUtils {
@@ -90,9 +85,7 @@ class AESUtils {
         config = AES_CONFIGS[256];
         break;
       default:
-        throw new Error(
-          `Invalid key length: ${keyLength} bytes. Supported lengths: 16 (AES-128), 24 (AES-192), 32 (AES-256)`,
-        );
+        throw new Error(`Invalid key length: ${keyLength} bytes. Supported lengths: 16 (AES-128), 24 (AES-192), 32 (AES-256)`);
     }
 
     return config;
@@ -103,14 +96,10 @@ class AESUtils {
    */
   static getAESVariant(keyLength: number): string {
     switch (keyLength) {
-      case 16:
-        return "AES-128";
-      case 24:
-        return "AES-192";
-      case 32:
-        return "AES-256";
-      default:
-        throw new Error(`Unsupported key length: ${keyLength}`);
+      case 16: return "AES-128";
+      case 24: return "AES-192";
+      case 32: return "AES-256";
+      default: throw new Error(`Unsupported key length: ${keyLength}`);
     }
   }
 }
@@ -313,7 +302,7 @@ class AESKeyExpansion {
         const rconValue = Buffer.from([this.RCON[rconIndex], 0, 0, 0]);
         newWord = AESUtils.xor(substituted, rconValue);
         rconIndex++;
-      } else if (keySize === 32 && i % keySize === 16) {
+      } else if (keySize === 32 && (i % keySize === 16)) {
         // For AES-256 only: apply SubWord every 4 words after the first SubWord+RotWord
         newWord = this.subWord(prevWord);
       } else {
@@ -403,7 +392,7 @@ class GF128 {
         carry = newCarry;
       }
 
-      // If the right shift caused a carry-out (i.e., the lowest bit of the
+      // If the right shift caused a carry-out (i.e., the lowest bit of the 
       // highest-order byte was 1), we need to apply the reduction polynomial.
       //
       // In GF(2), x^128 ≡ x^7 + x^2 + x + 1  (mod f(x))
@@ -435,18 +424,18 @@ class AESGCM {
   /**
    * CTR mode encryption/decryption
    */
-  static ctrEncrypt(plaintext: Buffer, key: Buffer, j0: Buffer): Buffer {
+  static ctrEncrypt(plaintext: Buffer, key: Buffer, iv: Buffer): Buffer {
     const numBlocks = Math.ceil(plaintext.length / 16);
     const ciphertext = Buffer.alloc(plaintext.length);
 
-    const counter = Buffer.from(j0);
+    const counter = Buffer.from(iv);
 
     for (let i = 0; i < numBlocks; i++) {
-      // Increment counter (only last 4 bytes)
-      this.incrementCounter(counter);
-
       // Encrypt current counter
       const keystream = AES.encryptBlock(counter, key);
+
+      // Increment counter (only last 4 bytes)
+      this.incrementCounter(counter);
 
       // XOR with plaintext
       const blockStart = i * 16;
@@ -542,8 +531,12 @@ class AESGCM {
     // 2. Compute J0 (supports arbitrary length IV)
     const j0 = this.computeJ0(iv, hashKey);
 
+    // CTR encryption uses incremented J0
+    const incrementedJ0 = Buffer.from(j0);
+    this.incrementCounter(incrementedJ0);
+
     // 3. CTR mode encryption
-    const ciphertext = this.ctrEncrypt(plaintext, key, j0);
+    const ciphertext = this.ctrEncrypt(plaintext, key, incrementedJ0);
 
     // 4. Calculate padding v(aadPadding), u(ciphertextPadding)
     const aadPadding = (16 - (additionalData.length % 16)) % 16;
@@ -613,8 +606,12 @@ class AESGCM {
     // 3. Compute J0 (supports arbitrary length IV)
     const j0 = this.computeJ0(iv, hashKey);
 
+    // CTR encryption uses incremented J0
+    const incrementedJ0 = Buffer.from(j0);
+    this.incrementCounter(incrementedJ0);
+
     // 4. CTR mode decryption (same as encryption since XOR is symmetric)
-    const plaintext = this.ctrEncrypt(ciphertext, key, j0);
+    const plaintext = this.ctrEncrypt(ciphertext, key, incrementedJ0);
 
     // 5. Calculate padding v(aadPadding), u(ciphertextPadding)
     const aadPadding = (16 - (additionalData.length % 16)) % 16;
@@ -694,9 +691,7 @@ class AESGCMEasy {
 
     // Validate key size matches expected
     if (keyBytes.length !== config.keyLength) {
-      throw new Error(
-        `Key size mismatch: expected ${config.keyLength} bytes for ${AESUtils.getAESVariant(config.keyLength)}, got ${keyBytes.length} bytes`,
-      );
+      throw new Error(`Key size mismatch: expected ${config.keyLength} bytes for ${AESUtils.getAESVariant(config.keyLength)}, got ${keyBytes.length} bytes`);
     }
 
     const plaintextBytes = AESUtils.stringToBytes(plaintext);
@@ -776,9 +771,7 @@ class AESVerification {
    * Test ECB encryption for all AES variants
    */
   static testECBEncrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES ECB encryption verification ===",
-    );
+    console.log("\n=== Node.js crypto module AES ECB encryption verification ===");
 
     let allPassed = true;
 
@@ -787,9 +780,7 @@ class AESVerification {
     const keys = {
       128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
       192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
-      256: AESUtils.base64ToBytes(
-        "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-      ), // 32 bytes
+      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
     };
 
     for (const [keySize, key] of Object.entries(keys)) {
@@ -801,10 +792,7 @@ class AESVerification {
 
       let expectedCiphertext = cipher.update(plaintext);
       expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
-      console.log(
-        "Node.js crypto:",
-        AESUtils.bytesToBase64(expectedCiphertext),
-      );
+      console.log("Node.js crypto:", AESUtils.bytesToBase64(expectedCiphertext));
 
       const ourCiphertext = AES.encryptBlock(plaintext, key);
       const isEqual = ourCiphertext.equals(expectedCiphertext);
@@ -822,12 +810,394 @@ class AESVerification {
   }
 
   /**
+   * Test CTR mode encryption for all AES variants
+   * Verifies our CTR implementation against Node.js crypto module
+   */
+  static testCTREncrypt(): boolean {
+    console.log("\n=== Node.js crypto module AES CTR encryption verification ===");
+
+    let allPassed = true;
+
+    // Test data
+    const plaintext = AESUtils.stringToBytes("This is a test message for CTR mode encryption!");
+    const keys = {
+      128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
+      192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
+      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
+    };
+
+    // Test with different IV lengths to verify arbitrary IV support
+    const testIVs = [
+      { name: "Standard 16-byte", iv: AESUtils.randomBytes(16) },
+      { name: "GCM standard 12-byte", iv: AESUtils.randomBytes(12) },
+      { name: "Custom 8-byte", iv: AESUtils.randomBytes(8) },
+    ];
+
+    for (const [keySize, key] of Object.entries(keys)) {
+      console.log(`\n--- AES-${keySize}-CTR ---`);
+
+      for (const { name, iv } of testIVs) {
+        console.log(`\n  Testing with ${name} IV:`);
+
+        // Create initial counter (IV + counter initialization)
+        const counter = Buffer.alloc(16);
+        if (iv.length <= 16) {
+          iv.copy(counter, 0);
+        } else {
+          // If IV is longer than 16 bytes, take first 16 bytes
+          iv.subarray(0, 16).copy(counter, 0);
+        }
+
+        try {
+          // Node.js crypto CTR encryption
+          const cipherName = `aes-${keySize}-ctr`;
+          const cipher = createCipheriv(cipherName, key, counter);
+
+          let expectedCiphertext = cipher.update(plaintext);
+          expectedCiphertext = Buffer.concat([expectedCiphertext, cipher.final()]);
+
+          console.log("    Node.js crypto:", AESUtils.bytesToBase64(expectedCiphertext));
+
+          // Our CTR implementation
+          const ourCiphertext = AESGCM.ctrEncrypt(plaintext, key, counter);
+          const isEqual = ourCiphertext.equals(expectedCiphertext);
+
+          console.log(
+            "    Our implementation:",
+            AESUtils.bytesToBase64(ourCiphertext),
+            isEqual ? "✅" : "❌",
+          );
+
+          allPassed = allPassed && isEqual;
+
+        } catch (error) {
+          console.log(`    Error testing ${keySize}-CTR with ${name} IV:`, String(error), "❌");
+          allPassed = false;
+        }
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test CTR mode decryption (should be identical to encryption due to XOR property)
+   * Verifies that CTR decryption produces original plaintext
+   */
+  static testCTRDecrypt(): boolean {
+    console.log("\n=== AES CTR decryption verification ===");
+
+    let allPassed = true;
+    const originalMessage = "CTR mode decryption test message with various lengths!";
+    const plaintextBytes = AESUtils.stringToBytes(originalMessage);
+
+    const keys = {
+      128: AESUtils.randomBytes(16),
+      192: AESUtils.randomBytes(24),
+      256: AESUtils.randomBytes(32),
+    };
+
+    for (const [keySize, key] of Object.entries(keys)) {
+      console.log(`\n--- AES-${keySize}-CTR Decryption ---`);
+
+      const iv = AESUtils.randomBytes(12); // Use GCM standard IV length
+
+      // Create counter from IV (GCM style)
+      const j0 = Buffer.alloc(16);
+      iv.copy(j0, 0);
+      j0.writeUInt32BE(1, 12); // Set counter to 1
+
+      // Create incremented counter for encryption
+      const encryptionCounter = Buffer.from(j0);
+      AESGCM.incrementCounter(encryptionCounter);
+
+      try {
+        // Encrypt with our implementation
+        const ciphertext = AESGCM.ctrEncrypt(plaintextBytes, key, encryptionCounter);
+        console.log("  Encryption successful ✅");
+
+        // Decrypt by encrypting the ciphertext again (CTR property: E(E(P)) = P)
+        const decryptionCounter = Buffer.from(j0);
+        AESGCM.incrementCounter(decryptionCounter);
+        const decryptedBytes = AESGCM.ctrEncrypt(ciphertext, key, decryptionCounter);
+
+        const decryptedMessage = AESUtils.bytesToString(decryptedBytes);
+        const success = decryptedMessage === originalMessage;
+
+        console.log("  Original:", originalMessage);
+        console.log("  Decrypted:", decryptedMessage);
+        console.log("  Decryption successful:", success ? "✅" : "❌");
+
+        allPassed = allPassed && success;
+
+      } catch (error) {
+        console.log(`  AES-${keySize}-CTR decryption failed:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test CTR mode with different block sizes and edge cases
+   * Verifies handling of partial blocks and various message lengths
+   */
+  static testCTREdgeCases(): boolean {
+    console.log("\n=== AES CTR edge cases and block size testing ===");
+
+    let allPassed = true;
+    const key = AESUtils.randomBytes(32); // Use AES-256 for testing
+
+    // Test messages of various lengths
+    const testMessages = [
+      { name: "Empty message", message: "" },
+      { name: "Single byte", message: "A" },
+      { name: "15 bytes (< block)", message: "123456789012345" },
+      { name: "16 bytes (= block)", message: "1234567890123456" },
+      { name: "17 bytes (> block)", message: "12345678901234567" },
+      { name: "32 bytes (2 blocks)", message: "12345678901234567890123456789012" },
+      { name: "33 bytes (2+ blocks)", message: "123456789012345678901234567890123" },
+    ];
+
+    for (const { name, message } of testMessages) {
+      console.log(`\n  Testing ${name}:`);
+
+      const plaintextBytes = AESUtils.stringToBytes(message);
+      const iv = AESUtils.randomBytes(16);
+
+      try {
+        // Our CTR encryption
+        const ciphertext = AESGCM.ctrEncrypt(plaintextBytes, key, iv);
+
+        // Verify decryption (encrypt ciphertext again)
+        const decryptedBytes = AESGCM.ctrEncrypt(ciphertext, key, iv);
+        const decryptedMessage = AESUtils.bytesToString(decryptedBytes);
+
+        const success = decryptedMessage === message;
+        console.log("    Length:", plaintextBytes.length, "bytes");
+        console.log("    Round trip successful:", success ? "✅" : "❌");
+
+        if (!success) {
+          console.log("    Original:", message);
+          console.log("    Decrypted:", decryptedMessage);
+        }
+
+        allPassed = allPassed && success;
+
+      } catch (error) {
+        console.log(`    Error with ${name}:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test CTR counter increment functionality
+   * Verifies that counter increments correctly for sequential blocks
+   */
+  static testCTRCounterIncrement(): boolean {
+    console.log("\n=== AES CTR counter increment testing ===");
+
+    let allPassed = true;
+
+    // Test counter increment with various initial values
+    const testCounters = [
+      { name: "Zero counter", initial: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) },
+      { name: "Counter with 1", initial: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]) },
+      { name: "Max low byte", initial: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255]) },
+      { name: "Overflow test", initial: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 255, 255]) },
+    ];
+
+    for (const { name, initial } of testCounters) {
+      console.log(`\n  Testing ${name}:`);
+
+      const counter = Buffer.from(initial);
+      const originalValue = counter.readUInt32BE(12);
+
+      console.log("    Before increment:", AESUtils.bytesToHex(counter));
+
+      // Test multiple increments
+      for (let i = 1; i <= 3; i++) {
+        AESGCM.incrementCounter(counter);
+        const newValue = counter.readUInt32BE(12);
+        const expectedValue = (originalValue + i) & 0xffffffff;
+        const success = newValue === expectedValue;
+
+        console.log(`    After increment ${i}:`, AESUtils.bytesToHex(counter), success ? "✅" : "❌");
+
+        if (!success) {
+          console.log(`      Expected: ${expectedValue.toString(16).padStart(8, '0')}, Got: ${newValue.toString(16).padStart(8, '0')}`);
+        }
+
+        allPassed = allPassed && success;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Performance test for CTR mode with large data
+   * Tests encryption of larger data sets to verify performance
+   */
+  static testCTRPerformance(): boolean {
+    console.log("\n=== AES CTR performance testing ===");
+
+    let allPassed = true;
+    const key = AESUtils.randomBytes(32); // AES-256
+    const iv = AESUtils.randomBytes(16);
+
+    // Test with different data sizes
+    const dataSizes = [1024, 4096, 16384]; // 1KB, 4KB, 16KB
+
+    for (const size of dataSizes) {
+      console.log(`\n  Testing ${size} bytes:`);
+
+      // Generate test data
+      const testData = AESUtils.randomBytes(size);
+
+      try {
+        const startTime = Date.now();
+
+        // Encrypt
+        const ciphertext = AESGCM.ctrEncrypt(testData, key, iv);
+
+        const encryptTime = Date.now() - startTime;
+        console.log(`    Encryption time: ${encryptTime}ms`);
+
+        // Verify by decrypting
+        const decryptStart = Date.now();
+        const decrypted = AESGCM.ctrEncrypt(ciphertext, key, iv);
+        const decryptTime = Date.now() - decryptStart;
+
+        console.log(`    Decryption time: ${decryptTime}ms`);
+
+        const success = decrypted.equals(testData);
+        console.log("    Data integrity:", success ? "✅" : "❌");
+
+        // Basic performance check (should complete in reasonable time)
+        const totalTime = encryptTime + decryptTime;
+        const performanceOK = totalTime < 1000; // Should complete within 1 second
+        console.log("    Performance:", performanceOK ? "✅" : "❌", `(${totalTime}ms total)`);
+
+        allPassed = allPassed && success && performanceOK;
+
+      } catch (error) {
+        console.log(`    Error with ${size} bytes:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test CTR mode compatibility with GCM J0 computation
+   * Verifies that CTR mode works correctly with GCM-style counter initialization
+   */
+  static testCTRGCMCompatibility(): boolean {
+    console.log("\n=== AES CTR compatibility with GCM J0 computation ===");
+
+    let allPassed = true;
+    const key = AESUtils.randomBytes(32);
+    const plaintext = AESUtils.stringToBytes("GCM compatibility test message");
+
+    // Test with different IV lengths (as used in GCM)
+    const testIVs = [
+      { name: "12-byte IV (GCM standard)", length: 12 },
+      { name: "16-byte IV", length: 16 },
+      { name: "8-byte IV", length: 8 },
+      { name: "20-byte IV (non-standard)", length: 20 },
+    ];
+
+    for (const { name, length } of testIVs) {
+      console.log(`\n  Testing ${name}:`);
+
+      const iv = AESUtils.randomBytes(length);
+
+      try {
+        // Compute J0 using GCM method
+        const zeroBlock = Buffer.alloc(16);
+        const hashKey = AES.encryptBlock(zeroBlock, key);
+        const j0 = AESGCM.computeJ0(iv, hashKey);
+
+        console.log("    J0 computed:", AESUtils.bytesToHex(j0));
+
+        // Use J0 for CTR encryption (with increment as per GCM spec)
+        const ctrCounter = Buffer.from(j0);
+        AESGCM.incrementCounter(ctrCounter);
+
+        const ciphertext = AESGCM.ctrEncrypt(plaintext, key, ctrCounter);
+
+        // Verify decryption
+        const decryptCounter = Buffer.from(j0);
+        AESGCM.incrementCounter(decryptCounter);
+        const decrypted = AESGCM.ctrEncrypt(ciphertext, key, decryptCounter);
+
+        const decryptedText = AESUtils.bytesToString(decrypted);
+        const success = decryptedText === AESUtils.bytesToString(plaintext);
+
+        console.log("    Original:", AESUtils.bytesToString(plaintext));
+        console.log("    Decrypted:", decryptedText);
+        console.log("    Compatibility test:", success ? "✅" : "❌");
+
+        allPassed = allPassed && success;
+
+      } catch (error) {
+        console.log(`    Error with ${name}:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Run all CTR mode tests
+   * Comprehensive testing suite for CTR mode functionality
+   */
+  static runAllCTRTests(): boolean {
+    console.log("🧪 Starting AES CTR mode verification...\n");
+
+    const ctrEncryptPassed = this.testCTREncrypt();
+    const ctrDecryptPassed = this.testCTRDecrypt();
+    const ctrEdgeCasesPassed = this.testCTREdgeCases();
+    const ctrCounterPassed = this.testCTRCounterIncrement();
+    const ctrPerformancePassed = this.testCTRPerformance();
+    const ctrGCMCompatPassed = this.testCTRGCMCompatibility();
+
+    console.log("\n📊 CTR Mode Test Summary:");
+    console.log("CTR encryption:", ctrEncryptPassed ? "✅" : "❌");
+    console.log("CTR decryption:", ctrDecryptPassed ? "✅" : "❌");
+    console.log("CTR edge cases:", ctrEdgeCasesPassed ? "✅" : "❌");
+    console.log("Counter increment:", ctrCounterPassed ? "✅" : "❌");
+    console.log("Performance tests:", ctrPerformancePassed ? "✅" : "❌");
+    console.log("GCM compatibility:", ctrGCMCompatPassed ? "✅" : "❌");
+
+    const allPassed =
+      ctrEncryptPassed &&
+      ctrDecryptPassed &&
+      ctrEdgeCasesPassed &&
+      ctrCounterPassed &&
+      ctrPerformancePassed &&
+      ctrGCMCompatPassed;
+
+    console.log(
+      "CTR Mode Overall:",
+      allPassed ? "🎉 All CTR tests passed!" : "⚠️  CTR issues need debugging",
+    );
+
+    return allPassed;
+  }
+
+  /**
    * Test GCM encryption for all AES variants
    */
   static testGCMEncrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES GCM encryption verification ===",
-    );
+    console.log("\n=== Node.js crypto module AES GCM encryption verification ===");
 
     let allPassed = true;
 
@@ -837,9 +1207,7 @@ class AESVerification {
     const keys = {
       128: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ=="), // 16 bytes
       192: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"), // 24 bytes
-      256: AESUtils.base64ToBytes(
-        "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-      ), // 32 bytes
+      256: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o="), // 32 bytes
     };
 
     for (const [keySize, key] of Object.entries(keys)) {
@@ -883,9 +1251,7 @@ class AESVerification {
    * Test GCM decryption for all AES variants
    */
   static testGCMDecrypt(): boolean {
-    console.log(
-      "\n=== Node.js crypto module AES GCM decryption verification ===",
-    );
+    console.log("\n=== Node.js crypto module AES GCM decryption verification ===");
 
     let allPassed = true;
 
@@ -896,16 +1262,8 @@ class AESVerification {
 
     const keys = [
       { size: 128, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFQ==") },
-      {
-        size: 192,
-        key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT"),
-      },
-      {
-        size: 256,
-        key: AESUtils.base64ToBytes(
-          "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=",
-        ),
-      },
+      { size: 192, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XT") },
+      { size: 256, key: AESUtils.base64ToBytes("qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=") },
     ];
 
     for (const { size, key } of keys) {
@@ -990,12 +1348,7 @@ class AESVerification {
         allPassed = allPassed && success;
 
         // Test 2: Easy interface
-        const easyEncrypted = AESGCMEasy.encrypt(
-          originalText,
-          undefined,
-          undefined,
-          keySize,
-        );
+        const easyEncrypted = AESGCMEasy.encrypt(originalText, undefined, undefined, keySize);
         console.log(`  Easy ${easyEncrypted.variant} encryption successful ✅`);
 
         const easyDecrypted = AESGCMEasy.decryptResult(easyEncrypted);
@@ -1004,6 +1357,7 @@ class AESVerification {
         console.log("  Easy round trip successful:", easySuccess ? "✅" : "❌");
 
         allPassed = allPassed && easySuccess;
+
       } catch (error) {
         console.log(`  AES-${keySize} failed:`, String(error), "❌");
         allPassed = false;
@@ -1067,27 +1421,34 @@ class AESVerification {
    * Run all verification tests
    */
   static runAllTests(): boolean {
-    console.log("🧪 Starting AES multi-variant verification...\n");
+    console.log("🧪 Starting comprehensive AES verification with CTR mode...\n");
 
-    const ecbPassed = this.testECBEncrypt();
-    const gcmEncryptPassed = this.testGCMEncrypt();
-    const gcmDecryptPassed = this.testGCMDecrypt();
-    const roundTripPassed = this.testGCMRoundTrip();
-    const authFailPassed = this.testAuthenticationFailure();
+    // Original tests
+    const ecbPassed = AESVerification.testECBEncrypt();
+    const gcmEncryptPassed = AESVerification.testGCMEncrypt();
+    const gcmDecryptPassed = AESVerification.testGCMDecrypt();
+    const roundTripPassed = AESVerification.testGCMRoundTrip();
+    const authFailPassed = AESVerification.testAuthenticationFailure();
 
-    console.log("\n📊 Test summary:");
+    // New CTR mode tests
+    const ctrPassed = this.runAllCTRTests();
+
+    console.log("\n📊 Complete Test Summary:");
     console.log("ECB mode encryption:", ecbPassed ? "✅" : "❌");
     console.log("GCM mode encryption:", gcmEncryptPassed ? "✅" : "❌");
     console.log("GCM mode decryption:", gcmDecryptPassed ? "✅" : "❌");
     console.log("Round trip tests:", roundTripPassed ? "✅" : "❌");
     console.log("Authentication tests:", authFailPassed ? "✅" : "❌");
+    console.log("CTR mode tests:", ctrPassed ? "✅" : "❌");
 
     const allPassed =
       ecbPassed &&
       gcmEncryptPassed &&
       gcmDecryptPassed &&
       roundTripPassed &&
-      authFailPassed;
+      authFailPassed &&
+      ctrPassed;
+
     console.log(
       "Overall status:",
       allPassed ? "🎉 All tests passed!" : "⚠️  Issues need debugging",
@@ -1097,7 +1458,7 @@ class AESVerification {
   }
 }
 
-if (require.main === module) {
+if (typeof process !== 'undefined' && process.argv?.[1] && (process.argv[1].endsWith('aes-gcm.ts'))) {
   AESVerification.runAllTests();
 }
 

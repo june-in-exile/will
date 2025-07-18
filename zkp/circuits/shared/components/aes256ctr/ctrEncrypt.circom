@@ -74,7 +74,7 @@ template CtrEncrypt(keyBits, maxBlocksBits) {
             cipherBlocks[i][j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
             
             // Output XOR result for active blocks, plaintext for inactive blocks
-            ciphertext[i * 16 + j] <== Mux1()([cipherBlocks[i][j], plaintext[i * 16 + j]], selected[i]);
+            ciphertext[i * 16 + j] <== Mux1()([plaintext[i * 16 + j], cipherBlocks[i][j]], selected[i]);
         }
     }
 }
