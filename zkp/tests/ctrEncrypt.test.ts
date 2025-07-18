@@ -3,7 +3,7 @@ import { ctrEncrypt } from "./helpers";
 
 describe("CtrEncrypt Circuits", function () {
   let circuit: WitnessTester<
-    ["plaintext", "key", "j0", "numBlocks"],
+    ["plaintext", "key", "iv"],
     ["ciphertext"]
   >;
 
@@ -13,7 +13,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CtrEncrypt",
         {
-          templateParams: ["128", "2"],
+          templateParams: ["128", "4"],
         },
       );
       console.info(
@@ -22,96 +22,7 @@ describe("CtrEncrypt Circuits", function () {
       );
     });
 
-    it("should correctly encrypt single block with zero plaintext", async function (): Promise<void> {
-      const plaintext = new Array(64).fill(0x00) as Byte[];
-      const key = [
-        { bytes: [0x2b, 0x7e, 0x15, 0x16] },
-        { bytes: [0x28, 0xae, 0xd2, 0xa6] },
-        { bytes: [0xab, 0xf7, 0x15, 0x88] },
-        { bytes: [0x09, 0xcf, 0x4f, 0x3c] },
-      ] as Word[];
-      const j0 = [
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
-        0x00, 0x00, 0x00, 0x01,
-      ] as Byte16;
-      const numBlocks = 1;
-
-      circuit.expectPass(
-        { plaintext, key: wordToByte(key) as number[], j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
-      );
-    });
-
-    it("should correctly handle multiple blocks", async function (): Promise<void> {
-      const plaintext = [
-        // Block 1
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
-        0x76, 0x54, 0x32, 0x10,
-        // Block 2
-        0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc,
-        0xdd, 0xee, 0xff, 0x00,
-        // Blocks 3-4 - should remain as plaintext
-        ...Array.from({ length: 32 }, (_, i) => i % 256),
-      ] as Byte[];
-      const key = [
-        { bytes: [0x00, 0x01, 0x02, 0x03] },
-        { bytes: [0x04, 0x05, 0x06, 0x07] },
-        { bytes: [0x08, 0x09, 0x0a, 0x0b] },
-        { bytes: [0x0c, 0x0d, 0x0e, 0x0f] },
-      ] as Word[];
-      const j0 = [
-        0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 0x11, 0x22, 0x33, 0x44,
-        0x00, 0x00, 0x00, 0x01,
-      ] as Byte16;
-      const numBlocks = 2;
-
-      circuit.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
-      );
-    });
-
-    it("should handle partial block processing", async function (): Promise<void> {
-      const plaintext = [
-        // Block 1 - will be processed
-        0xaa,
-        0xbb,
-        0xcc,
-        0xdd,
-        0xee,
-        0xff,
-        0x00,
-        0x11,
-        0x22,
-        0x33,
-        0x44,
-        0x55,
-        0x66,
-        0x77,
-        0x88,
-        0x99,
-        // Blocks 2-4 - should remain as plaintext
-        ...Array.from({ length: 48 }, (_, i) => i % 256),
-      ] as Byte[];
-      const key = [
-        { bytes: [0x12, 0x34, 0x56, 0x78] },
-        { bytes: [0x9a, 0xbc, 0xde, 0xf0] },
-        { bytes: [0x13, 0x57, 0x9b, 0xdf] },
-        { bytes: [0x02, 0x46, 0x8a, 0xce] },
-      ] as Word[];
-      const j0 = [
-        0xa1, 0xb2, 0xc3, 0xd4, 0xe5, 0xf6, 0x07, 0x18, 0x29, 0x3a, 0x4b, 0x5c,
-        0x00, 0x00, 0x00, 0x05,
-      ] as Byte16;
-      const numBlocks = 1;
-
-      circuit.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
-      );
-    });
-
-    it.only("should work with GCM standard test vectors", async function (): Promise<void> {
+    it("should work with GCM standard test vectors", async function (): Promise<void> {
       // NIST SP 800-38A F.5.1 CTR-AES128.Encrypt Block #1-#4
       const plaintext = [
         0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11,
@@ -127,39 +38,22 @@ describe("CtrEncrypt Circuits", function () {
         { bytes: [0xab, 0xf7, 0x15, 0x88] },
         { bytes: [0x09, 0xcf, 0x4f, 0x3c] },
       ] as Word[];
-      const j0 = [
+      const iv = [
         0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb,
         0xfc, 0xfd, 0xfe, 0xff,
       ] as Byte16;
-      const numBlocks = 4;
 
-      // const ciphertext = [
-      //   0x87, 0x4d, 0x61, 0x91, 0xb6, 0x20, 0xe3, 0x26, 0x1b, 0xef, 0x68, 0x64,
-      //   0x99, 0x0d, 0xb6, 0xce, 0x98, 0x06, 0xf6, 0x6b, 0x79, 0x70, 0xfd, 0xff,
-      //   0x86, 0x17, 0x18, 0x7b, 0xb9, 0xff, 0xfd, 0xff, 0x5a, 0xe4, 0xdf, 0x3e,
-      //   0xdb, 0xd5, 0xd3, 0x5e, 0x5b, 0x4f, 0x09, 0x02, 0x0d, 0xb0, 0x3e, 0xab,
-      //   0x1e, 0x03, 0x1d, 0xda, 0x2f, 0xbe, 0x03, 0xd1, 0x79, 0x21, 0x70, 0xa0,
-      //   0xf3, 0x00, 0x9c, 0xee,
-      // ];
-
-      // const ciphertext = [0xd, 0x6d, 0xab, 0xe3, 0x47, 0xcb, 0xae, 0x81, 0x27, 0x55, 0x1f, 0x7d, 0xab, 0x4b, 0xd1, 0x66, 0xb1, 0xf9, 0x45, 0xe7, 0xe9, 0x9b, 0xff, 0x4a, 0xf6, 0x2a, 0x7f, 0x4f, 0x78, 0xbf, 0x6d, 0x50, 0xc1, 0x2a, 0xf5, 0x00, 0xed, 0x41, 0xff, 0x6a, 0xda, 0x8c, 0x49, 0x7a, 0xd2, 0x4a, 0xfd, 0x29, 0x93, 0xfb, 0x75, 0x42, 0x48, 0x9b, 0x01, 0x30, 0x1e, 0x47, 0x6f, 0x56, 0x18, 0xc2, 0x2e, 0x3e, 0x0]
-      const ciphertext = await circuit.compute(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        ['ciphertext'],
-      );
-      // ciphertext: [
-      //   93n, 234n, 194n, 222n, 73n, 51n, 206n, 245n,
-      //   241n, 157n, 9n, 198n, 143n, 195n, 100n, 132n,
-      //   196n, 1n, 73n, 47n, 102n, 138n, 155n, 211n,
-      //   32n, 3n, 167n, 183n, 82n, 21n, 226n, 21n,
-      //   216n, 84n, 37n, 217n, 83n, 173n, 124n, 215n,
-      //   49n, 241n, 240n, 194n, 15n, 102n, 249n, 17n,
-      //   70n, 146n, 99n, 189n, 203n, 197n, 10n, 25n,
-      //   93n, 67n, 113n, 236n, 118n, 39n, 146n, 18n
-      // ]
+      const ciphertext = [
+        0x87, 0x4d, 0x61, 0x91, 0xb6, 0x20, 0xe3, 0x26, 0x1b, 0xef, 0x68, 0x64,
+        0x99, 0x0d, 0xb6, 0xce, 0x98, 0x06, 0xf6, 0x6b, 0x79, 0x70, 0xfd, 0xff,
+        0x86, 0x17, 0x18, 0x7b, 0xb9, 0xff, 0xfd, 0xff, 0x5a, 0xe4, 0xdf, 0x3e,
+        0xdb, 0xd5, 0xd3, 0x5e, 0x5b, 0x4f, 0x09, 0x02, 0x0d, 0xb0, 0x3e, 0xab,
+        0x1e, 0x03, 0x1d, 0xda, 0x2f, 0xbe, 0x03, 0xd1, 0x79, 0x21, 0x70, 0xa0,
+        0xf3, 0x00, 0x9c, 0xee,
+      ];
 
       await circuit.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
+        { plaintext, key: wordToByte(key), iv },
         { ciphertext },
       );
     });
@@ -173,7 +67,7 @@ describe("CtrEncrypt Circuits", function () {
         { bytes: [0x01, 0x01, 0x01, 0x01] },
       ] as Word[];
       // Start with near-maximum counter
-      const j0 = [
+      const iv = [
         0xff,
         0xff,
         0xff,
@@ -191,11 +85,10 @@ describe("CtrEncrypt Circuits", function () {
         0xff,
         0xfd, // Counter = 0xfffffffd
       ] as Byte16;
-      const numBlocks = 4;
 
       await circuit.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
+        { plaintext, key: wordToByte(key), iv },
+        { ciphertext: ctrEncrypt(plaintext, key, iv) },
       );
     });
   });
@@ -206,7 +99,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CtrEncrypt",
         {
-          templateParams: ["192", "1"],
+          templateParams: ["192", "2"],
         },
       );
       const plaintext = new Array(32).fill(0x33) as Byte[];
@@ -218,13 +111,11 @@ describe("CtrEncrypt Circuits", function () {
         { bytes: [0x99, 0xaa, 0xbb, 0xcc] },
         { bytes: [0xdd, 0xee, 0xff, 0x00] },
       ] as Word[];
-      const j0 = Array.from({ length: 16 }, (_, i) => (i + 1) % 256) as Byte16;
-
-      const numBlocks = 2;
+      const iv = Array.from({ length: 16 }, (_, i) => (i + 1) % 256) as Byte16;
 
       await circuit192.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
+        { plaintext, key: wordToByte(key), iv },
+        { ciphertext: ctrEncrypt(plaintext, key, iv) },
       );
     });
 
@@ -233,7 +124,7 @@ describe("CtrEncrypt Circuits", function () {
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
         "CtrEncrypt",
         {
-          templateParams: ["256", "1"],
+          templateParams: ["256", "2"],
         },
       );
 
@@ -248,15 +139,14 @@ describe("CtrEncrypt Circuits", function () {
         { bytes: [0x77, 0x66, 0x55, 0x44] },
         { bytes: [0x33, 0x22, 0x11, 0x00] },
       ] as Word[];
-      const j0 = [
+      const iv = [
         0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b,
         0x00, 0x00, 0x00, 0x10,
       ] as Byte16;
-      const numBlocks = 2;
 
       await circuit256.expectPass(
-        { plaintext, key: wordToByte(key), j0, numBlocks },
-        { ciphertext: ctrEncrypt(plaintext, key, j0, numBlocks) },
+        { plaintext, key: wordToByte(key), iv },
+        { ciphertext: ctrEncrypt(plaintext, key, iv) },
       );
     });
   });

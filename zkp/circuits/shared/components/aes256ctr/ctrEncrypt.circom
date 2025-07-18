@@ -1,7 +1,5 @@
 pragma circom 2.2.2;
 
-include "circomlib/circuits/comparators.circom";
-include "circomlib/circuits/mux1.circom";
 include "counterIncrement.circom";
 include "encryptBlock.circom";
 include "../bus.circom";
@@ -18,9 +16,9 @@ include "../bits.circom";
  * 3. XORing the result with plaintext
  * 
  * @param keyBits - AES key size in bits (128, 192, or 256)
- * @param maxBlocksBits - Log2 of maximum number of blocks (e.g., 3 for 8 blocks, 4 for 16 blocks)
+ * @param numblocks - number of blocks to process
  */
-template CtrEncrypt(keyBits, maxBlocksBits) {
+template CtrEncrypt(keyBits, numblocks) {
     var Nk;
     assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
     if (keyBits == 128) {
@@ -30,51 +28,35 @@ template CtrEncrypt(keyBits, maxBlocksBits) {
     } else {
         Nk = 8;
     }
-
-    var maxBlocks = 2 ** maxBlocksBits;
     
-    signal input {byte} plaintext[maxBlocks * 16]; // Plaintext data in bytes
+    signal input {byte} plaintext[numblocks * 16]; // Plaintext data in bytes
     input Word() key[Nk]; // AES key using Word bus structure
-    signal input {byte} j0[16]; // Initial counter value (J0) from GCM
-    signal input numBlocks; // Actual number of blocks to process
-    signal output {byte} ciphertext[maxBlocks * 16]; // Encrypted output
-    
-    // Validate that numBlocks is within circuit capacity
-    _ <== Num2Bits(maxBlocks)(numBlocks + 1);
+    signal input {byte} iv[16]; // Initial counter value
+    signal output {byte} ciphertext[numblocks * 16]; // Encrypted output
     
     // Counter state array - stores counter value for each block
-    signal {byte} counters[maxBlocks + 1][16];
-    counters[0] <== j0; // Initialize with J0
+    signal {byte} counters[numblocks][16];
+    counters[0] <== iv; // Initialize with J0
     
     // Generate incremented counters for each block
     // In GCM, only the last 4 bytes of the counter are incremented
-    component counterIncrements[maxBlocks];
-    for (var i = 0; i < maxBlocks; i++) {
-        counters[i + 1] <== IncrementCounter()(counters[i]);
+    for (var i = 1; i < numblocks; i++) {
+        counters[i] <== IncrementCounter()(counters[i - 1]);
     }
     
     // AES encryption components - one per block
-    signal {byte} keystreams[maxBlocks][16];
+    signal {byte} keystreams[numblocks][16];
     
     // Encrypt each counter to generate keystream
-    for (var i = 0; i < maxBlocks; i++) {
-        keystreams[i] <== EncryptBlock(keyBits)(counters[i + 1], key);
+    for (var i = 0; i < numblocks; i++) {
+        keystreams[i] <== EncryptBlock(keyBits)(counters[i], key);
     }
     
     // XOR plaintext with keystream to produce ciphertext
-    signal selected[maxBlocks];
-    signal cipherBlocks[maxBlocks][16];
-    
-    for (var i = 0; i < maxBlocks; i++) {
-        // Determine if this block should be processed based on numBlocks
-        selected[i] <== LessThan(maxBlocksBits)([i, numBlocks]);
-        
+    for (var i = 0; i < numblocks; i++) {
         // Perform XOR operation for each byte in the block
         for (var j = 0; j < 16; j++) {
-            cipherBlocks[i][j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
-            
-            // Output XOR result for active blocks, plaintext for inactive blocks
-            ciphertext[i * 16 + j] <== Mux1()([plaintext[i * 16 + j], cipherBlocks[i][j]], selected[i]);
+            ciphertext[i * 16 + j] <== BitwiseXor(2, 8)([plaintext[i * 16 + j], keystreams[i][j]]);
         }
     }
 }
