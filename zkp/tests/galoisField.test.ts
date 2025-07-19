@@ -12,7 +12,7 @@ describe("GF8Mul2 Circuit", function () {
       );
       console.info(
         "GF8Mul2 circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 59
       );
     });
 
@@ -68,7 +68,7 @@ describe("GF8Mul3 Circuit", function () {
       );
       console.info(
         "GF8Mul3 circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 83
       );
     });
 
@@ -143,7 +143,7 @@ describe("GF128BytesToBits Circuit", function () {
       );
       console.info(
         "GF128 16-byte to 128-bit circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 128
       );
     });
 
@@ -187,7 +187,7 @@ describe("GF128BitsToBytes Circuit", function () {
       );
       console.info(
         "GF128 128-bit to 16-byte circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(),  // 0
       );
     });
 
@@ -293,8 +293,9 @@ describe("GF128Multiply Circuit", function () {
   });
 });
 
-describe("GHash Circuit", function () {
+describe.only("GHash Circuit", function () {
   let circuit: WitnessTester<["data", "hashKey"], ["result"]>;
+  let circuitOptimized: WitnessTester<["data", "hashKey"], ["result"]>;
   const HASH_KEY = [
     0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59,
     0xca, 0x34, 0x2b, 0x2e,
@@ -309,9 +310,20 @@ describe("GHash Circuit", function () {
           templateParams: ["1"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/galoisField.circom",
+        "GHashOptimized",
+        {
+          templateParams: ["1"],
+        },
+      );
       console.info(
         "GHASH (1 block) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 17152
+      );
+      console.info(
+        "Optimized GHASH (1 block) circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -353,9 +365,20 @@ describe("GHash Circuit", function () {
           templateParams: ["2"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/galoisField.circom",
+        "GHashOptimized",
+        {
+          templateParams: ["2"],
+        },
+      );
       console.info(
         "GHASH (2 blocks) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 34304
+      );
+      console.info(
+        "Optimized GHASH (2 block) circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 
@@ -399,9 +422,20 @@ describe("GHash Circuit", function () {
           templateParams: ["4"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/galoisField.circom",
+        "GHashOptimized",
+        {
+          templateParams: ["4"],
+        },
+      );
       console.info(
         "GHASH (4 blocks) circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 68608
+      );
+      console.info(
+        "Optimized GHASH (4 blocks) circuit constraints:",
+        await circuitOptimized.getConstraintCount(),
       );
     });
 

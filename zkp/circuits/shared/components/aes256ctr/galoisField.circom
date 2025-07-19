@@ -335,18 +335,45 @@ template GHash(numBlocks) {
     }
     
     // Process each 16-byte block
-    component gf128Multiply[numBlocks];
     signal {byte} xorResult[numBlocks][16];
     for (var block = 0; block < numBlocks; block++) {
         // XOR current result with data block
         for (var i = 0; i < 16; i++) {
-            xorResult[block][i] <== BitwiseXor(2,8)([intermediateResults[block][i],data[block * 16 + i]]);
+            xorResult[block][i] <== BitwiseXor(2, 8)([intermediateResults[block][i], data[block * 16 + i]]);
         }
         
         // Multiply by hashKey in GF(2^128)
-        intermediateResults[block + 1] <== GF128MultiplyOptimized()(xorResult[block],hashKey);
+        intermediateResults[block + 1] <== GF128MultiplyOptimized()(xorResult[block], hashKey);
     }
     
     // Output final result
     result <== intermediateResults[numBlocks];
+}
+
+
+template GHashOptimized(numBlocks) {
+    signal input {byte} data[numBlocks * 16];
+    signal input {byte} hashKey[16];
+    signal output {byte} result[16];
+    
+    // Intermediate results for each block
+    signal {byte} intermediateResults[numBlocks][16];
+    
+    // Process each 16-byte block
+    signal {byte} xorResult[numBlocks][16];
+    for (var block = 0; block < numBlocks; block++) {
+        // XOR current result with data block
+        for (var i = 0; i < 16; i++) {
+            if (block == 0) {
+                xorResult[0][i] <== data[i];
+            } else {
+                xorResult[block][i] <== BitwiseXor(2, 8)([intermediateResults[block - 1][i], data[block * 16 + i]]);
+            }
+        }
+        // Multiply by hashKey in GF(2^128)
+        intermediateResults[block] <== GF128MultiplyOptimized()(xorResult[block], hashKey);
+    }
+    
+    // Output final result
+    result <== intermediateResults[numBlocks - 1];
 }
