@@ -161,6 +161,67 @@ template ByteAdder() {
 }
 
 /**
+ * Bit Array Mapping:
+ * - bits[0] = x^0 coefficient → bytes[0] bit 7
+ * - bits[1] = x^1 coefficient → bytes[0] bit 6
+ * - ...
+ * - bits[7] = x^7 coefficient → bytes[0] bit 0
+ * - bits[8] = x^8 coefficient → bytes[1] bit 7
+ * - ...
+ * - bits[127] = x^127 coefficient → bytes[15] bit 0
+ * 
+ * Example:
+ * - Input bytes[0] = 0x80 (10000000₂) → bits[0-7] = [1,0,0,0,0,0,0,0]
+ * - Input bytes[0] = 0x01 (00000001₂) → bits[0-7] = [0,0,0,0,0,0,0,1]
+ */
+template Byte16ToBit128() {
+    signal input {byte} bytes[16];
+    signal output {bit} bits[128];
+    
+    component byteToBits[16];
+    
+    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
+        byteToBits[byteIdx] = Num2Bits(8);
+        byteToBits[byteIdx].in <== bytes[byteIdx];
+        
+        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
+            bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[7 - bitIdx];
+        }
+    }
+}
+
+/**
+ * Bit Array Mapping:
+ * - bits[0] = x^0 coefficient → bytes[0] bit 7
+ * - bits[1] = x^1 coefficient → bytes[0] bit 6
+ * - ...
+ * - bits[7] = x^7 coefficient → bytes[0] bit 0
+ * - bits[8] = x^8 coefficient → bytes[1] bit 7
+ * - ...
+ * - bits[127] = x^127 coefficient → bytes[15] bit 0
+ * 
+ * Example:
+ * - Input bits[0-7] = [1,0,0,0,0,0,0,0] → bytes[0] = 0x80 (10000000₂)
+ * - Input bits[0-7] = [0,0,0,0,0,0,0,1] → bytes[0] = 0x01 (00000001₂)
+ */
+template Bit128ToByte16() {
+    signal input {bit} bits[128];
+    signal output {byte} bytes[16];
+    
+    component bitsToBytes[16];
+    
+    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
+        bitsToBytes[byteIdx] = Bits2Num(8);
+        
+        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
+            bitsToBytes[byteIdx].in[7 - bitIdx] <== bits[byteIdx * 8 + bitIdx];
+        }
+        
+        bytes[byteIdx] <== bitsToBytes[byteIdx].out;
+    }
+}
+
+/**
  * Convert an array of 16 bytes to a single 128-bit number
  * 
  * Example:
