@@ -12,7 +12,7 @@ describe("ComputeJ0Standard Circuits", function () {
       );
       console.info(
         "12-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 4
       );
     });
 
@@ -79,7 +79,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
       );
       console.info(
         "8-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 34320
       );
     });
 
@@ -107,7 +107,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
       );
       console.info(
         "16-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 34320
       );
     });
 
@@ -154,6 +154,9 @@ describe("ComputeJ0NonStandard Circuit", function () {
         console.info(
           `${length}-byte-IV j0 computation circuit constraints:`,
           await circuit.getConstraintCount(),
+          // 34320 for 1-16 byte
+          // 51472 for 31,32 byte
+          // 85776 for 63,64 byte
         );
 
         for (let i = 0; i < 3; i++) {
