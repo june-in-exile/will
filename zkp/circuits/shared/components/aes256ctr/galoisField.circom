@@ -318,8 +318,16 @@ template GF128MultiplyOptimized() {
 }
 
 /**
- * GHASH function for AES-GCM
+ * GHASH function for AES-GCM (Standard Implementation)
  * Processes fixed-length input (must be padded to multiple of 16 bytes)
+ * 
+ * GHASH is a universal hash function used in AES-GCM mode for authentication.
+ * It operates over the Galois Field GF(2^128) and processes data in 16-byte blocks.
+ * 
+ * Algorithm: For each block B_i, compute: Y_i = (Y_{i-1} ⊕ B_i) * H
+ * where H is the hash key and Y_0 = 0
+ * 
+ * @param numBlocks - Number of 16-byte blocks to process
  */
 template GHash(numBlocks) {
     signal input {byte} data[numBlocks * 16];
@@ -350,7 +358,11 @@ template GHash(numBlocks) {
     result <== intermediateResults[numBlocks];
 }
 
-
+/**
+ * Optimization: Instead of storing initial zero state, directly use the first
+ * data block without XOR for the first iteration, saving one intermediate array slot.
+ * This is mathematically equivalent since 0 ⊕ B_0 = B_0.
+ */
 template GHashOptimized(numBlocks) {
     signal input {byte} data[numBlocks * 16];
     signal input {byte} hashKey[16];

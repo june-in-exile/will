@@ -323,7 +323,7 @@ describe.only("GHash Circuit", function () {
       );
       console.info(
         "Optimized GHASH (1 block) circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 16768
       );
     });
 
@@ -378,7 +378,7 @@ describe.only("GHash Circuit", function () {
       );
       console.info(
         "Optimized GHASH (2 block) circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 33920
       );
     });
 
@@ -435,7 +435,7 @@ describe.only("GHash Circuit", function () {
       );
       console.info(
         "Optimized GHASH (4 blocks) circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 68224
       );
     });
 
