@@ -11,7 +11,7 @@ describe("Mod2 Circuit", function () {
       );
       console.info(
         "Mod2 circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1
       );
     });
 
@@ -66,7 +66,7 @@ describe("Mask Circuit", function () {
       );
       console.info(
         "8-bit 0x0F mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 24
       );
     });
 
@@ -154,7 +154,7 @@ describe("Mask Circuit", function () {
       );
       console.info(
         "16-bit 0xFF mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 48
       );
     });
 
@@ -211,7 +211,7 @@ describe("Mask Circuit", function () {
       );
       console.info(
         "32-bit 0xFFFF mask circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 96
       );
     });
 
@@ -272,7 +272,7 @@ describe("ShiftRight Circuit", function () {
       );
       console.info(
         "8-bit 1-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 8
       );
     });
 
@@ -325,7 +325,7 @@ describe("ShiftRight Circuit", function () {
       );
       console.info(
         "8-bit 2-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 8
       );
     });
 
@@ -374,7 +374,7 @@ describe("ShiftRight Circuit", function () {
       );
       console.info(
         "8-bit 4-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 8
       );
     });
 
@@ -421,7 +421,7 @@ describe("ShiftRight Circuit", function () {
       );
       console.info(
         "16-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 16
       );
     });
 
@@ -466,7 +466,7 @@ describe("ShiftRight Circuit", function () {
       );
       console.info(
         "32-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 32
       );
     });
 
@@ -502,7 +502,7 @@ describe("ShiftRight Circuit", function () {
   });
 });
 
-describe.only("BitwiseXor Circuit", function () {
+describe("BitwiseXor Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
   let circuitOptimized: WitnessTester<["in"], ["out"]>;
 
@@ -536,20 +536,9 @@ describe.only("BitwiseXor Circuit", function () {
           templateParams: ["2", "8"],
         },
       );
-      circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
-        "BitwiseXorOptimized",
-        {
-          templateParams: ["2", "8"],
-        },
-      );
       console.info(
         "2x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
-      );
-      console.info(
-        "Optimized 2x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuit.getConstraintCount(), // 24
       );
     });
 
@@ -638,11 +627,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "3x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 40
       );
       console.info(
         "Optimized 3x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 32
       );
     });
 
@@ -660,6 +649,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
 
@@ -677,6 +667,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
 
@@ -692,6 +683,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
 
@@ -709,6 +701,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in } of testCases) {
         await circuit.expectFail({ in: _in });
+        await circuitOptimized.expectFail({ in: _in });
       }
     });
   });
@@ -731,11 +724,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "5x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 72
       );
       console.info(
         "Optimized 5x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 48
       );
     });
 
@@ -750,6 +743,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
   });
@@ -763,20 +757,9 @@ describe.only("BitwiseXor Circuit", function () {
           templateParams: ["2", "16"],
         },
       );
-      circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
-        "BitwiseXorOptimized",
-        {
-          templateParams: ["2", "16"],
-        },
-      );
       console.info(
         "2x16-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
-      );
-      console.info(
-        "Optimized 2x16-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuit.getConstraintCount(), // 48
       );
     });
 
@@ -831,11 +814,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "3x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 80
       );
       console.info(
         "Optimized 3x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 64
       );
     });
 
@@ -851,6 +834,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
   });
@@ -873,11 +857,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "5x16-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 144
       );
       console.info(
         "Optimized 5x16-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 96
       );
     });
 
@@ -897,6 +881,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
   });
@@ -919,11 +904,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "10x4-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 76
       );
       console.info(
         "Optimized 10x4-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 44
       );
     });
 
@@ -943,6 +928,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
   });
@@ -956,20 +942,9 @@ describe.only("BitwiseXor Circuit", function () {
           templateParams: ["2", "32"],
         },
       );
-      circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
-        "BitwiseXorOptimized",
-        {
-          templateParams: ["2", "32"],
-        },
-      );
       console.info(
         "2x32-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
-      );
-      console.info(
-        "Optimized 2x32-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuit.getConstraintCount(), // 96
       );
     });
 
@@ -1024,11 +999,11 @@ describe.only("BitwiseXor Circuit", function () {
       );
       console.info(
         "3x32-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1160
       );
       console.info(
         "Optimized 3x32-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(),
+        await circuitOptimized.getConstraintCount(), // 128
       );
     });
 
@@ -1044,6 +1019,7 @@ describe.only("BitwiseXor Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
       }
     });
   });
@@ -1060,7 +1036,7 @@ describe("ByteAdder Circuits", function () {
       );
       console.info(
         "ByteAdder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 34
       );
     });
 
@@ -1102,6 +1078,159 @@ describe("ByteAdder Circuits", function () {
 
       for (const { a, b, carry_in, c, carry_out } of testCases) {
         await circuit.expectPass({ a, b, carry_in }, { c, carry_out });
+      }
+    });
+  });
+});
+
+describe("Byte16ToNum Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("16-byte to 128-bit Number Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "Byte16ToNum",
+      );
+      console.info(
+        "16-byte to 128-bit number circuit constraints:",
+        await circuit.getConstraintCount(), // 128
+      );
+    });
+
+    it("should convert minimum and maximum value correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          _in: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          _out: 0
+        },
+        {
+          _in: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+          _out: (BigInt(2) ** BigInt(128)) - BigInt(1)
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should convert MSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          _in: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+          _out: 1
+        },
+        {
+          _in: [0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+          _out: BigInt(2) ** BigInt(8)
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should convert LSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          // LSB set: [..., 0x01] should equal 2^127
+          _in: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01],
+          _out: BigInt(2) ** BigInt(127)
+        },
+        {
+          // Second-to-last bit: [..., 0x02]
+          _in: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02],
+          _out: BigInt(2) ** BigInt(126)
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+});
+
+describe("NumToByte16 Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("128-bit Number to 16-byte Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "NumToByte16",
+      );
+      console.info(
+        "128-bit number to 16-byte circuit constraints:",
+        await circuit.getConstraintCount(), // 128
+      );
+    });
+
+    it("should convert minimum and maximum value correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          _in: 0,
+          _out: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        },
+        {
+          _in: (BigInt(2) ** BigInt(128)) - BigInt(1),
+          _out: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should convert small numbers correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          _in: 1,
+          _out: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        },
+        {
+          _in: 2,
+          _out: [0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+
+    it("should convert powers of 2 correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          _in: BigInt(2) ** BigInt(127),
+          _out: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
+        },
+        {
+          _in: BigInt(2) ** BigInt(120),
+          _out: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80]
+        },
+        {
+          _in: BigInt(2) ** BigInt(56),
+          _out: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
       }
     });
   });

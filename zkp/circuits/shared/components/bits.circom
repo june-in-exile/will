@@ -159,3 +159,54 @@ template ByteAdder() {
     _ = Num2Bits(8)(b);
     _ = Num2Bits(8)(c);
 }
+
+/**
+ * Convert an array of 16 bytes to a single 128-bit number
+ * 
+ * Example:
+ * - Input: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+ * - Output: 1 (big-endian interpretation)
+ *
+ * - Input: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
+ * - Output: 2^127 (big-endian interpretation)
+ */
+template Byte16ToNum() {
+    signal input {byte} in[16];
+    signal output out;
+
+    signal byteBits[16][8];
+    signal bits[128];
+    for (var byte = 0; byte < 16; byte++) {
+        byteBits[byte] <== Num2Bits(8)(in[byte]);
+        for (var bit = 0; bit < 8; bit++) {
+            bits[byte * 8 + bit] <== byteBits[byte][7 - bit];
+        }
+    }
+
+    out <== Bits2Num(128)(bits);
+}
+
+/**
+ * Convert a 128-bit number to an array of 16 bytes
+ * 
+ * Example:
+ * - Input: 1
+ * - Output: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+ *
+ * - Input: 2^127
+ * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
+ */
+template NumToByte16() {
+    signal input in;
+    signal output {byte} out[16];
+
+    signal bits[128] <== Num2Bits(128)(in);
+    signal byteBits[16][8];
+
+    for (var byte = 0; byte < 16; byte++) {
+        for (var bit = 0; bit < 8; bit++) {
+            byteBits[byte][7 - bit] <== bits[byte * 8 + bit];
+        }
+        out[byte] <== Bits2Num(8)(byteBits[byte]);
+    }
+}
