@@ -4,7 +4,48 @@ import { ctrEncrypt } from "./helpers";
 describe("CtrEncrypt Circuits", function () {
   let circuit: WitnessTester<["plaintext", "key", "iv"], ["ciphertext"]>;
 
-  describe("CTR Encrypt Circuit - AES-128", function () {
+  describe("CTR Encrypt Circuit - AES-128, 1 Block", function () {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
+        "CtrEncrypt",
+        {
+          templateParams: ["128", "1"], // 86816
+        },
+      );
+      console.info(
+        "AES-128 1-block CTR encryption circuit constraints:",
+        await circuit.getConstraintCount(),
+      );
+    });
+
+    it("should work with known test vectors", async function (): Promise<void> {
+      const plaintext = [
+        72, 105, 33, 32, 72, 111, 119, 32, 97, 114, 101, 32, 121, 111, 117, 63
+      ] as Byte[]; // Hi! How are you?
+      const key = [
+        { bytes: [0xaa, 0x6a, 0x44, 0x59] },
+        { bytes: [0x14, 0x10, 0xfb, 0x0d] },
+        { bytes: [0x61, 0xa7, 0xac, 0x45] },
+        { bytes: [0x62, 0x4a, 0x17, 0x15] },
+      ] as Word[]; // qmpEWRQQ+w1hp6xFYkoXFQ==
+      const iv = [
+        0x57, 0xc9, 0x78, 0xbe, 0x1b, 0xe3, 0x40, 0xd6, 0x3b, 0x5e, 0xd5, 0x47, 0xcb, 0x1f, 0xaa, 0x6a
+      ] as Byte16; // V8l4vhvjQNY7XtVHyx+qag==
+
+      const ciphertext = [
+        0x87, 0x45, 0x97, 0xdd, 0xc8, 0x52, 0xd7, 0xe0, 0x03, 0xc7, 0x46, 0x0c, 0xfd, 0xc0, 0x9f, 0xe3
+      ]; // h0WX3chS1+ADx0YM/cCf4w==
+
+      expect(ctrEncrypt(plaintext, key, iv)).toStrictEqual(ciphertext);
+      await circuit.expectPass(
+        { plaintext, key: wordToByte(key), iv },
+        { ciphertext },
+      );
+    });
+  });
+
+  describe("CTR Encrypt Circuit - AES-128, 4 Block", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
@@ -14,7 +55,7 @@ describe("CtrEncrypt Circuits", function () {
         },
       );
       console.info(
-        "AES-128 CTR encryption circuit constraints:",
+        "AES-128 4-block CTR encryption circuit constraints:",
         await circuit.getConstraintCount(), // 347363
       );
     });
@@ -77,7 +118,7 @@ describe("CtrEncrypt Circuits", function () {
     });
   });
 
-  describe("CTR Encrypt Circuit - AES-192", function () {
+  describe("CTR Encrypt Circuit - AES-192, 4 Block", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
@@ -87,7 +128,7 @@ describe("CtrEncrypt Circuits", function () {
         },
       );
       console.info(
-        "AES-192 CTR encryption circuit constraints:",
+        "AES-192 4-block CTR encryption circuit constraints:",
         await circuit.getConstraintCount(), // 399843
       );
     });
@@ -132,7 +173,7 @@ describe("CtrEncrypt Circuits", function () {
     });
   });
 
-  describe("CTR Encrypt Circuit - AES-256", function () {
+  describe("CTR Encrypt Circuit - AES-256, 4 Block", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes256ctr/ctrEncrypt.circom",
@@ -142,7 +183,7 @@ describe("CtrEncrypt Circuits", function () {
         },
       );
       console.info(
-        "AES-256 CTR encryption circuit constraints:",
+        "AES-256 4-block CTR encryption circuit constraints:",
         await circuit.getConstraintCount(), // 481379
       );
     });
