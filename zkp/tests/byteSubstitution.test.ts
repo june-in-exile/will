@@ -12,7 +12,7 @@ describe("SubWord Circuit", function () {
       );
       console.info(
         "SubWord circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1024
       );
     });
 
@@ -40,7 +40,7 @@ describe("SubBytes Circuit", function () {
       );
       console.info(
         "SubBytes circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 4096
       );
     });
 
@@ -68,7 +68,7 @@ describe("SubstituteBytes Circuit", function () {
       );
       console.info(
         "1-byte SubstitutionBytes circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 256
       );
     });
 
@@ -95,7 +95,7 @@ describe("SubstituteBytes Circuit", function () {
       );
       console.info(
         "4-byte SubstitutionBytes circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1024
       );
     });
 
@@ -122,7 +122,7 @@ describe("SubstituteBytes Circuit", function () {
       );
       console.info(
         "16-byte SubstitutionBytes circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 4096
       );
     });
 

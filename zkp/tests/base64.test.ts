@@ -11,7 +11,7 @@ describe("AsciiToBase64 Cicuit", function () {
     );
     console.info(
       "AsciiToBase64 circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount(), // 144
     );
   });
 
@@ -78,7 +78,7 @@ describe("Base64GroupDecoder Cicuit", function () {
     );
     console.info(
       "Base64GroupDecoder circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount(), // 81
     );
   });
 
@@ -209,7 +209,7 @@ describe("Base64Decoder Circuit", function () {
       );
       console.info(
         "4-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 657
       );
     });
 
@@ -281,7 +281,7 @@ describe("Base64Decoder Circuit", function () {
       );
       console.info(
         "8-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1314
       );
     });
 
@@ -315,7 +315,7 @@ describe("Base64Decoder Circuit", function () {
       );
       console.info(
         "360-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 59130
       );
     });
 

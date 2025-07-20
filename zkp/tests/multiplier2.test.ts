@@ -10,7 +10,7 @@ describe("Multiplier2 Circuit", function () {
     );
     console.info(
       "Multiplier2 circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount(), // 1
     );
   });
 

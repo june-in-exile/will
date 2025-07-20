@@ -15,7 +15,7 @@ describe("ExpandKey Circuit", function () {
       );
       console.info(
         "AES-128 key expansion circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 15040
       );
     });
 
@@ -47,7 +47,7 @@ describe("ExpandKey Circuit", function () {
       );
       console.info(
         "AES-192 key expansion circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 13376
       );
     });
 
@@ -78,7 +78,7 @@ describe("ExpandKey Circuit", function () {
       );
       console.info(
         "AES-256 key expansion circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 18976
       );
     });
 

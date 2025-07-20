@@ -56,7 +56,7 @@ describe("Utf8ByteLength Circuit", function (): void {
     );
     console.info(
       "Utf8ByteLength circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount(), // 135
     );
   });
 
@@ -97,7 +97,7 @@ describe("Utf8Encoder Circuit", function (): void {
     );
     console.info(
       "Utf8Encoder circuit constraints:",
-      await circuit.getConstraintCount(),
+      await circuit.getConstraintCount(), // 174
     );
   });
 
@@ -154,7 +154,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       );
       console.info(
         "3-Character Utf8StringEncoder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 882
       );
     });
 
@@ -217,7 +217,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
       );
       console.info(
         "15-Character Utf8StringEncoder circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 15198
       );
     });
 

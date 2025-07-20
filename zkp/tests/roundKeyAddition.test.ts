@@ -12,7 +12,7 @@ describe("AddRoundKey Circuit", function () {
       );
       console.info(
         "AddRoundKey circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 384
       );
     });
 

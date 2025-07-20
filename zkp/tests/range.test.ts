@@ -14,7 +14,7 @@ describe("InRange Circuit", function () {
       );
       console.info(
         "4-bit InRange circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 27
       );
     });
 
@@ -64,7 +64,7 @@ describe("InRange Circuit", function () {
       );
       console.info(
         "8-bit InRange circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 51
       );
     });
 

@@ -17,7 +17,7 @@ describe("Divide Circuit", function () {
       );
       console.info(
         "8-by-6-bit divide circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 35
       );
     });
 
@@ -115,7 +115,7 @@ describe("Divide Circuit", function () {
       );
       console.info(
         "12-by-8-bit divide circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 49
       );
     });
 
@@ -224,7 +224,7 @@ describe("MultiplyArray Circuit", function () {
       );
       console.info(
         "1-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 1
       );
     });
 
@@ -280,7 +280,7 @@ describe("MultiplyArray Circuit", function () {
       );
       console.info(
         "3-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 3
       );
     });
 
@@ -335,7 +335,7 @@ describe("MultiplyArray Circuit", function () {
       );
       console.info(
         "5-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 5
       );
     });
 
@@ -380,7 +380,7 @@ describe("MultiplyArray Circuit", function () {
       );
       console.info(
         "10-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(),
+        await circuit.getConstraintCount(), // 10
       );
     });
 
