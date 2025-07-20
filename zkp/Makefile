@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = ctrEncrypt
+CIRCUIT = galoisField
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CtrEncrypt
+TEMPLATE = GF128MultiplyOptimized
 TEMPLATE ?= Multiplier2
 
 # Directory structure
@@ -90,10 +90,10 @@ circuit: untag compile witness trusted-setup-phase2 prove verify solidity genera
 untag:
 	@pnpm exec tsx ./tests/utils/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
 	
-compile:
+compile: untag
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
-	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm --O2 --inspect --output $(BUILD) -l node_modules
+	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --inspect --output $(BUILD)
 	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
 
 witness: compile

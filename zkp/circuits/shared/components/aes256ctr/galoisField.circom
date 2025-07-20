@@ -42,67 +42,6 @@ template GF8Mul3() {
 }
 
 /**
- * Bit Array Mapping:
- * - bits[0] = x^0 coefficient → bytes[0] bit 7
- * - bits[1] = x^1 coefficient → bytes[0] bit 6
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 0
- * - bits[8] = x^8 coefficient → bytes[1] bit 7
- * - ...
- * - bits[127] = x^127 coefficient → bytes[15] bit 0
- * 
- * Example:
- * - Input bytes[0] = 0x80 (10000000₂) → bits[0-7] = [1,0,0,0,0,0,0,0]
- * - Input bytes[0] = 0x01 (00000001₂) → bits[0-7] = [0,0,0,0,0,0,0,1]
- */
-template GF128BytesToBits() {
-    signal input {byte} bytes[16];
-    signal output {bit} bits[128];
-    
-    component byteToBits[16];
-    
-    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
-        byteToBits[byteIdx] = Num2Bits(8);
-        byteToBits[byteIdx].in <== bytes[byteIdx];
-        
-        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[7 - bitIdx];
-        }
-    }
-}
-
-/**
- * Bit Array Mapping:
- * - bits[0] = x^0 coefficient → bytes[0] bit 7
- * - bits[1] = x^1 coefficient → bytes[0] bit 6
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 0
- * - bits[8] = x^8 coefficient → bytes[1] bit 7
- * - ...
- * - bits[127] = x^127 coefficient → bytes[15] bit 0
- * 
- * Example:
- * - Input bits[0-7] = [1,0,0,0,0,0,0,0] → bytes[0] = 0x80 (10000000₂)
- * - Input bits[0-7] = [0,0,0,0,0,0,0,1] → bytes[0] = 0x01 (00000001₂)
- */
-template GF128BitsToBytes() {
-    signal input {bit} bits[128];
-    signal output {byte} bytes[16];
-    
-    component bitsToBytes[16];
-    
-    for (var byteIdx = 0; byteIdx < 16; byteIdx++) {
-        bitsToBytes[byteIdx] = Bits2Num(8);
-        
-        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bitsToBytes[byteIdx].in[7 - bitIdx] <== bits[byteIdx * 8 + bitIdx];
-        }
-        
-        bytes[byteIdx] <== bitsToBytes[byteIdx].out;
-    }
-}
-
-/**
  * Galois Field multiplication in GF(2^128) with reduction polynomial x^128 + x^7 + x^2 + x + 1 (0xe1 || 30 zeros in LSB-first order)
  *
  * Idea of Galois Field multiplication with reduction polynomial p(x):
@@ -124,8 +63,8 @@ template GF128Multiply() {
     signal {bit} cBits[129][128];
 
     // Convert 16-byte a, b to 128-bit, initialize c = 0
-    aBits <== GF128BytesToBits()(aBytes);
-    bBits[0] <== GF128BytesToBits()(bBytes);
+    aBits <== Byte16ToBit128()(aBytes);
+    bBits[0] <== Byte16ToBit128()(bBytes);
 
     for (var bit = 0; bit < 128; bit++) {
         cBits[0][bit] <== 0;
@@ -153,7 +92,7 @@ template GF128Multiply() {
     }
 
     // Convert final result bits back to bytes
-    cBytes <== GF128BitsToBytes()(cBits[128]);
+    cBytes <== Bit128ToByte16()(cBits[128]);
 }
 
 /**
@@ -247,8 +186,8 @@ template GF128MultiplyOptimized() {
     signal counter3[4][6];      // Maximum 6 overflow bits from round 2
 
     // Convert 16-byte a, b to 128-bit
-    aBits <== GF128BytesToBits()(aBytes);
-    bBits <== GF128BytesToBits()(bBytes);
+    aBits <== Byte16ToBit128()(aBytes);
+    bBits <== Byte16ToBit128()(bBytes);
 
     // ===== Round 1: Main multiplication =====
     // For each bit of 'a', accumulate b shifted right by that bit position
@@ -314,7 +253,7 @@ template GF128MultiplyOptimized() {
     }
 
     // Convert final result bits back to bytes
-    cBytes <== GF128BitsToBytes()(cBits);
+    cBytes <== Bit128ToByte16()(cBits);
 }
 
 /**
@@ -368,11 +307,10 @@ template GHashOptimized(numBlocks) {
     signal input {byte} hashKey[16];
     signal output {byte} result[16];
     
-    // Intermediate results for each block
-    signal {byte} intermediateResults[numBlocks][16];
-    
     // Process each 16-byte block
     signal {byte} xorResult[numBlocks][16];
+    signal {byte} intermediateResults[numBlocks][16];
+
     for (var block = 0; block < numBlocks; block++) {
         // XOR current result with data block
         for (var i = 0; i < 16; i++) {
