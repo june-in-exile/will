@@ -5,6 +5,77 @@ include "circomlib/circuits/bitify.circom";
 include "range.circom";
 
 /**
+ * Converts ASCII characters to Base64 values.
+ *
+ * Base64 Mapping Table:
+ * A-Z: 0-25   (ASCII 65-90)
+ * a-z: 26-51  (ASCII 97-122)  
+ * 0-9: 52-61  (ASCII 48-57)
+ * +:   62     (ASCII 43)
+ * /:   63     (ASCII 47)
+ * =:   64     (ASCII 61, padding)
+ * 
+ * Example Usage:
+ *   Input: 'A' (ASCII 65) -> Output: base64=0
+ *   Input: 'z' (ASCII 122) -> Output: base64=51
+ *   Input: '9' (ASCII 57) -> Output: base64=61
+ *   Input: '=' (ASCII 61) -> Output: base64=64
+ */
+template Base64Char() {
+    signal input {ascii} ascii;     // (7-bit, 0-127)
+    signal output {base64} base64;  // (7-bit, 0-64)
+    
+    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,43]);             // +
+    signal isSlash <== IsEqual()([ascii,47]);            // /
+    signal isPadding <== IsEqual()([ascii,61]);          // =
+
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
+    
+    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
+    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
+    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
+    signal plusValue <== isPlus * 62;                       // +=62
+    signal slashValue <== isSlash * 63;                     // /=63
+    signal paddingValue <== isPadding * 64;                 // ==64
+    
+    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue;
+}
+
+/**
+ * Converts ASCII characters to Base64 values, strictly excluding padding characters.
+ * 
+ * Example Usage:
+ *   Input: 'T' (ASCII 84) -> Output: base64=19
+ *   Input: 'w' (ASCII 119) -> Output: base64=48  
+ *   Input: '5' (ASCII 53) -> Output: base64=57
+ *   Input: '+' (ASCII 43) -> Output: base64=62
+ *   Input: '=' (ASCII 61) -> CONSTRAINT FAILURE (invalid input)
+ */
+template Base64CharExcludingPadding() {
+    signal input {ascii} ascii;     // (7-bit, 0-127)
+    signal output {base64} base64;  // (6-bit, 0-63)
+
+    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,43]);             // +
+    signal isSlash <== IsEqual()([ascii,47]);            // /
+
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash;
+    
+    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
+    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
+    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
+    signal plusValue <== isPlus * 62;                       // +=62
+    signal slashValue <== isSlash * 63;                     // /=63
+    
+    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue;
+}
+
+/**
  * Converts ASCII characters to Base64 values with padding detection.
  * 
  * This template performs dual functions:
@@ -55,34 +126,62 @@ template Base64CharWithPaddingDetector() {
 }
 
 /**
- * Converts ASCII characters to Base64 values, strictly excluding padding characters.
+ * Universal Base64 group decoder with comprehensive padding support and validation.
+ * - Automatic padding detection using the 7th bit (bit 6) of input values
+ * - Comprehensive input validation (range checking + padding pattern validation)
  * 
- * Example Usage:
- *   Input: 'T' (ASCII 84) -> Output: base64=19
- *   Input: 'w' (ASCII 119) -> Output: base64=48  
- *   Input: '5' (ASCII 53) -> Output: base64=57
- *   Input: '+' (ASCII 43) -> Output: base64=62
- *   Input: '=' (ASCII 61) -> CONSTRAINT FAILURE (invalid input)
+ * Example Scenarios:
+ * No Padding: "TWFu" → [19, 22, 5, 46] → [77, 97, 110] ("Man")
+ * One Padding: "TWE=" → [19, 22, 4, 64] → [77, 97, 0] ("Ma")  
+ * Two Padding: "TQ==" → [19, 16, 64, 64] → [77, 0, 0] ("M")
  */
-template Base64CharValidator() {
-    signal input {ascii} ascii;     // (7-bit, 0-127)
-    signal output {base64} base64;  // (6-bit, 0-63)
+template Base64GroupDecoder() {
+    signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
+    signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
 
-    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
-    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
-    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
-    signal isPlus <== IsEqual()([ascii,43]);             // +
-    signal isSlash <== IsEqual()([ascii,47]);            // /
+    signal validBase64[4];
+    for (var i = 0; i < 4; i++) {
+        validBase64[i] <== LessEqThan(7)([base64Group[i],64]);
+        validBase64[i] === 1;
+    }
 
-    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash;
+    signal isPadding[4];
+    signal base64GroupBits[4][7];
+    signal bits[24];
+    for (var i = 0; i < 4; i++) {
+        base64GroupBits[i] <== Num2Bits(7)(base64Group[i]);
+        for (var j = 0; j < 6; j++) {
+            bits[i * 6 + j] <== base64GroupBits[i][5 - j];
+        }
+        isPadding[i] <== base64GroupBits[i][6];
+    }
     
-    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
-    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
-    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
-    signal plusValue <== isPlus * 62;                       // +=62
-    signal slashValue <== isSlash * 63;                     // /=63
-    
-    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue;
+    signal firstTwoNotPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
+    signal lastTwoNotPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
+    signal lastOneIsPadding <== (1 - isPadding[2]) * isPadding[3];
+    signal lastTwoArePadding <== isPadding[2] * isPadding[3];
+
+    signal hasNoPadding <== firstTwoNotPadding * lastTwoNotPadding;
+    signal hasOnePadding <== firstTwoNotPadding * lastOneIsPadding;
+    signal hasTwoPadding <== firstTwoNotPadding * lastTwoArePadding;
+
+    signal validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
+    validPadding === 1;    
+
+    // Extract 3 bytes from the 24-bit sequence
+    signal rawByteBits[3][8];
+    signal rawBytes[3];
+    for (var i = 0; i < 3; i++) {
+        for (var j = 0; j < 8; j++) {
+            rawByteBits[i][7 - j] <== bits[i * 8 + j];
+        }
+        rawBytes[i] <== Bits2Num(8)(rawByteBits[i]);
+    }
+
+    // Apply padding logic to determine valid output bytes
+    bytes[0] <== rawBytes[0];
+    bytes[1] <== rawBytes[1] * (1 - hasTwoPadding);
+    bytes[2] <== rawBytes[2] * hasNoPadding;
 }
 
 /**
@@ -104,7 +203,7 @@ template Base64CharValidator() {
  * Step 4 - Convert to decimal: [77, 97, 110]
  *   In ASCII: 'M' + 'a' + 'n' = "Man"
  */
-template Base64GroupDecoder() {
+template Base64GroupDecoderWithoutPadding() {
     signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
     signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
 
@@ -167,7 +266,7 @@ template Base64GroupDecoderWithPadding() {
     signal validPadding <== noPadding + onePadding + twoPadding;
     validPadding === 1;
 
-    signal rawBytes[3] <== Base64GroupDecoder()(base64Group);
+    signal rawBytes[3] <== Base64GroupDecoderWithoutPadding()(base64Group);
 
     // Apply padding logic to determine valid output bytes
     bytes[0] <== rawBytes[0];
@@ -179,7 +278,7 @@ template Base64GroupDecoderWithPadding() {
  * Decodes a complete Base64 string by handling each 4-character group appropriately.
  * 
  * Key optimizations:
- * - Non-final groups use Base64GroupDecoder (no padding handling overhead)
+ * - Non-final groups use Base64GroupDecoderWithoutPadding (no padding handling overhead)
  * - Final group uses Base64GroupDecoderWithPadding (handles potential padding)
  * 
  * Processing Logic:
@@ -212,13 +311,13 @@ template Base64Decoder(inputLength) {
     for (var i = 0; i < groups; i++) {
         if (i < groups - 1) {
             for (var j = 0; j < 4; j++) {
-                base64Group[i][j] <== Base64CharValidator()(asciis[i * 4 + j]);
+                base64Group[i][j] <== Base64CharExcludingPadding()(asciis[i * 4 + j]);
             }
-            bytesGroup[i] <== Base64GroupDecoder()(base64Group[i]);
+            bytesGroup[i] <== Base64GroupDecoderWithoutPadding()(base64Group[i]);
         } else {
             for (var j = 0; j < 4; j++) {
                 if (j < 2) {
-                    base64Group[i][j] <== Base64CharValidator()(asciis[i * 4 + j]);
+                    base64Group[i][j] <== Base64CharExcludingPadding()(asciis[i * 4 + j]);
                 } else {
                     (base64Group[i][j], isPadding[j - 2]) <== Base64CharWithPaddingDetector()(asciis[i * 4 + j]);
                 }
