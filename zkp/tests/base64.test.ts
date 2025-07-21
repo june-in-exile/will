@@ -70,24 +70,15 @@ describe("AsciiToBase64 Cicuit", function () {
 
 describe("Base64GroupDecoder Cicuit", function () {
   let circuit: WitnessTester<["base64Group"], ["bytes"]>;
-  let circuitOptimized: WitnessTester<["base64Group"], ["bytes"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
     );
-    circuitOptimized = await WitnessTester.construct(
-      "circuits/shared/components/base64.circom",
-      "Base64GroupDecoderOptimized",
-    );
     console.info(
       "Group base64 decoder circuit constraints:",
       await circuit.getConstraintCount(), // 81
-    );
-    console.info(
-      "Optimized base64 group decoder circuit constraints:",
-      await circuitOptimized.getConstraintCount(), // 37
     );
   });
 
@@ -106,10 +97,6 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
-        await circuitOptimized.expectPass(
-          { base64Group: base64Group },
-          { bytes: bytes },
-        );
       }
     });
 
@@ -125,10 +112,6 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
-        await circuitOptimized.expectPass(
-          { base64Group: base64Group },
-          { bytes: bytes },
-        );
       }
     });
 
@@ -141,10 +124,6 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
-          { base64Group: base64Group },
-          { bytes: bytes },
-        );
-        await circuitOptimized.expectPass(
           { base64Group: base64Group },
           { bytes: bytes },
         );
@@ -178,7 +157,6 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-        await circuitOptimized.expectFail(testCase);
       }
     });
   });
@@ -197,10 +175,6 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
-        await circuitOptimized.expectPass(
-          { base64Group: base64Group },
-          { bytes: bytes },
-        );
       }
     });
 
@@ -216,7 +190,6 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
-        await circuitOptimized.expectFail(testCase);
       }
     });
   });
@@ -224,6 +197,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
 describe("Base64Decoder Circuit", function () {
   let circuit: WitnessTester<["asciis"], ["bytes"]>;
+  let circuitOptimized: WitnessTester<["asciis"], ["bytes"]>;
 
   describe("4-byte Base64Decoder", function (): void {
     beforeAll(async function (): Promise<void> {
@@ -234,9 +208,20 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["4"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/base64.circom",
+        "Base64DecoderOptimized",
+        {
+          templateParams: ["4"],
+        },
+      );
       console.info(
         "4-byte Base64Decoder circuit constraints:",
         await circuit.getConstraintCount(), // 657
+      );
+      console.info(
+        "Optimized 4-byte Base64Decoder circuit constraints:",
+        await circuitOptimized.getConstraintCount(), // 601
       );
     });
 
@@ -244,42 +229,49 @@ describe("Base64Decoder Circuit", function () {
       const asciis = [84, 87, 70, 117];
       const bytes = [77, 97, 110];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode 1-padding 'QkM=' into 'BC'", async function (): Promise<void> {
       const asciis = [81, 107, 77, 61];
       const bytes = [66, 67, 0];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode 2-padding 'QQ==' into 'A'", async function (): Promise<void> {
       const asciis = [81, 81, 61, 61];
       const bytes = [65, 0, 0];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode null byte 'AA==' to 0x00", async function (): Promise<void> {
       const asciis = [65, 65, 61, 61];
       const bytes = [0];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode max byte '/w==' to 0xFF", async function (): Promise<void> {
       const asciis = [47, 119, 61, 61];
       const bytes = [255];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode with + and / characters '+/8='", async function (): Promise<void> {
       const asciis = [43, 47, 56, 61];
       const bytes = [251, 255];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode uppercase and lowercase mix 'AaAa'", async function (): Promise<void> {
       const asciis = [65, 97, 65, 97];
       const bytes = [1, 160, 26];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should not decode invalid padding patterns", async function (): Promise<void> {
@@ -289,10 +281,12 @@ describe("Base64Decoder Circuit", function () {
         { asciis: [61, 61, 107, 110] }, // ==kn
         { asciis: [97, 61, 70, 98] }, // a=Fb
         { asciis: [61, 57, 80, 113] }, // =9Pq
+        { asciis: [47, 119, 61, 49] }, // w=1
       ];
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
+        await circuitOptimized.expectFail(testCase);
       }
     });
   });
@@ -306,9 +300,20 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["8"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/base64.circom",
+        "Base64DecoderOptimized",
+        {
+          templateParams: ["8"],
+        },
+      );
       console.info(
         "8-byte Base64Decoder circuit constraints:",
         await circuit.getConstraintCount(), // 1314
+      );
+      console.info(
+        "Optimized 8-byte Base64Decoder circuit constraints:",
+        await circuitOptimized.getConstraintCount(), // 1193
       );
     });
 
@@ -316,18 +321,34 @@ describe("Base64Decoder Circuit", function () {
       const asciis = [84, 109, 56, 103, 100, 50, 70, 53];
       const bytes = [78, 111, 32, 119, 97, 121];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode 1-padding 'SGVsbG8=' into 'Hello'", async function (): Promise<void> {
       const asciis = [83, 71, 86, 115, 98, 71, 56, 61];
       const bytes = [72, 101, 108, 108, 111];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
 
     it("should decode 2-padding 'Q29vbA==' into 'Cool'", async function (): Promise<void> {
       const asciis = [81, 50, 57, 118, 98, 65, 61, 61];
       const bytes = [67, 111, 111, 108];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
+    });
+
+    it("should not decode padding before last base64 group", async function (): Promise<void> {
+      const testCases = [
+        { asciis: [61, 57, 80, 113, 81, 50, 57, 118] }, // =9PqQ29v
+        { asciis: [85, 61, 107, 110, 83, 71, 86, 115] }, // U=knSGVs
+        { asciis: [84, 86, 61, 61, 98, 71, 56, 61] }, // TV==bG8=
+        { asciis: [98, 71, 56, 61, 100, 50, 70, 53] }, // bG8=d2F5
+      ];
+
+      for (const testCase of testCases) {
+        await circuitOptimized.expectFail(testCase);
+      }
     });
   });
 
@@ -340,9 +361,20 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["360"],
         },
       );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/base64.circom",
+        "Base64DecoderOptimized",
+        {
+          templateParams: ["360"],
+        },
+      );
       console.info(
         "360-byte Base64Decoder circuit constraints:",
         await circuit.getConstraintCount(), // 59130
+      );
+      console.info(
+        "Optimized 360-byte Base64Decoder circuit constraints:",
+        await circuitOptimized.getConstraintCount(), // 53289
       );
     });
 
@@ -396,6 +428,7 @@ describe("Base64Decoder Circuit", function () {
         32, 112, 108, 101, 97, 115, 117, 114, 101, 46,
       ];
       await circuit.expectPass({ asciis }, { bytes });
+      await circuitOptimized.expectPass({ asciis }, { bytes });
     });
   });
 });

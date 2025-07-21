@@ -3,7 +3,6 @@ pragma circom 2.2.2;
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/bitify.circom";
-include "arithmetic.circom";
 include "range.circom";
 
 /**
@@ -36,6 +35,64 @@ template AsciiToBase64() {
     signal paddingValue <== isPadding * 64;                 // ==64
     
     base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue + paddingValue;
+}
+
+/**
+ * Converts ASCII characters to Base64 values, excluding padding characters.
+ * This template only handles valid Base64 content characters (A-Z, a-z, 0-9, +, /)
+ * and rejects padding symbols (=).
+ */
+template AsciiToBase64ExceptPadding() {
+    signal input {ascii} ascii;     // (0-127)
+    signal output {base64} base64;  // (0-64)
+
+    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,43]);             // +
+    signal isSlash <== IsEqual()([ascii,47]);            // /
+
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash;
+    
+    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
+    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
+    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
+    signal plusValue <== isPlus * 62;                       // +=62
+    signal slashValue <== isSlash * 63;                     // /=63
+    
+    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue;
+}
+
+/**
+ * Converts ASCII characters to Base64 values and indicates if the character is padding.
+ * This template handles all valid Base64 characters including padding (=),
+ * but outputs padding as 0 instead of 64 to avoid bit width issues.
+ *
+ * The isPadding output signal indicates whether the character was a padding symbol.
+ */
+template AsciiToBase64IsPadding() {
+    signal input {ascii} ascii;     // (0-127)
+    signal output {base64} base64;  // (0-64)
+    signal output {bit} isPadding;  // 1 if input was padding (=), 0 otherwise
+
+    signal isUpperCase <== InRange(7)(ascii, 65, 90);    // A-Z
+    signal isLowerCase <== InRange(7)(ascii, 97, 122);   // a-z
+    signal isDigit <== InRange(7)(ascii, 48, 57);        // 0-9
+    signal isPlus <== IsEqual()([ascii,43]);             // +
+    signal isSlash <== IsEqual()([ascii,47]);            // /
+    isPadding <== IsEqual()([ascii,61]);                 // =
+
+    1 === isUpperCase + isLowerCase + isDigit + isPlus + isSlash + isPadding;
+    
+    signal upperValue <== isUpperCase * (ascii - 65);       // A=0, B=1, ..., Z=25
+    signal lowerValue <== isLowerCase * (ascii - 97 + 26);  // a=26, b=27, ..., z=51
+    signal digitValue <== isDigit * (ascii - 48 + 52);      // 0=52, 1=53, ..., 9=61
+    signal plusValue <== isPlus * 62;                       // +=62
+    signal slashValue <== isSlash * 63;                     // /=63
+    
+    // Note: = should be 64, but use 0 to avoid extra bit width
+    // and use isPadding signal to determine if it was padding
+    base64 <== upperValue + lowerValue + digitValue + plusValue + slashValue;
 }
 
 /**
@@ -140,63 +197,60 @@ template Base64GroupDecoder() {
     }
 }
 
- /**
- * Optimized version that uses a more direct bit manipulation approach compared to the original,
- * converting Base64 values to bits, rearranging them, and then extracting bytes.
+/**
+ * Handles only base64 group without padding symbols.
+ *
+ * Besides, this template is also an optimized version that uses a more direct bit manipulation approach
+ * compared to the original, converting Base64 values to bits, rearranging them, and then extracting bytes.
  */
-template Base64GroupDecoderOptimized() {
+template UnpaddedBase64GroupDecoder() {
     signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
     signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
-    
-    // Handle padding cases
-    signal isPadding[4];
-    for (var i = 0; i < 4; i++) {
-        isPadding[i] <== IsEqual()([base64Group[i], 64]); // 64 is padding value
-    }
-    
-    // Ensure padding can only appear at the end
-    isPadding[0] === 0;
-    isPadding[1] === 0;
-    
-    // Calculate valid padding patterns
-    signal hasNoPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
-    signal hasOnePadding <== (1 - isPadding[2]) * isPadding[3];
-    signal hasTwoPadding <== isPadding[2] * isPadding[3];
-
-    // Ensure exactly one padding pattern is valid
-    signal validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
-    validPadding === 1;
-    
-    // Extract effective values (treat padding as 0)
-    signal effectiveBase64Group[4];
-    for (var i = 0; i < 4; i++) {
-        effectiveBase64Group[i] <== base64Group[i] * (1 - isPadding[i]);
-    }
 
     // Convert each 6-bit base64 value to binary representation
-    signal effectiveBase64GroupBits[4][6];
-    signal effectiveBits[24];
+    signal base64GroupBits[4][6];
+    signal bits[24];
     for (var i = 0; i < 4; i++) {
-        effectiveBase64GroupBits[i] <== Num2Bits(6)(effectiveBase64Group[i]);
+        base64GroupBits[i] <== Num2Bits(6)(base64Group[i]);
         for (var j = 0; j < 6; j++) {
-            effectiveBits[i * 6 + j] <== effectiveBase64GroupBits[i][5 - j];
+            bits[i * 6 + j] <== base64GroupBits[i][5 - j];
         }
     }
 
     // Extract 3 bytes from the 24-bit sequence
-    signal rawByteBits[3][8];
-    signal rawBytes[3];
+    signal byteBits[3][8];
     for (var i = 0; i < 3; i++) {
         for (var j = 0; j < 8; j++) {
-            rawByteBits[i][7 - j] <== effectiveBits[i * 8 + j];
+            byteBits[i][7 - j] <== bits[i * 8 + j];
         }
-        rawBytes[i] <== Bits2Num(8)(rawByteBits[i]);
+        bytes[i] <== Bits2Num(8)(byteBits[i]);
     }
-    
+}
+
+/**
+ * Handles only base64 group with valid padding pattern ([0,0], [0,1] or [1,1]).
+ * 
+ * Besides, this template is also an optimized version that uses a more direct bit manipulation approach
+ * compared to the original, converting Base64 values to bits, rearranging them, and then extracting bytes.
+ */
+template PaddedBase64GroupDecoder() {
+    signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
+    signal input {bit} isPadding[2];       // [0,0], [0,1] or [1,1]
+    signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
+
+    signal noPadding <== (1 - isPadding[0]) * (1 - isPadding[1]);
+    signal onePadding <== (1 - isPadding[0]) * isPadding[1];
+    signal twoPadding <== isPadding[0] * isPadding[1];
+
+    signal validPadding <== noPadding + onePadding + twoPadding;
+    validPadding === 1;
+
+    signal rawBytes[3] <== UnpaddedBase64GroupDecoder()(base64Group);
+
     // Apply padding logic to determine valid output bytes
-    bytes[0] <== rawBytes[0];                       // First byte is always valid
-    bytes[1] <== rawBytes[1] * (1 - hasTwoPadding); // 0 when two padding
-    bytes[2] <== rawBytes[2] * hasNoPadding;        // Only valid when no padding
+    bytes[0] <== rawBytes[0];
+    bytes[1] <== rawBytes[1] * (1 - isPadding[0]);
+    bytes[2] <== rawBytes[2] * (1 - isPadding[1]);
 }
 
 /**
@@ -225,7 +279,53 @@ template Base64Decoder(inputLength) {
         for (var j = 0; j < 4; j++) {
             base64Group[i][j] <== AsciiToBase64()(asciis[i * 4 + j]);
         }
-        bytesGroup[i] <== Base64GroupDecoderOptimized()(base64Group[i]);
+        bytesGroup[i] <== Base64GroupDecoder()(base64Group[i]);
+        for (var j = 0; j < 3; j++) {
+            var byteIndex = i * 3 + j;
+            if (byteIndex < outputLength) {
+                bytes[byteIndex] <== bytesGroup[i][j];
+            }
+        }
+    }
+}
+
+/**
+ * Optimized Base64 decoder that processes multiple 4-character groups efficiently.
+ * This template uses specialized sub-templates for better performance:
+ * - Non-final groups use UnpaddedBase64GroupDecoder (no padding handling needed)
+ * - Final group uses PaddedBase64GroupDecoder (handles potential padding)
+ * 
+ * The optimization reduces circuit complexity by avoiding padding checks for
+ * groups that cannot contain padding (all groups except the last one).
+ */
+ template Base64DecoderOptimized(inputLength) {
+    assert(inputLength % 4 == 0);
+    var groups = inputLength \ 4;
+    var outputLength = groups * 3;
+
+    signal input {ascii} asciis[inputLength];  // ASCII values of base64 characters (0-127)
+    signal output {byte} bytes[outputLength];  // Decoded bytes (0-255)
+
+    signal {base64} base64Group[groups][4];
+    signal {byte} bytesGroup[groups][3];
+    signal {bit} isPadding[2];
+    
+    for (var i = 0; i < groups; i++) {
+        if (i < groups - 1) {
+            for (var j = 0; j < 4; j++) {
+                base64Group[i][j] <== AsciiToBase64ExceptPadding()(asciis[i * 4 + j]);
+            }
+            bytesGroup[i] <== UnpaddedBase64GroupDecoder()(base64Group[i]);
+        } else {
+            for (var j = 0; j < 4; j++) {
+                if (j < 2) {
+                    base64Group[i][j] <== AsciiToBase64ExceptPadding()(asciis[i * 4 + j]);
+                } else {
+                    (base64Group[i][j], isPadding[j - 2]) <== AsciiToBase64IsPadding()(asciis[i * 4 + j]);
+                }
+            }
+            bytesGroup[i] <== PaddedBase64GroupDecoder()(base64Group[i], isPadding);
+        }
         for (var j = 0; j < 3; j++) {
             var byteIndex = i * 3 + j;
             if (byteIndex < outputLength) {
