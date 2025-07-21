@@ -70,15 +70,24 @@ describe("AsciiToBase64 Cicuit", function () {
 
 describe("Base64GroupDecoder Cicuit", function () {
   let circuit: WitnessTester<["base64Group"], ["bytes"]>;
+  let circuitOptimized: WitnessTester<["base64Group"], ["bytes"]>;
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
     );
+    circuitOptimized = await WitnessTester.construct(
+      "circuits/shared/components/base64.circom",
+      "Base64GroupDecoderOptimized",
+    );
     console.info(
-      "Base64GroupDecoder circuit constraints:",
+      "Group base64 decoder circuit constraints:",
       await circuit.getConstraintCount(), // 81
+    );
+    console.info(
+      "Optimized base64 group decoder circuit constraints:",
+      await circuitOptimized.getConstraintCount(), // 37
     );
   });
 
@@ -97,6 +106,10 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
+        await circuitOptimized.expectPass(
+          { base64Group: base64Group },
+          { bytes: bytes },
+        );
       }
     });
 
@@ -112,6 +125,10 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
+        await circuitOptimized.expectPass(
+          { base64Group: base64Group },
+          { bytes: bytes },
+        );
       }
     });
 
@@ -124,6 +141,10 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const { base64Group, bytes } of testCases) {
         await circuit.expectPass(
+          { base64Group: base64Group },
+          { bytes: bytes },
+        );
+        await circuitOptimized.expectPass(
           { base64Group: base64Group },
           { bytes: bytes },
         );
@@ -157,6 +178,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
+        await circuitOptimized.expectFail(testCase);
       }
     });
   });
@@ -175,6 +197,10 @@ describe("Base64GroupDecoder Cicuit", function () {
           { base64Group: base64Group },
           { bytes: bytes },
         );
+        await circuitOptimized.expectPass(
+          { base64Group: base64Group },
+          { bytes: bytes },
+        );
       }
     });
 
@@ -190,6 +216,7 @@ describe("Base64GroupDecoder Cicuit", function () {
 
       for (const testCase of testCases) {
         await circuit.expectFail(testCase);
+        await circuitOptimized.expectFail(testCase);
       }
     });
   });

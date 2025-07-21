@@ -140,6 +140,65 @@ template Base64GroupDecoder() {
     }
 }
 
+ /**
+ * Optimized version that uses a more direct bit manipulation approach compared to the original,
+ * converting Base64 values to bits, rearranging them, and then extracting bytes.
+ */
+template Base64GroupDecoderOptimized() {
+    signal input {base64} base64Group[4];  // 4 Base64 values (0-64)
+    signal output {byte} bytes[3];         // 3 decoded bytes (0-255)
+    
+    // Handle padding cases
+    signal isPadding[4];
+    for (var i = 0; i < 4; i++) {
+        isPadding[i] <== IsEqual()([base64Group[i], 64]); // 64 is padding value
+    }
+    
+    // Ensure padding can only appear at the end
+    isPadding[0] === 0;
+    isPadding[1] === 0;
+    
+    // Calculate valid padding patterns
+    signal hasNoPadding <== (1 - isPadding[2]) * (1 - isPadding[3]);
+    signal hasOnePadding <== (1 - isPadding[2]) * isPadding[3];
+    signal hasTwoPadding <== isPadding[2] * isPadding[3];
+
+    // Ensure exactly one padding pattern is valid
+    signal validPadding <== hasNoPadding + hasOnePadding + hasTwoPadding;
+    validPadding === 1;
+    
+    // Extract effective values (treat padding as 0)
+    signal effectiveBase64Group[4];
+    for (var i = 0; i < 4; i++) {
+        effectiveBase64Group[i] <== base64Group[i] * (1 - isPadding[i]);
+    }
+
+    // Convert each 6-bit base64 value to binary representation
+    signal effectiveBase64GroupBits[4][6];
+    signal effectiveBits[24];
+    for (var i = 0; i < 4; i++) {
+        effectiveBase64GroupBits[i] <== Num2Bits(6)(effectiveBase64Group[i]);
+        for (var j = 0; j < 6; j++) {
+            effectiveBits[i * 6 + j] <== effectiveBase64GroupBits[i][5 - j];
+        }
+    }
+
+    // Extract 3 bytes from the 24-bit sequence
+    signal rawByteBits[3][8];
+    signal rawBytes[3];
+    for (var i = 0; i < 3; i++) {
+        for (var j = 0; j < 8; j++) {
+            rawByteBits[i][7 - j] <== effectiveBits[i * 8 + j];
+        }
+        rawBytes[i] <== Bits2Num(8)(rawByteBits[i]);
+    }
+    
+    // Apply padding logic to determine valid output bytes
+    bytes[0] <== rawBytes[0];                       // First byte is always valid
+    bytes[1] <== rawBytes[1] * (1 - hasTwoPadding); // 0 when two padding
+    bytes[2] <== rawBytes[2] * hasNoPadding;        // Only valid when no padding
+}
+
 /**
  * Decode 4 Base64 characters into 3 bytes
  * 
@@ -166,7 +225,7 @@ template Base64Decoder(inputLength) {
         for (var j = 0; j < 4; j++) {
             base64Group[i][j] <== AsciiToBase64()(asciis[i * 4 + j]);
         }
-        bytesGroup[i] <== Base64GroupDecoder()(base64Group[i]);
+        bytesGroup[i] <== Base64GroupDecoderOptimized()(base64Group[i]);
         for (var j = 0; j < 3; j++) {
             var byteIndex = i * 3 + j;
             if (byteIndex < outputLength) {

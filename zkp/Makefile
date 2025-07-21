@@ -7,7 +7,7 @@ TEMPLATE ?= Multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_12.ptau
+PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_17.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs
@@ -90,7 +90,7 @@ circuit: untag compile witness trusted-setup-phase2 prove verify solidity genera
 untag:
 	@pnpm exec tsx ./tests/utils/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
 	
-compile: untag
+compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
 	mkdir -p $(BUILD)
 	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --inspect --output $(BUILD)

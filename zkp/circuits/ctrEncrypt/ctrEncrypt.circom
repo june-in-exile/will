@@ -98,4 +98,4 @@ template UntaggedCtrEncrypt(keyBits, numblocks) {
     ciphertext <== ctrencryptComponent.ciphertext;
 }
 
-component main = UntaggedCtrEncrypt(128, 1);
+component main {public [iv]} = UntaggedCtrEncrypt(128, 1);
