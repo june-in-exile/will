@@ -31,7 +31,7 @@ describe("Workflow CLI Tests", () => {
 
   async function compileCircuit() {
     const { stderr } = await execAsync(
-      `circom ${circuitFile} --r1cs --wasm --sym --output ${buildDir} -l node_modules`,
+      `circom ${circuitFile} --r1cs --sym --wasm --output ${buildDir} -l node_modules --O2`,
     );
     if (stderr && !stderr.includes("Everything went okay")) {
       console.warn("Compilation warnings:", stderr);
@@ -75,7 +75,7 @@ describe("Workflow CLI Tests", () => {
 
     await compileCircuit();
     await setupTrustedCeremony();
-  }, 120000); // 2 minutes timeout
+  }, 30000); // 30 seconds timeout
 
   describe("Circuit Compilation", () => {
     it("should have all compiled files", async () => {

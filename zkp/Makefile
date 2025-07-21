@@ -7,7 +7,7 @@ TEMPLATE ?= Multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_17.ptau
+PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_27.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs

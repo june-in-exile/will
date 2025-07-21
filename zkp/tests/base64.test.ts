@@ -6,10 +6,12 @@ describe("Base64Char Cicuit", function () {
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/base64.circom",
-      "Base64Char"
+      "Base64Char",
     );
-    console.info("Base64 character circuit constraints:",
-      await circuit.getConstraintCount()); // 144
+    console.info(
+      "Base64 character circuit constraints:",
+      await circuit.getConstraintCount(),
+    ); // 144
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -95,7 +97,7 @@ describe("Base64CharExcludingPadding Cicuit", function () {
     });
 
     it("should reject Base64 padding characters", async function (): Promise<void> {
-      const char: string = '=';
+      const char: string = "=";
       const ascii: Ascii = char.charCodeAt(0) as Ascii;
 
       await circuit.expectFail({ ascii });
@@ -171,7 +173,7 @@ describe("Base64CharWithPaddingDetector Cicuit", function () {
     });
 
     it("should handle Base64 padding characters", async function (): Promise<void> {
-      const char: string = '=';
+      const char: string = "=";
       const ascii: Ascii = char.charCodeAt(0) as Ascii;
       const base64: Base64 = 0 as Base64;
       const isPadding: Bit = 1;
@@ -435,40 +437,51 @@ describe("Base64GroupDecoderWithPadding Cicuit", function () {
       ];
 
       for (const { base64Group, isPadding, bytes } of testCases) {
-        await circuit.expectPass(
-          { base64Group, isPadding },
-          { bytes },
-        );
+        await circuit.expectPass({ base64Group, isPadding }, { bytes });
       }
     });
 
     it("should accpet one padding", async function (): Promise<void> {
       const testCases = [
         { base64Group: [16, 36, 12, 0], isPadding: [0, 1], bytes: [66, 67, 0] }, // QkM= -> BC
-        { base64Group: [19, 22, 21, 0], isPadding: [0, 1], bytes: [77, 101, 0] }, // TWV= -> Me
-        { base64Group: [26, 39, 53, 0], isPadding: [0, 1], bytes: [106, 125, 0] }, // an1= -> j}
+        {
+          base64Group: [19, 22, 21, 0],
+          isPadding: [0, 1],
+          bytes: [77, 101, 0],
+        }, // TWV= -> Me
+        {
+          base64Group: [26, 39, 53, 0],
+          isPadding: [0, 1],
+          bytes: [106, 125, 0],
+        }, // an1= -> j}
       ];
 
       for (const { base64Group, isPadding, bytes } of testCases) {
-        await circuit.expectPass(
-          { base64Group, isPadding },
-          { bytes },
-        );
+        await circuit.expectPass({ base64Group, isPadding }, { bytes });
       }
     });
 
     it("should accpet no padding", async function (): Promise<void> {
       const testCases = [
-        { base64Group: [19, 22, 5, 46], isPadding: [0, 0], bytes: [77, 97, 110] }, // TWFu -> Man
-        { base64Group: [29, 6, 33, 37], isPadding: [0, 0], bytes: [116, 104, 101] }, // dGhl -> the
-        { base64Group: [16, 23, 9, 37], isPadding: [0, 0], bytes: [65, 114, 101] }, // QXJl -> Are
+        {
+          base64Group: [19, 22, 5, 46],
+          isPadding: [0, 0],
+          bytes: [77, 97, 110],
+        }, // TWFu -> Man
+        {
+          base64Group: [29, 6, 33, 37],
+          isPadding: [0, 0],
+          bytes: [116, 104, 101],
+        }, // dGhl -> the
+        {
+          base64Group: [16, 23, 9, 37],
+          isPadding: [0, 0],
+          bytes: [65, 114, 101],
+        }, // QXJl -> Are
       ];
 
       for (const { base64Group, isPadding, bytes } of testCases) {
-        await circuit.expectPass(
-          { base64Group, isPadding },
-          { bytes },
-        );
+        await circuit.expectPass({ base64Group, isPadding }, { bytes });
       }
     });
   });
@@ -491,15 +504,20 @@ describe("Base64GroupDecoderWithPadding Cicuit", function () {
       const testCases = [
         { base64Group: [0, 0, 0, 0], isPadding: [0, 0], bytes: [0, 0, 0] },
         { base64Group: [0, 0, 63, 63], isPadding: [0, 0], bytes: [0, 15, 255] },
-        { base64Group: [63, 0, 63, 0], isPadding: [0, 0], bytes: [252, 15, 192] },
-        { base64Group: [63, 63, 63, 63], isPadding: [0, 0], bytes: [255, 255, 255] },
+        {
+          base64Group: [63, 0, 63, 0],
+          isPadding: [0, 0],
+          bytes: [252, 15, 192],
+        },
+        {
+          base64Group: [63, 63, 63, 63],
+          isPadding: [0, 0],
+          bytes: [255, 255, 255],
+        },
       ];
 
       for (const { base64Group, isPadding, bytes } of testCases) {
-        await circuit.expectPass(
-          { base64Group, isPadding },
-          { bytes },
-        );
+        await circuit.expectPass({ base64Group, isPadding }, { bytes });
       }
     });
 
