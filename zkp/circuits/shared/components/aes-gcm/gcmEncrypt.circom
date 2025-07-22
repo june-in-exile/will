@@ -56,7 +56,7 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     signal {byte} incrementedJ0[16] <== IncrementCounterOptimized()(j0);
     
     // Step 3: CTR encryption with incremented J0
-    ciphertext <== CtrEncrypt(keyBits, textLengthBytes)(plaintext, key, iv);
+    ciphertext <== CtrEncrypt(keyBits, textLengthBytes)(plaintext, key, incrementedJ0);
     
     // Step 4: Calculate total blocks needed for GHASH input
     var aadNumBlocks = (aadLengthBytes + 15) \ 16;
