@@ -16,7 +16,7 @@ include "../bits.circom";
  * 3. XORing the result with plaintext
  * 
  * @param keyBits - AES key size in bits (128, 192, or 256)
- * @param plaintextBytes - number of bytes to process
+ * @param plaintextBytes - Number of bytes to process
  */
 template CtrEncrypt(keyBits, plaintextBytes) {
     var Nk;
@@ -28,14 +28,13 @@ template CtrEncrypt(keyBits, plaintextBytes) {
     } else {
         Nk = 8;
     }
-
-    var numBlocks = (plaintextBytes + 15) \ 16;
-    var paddingBytes = (16 - plaintextBytes % 16) % 16;
     
     signal input {byte} plaintext[plaintextBytes]; // Plaintext data in bytes
     input Word() key[Nk]; // AES key using Word bus structure
     signal input {byte} iv[16]; // Initial counter value
     signal output {byte} ciphertext[plaintextBytes]; // Encrypted output
+
+    var numBlocks = (plaintextBytes + 15) \ 16;
     
     // Counter state array - stores counter value for each block
     signal {byte} counters[numBlocks][16];

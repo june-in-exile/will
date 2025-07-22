@@ -585,14 +585,14 @@ class AESGCM {
     authData.writeUInt32BE(ciphertextLengthBits & 0xffffffff, offset + 12);
 
     // Calculate GHASH
-    let S = this.ghash(authData, hashKey);
+    const S = this.ghash(authData, hashKey);
 
     // 6. Final tag calculation: T = GCTR_K(J0, S) = S xor CIPH_K(J0)
     const tagMask = AES.encryptBlock(j0, key);
-    S = AESUtils.xor(S, tagMask);
+    const T = AESUtils.xor(S, tagMask);
 
     // 7. Return ciphertext and tag
-    return { ciphertext, authTag: S };
+    return { ciphertext, authTag: T };
   }
 
   /**
