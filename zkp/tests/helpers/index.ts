@@ -4,6 +4,7 @@ export * from "./columnMixing";
 export * from "./counterIncrement";
 export * from "./encryptBlock";
 export * from "./ctrEncrypt";
+export * from "./gcmEncrypt";
 export * from "./j0Computation";
 export * from "./keyExpansion";
 export * from "./roundKeyAddition";

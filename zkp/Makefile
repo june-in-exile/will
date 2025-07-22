@@ -7,7 +7,7 @@ TEMPLATE ?= Multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys
-PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_27.ptau
+PTAU_PATH := $(SHARED_KEYS)/downloaded/ppot_0080_final_23.ptau
 
 DIR := ./circuits/$(CIRCUIT)
 INPUTS := $(DIR)/inputs
@@ -96,7 +96,7 @@ compile:
 	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --inspect --output $(BUILD)
 	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
 
-witness: compile
+witness:
 	@echo "🧮 Generating witness for $(CIRCUIT)..."
 	@if [ ! -f $(INPUTS)/example.json ]; then \
 		echo "❌ Input file not found."; \
@@ -113,7 +113,7 @@ trusted-setup-phase2:
 		echo "❌ Powers of Tau not found."; \
 		exit 1; \
 	fi
-	snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU_PATH) $(KEYS)/$(CIRCUIT)_0000.zkey
+	NODE_OPTIONS=--max-old-space-size=16384 snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU_PATH) $(KEYS)/$(CIRCUIT)_0000.zkey
 	snarkjs zkey contribute $(KEYS)/$(CIRCUIT)_0000.zkey $(KEYS)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
 	snarkjs zkey export verificationkey $(KEYS)/$(CIRCUIT)_0001.zkey $(KEYS)/verification_key.json
 	@echo "✅ Keys generated successfully!"
@@ -171,8 +171,7 @@ clean-all:
 		echo "  Cleaning $$(basename "$$circuit_dir")..."; \
 		$(call clean_dir,$$circuit_dir); \
 	done
-	@rm -rf ./circuits/shared/keys
-	@echo "✅ All circuits and Powers of Tau cleaned!"
+	@echo "✅ All circuits cleaned!"
 
 
 # Test
