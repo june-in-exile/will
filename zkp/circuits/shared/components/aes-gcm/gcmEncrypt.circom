@@ -56,7 +56,7 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     signal {byte} incrementedJ0[16] <== IncrementCounterOptimized()(j0);
     
     // Step 3: CTR encryption with incremented J0
-    ciphertext = CtrEncrypt(keyBits, textLengthBytes)(plaintext, key, iv);
+    ciphertext <== CtrEncrypt(keyBits, textLengthBytes)(plaintext, key, iv);
     
     // Step 4: Calculate total blocks needed for GHASH input
     var aadNumBlocks = (aadLengthBytes + 15) \ 16;
@@ -96,48 +96,37 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     
     // Add length information (64-bit big endian)
     var aadLengthBits = aadLengthBytes * 8;
-    var textLengthBits = textLengthBytes * 8;
-    
-    // AAD length in bits (64-bit big-endian)
-    ghashInput[offset + 0] <-- (aadLengthBits >> 56) & 0xFF;
-    ghashInput[offset + 1] <-- (aadLengthBits >> 48) & 0xFF;
-    ghashInput[offset + 2] <-- (aadLengthBits >> 40) & 0xFF;
-    ghashInput[offset + 3] <-- (aadLengthBits >> 32) & 0xFF;
-    ghashInput[offset + 4] <-- (aadLengthBits >> 24) & 0xFF;
-    ghashInput[offset + 5] <-- (aadLengthBits >> 16) & 0xFF;
-    ghashInput[offset + 6] <-- (aadLengthBits >> 8) & 0xFF;
-    ghashInput[offset + 7] <-- aadLengthBits & 0xFF;
-    
     signal accAadLengthBits[8];
-    accAadLengthBits[0] <== ghashInput[offset + 0];
-    for (i = 1; i < 8; i++) {
-        accAadLengthBits[i] <== ghashInput[offset + i - 1] * 2**8 + ghashInput[offset + i];
+    for (var i = 0; i < 8; i++) {
+        ghashInput[offset + i] <-- (aadLengthBits >> 8 * (7 - i)) & 0xFF;
+        if (i == 0) {
+            accAadLengthBits[i] <== ghashInput[offset + i];
+        } else {
+            accAadLengthBits[i] <== ghashInput[offset + i - 1] * 2**8 + ghashInput[offset + i];
+        }
     }
     accAadLengthBits[7] === aadLengthBits;
 
     offset += 8;
 
-    // Ciphertext length in bits (64-bit big-endian)
-    ghashInput[offset + 0] <== (textLengthBits >> 56) & 0xFF;
-    ghashInput[offset + 1] <== (textLengthBits >> 48) & 0xFF;
-    ghashInput[offset + 2] <== (textLengthBits >> 40) & 0xFF;
-    ghashInput[offset + 3] <== (textLengthBits >> 32) & 0xFF;
-    ghashInput[offset + 4] <== (textLengthBits >> 24) & 0xFF;
-    ghashInput[offset + 5] <== (textLengthBits >> 16) & 0xFF;
-    ghashInput[offset + 6] <== (textLengthBits >> 8) & 0xFF;
-    ghashInput[offset + 7] <== textLengthBits & 0xFF;
-
+    var textLengthBits = textLengthBytes * 8;
     signal accTextLengthBits[8];
-    accAadLengthBits[0] <== ghashInput[offset + 0];
-    for (i = 1; i < 8; i++) {
-        accTextLengthBits[i] <== ghashInput[offset + i - 1] * 2**8 + ghashInput[offset + i];
+    for (var i = 0; i < 8; i++) {
+        ghashInput[offset + i] <-- (textLengthBits >> 8 * (7 - i)) & 0xFF;
+        if (i == 0) {
+            accTextLengthBits[i] <== ghashInput[offset + i];
+        } else {
+            accTextLengthBits[i] <== ghashInput[offset + i - 1] * 2**8 + ghashInput[offset + i];
+        }
     }
     accTextLengthBits[7] === textLengthBits;
     
     // Compute GHASH
-    signal S <== GHashOptimized(totalAuthBlocks)(ghashInput, hashKey);
+    signal {byte} S[16] <== GHashOptimized(totalAuthBlocks)(ghashInput, hashKey);
     
     // Step 6: Final tag calculation: T = GCTR_K(J0, S) = S ⊕ CIPH_K(J0)
-    signal tagMask <== EncryptBlock(keyBits)(j0, key);
-    authTag <== BitwiseXor(2, 128)(S, tagMask);
+    signal {byte} tagMask[16] <== EncryptBlock(keyBits)(j0, key);
+    for (var i = 0; i < 16; i++) {
+        authTag[i] <== BitwiseXor(2, 8)([S[i], tagMask[i]]);
+    }
 }
