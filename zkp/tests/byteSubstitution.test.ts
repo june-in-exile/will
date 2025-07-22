@@ -7,7 +7,7 @@ describe("SubWord Circuit", function () {
   describe("Word Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/byteSubstitution.circom",
+        "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubWord",
       );
       console.info(
@@ -35,7 +35,7 @@ describe("SubBytes Circuit", function () {
   describe("Bytes Substitution in Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/byteSubstitution.circom",
+        "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubBytes",
       );
       console.info(
@@ -60,7 +60,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("Single Byte Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/byteSubstitution.circom",
+        "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubstituteBytes",
         {
           templateParams: ["1"],
@@ -87,7 +87,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("4-Byte Bytes Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/byteSubstitution.circom",
+        "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubstituteBytes",
         {
           templateParams: ["4"],
@@ -114,7 +114,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("16-Byte Bytes Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/byteSubstitution.circom",
+        "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubstituteBytes",
         {
           templateParams: ["16"],

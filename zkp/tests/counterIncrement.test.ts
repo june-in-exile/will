@@ -8,11 +8,11 @@ describe("IncrementCounter Circuits", function () {
   describe("Increment Counter Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/counterIncrement.circom",
+        "circuits/shared/components/aes-gcm/counterIncrement.circom",
         "IncrementCounter",
       );
       circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/counterIncrement.circom",
+        "circuits/shared/components/aes-gcm/counterIncrement.circom",
         "IncrementCounterOptimized",
       );
       console.info(

@@ -7,7 +7,7 @@ describe("MixColumn Circuit", function () {
   describe("MixColumns Transformation for a Single Column", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/columnMixing.circom",
+        "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumn",
       );
       console.info(
@@ -82,7 +82,7 @@ describe("MixColumns Circuit", function () {
   describe("MixColumns Transformation for the Entire 16-byte State", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/columnMixing.circom",
+        "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumns",
       );
       console.info(

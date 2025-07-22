@@ -7,7 +7,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-128", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/keyExpansion.circom",
+        "circuits/shared/components/aes-gcm/keyExpansion.circom",
         "ExpandKey",
         {
           templateParams: ["128"],
@@ -39,7 +39,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-192", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/keyExpansion.circom",
+        "circuits/shared/components/aes-gcm/keyExpansion.circom",
         "ExpandKey",
         {
           templateParams: ["192"],
@@ -70,7 +70,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-256", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/keyExpansion.circom",
+        "circuits/shared/components/aes-gcm/keyExpansion.circom",
         "ExpandKey",
         {
           templateParams: ["256"],

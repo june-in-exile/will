@@ -7,7 +7,7 @@ describe("ComputeJ0Standard Circuits", function () {
 
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/j0Computation.circom",
+        "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0Standard",
       );
       console.info(
@@ -47,7 +47,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   it("should reject 0-byte IV input", async function (): Promise<void> {
     await expect(
       WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/j0Computation.circom",
+        "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["0"],
@@ -59,7 +59,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   it("should reject 12-byte IV input", async function (): Promise<void> {
     await expect(
       WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/j0Computation.circom",
+        "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["12"],
@@ -71,7 +71,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   describe("8-Byte-IV Compute J0 Non-Standard Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/j0Computation.circom",
+        "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["8"],
@@ -99,7 +99,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
 
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/j0Computation.circom",
+        "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["16"],
@@ -145,7 +145,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
 
       for (const length of ivLengths) {
         const circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes256ctr/j0Computation.circom",
+          "circuits/shared/components/aes-gcm/j0Computation.circom",
           "ComputeJ0NonStandard",
           {
             templateParams: [String(length)],

@@ -271,7 +271,7 @@ describe("GcmEncrypt Circuits", function () {
   describe("AES-256-GCM Encrypt Circuit - Standard IV (12 bytes), 1 Block", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/gcmEncrypt.circom",
+        "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
         "GcmEncrypt",
         {
           templateParams: ["256", "12", "1", "0"],
@@ -353,7 +353,7 @@ describe("GcmEncrypt Circuits", function () {
   describe("AES-256-GCM Encrypt Circuit - With AAD, 2 Blocks", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/gcmEncrypt.circom",
+        "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
         "GcmEncrypt",
         {
           templateParams: ["256", "12", "2", "1"],
@@ -437,7 +437,7 @@ describe("GcmEncrypt Circuits", function () {
   describe("AES-256-GCM Encrypt Circuit - Non-standard IV (16 bytes), 1 Block", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/gcmEncrypt.circom",
+        "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
         "GcmEncrypt",
         {
           templateParams: ["256", "16", "1", "0"],

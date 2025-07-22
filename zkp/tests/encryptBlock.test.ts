@@ -9,7 +9,7 @@ describe("EncryptBlock Circuit", function () {
     for (const keySize of keySizes) {
       await expect(
         WitnessTester.construct(
-          "circuits/shared/components/aes256ctr/encryptBlock.circom",
+          "circuits/shared/components/aes-gcm/encryptBlock.circom",
           "EncryptBlock",
           {
             templateParams: [String(keySize)],
@@ -22,7 +22,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-128 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/encryptBlock.circom",
+        "circuits/shared/components/aes-gcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["128"],
@@ -50,7 +50,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-192 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/encryptBlock.circom",
+        "circuits/shared/components/aes-gcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["192"],
@@ -78,7 +78,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes256ctr/encryptBlock.circom",
+        "circuits/shared/components/aes-gcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["256"],
