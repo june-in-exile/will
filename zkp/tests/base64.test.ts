@@ -8,7 +8,7 @@ describe("Base64Char Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64Char",
     );
-    circuit.recordConstraint("base64 character");
+    circuit.setConstraint("base64 character");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -72,7 +72,7 @@ describe("Base64CharExcludingPadding Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64CharExcludingPadding",
     );
-    circuit.recordConstraint("base64 character excluding padding");
+    circuit.setConstraint("base64 character excluding padding");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -143,7 +143,7 @@ describe("Base64CharWithPaddingDetector Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64CharWithPaddingDetector",
     );
-    circuit.recordConstraint("base64 character with padding detector");
+    circuit.setConstraint("base64 character with padding detector");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -217,7 +217,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
     );
-    circuit.recordConstraint("base64 group decoder");
+    circuit.setConstraint("base64 group decoder");
   });
 
   describe("Valid Padding", function (): void {
@@ -341,7 +341,7 @@ describe("Base64GroupDecoderWithoutPadding Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoderWithoutPadding",
     );
-    circuit.recordConstraint("base64 group decoder without padding");
+    circuit.setConstraint("base64 group decoder without padding");
   });
 
   describe("No Padding", function (): void {
@@ -403,7 +403,7 @@ describe("Base64GroupDecoderWithPadding Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoderWithPadding",
     );
-    circuit.recordConstraint("base64 group decoder with padding");
+    circuit.setConstraint("base64 group decoder with padding");
   });
 
   describe("Valid Padding", function (): void {
@@ -530,7 +530,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["4"],
         },
       );
-      circuit.recordConstraint("4-byte base64 decoder");
+      circuit.setConstraint("4-byte base64 decoder");
     });
 
     it("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
@@ -600,7 +600,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["8"],
         },
       );
-      circuit.recordConstraint("8-byte base64 decoder");
+      circuit.setConstraint("8-byte base64 decoder");
     });
 
     it("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
@@ -644,7 +644,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["360"],
         },
       );
-      circuit.recordConstraint("360-byte base64 decoder");
+      circuit.setConstraint("360-byte base64 decoder");
     });
 
     it("should decode a real world case", async function (): Promise<void> {

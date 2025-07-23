@@ -15,9 +15,8 @@ describe("IncrementCounter Circuits", function () {
         "circuits/shared/components/aes-gcm/counterIncrement.circom",
         "IncrementCounterOptimized",
       );
-      circuit.recordConstraint("counter increment");
-      circuitOptimized.recordConstraint("optimized counter increment");
-
+      circuit.setConstraint("counter increment");
+      circuitOptimized.setConstraint("optimized counter increment");
     });
 
     it("should correctly increment last 4 bytes without carry", async function (): Promise<void> {

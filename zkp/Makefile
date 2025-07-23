@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = ctrEncrypt
+# CIRCUIT = ctrEncrypt
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CtrEncrypt
+# TEMPLATE = CtrEncrypt
 TEMPLATE ?= Multiplier2
 
 # Directory structure

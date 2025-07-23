@@ -10,7 +10,7 @@ describe("GF8Mul2 Circuit", function () {
         "circuits/shared/components/aes-gcm/galoisField.circom",
         "GF8Mul2",
       );
-      circuit.recordConstraint("GF(2^8) multiplication by 2")
+      circuit.setConstraint("GF(2^8) multiplication by 2");
     });
 
     it("should correctly multiply by 2 for random values", async function (): Promise<void> {
@@ -63,7 +63,7 @@ describe("GF8Mul3 Circuit", function () {
         "circuits/shared/components/aes-gcm/galoisField.circom",
         "GF8Mul3",
       );
-      circuit.recordConstraint("GF(2^8) multiplication by 3")
+      circuit.setConstraint("GF(2^8) multiplication by 3");
     });
 
     it("should correctly multiply by 3 for random values", async function (): Promise<void> {
@@ -139,8 +139,8 @@ describe("GF128Multiply Circuit", function () {
       "circuits/shared/components/aes-gcm/galoisField.circom",
       "GF128MultiplyOptimized",
     );
-    circuit.recordConstraint("GF(2^128) multiplication")
-    circuitOptimized.recordConstraint("optimized GF(2^128) multiplication")
+    circuit.setConstraint("GF(2^128) multiplication");
+    circuitOptimized.setConstraint("optimized GF(2^128) multiplication");
   });
 
   it("should correctly multiply by zero and yield zero", async function (): Promise<void> {
@@ -217,8 +217,8 @@ describe("GHash Circuit", function () {
           templateParams: ["1"],
         },
       );
-      circuit.recordConstraint("1-block GHASH");
-      circuitOptimized.recordConstraint("optimized 1-block GHASH");
+      circuit.setConstraint("1-block GHASH");
+      circuitOptimized.setConstraint("optimized 1-block GHASH");
     });
 
     it("should compute GHASH for simple sequential data", async function (): Promise<void> {
@@ -272,8 +272,8 @@ describe("GHash Circuit", function () {
           templateParams: ["2"],
         },
       );
-      circuit.recordConstraint("2-block GHASH");
-      circuitOptimized.recordConstraint("optimized 2-block GHASH");
+      circuit.setConstraint("2-block GHASH");
+      circuitOptimized.setConstraint("optimized 2-block GHASH");
     });
 
     it("should compute GHASH for sequential data across two blocks", async function (): Promise<void> {
@@ -329,8 +329,8 @@ describe("GHash Circuit", function () {
           templateParams: ["4"],
         },
       );
-      circuit.recordConstraint("4-block GHASH");
-      circuitOptimized.recordConstraint("optimized 4-block GHASH");
+      circuit.setConstraint("4-block GHASH");
+      circuitOptimized.setConstraint("optimized 4-block GHASH");
     });
 
     it("should compute GHASH for pattern data", async function (): Promise<void> {

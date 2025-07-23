@@ -12,7 +12,7 @@ describe("InRange Circuit", function () {
           templateParams: ["4"],
         },
       );
-      circuit.recordConstraint("4-bit in-range check");
+      circuit.setConstraint("4-bit in-range check");
     });
 
     it("should validate full range [0, 15]", async function (): Promise<void> {
@@ -59,7 +59,7 @@ describe("InRange Circuit", function () {
           templateParams: ["8"],
         },
       );
-      circuit.recordConstraint("8-bit in-range check");
+      circuit.setConstraint("8-bit in-range check");
     });
 
     it("should validate full range [0, 255]", async function (): Promise<void> {

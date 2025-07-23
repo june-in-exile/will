@@ -9,7 +9,7 @@ describe("Mod2 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Mod2",
       );
-      circuit.recordConstraint("modulo 2");
+      circuit.setConstraint("modulo 2");
     });
 
     it("should correctly identify even numbers", async function (): Promise<void> {
@@ -61,7 +61,7 @@ describe("Mask Circuit", function () {
           templateParams: ["8", "15"],
         },
       );
-      circuit.recordConstraint("8-bit 0x0F mask");
+      circuit.setConstraint("8-bit 0x0F mask");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -146,7 +146,7 @@ describe("Mask Circuit", function () {
           templateParams: ["16", "255"],
         },
       );
-      circuit.recordConstraint("16-bit 0x00FF mask");
+      circuit.setConstraint("16-bit 0x00FF mask");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -200,7 +200,7 @@ describe("Mask Circuit", function () {
           templateParams: ["32", "65535"],
         },
       );
-      circuit.recordConstraint("32-bit 0x0000FFFF mask");
+      circuit.setConstraint("32-bit 0x0000FFFF mask");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -258,7 +258,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "1"],
         },
       );
-      circuit.recordConstraint("8-bit 1-offset shift right");
+      circuit.setConstraint("8-bit 1-offset shift right");
     });
 
     it("should perform correct 1-bit right shift operations", async function (): Promise<void> {
@@ -308,7 +308,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "2"],
         },
       );
-      circuit.recordConstraint("8-bit 2-offset shift right");
+      circuit.setConstraint("8-bit 2-offset shift right");
     });
 
     it("should perform correct 2-bit right shift operations", async function (): Promise<void> {
@@ -354,7 +354,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "4"],
         },
       );
-      circuit.recordConstraint("8-bit 4-offset shift right");
+      circuit.setConstraint("8-bit 4-offset shift right");
     });
 
     it("should perform correct 4-bit right shift operations", async function (): Promise<void> {
@@ -398,7 +398,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["16", "8"],
         },
       );
-      circuit.recordConstraint("16-bit 8-offset shift right");
+      circuit.setConstraint("16-bit 8-offset shift right");
     });
 
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
@@ -440,7 +440,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["32", "8"],
         },
       );
-      circuit.recordConstraint("32-bit 8-offset shift right");
+      circuit.setConstraint("32-bit 8-offset shift right");
     });
 
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
@@ -509,7 +509,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "8"],
         },
       );
-      circuit.recordConstraint("2x8-bit xor operation");
+      circuit.setConstraint("2x8-bit xor operation");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -595,8 +595,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "8"],
         },
       );
-      circuit.recordConstraint("3x8-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 3x8-bit xor operation");
+      circuit.setConstraint("3x8-bit xor operation");
+      circuitOptimized.setConstraint("optimized 3x8-bit xor operation");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -686,8 +686,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "8"],
         },
       );
-      circuit.recordConstraint("5x8-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 5x8-bit xor operation");
+      circuit.setConstraint("5x8-bit xor operation");
+      circuitOptimized.setConstraint("optimized 5x8-bit xor operation");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -715,7 +715,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "16"],
         },
       );
-      circuit.recordConstraint("2x16-bit xor operation");
+      circuit.setConstraint("2x16-bit xor operation");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -767,8 +767,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "16"],
         },
       );
-      circuit.recordConstraint("3x8-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 3x8-bit xor operation");
+      circuit.setConstraint("3x8-bit xor operation");
+      circuitOptimized.setConstraint("optimized 3x8-bit xor operation");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -804,8 +804,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "16"],
         },
       );
-      circuit.recordConstraint("5x16-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 5x16-bit xor operation");
+      circuit.setConstraint("5x16-bit xor operation");
+      circuitOptimized.setConstraint("optimized 5x16-bit xor operation");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -845,8 +845,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["10", "4"],
         },
       );
-      circuit.recordConstraint("10x4-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 10x4-bit xor operation");
+      circuit.setConstraint("10x4-bit xor operation");
+      circuitOptimized.setConstraint("optimized 10x4-bit xor operation");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -879,7 +879,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "32"],
         },
       );
-      circuit.recordConstraint("2x32-bit xor operation");
+      circuit.setConstraint("2x32-bit xor operation");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -931,8 +931,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "32"],
         },
       );
-      circuit.recordConstraint("3x32-bit xor operation");
-      circuitOptimized.recordConstraint("optimized 3x32-bit xor operation");
+      circuit.setConstraint("3x32-bit xor operation");
+      circuitOptimized.setConstraint("optimized 3x32-bit xor operation");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -962,7 +962,7 @@ describe("ByteAdder Circuits", function () {
         "circuits/shared/components/bits.circom",
         "ByteAdder",
       );
-      circuit.recordConstraint("byte adder");
+      circuit.setConstraint("byte adder");
     });
 
     it("should correctly add bytes without carry", async function (): Promise<void> {
@@ -1017,7 +1017,7 @@ describe("Byte16ToBit128 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Byte16ToBit128",
       );
-      circuit.recordConstraint("16-byte to 128 bits conversion");
+      circuit.setConstraint("16-byte to 128 bits conversion");
     });
 
     it("should correctly convert all zero bytes", async function (): Promise<void> {
@@ -1058,7 +1058,7 @@ describe("Bit128ToByte16 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Bit128ToByte16",
       );
-      circuit.recordConstraint("128 bits to 16-byte conversion");
+      circuit.setConstraint("128 bits to 16-byte conversion");
     });
 
     it("should correctly convert all zero bits", async function (): Promise<void> {
@@ -1099,7 +1099,7 @@ describe("Byte16ToNum Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Byte16ToNum",
       );
-      circuit.recordConstraint("16-byte to 128-bit conversion");
+      circuit.setConstraint("16-byte to 128-bit conversion");
     });
 
     it("should convert minimum and maximum value correctly", async function (): Promise<void> {
@@ -1181,7 +1181,7 @@ describe("NumToByte16 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "NumToByte16",
       );
-      circuit.recordConstraint("128-bit to 16-byte conversion");
+      circuit.setConstraint("128-bit to 16-byte conversion");
     });
 
     it("should convert minimum and maximum value correctly", async function (): Promise<void> {

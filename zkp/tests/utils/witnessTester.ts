@@ -125,14 +125,14 @@ class WitnessTester<
   private symbols: SymbolsType | undefined;
   /** List of constraints, see {@link loadConstraints} */
   private constraints: unknown[] | undefined;
-  /** Path to constraint records file */
-  private constraintRecordsPath: string;
+  /** Path to constraints file */
+  private constraintsPath: string;
 
   constructor(
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
   ) {
-    this.constraintRecordsPath = this.getDefaultConstraintRecordsPath();
+    this.constraintsPath = this.getConstraintsPath();
   }
 
   static async construct(
@@ -465,44 +465,43 @@ class WitnessTester<
 
   /**
    * Record constraint count for a specific circuit and description
-   * @param circuitType - The type of circuit
    * @param description - Description of the constraint test
    * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
    */
-  async recordConstraint(
-    description: string,
-  ): Promise<void> {
-
+  async setConstraint(description: string): Promise<void> {
     const circuitType = this.getCurrentTestFileName();
     const constraintCount = await this.getConstraintCount();
     console.info(`${description}: ${constraintCount}`);
 
-    let records: ConstraintRecords = {};
+    let contraints: Constraints = {};
 
-    // Load existing records if file exists
-    if (fs.existsSync(this.constraintRecordsPath)) {
+    // Load existing contraints if file exists
+    if (fs.existsSync(this.constraintsPath)) {
       try {
-        const data = fs.readFileSync(this.constraintRecordsPath, 'utf8');
-        records = JSON.parse(data);
+        const data = fs.readFileSync(this.constraintsPath, "utf8");
+        contraints = JSON.parse(data);
       } catch (error) {
-        console.warn(`Warning: Could not parse existing constraint records: ${error}`);
-        records = {};
+        console.warn(`Warning: Could not parse existing constraints: ${error}`);
+        contraints = {};
       }
     }
 
     // Initialize circuit type if it doesn't exist
-    if (!records[circuitType]) {
-      records[circuitType] = {};
+    if (!contraints[circuitType]) {
+      contraints[circuitType] = {};
     }
 
     // Update the constraint count
-    records[circuitType][description] = constraintCount;
+    contraints[circuitType][description] = constraintCount;
 
     // Write back to file with pretty formatting
     try {
-      fs.writeFileSync(this.constraintRecordsPath, JSON.stringify(records, null, 2));
+      fs.writeFileSync(
+        this.constraintsPath,
+        JSON.stringify(contraints, null, 2),
+      );
     } catch (error) {
-      console.error(`Error writing constraint records: ${error}`);
+      console.error(`Error writing constraints: ${error}`);
     }
   }
 
@@ -510,32 +509,33 @@ class WitnessTester<
    * Get constraint count for a specific circuit and description
    * @param circuitType - The type of circuit
    * @param description - Description of the constraint test
-   * @returns The recorded constraint count or null if not found
+   * @returns The constraint count or null if not found
    */
-  getRecordedConstraint(
-    circuitType: string,
-    description: string
-  ): number | null {
-    if (!fs.existsSync(this.constraintRecordsPath)) {
+  getConstraint(circuitType: string, description: string): number | null {
+    if (!fs.existsSync(this.constraintsPath)) {
       return null;
     }
 
     try {
-      const data = fs.readFileSync(this.constraintRecordsPath, 'utf8');
-      const records: ConstraintRecords = JSON.parse(data);
+      const data = fs.readFileSync(this.constraintsPath, "utf8");
+      const constraints: Constraints = JSON.parse(data);
 
-      return records[circuitType]?.[description] || null;
+      return constraints[circuitType]?.[description] || null;
     } catch (error) {
-      console.warn(`Warning: Could not read constraint records: ${error}`);
+      console.warn(`Warning: Could not read constraints: ${error}`);
       return null;
     }
   }
 
   /**
-   * Initialize constraint records file with default structure
+   * Initialize constraints file with default structure
    */
-  initializeConstraintRecords(): void {
-    const defaultRecords: ConstraintRecords = {
+  static initializeConstraints(): void {
+    const constraintsPath =
+      (globalThis as GlobalThis).CONSTRAINTS_PATH ||
+      "./constraints.json";
+
+    const defaultConstraints: Constraints = {
       arithmetic: {},
       base64: {},
       bits: {},
@@ -555,16 +555,20 @@ class WitnessTester<
       utf8: {},
     };
 
-    // Ensure directory exists
-    const dir = path.dirname(this.constraintRecordsPath);
+    const dir = path.dirname(constraintsPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    fs.writeFileSync(this.constraintRecordsPath, JSON.stringify(defaultRecords, null, 2));
+    fs.writeFileSync(
+      constraintsPath,
+      JSON.stringify(defaultConstraints, null, 2),
+    );
   }
 
-  // ====== PRIVATE METHODS ======
+  initializeConstraints(): void {
+    WitnessTester.initializeConstraints();
+  }
 
   /**
    * Assert the output of a given witness.
@@ -637,11 +641,11 @@ class WitnessTester<
   }
 
   /**
-   * Get default constraint records path
+   * Get constraints file path
    * This tries to get from global config or uses a default path
    */
-  private getDefaultConstraintRecordsPath(): string {
-    return (globalThis as GlobalThis).CONSTRAINT_RECORDS_PATH || "./constraints.json";
+  private getConstraintsPath(): string {
+    return (globalThis as GlobalThis).CONSTRAINTS_PATH || "./constraints.json";
   }
 
   /**

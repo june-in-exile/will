@@ -10,7 +10,7 @@ describe("ComputeJ0Standard Circuits", function () {
         "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0Standard",
       );
-      circuit.recordConstraint("j0 computation for standard IV (12 bytes)");
+      circuit.setConstraint("j0 computation for standard IV (12 bytes)");
     });
 
     it("should correctly compute J0 for 12-byte IV", async function (): Promise<void> {
@@ -74,7 +74,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
           templateParams: ["8"],
         },
       );
-      circuit.recordConstraint("j0 computation for 8-byte IV");
+      circuit.setConstraint("j0 computation for 8-byte IV");
     });
 
     it("should correctly compute J0 for 8-byte IV", async function (): Promise<void> {
@@ -99,7 +99,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
           templateParams: ["16"],
         },
       );
-      circuit.recordConstraint("j0 computation for 16-byte IV");
+      circuit.setConstraint("j0 computation for 16-byte IV");
     });
 
     it("should correctly compute J0 for 16-byte IV", async function (): Promise<void> {
@@ -142,7 +142,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
             templateParams: [String(length)],
           },
         );
-        circuit.recordConstraint(`j0 computation for ${length}-byte IV`);
+        circuit.setConstraint(`j0 computation for ${length}-byte IV`);
 
         for (let i = 0; i < 3; i++) {
           const iv = Array.from(AESUtils.randomBytes(length)) as Byte[];

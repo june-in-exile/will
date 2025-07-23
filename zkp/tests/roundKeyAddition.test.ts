@@ -10,7 +10,7 @@ describe("AddRoundKey Circuit", function () {
         "circuits/shared/components/aes-gcm/roundKeyAddition.circom",
         "AddRoundKey",
       );
-      circuit.recordConstraint("round key addition");
+      circuit.setConstraint("round key addition");
     });
 
     it("should correctly XOR state with round key", async function (): Promise<void> {

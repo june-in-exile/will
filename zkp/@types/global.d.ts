@@ -3,11 +3,11 @@ declare global {
 
   interface GlobalThis {
     CIRCOM_DEFAULTS?: Record<string, unknown>;
-    CONSTRAINT_RECORDS_PATH?: string;
+    CONSTRAINTS_PATH?: string;
     LOG_LEVEL?: LogLevel;
   }
 
-  interface ConstraintRecords {
+  interface Constraints {
     [circuitType: string]: {
       [description: string]: number;
     };
@@ -77,4 +77,4 @@ declare global {
   type Word4 = [Word, Word, Word, Word];
 }
 
-export { };
+export {};

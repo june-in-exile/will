@@ -10,7 +10,7 @@ describe("ShiftRows Circuit", function () {
         "circuits/shared/components/aes-gcm/rowShifting.circom",
         "ShiftRows",
       );
-      circuit.recordConstraint("rows shifting");
+      circuit.setConstraint("rows shifting");
     });
 
     it("should shift rows according to AES specification", async function (): Promise<void> {

@@ -14,7 +14,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["128", "3"],
           },
         );
-        circuit.recordConstraint("AES-128-CTR 3-byte encryption")
+        circuit.setConstraint("AES-128-CTR 3-byte encryption");
       });
 
       it("should work with known test vectors", async function (): Promise<void> {
@@ -65,7 +65,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["128", "16"],
           },
         );
-        circuit.recordConstraint("AES-128-CTR 1-block encryption")
+        circuit.setConstraint("AES-128-CTR 1-block encryption");
       });
 
       it("should work with known test vectors", async function (): Promise<void> {
@@ -106,7 +106,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["128", "47"],
           },
         );
-        circuit.recordConstraint("AES-128-CTR 47-byte encryption")
+        circuit.setConstraint("AES-128-CTR 47-byte encryption");
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -135,7 +135,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["128", "64"],
           },
         );
-        circuit.recordConstraint("AES-128-CTR 4-block encryption")
+        circuit.setConstraint("AES-128-CTR 4-block encryption");
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {
@@ -207,7 +207,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["192", "30"],
           },
         );
-        circuit.recordConstraint("AES-192-CTR 30-byte encryption")
+        circuit.setConstraint("AES-192-CTR 30-byte encryption");
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -238,7 +238,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["192", "64"],
           },
         );
-        circuit.recordConstraint("AES-192-CTR 4-block encryption");
+        circuit.setConstraint("AES-192-CTR 4-block encryption");
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {
@@ -292,7 +292,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["256", "17"],
           },
         );
-        circuit.recordConstraint("AES-256-CTR 17-byte encryption")
+        circuit.setConstraint("AES-256-CTR 17-byte encryption");
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -325,7 +325,7 @@ describe("CtrEncrypt Circuits", function () {
             templateParams: ["256", "64"],
           },
         );
-        circuit.recordConstraint("AES-256-CTR 4-block encryption")
+        circuit.setConstraint("AES-256-CTR 4-block encryption");
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {

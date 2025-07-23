@@ -1,3 +1,5 @@
+import { WitnessTester } from "./utils";
+  
 const LOG_LEVELS = {
   error: 0,
   warn: 1,
@@ -20,8 +22,11 @@ globalThis.console = {
   error: shouldLog("error") ? console.error : jest.fn(),
 };
 
-beforeEach((): void => {
-  jest.clearAllMocks();
+beforeAll((): void => { 
+  WitnessTester.initializeConstraints();
 });
 
-afterEach((): void => { });
+beforeEach((): void => {
+});
+
+afterEach((): void => {});

@@ -28,7 +28,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["128"],
         },
       );
-      circuit.recordConstraint("AES-128 block cipher")
+      circuit.setConstraint("AES-128 block cipher");
     });
 
     it("should handle random inputs consistently", async function (): Promise<void> {
@@ -53,7 +53,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["192"],
         },
       );
-      circuit.recordConstraint("AES-192 block cipher")
+      circuit.setConstraint("AES-192 block cipher");
     });
 
     it("should handle random inputs consistently", async function (): Promise<void> {
@@ -78,7 +78,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["256"],
         },
       );
-      circuit.recordConstraint("AES-256 block cipher")
+      circuit.setConstraint("AES-256 block cipher");
     });
 
     it("should correctly encrypt using NIST test vectors", async function (): Promise<void> {

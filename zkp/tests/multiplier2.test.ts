@@ -8,7 +8,7 @@ describe("Multiplier2 Circuit", function () {
       "circuits/multiplier2/multiplier2.circom",
       "Multiplier2",
     );
-    circuit.recordConstraint("multiplication");
+    circuit.setConstraint("multiplication");
   });
 
   describe("Basic Multiplication", function (): void {

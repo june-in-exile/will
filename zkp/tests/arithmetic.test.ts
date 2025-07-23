@@ -15,7 +15,7 @@ describe("Divide Circuit", function () {
           templateParams: ["8", "6"],
         },
       );
-      circuit.recordConstraint("8-by-6-bit division");
+      circuit.setConstraint("8-by-6-bit division");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -110,7 +110,7 @@ describe("Divide Circuit", function () {
           templateParams: ["12", "8"],
         },
       );
-      circuit.recordConstraint("12-by-8-bit division");
+      circuit.setConstraint("12-by-8-bit division");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -216,7 +216,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["1"],
         },
       );
-      circuit.recordConstraint("1-bit array multiplication");
+      circuit.setConstraint("1-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -269,7 +269,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["3"],
         },
       );
-      circuit.recordConstraint("3-bit array multiplication");
+      circuit.setConstraint("3-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -321,7 +321,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["5"],
         },
       );
-      circuit.recordConstraint("5-bit array multiplication");
+      circuit.setConstraint("5-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -363,7 +363,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["10"],
         },
       );
-      circuit.recordConstraint("10-bit array multiplication");
+      circuit.setConstraint("10-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {

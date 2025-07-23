@@ -10,7 +10,7 @@ describe("SubWord Circuit", function () {
         "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubWord",
       );
-      circuit.recordConstraint("word substitution");
+      circuit.setConstraint("word substitution");
     });
 
     it("should substitute random words according to AES specification", async function (): Promise<void> {
@@ -35,7 +35,7 @@ describe("SubBytes Circuit", function () {
         "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubBytes",
       );
-      circuit.recordConstraint("16-byte substitution");
+      circuit.setConstraint("16-byte substitution");
     });
 
     it("should substitute random 4x4 bytes according to AES specification", async function (): Promise<void> {
@@ -60,7 +60,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["1"],
         },
       );
-      circuit.recordConstraint("1-byte bytes substitution");
+      circuit.setConstraint("1-byte bytes substitution");
     });
 
     it("should substitute all bytes according to AES specification", async function (): Promise<void> {
@@ -84,7 +84,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["4"],
         },
       );
-      circuit.recordConstraint("4-byte bytes substitution");
+      circuit.setConstraint("4-byte bytes substitution");
     });
 
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {
@@ -108,7 +108,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["16"],
         },
       );
-      circuit.recordConstraint("16-byte bytes substitution");
+      circuit.setConstraint("16-byte bytes substitution");
     });
 
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {

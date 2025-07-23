@@ -54,7 +54,7 @@ describe("Utf8ByteLength Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8ByteLength",
     );
-    circuit.recordConstraint("utf8 length (in bytes) calculation")
+    circuit.setConstraint("utf8 length (in bytes) calculation");
   });
 
   describe("Byte Length Calculation for UTF8 Encoding", function (): void {
@@ -92,7 +92,7 @@ describe("Utf8Encoder Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8Encoder",
     );
-    circuit.recordConstraint("utf8 encoder")
+    circuit.setConstraint("utf8 encoder");
   });
 
   describe("Individual Character Encoding", function (): void {
@@ -146,7 +146,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["3"],
         },
       );
-      circuit.recordConstraint("3-character utf8 string encoder")
+      circuit.setConstraint("3-character utf8 string encoder");
     });
 
     it("should correctly encode pure ASCII strings", async () => {
@@ -206,7 +206,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["15"],
         },
       );
-      circuit.recordConstraint("15-character utf8 string encoder")
+      circuit.setConstraint("15-character utf8 string encoder");
     });
 
     it("should correctly encode pure ASCII strings", async () => {

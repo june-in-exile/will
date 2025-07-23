@@ -10,7 +10,7 @@ describe("MixColumn Circuit", function () {
         "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumn",
       );
-      circuit.recordConstraint("column mixing");
+      circuit.setConstraint("column mixing");
     });
 
     it("should correctly transform random columns", async function (): Promise<void> {
@@ -82,7 +82,7 @@ describe("MixColumns Circuit", function () {
         "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumns",
       );
-      circuit.recordConstraint("columns mixing");
+      circuit.setConstraint("columns mixing");
     });
 
     it("should correctly transform random states", async function (): Promise<void> {
