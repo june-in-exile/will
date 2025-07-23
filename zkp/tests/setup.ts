@@ -1,5 +1,5 @@
 import { WitnessTester } from "./utils";
-  
+
 const LOG_LEVELS = {
   error: 0,
   warn: 1,
@@ -22,11 +22,10 @@ globalThis.console = {
   error: shouldLog("error") ? console.error : jest.fn(),
 };
 
-beforeAll((): void => { 
+beforeAll((): void => {
   WitnessTester.initializeConstraints();
 });
 
-beforeEach((): void => {
-});
+beforeEach((): void => {});
 
 afterEach((): void => {});

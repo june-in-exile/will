@@ -466,10 +466,10 @@ class WitnessTester<
   }
 
   /**
- * Record constraint count for a specific circuit and description
- * @param description - Description of the constraint test
- * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
- */
+   * Record constraint count for a specific circuit and description
+   * @param description - Description of the constraint test
+   * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
+   */
   async setConstraint(description: string): Promise<void> {
     const testFileName = this.getCurrentTestFileName();
     const templateName = this.circomTester.templateName;
@@ -514,13 +514,17 @@ class WitnessTester<
   }
 
   /**
-  * Get constraint count for a specific circuit and description
-  * @param testFileName - The test file name (without .test.ts extension)
-  * @param templateName - The circuit template name
-  * @param description - Description of the constraint test
-  * @returns The constraint count or null if not found
-  */
-  getConstraint(testFileName: string, templateName: string, description: string): number | null {
+   * Get constraint count for a specific circuit and description
+   * @param testFileName - The test file name (without .test.ts extension)
+   * @param templateName - The circuit template name
+   * @param description - Description of the constraint test
+   * @returns The constraint count or null if not found
+   */
+  getConstraint(
+    testFileName: string,
+    templateName: string,
+    description: string,
+  ): number | null {
     if (!fs.existsSync(this.constraintsPath)) {
       return null;
     }
@@ -537,17 +541,34 @@ class WitnessTester<
   }
 
   /**
- * Initialize constraints file with default structure
- */
+   * Initialize constraints file with default structure
+   */
   static initializeConstraints(): void {
     const constraintsPath =
-      (globalThis as GlobalThis).CONSTRAINTS_PATH ||
-      "./constraints.json";
+      (globalThis as GlobalThis).CONSTRAINTS_PATH || "./constraints.json";
 
     const defaultConstraints: Constraints = {
       arithmetic: { Divide: {}, MultiplyArray: {} },
-      base64: { Base64Char: {}, Base64CharExcludingPadding: {}, Base64CharWithPaddingDetector: {}, Base64GroupDecoder: {}, Base64GroupDecoderWithoutPadding: {}, Base64GroupDecoderWithPadding: {}, Base64Decoder: {}, },
-      bits: { Mod2: {}, Mask: {}, ShiftRight: {}, BitwiseXor: {}, ByteAdder: {}, Byte16ToBit128: {}, Bit128ToByte16: {}, Byte16ToNum: {}, NumToByte16: {}, },
+      base64: {
+        Base64Char: {},
+        Base64CharExcludingPadding: {},
+        Base64CharWithPaddingDetector: {},
+        Base64GroupDecoder: {},
+        Base64GroupDecoderWithoutPadding: {},
+        Base64GroupDecoderWithPadding: {},
+        Base64Decoder: {},
+      },
+      bits: {
+        Mod2: {},
+        Mask: {},
+        ShiftRight: {},
+        BitwiseXor: {},
+        ByteAdder: {},
+        Byte16ToBit128: {},
+        Bit128ToByte16: {},
+        Byte16ToNum: {},
+        NumToByte16: {},
+      },
       byteSubstitution: { SubWord: {}, SubBytes: {}, SubstituteBytes: {} },
       columnMixing: { MixColumn: {}, MixColumns: {} },
       counterIncrement: { IncrementCounter: {} },

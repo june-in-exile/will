@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "scripts": {
-    "test": "pnpm exec tsx ./tests/helpers/aes-gcm.ts && jest --verbose",
-    "test:simple": "jest",
-    "test:single": "jest --verbose --testNamePattern=",
+    "test": "jest",
+    "test:detail": "jest --verbose",
+    "test:all": "pnpm exec tsx ./tests/helpers/aes-gcm.ts && jest --verbose",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "clean": "make clean-all"

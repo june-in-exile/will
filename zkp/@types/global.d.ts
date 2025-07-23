@@ -15,7 +15,6 @@ declare global {
     };
   };
 
-
   type Range<
     N extends number,
     Result extends Array<unknown> = [],
