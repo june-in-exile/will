@@ -11,13 +11,13 @@ type CurveName =
   | "vesta";
 
 /** An integer value is a numerical string, a number, or a bigint. */
-export type IntegerValueType = `${number}` | number | bigint;
+type IntegerValueType = `${number}` | number | bigint;
 
 /** A signal value is a number, or an array of numbers (recursively). */
-export type SignalValueType = IntegerValueType | SignalValueType[];
+type SignalValueType = IntegerValueType | SignalValueType[];
 
 /** A bus a collection of different but related signals (recursively). */
-export type BusStructType =
+type BusStructType =
   | { [key: string]: SignalValueType | BusStructType }
   | Array<{ [key: string]: SignalValueType | BusStructType }>;
 
@@ -33,18 +33,18 @@ export type BusStructType =
  * By default, signal names are not typed, but you can pass an array of signal names to make them type-safe,
  *   e.g. `CircuitSignals<['sig1', 'sig2']>`
  */
-export type CircuitInputOutput<T extends readonly string[] = []> = T extends []
+type CircuitInputOutput<T extends readonly string[] = []> = T extends []
   ? { [signal: string]: SignalValueType | BusStructType }
   : { [signal in T[number]]: SignalValueType | BusStructType };
 
 /** A witness is an array of `bigint`s, corresponding to the values of each wire in the evaluation of the circuit. */
-export type WitnessType = bigint[];
+type WitnessType = bigint[];
 
 /**
  * Symbols are a mapping of each circuit `wire` to an object with three keys.
  * Within them, the most important is `varIdx` which indicates the position of this signal in the witness array.
  */
-export type SymbolsType = {
+type SymbolsType = {
   [symbol: string]: {
     labelIdx: number;
     varIdx: number;
@@ -53,7 +53,7 @@ export type SymbolsType = {
 };
 
 /** A configuration object for circuit compilation. */
-export type CompilationOptions = {
+type CompilationOptions = {
   /** Parameters to pass to the template */
   templateParams?: string[];
   /** List of public signals for the template */
@@ -83,7 +83,7 @@ export type CompilationOptions = {
  * Not all functions may exist here, some are omitted.
  * @see https://github.com/iden3/circom_tester/blob/main/wasm/tester.js
  */
-export type CircomTester = {
+type CircomTester = {
   calculateWitness: (
     input: CircuitInputOutput,
     sanityCheck: boolean,
@@ -108,3 +108,5 @@ export type CircomTester = {
 
   release: () => Promise<void>;
 };
+
+export type { IntegerValueType, SignalValueType, BusStructType, CircuitInputOutput, WitnessType, SymbolsType, CompilationOptions, CircomTester };
