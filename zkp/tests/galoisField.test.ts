@@ -1,5 +1,5 @@
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 import { AESGCM, AESUtils, GaloisField, GF128 } from "./helpers";
-import { WitnessTester } from "./utils";
 
 describe("GF8Mul2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -10,10 +10,7 @@ describe("GF8Mul2 Circuit", function () {
         "circuits/shared/components/aes-gcm/galoisField.circom",
         "GF8Mul2",
       );
-      console.info(
-        "GF8Mul2 circuit constraints:",
-        await circuit.getConstraintCount(), // 59
-      );
+      recordCircuitConstraints(circuit, "GF(2^8) multiplication by 2")
     });
 
     it("should correctly multiply by 2 for random values", async function (): Promise<void> {
@@ -66,10 +63,7 @@ describe("GF8Mul3 Circuit", function () {
         "circuits/shared/components/aes-gcm/galoisField.circom",
         "GF8Mul3",
       );
-      console.info(
-        "GF8Mul3 circuit constraints:",
-        await circuit.getConstraintCount(), // 83
-      );
+      recordCircuitConstraints(circuit, "GF(2^8) multiplication by 3")
     });
 
     it("should correctly multiply by 3 for random values", async function (): Promise<void> {
@@ -145,14 +139,8 @@ describe("GF128Multiply Circuit", function () {
       "circuits/shared/components/aes-gcm/galoisField.circom",
       "GF128MultiplyOptimized",
     );
-    console.info(
-      "GF128 multiplication circuit constraints:",
-      await circuit.getConstraintCount(), // 33280
-    );
-    console.info(
-      "Optimized GF128 multiplication circuit constraints:",
-      await circuitOptimized.getConstraintCount(), // 16768
-    );
+    recordCircuitConstraints(circuit, "GF(2^128) multiplication")
+    recordCircuitConstraints(circuitOptimized, "optimized GF(2^128) multiplication")
   });
 
   it("should correctly multiply by zero and yield zero", async function (): Promise<void> {
@@ -229,14 +217,8 @@ describe("GHash Circuit", function () {
           templateParams: ["1"],
         },
       );
-      console.info(
-        "GHASH (1 block) circuit constraints:",
-        await circuit.getConstraintCount(), // 17152
-      );
-      console.info(
-        "Optimized GHASH (1 block) circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 16768
-      );
+      recordCircuitConstraints(circuit, "1-block GHASH");
+      recordCircuitConstraints(circuitOptimized, "optimized 1-block GHASH");
     });
 
     it("should compute GHASH for simple sequential data", async function (): Promise<void> {
@@ -290,14 +272,8 @@ describe("GHash Circuit", function () {
           templateParams: ["2"],
         },
       );
-      console.info(
-        "GHASH (2 blocks) circuit constraints:",
-        await circuit.getConstraintCount(), // 34304
-      );
-      console.info(
-        "Optimized GHASH (2 block) circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 33920
-      );
+      recordCircuitConstraints(circuit, "2-block GHASH");
+      recordCircuitConstraints(circuitOptimized, "optimized 2-block GHASH");
     });
 
     it("should compute GHASH for sequential data across two blocks", async function (): Promise<void> {
@@ -353,14 +329,8 @@ describe("GHash Circuit", function () {
           templateParams: ["4"],
         },
       );
-      console.info(
-        "GHASH (4 blocks) circuit constraints:",
-        await circuit.getConstraintCount(), // 68608
-      );
-      console.info(
-        "Optimized GHASH (4 block) circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 68224
-      );
+      recordCircuitConstraints(circuit, "4-block GHASH");
+      recordCircuitConstraints(circuitOptimized, "optimized 4-block GHASH");
     });
 
     it("should compute GHASH for pattern data", async function (): Promise<void> {

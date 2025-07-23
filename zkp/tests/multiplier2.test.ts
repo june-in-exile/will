@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 
 describe("Multiplier2 Circuit", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
@@ -8,10 +8,7 @@ describe("Multiplier2 Circuit", function () {
       "circuits/multiplier2/multiplier2.circom",
       "Multiplier2",
     );
-    console.info(
-      "Multiplier2 circuit constraints:",
-      await circuit.getConstraintCount(), // 1
-    );
+    recordCircuitConstraints(circuit, "multiplication");
   });
 
   describe("Basic Multiplication", function (): void {

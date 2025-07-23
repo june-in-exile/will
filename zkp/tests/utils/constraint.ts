@@ -1,8 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Configuration
-const CONSTRAINT_RECORDS_PATH = path.join(__dirname, '../../constraintRecords.json');
+interface GlobalWithConstraints {
+    CONSTRAINT_RECORDS_PATH?: string;
+}
+
+function getConstraintRecordsPath(): string {
+    const globalWithConstraints = globalThis as GlobalWithConstraints;
+    return globalWithConstraints.CONSTRAINT_RECORDS_PATH || './constraintRecords.json';
+}
+
+const CONSTRAINT_RECORDS_PATH = getConstraintRecordsPath();
 
 interface ConstraintRecords {
     [circuitType: string]: {

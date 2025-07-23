@@ -15,7 +15,7 @@ describe("Divide Circuit", function () {
           templateParams: ["8", "6"],
         },
       );
-      recordCircuitConstraints(circuit, "8-by-6-bit divide circuit constraints");
+      recordCircuitConstraints(circuit, "8-by-6-bit division");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -110,7 +110,7 @@ describe("Divide Circuit", function () {
           templateParams: ["12", "8"],
         },
       );
-      recordCircuitConstraints(circuit, "12-by-8-bit divide circuit constraints");
+      recordCircuitConstraints(circuit, "12-by-8-bit division");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -216,7 +216,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["1"],
         },
       );
-      recordCircuitConstraints(circuit, "1-bit multiplyArray circuit constraints");
+      recordCircuitConstraints(circuit, "1-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -269,7 +269,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["3"],
         },
       );
-      recordCircuitConstraints(circuit, "3-bit multiplyArray circuit constraints");
+      recordCircuitConstraints(circuit, "3-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -321,7 +321,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["5"],
         },
       );
-      recordCircuitConstraints(circuit, "5-bit multiplyArray circuit constraints");
+      recordCircuitConstraints(circuit, "5-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -363,7 +363,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["10"],
         },
       );
-      recordCircuitConstraints(circuit, "10-bit multiplyArray circuit constraints");
+      recordCircuitConstraints(circuit, "10-bit array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {

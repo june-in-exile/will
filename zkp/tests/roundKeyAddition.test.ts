@@ -1,4 +1,4 @@
-import { WitnessTester, byteToWord } from "./utils";
+import { WitnessTester, recordCircuitConstraints, byteToWord } from "./utils";
 import { AESUtils, addRoundKey } from "./helpers";
 
 describe("AddRoundKey Circuit", function () {
@@ -10,10 +10,7 @@ describe("AddRoundKey Circuit", function () {
         "circuits/shared/components/aes-gcm/roundKeyAddition.circom",
         "AddRoundKey",
       );
-      console.info(
-        "AddRoundKey circuit constraints:",
-        await circuit.getConstraintCount(), // 384
-      );
+      recordCircuitConstraints(circuit, "round key addition");
     });
 
     it("should correctly XOR state with round key", async function (): Promise<void> {

@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 import { AESUtils, computeJ0Standard, computeJ0NonStandard } from "./helpers";
 
 describe("ComputeJ0Standard Circuits", function () {
@@ -10,10 +10,7 @@ describe("ComputeJ0Standard Circuits", function () {
         "circuits/shared/components/aes-gcm/j0Computation.circom",
         "ComputeJ0Standard",
       );
-      console.info(
-        "12-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(), // 4
-      );
+      recordCircuitConstraints(circuit, "j0 computation for standard IV (12 bytes)");
     });
 
     it("should correctly compute J0 for 12-byte IV", async function (): Promise<void> {
@@ -77,10 +74,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
           templateParams: ["8"],
         },
       );
-      console.info(
-        "8-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(), // 34320
-      );
+      recordCircuitConstraints(circuit, "j0 computation for 8-byte IV");
     });
 
     it("should correctly compute J0 for 8-byte IV", async function (): Promise<void> {
@@ -105,10 +99,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
           templateParams: ["16"],
         },
       );
-      console.info(
-        "16-byte-IV j0 computation circuit constraints:",
-        await circuit.getConstraintCount(), // 34320
-      );
+      recordCircuitConstraints(circuit, "j0 computation for 16-byte IV");
     });
 
     it("should correctly compute J0 for 16-byte IV", async function (): Promise<void> {
@@ -151,13 +142,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
             templateParams: [String(length)],
           },
         );
-        console.info(
-          `${length}-byte-IV j0 computation circuit constraints:`,
-          await circuit.getConstraintCount(),
-          // 34320 for 1-16 byte
-          // 51472 for 31,32 byte
-          // 85776 for 63,64 byte
-        );
+        recordCircuitConstraints(circuit, `j0 computation for ${length}-byte IV`);
 
         for (let i = 0; i < 3; i++) {
           const iv = Array.from(AESUtils.randomBytes(length)) as Byte[];

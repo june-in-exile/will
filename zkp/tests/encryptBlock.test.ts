@@ -1,4 +1,4 @@
-import { byteToWord, WitnessTester, wordToByte } from "./utils";
+import { WitnessTester, recordCircuitConstraints, wordToByte, byteToWord } from "./utils";
 import { AESUtils, encryptBlock } from "./helpers";
 
 describe("EncryptBlock Circuit", function () {
@@ -28,10 +28,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["128"],
         },
       );
-      console.info(
-        "AES-128 block cipher circuit constraints:",
-        await circuit.getConstraintCount(), // 86432
-      );
+      recordCircuitConstraints(circuit, "AES-128 block cipher")
     });
 
     it("should handle random inputs consistently", async function (): Promise<void> {
@@ -56,10 +53,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["192"],
         },
       );
-      console.info(
-        "AES-192 block cipher circuit constraints:",
-        await circuit.getConstraintCount(), // 99552
-      );
+      recordCircuitConstraints(circuit, "AES-192 block cipher")
     });
 
     it("should handle random inputs consistently", async function (): Promise<void> {
@@ -84,10 +78,7 @@ describe("EncryptBlock Circuit", function () {
           templateParams: ["256"],
         },
       );
-      console.info(
-        "AES-256 block cipher circuit constraints:",
-        await circuit.getConstraintCount(), // 119936
-      );
+      recordCircuitConstraints(circuit, "AES-256 block cipher")
     });
 
     it("should correctly encrypt using NIST test vectors", async function (): Promise<void> {

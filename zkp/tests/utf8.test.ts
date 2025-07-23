@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 import { utf8ByteLength, utf8Encoder, utf8StringEncoder } from "./helpers";
 
 const testCases1Byte = [
@@ -54,32 +54,29 @@ describe("Utf8ByteLength Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8ByteLength",
     );
-    console.info(
-      "Utf8ByteLength circuit constraints:",
-      await circuit.getConstraintCount(), // 135
-    );
+    recordCircuitConstraints(circuit, "utf8 length (in bytes) calculation")
   });
 
   describe("Byte Length Calculation for UTF8 Encoding", function (): void {
-    it("should correctly calculate byte length of 1", async () => {
+    it("should correctly calculate byte length of 1-byte utf8", async () => {
       for (const { codepoint } of testCases1Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
 
-    it("should correctly calculate byte length of 2", async () => {
+    it("should correctly calculate byte length of 2-byte utf8", async () => {
       for (const { codepoint } of testCases2Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
 
-    it("should correctly calculate byte length of 3", async () => {
+    it("should correctly calculate byte length of 3-byte utf8", async () => {
       for (const { codepoint } of testCases3Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
     });
 
-    it("should correctly calculate byte length of 4", async () => {
+    it("should correctly calculate byte length of 4-byte utf8", async () => {
       for (const { codepoint } of testCases4Byte) {
         await circuit.expectPass({ codepoint }, utf8ByteLength(codepoint));
       }
@@ -95,10 +92,7 @@ describe("Utf8Encoder Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8Encoder",
     );
-    console.info(
-      "Utf8Encoder circuit constraints:",
-      await circuit.getConstraintCount(), // 174
-    );
+    recordCircuitConstraints(circuit, "utf8 encoder")
   });
 
   describe("Individual Character Encoding", function (): void {
@@ -152,10 +146,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["3"],
         },
       );
-      console.info(
-        "3-Character Utf8StringEncoder circuit constraints:",
-        await circuit.getConstraintCount(), // 882
-      );
+      recordCircuitConstraints(circuit, "3-character utf8 string encoder")
     });
 
     it("should correctly encode pure ASCII strings", async () => {
@@ -215,10 +206,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["15"],
         },
       );
-      console.info(
-        "15-Character Utf8StringEncoder circuit constraints:",
-        await circuit.getConstraintCount(), // 15198
-      );
+      recordCircuitConstraints(circuit, "15-character utf8 string encoder")
     });
 
     it("should correctly encode pure ASCII strings", async () => {

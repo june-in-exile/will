@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 import { AESUtils, mixColumn, mixColumns } from "./helpers";
 
 describe("MixColumn Circuit", function () {
@@ -10,10 +10,7 @@ describe("MixColumn Circuit", function () {
         "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumn",
       );
-      console.info(
-        "MixColumn circuit constraints:",
-        await circuit.getConstraintCount(), // 792
-      );
+      recordCircuitConstraints(circuit, "column mixing");
     });
 
     it("should correctly transform random columns", async function (): Promise<void> {
@@ -85,10 +82,7 @@ describe("MixColumns Circuit", function () {
         "circuits/shared/components/aes-gcm/columnMixing.circom",
         "MixColumns",
       );
-      console.info(
-        "MixColumns circuit constraints:",
-        await circuit.getConstraintCount(), // 3168
-      );
+      recordCircuitConstraints(circuit, "columns mixing");
     });
 
     it("should correctly transform random states", async function (): Promise<void> {

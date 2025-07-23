@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 import { incrementCounter } from "./helpers";
 
 describe("IncrementCounter Circuits", function () {
@@ -15,14 +15,8 @@ describe("IncrementCounter Circuits", function () {
         "circuits/shared/components/aes-gcm/counterIncrement.circom",
         "IncrementCounterOptimized",
       );
-      console.info(
-        "Counter increment circuit constraints:",
-        await circuit.getConstraintCount(), // 136
-      );
-      console.info(
-        "Optimized counter increment circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 33
-      );
+      recordCircuitConstraints(circuit, "counter increment");
+      recordCircuitConstraints(circuitOptimized, "optimized counter increment");
     });
 
     it("should correctly increment last 4 bytes without carry", async function (): Promise<void> {

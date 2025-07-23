@@ -62,7 +62,7 @@
     ],
     "testTimeout": 60000,
     "globals": {
-      "LOG_LEVEL": "debug",
+      "LOG_LEVEL": "error",
       "CIRCOM_DEFAULTS": {
         "O": 2,
         "verbose": false,
@@ -73,7 +73,8 @@
         "simplification_substitution": false,
         "no_asm": false,
         "no_init": false
-      }
+      },
+      "CONSTRAINT_RECORDS_PATH": "./constraintRecords.json"
     }
   }
 }
