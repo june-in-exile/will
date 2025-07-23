@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 
 describe("Divide Circuit", function () {
   let circuit: WitnessTester<
@@ -15,10 +15,7 @@ describe("Divide Circuit", function () {
           templateParams: ["8", "6"],
         },
       );
-      console.info(
-        "8-by-6-bit divide circuit constraints:",
-        await circuit.getConstraintCount(), // 35
-      );
+      recordCircuitConstraints(circuit, "8-by-6-bit divide circuit constraints");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -113,10 +110,7 @@ describe("Divide Circuit", function () {
           templateParams: ["12", "8"],
         },
       );
-      console.info(
-        "12-by-8-bit divide circuit constraints:",
-        await circuit.getConstraintCount(), // 49
-      );
+      recordCircuitConstraints(circuit, "12-by-8-bit divide circuit constraints");
     });
 
     it("should calculate valid division correctly", async function (): Promise<void> {
@@ -222,10 +216,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["1"],
         },
       );
-      console.info(
-        "1-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(), // 1
-      );
+      recordCircuitConstraints(circuit, "1-bit multiplyArray circuit constraints");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -278,10 +269,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["3"],
         },
       );
-      console.info(
-        "3-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(), // 3
-      );
+      recordCircuitConstraints(circuit, "3-bit multiplyArray circuit constraints");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -333,10 +321,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["5"],
         },
       );
-      console.info(
-        "5-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(), // 5
-      );
+      recordCircuitConstraints(circuit, "5-bit multiplyArray circuit constraints");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -378,10 +363,7 @@ describe("MultiplyArray Circuit", function () {
           templateParams: ["10"],
         },
       );
-      console.info(
-        "10-bit multiplyArray circuit constraints:",
-        await circuit.getConstraintCount(), // 10
-      );
+      recordCircuitConstraints(circuit, "10-bit multiplyArray circuit constraints");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {

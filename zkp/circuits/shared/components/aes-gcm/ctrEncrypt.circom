@@ -36,23 +36,26 @@ template CtrEncrypt(keyBits, plaintextBytes) {
 
     var numBlocks = (plaintextBytes + 15) \ 16;
     
-    // Counter state array - stores counter value for each block
-    signal {byte} counters[numBlocks][16];
-    counters[0] <== iv;
+    if (numBlocks > 0) {
+        // Counter state array - stores counter value for each block
+        signal {byte} counters[numBlocks][16];
+
+        counters[0] <== iv;
     
-    // Generate incremented (for last 4 bytes only) counters for each block
-    for (var block = 1; block < numBlocks; block++) {
-        counters[block] <== IncrementCounterOptimized()(counters[block - 1]);
-    }
-    
-    // Encrypt each counter to generate keystream
-    signal {byte} keystreams[numBlocks][16];
-    for (var block = 0; block < numBlocks; block++) {
-        keystreams[block] <== parallel EncryptBlock(keyBits)(counters[block], key);
-    }
-    
-    // XOR plaintext with keystream to produce ciphertext
-    for (var byte = 0; byte < plaintextBytes; byte++) {
-        ciphertext[byte] <== BitwiseXor(2, 8)([plaintext[byte], keystreams[byte \ 16][byte % 16]]);
+        // Generate incremented (for last 4 bytes only) counters for each block
+        for (var block = 1; block < numBlocks; block++) {
+            counters[block] <== IncrementCounterOptimized()(counters[block - 1]);
+        }
+        
+        // Encrypt each counter to generate keystream
+        signal {byte} keystreams[numBlocks][16];
+        for (var block = 0; block < numBlocks; block++) {
+            keystreams[block] <== parallel EncryptBlock(keyBits)(counters[block], key);
+        }
+        
+        // XOR plaintext with keystream to produce ciphertext
+        for (var byte = 0; byte < plaintextBytes; byte++) {
+            ciphertext[byte] <== BitwiseXor(2, 8)([plaintext[byte], keystreams[byte \ 16][byte % 16]]);
+        }
     }
 }

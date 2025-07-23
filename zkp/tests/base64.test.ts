@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 
 describe("Base64Char Cicuit", function () {
   let circuit: WitnessTester<["ascii"], ["base64"]>;
@@ -8,10 +8,7 @@ describe("Base64Char Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64Char",
     );
-    console.info(
-      "Base64 character circuit constraints:",
-      await circuit.getConstraintCount(),
-    ); // 144
+    recordCircuitConstraints(circuit, "Base64 character circuit constraints");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -76,10 +73,7 @@ describe("Base64CharExcludingPadding Cicuit", function () {
       "Base64CharExcludingPadding",
       {},
     );
-    console.info(
-      "Base64 character excluding padding circuit constraints:",
-      await circuit.getConstraintCount(), // 142
-    );
+    recordCircuitConstraints(circuit, "Base64 character excluding padding circuit constraints");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -149,12 +143,8 @@ describe("Base64CharWithPaddingDetector Cicuit", function () {
     circuit = await WitnessTester.construct(
       "circuits/shared/components/base64.circom",
       "Base64CharWithPaddingDetector",
-      {},
     );
-    console.info(
-      "Base64 character with padding detector circuit constraints:",
-      await circuit.getConstraintCount(), // 144
-    );
+    recordCircuitConstraints(circuit, "Base64 character with padding detector circuit constraints");
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -228,10 +218,7 @@ describe("Base64GroupDecoder Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoder",
     );
-    console.info(
-      "Group base64 decoder circuit constraints:",
-      await circuit.getConstraintCount(), // 65
-    );
+    recordCircuitConstraints(circuit, "Group base64 decoder circuit constraints");
   });
 
   describe("Valid Padding", function (): void {
@@ -355,10 +342,7 @@ describe("Base64GroupDecoderWithoutPadding Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoderWithoutPadding",
     );
-    console.info(
-      "Group base64 decoder without padding circuit constraints:",
-      await circuit.getConstraintCount(), // 24
-    );
+    recordCircuitConstraints(circuit, "Group base64 decoder without padding circuit constraints");
   });
 
   describe("No Padding", function (): void {
@@ -420,10 +404,7 @@ describe("Base64GroupDecoderWithPadding Cicuit", function () {
       "circuits/shared/components/base64.circom",
       "Base64GroupDecoderWithPadding",
     );
-    console.info(
-      "Group base64 decoder with padding circuit constraints:",
-      await circuit.getConstraintCount(), // 29
-    );
+    recordCircuitConstraints(circuit, "Group base64 decoder with padding circuit constraints");
   });
 
   describe("Valid Padding", function (): void {
@@ -550,10 +531,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["4"],
         },
       );
-      console.info(
-        "4-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(), // 601
-      );
+      recordCircuitConstraints(circuit, "4-byte base64 decoder circuit constraints");
     });
 
     it("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
@@ -623,10 +601,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["8"],
         },
       );
-      console.info(
-        "8-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(), // 1193
-      );
+      recordCircuitConstraints(circuit, "8-byte base64 decoder circuit constraints");
     });
 
     it("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
@@ -670,10 +645,7 @@ describe("Base64Decoder Circuit", function () {
           templateParams: ["360"],
         },
       );
-      console.info(
-        "360-byte Base64Decoder circuit constraints:",
-        await circuit.getConstraintCount(), // 53289
-      );
+      recordCircuitConstraints(circuit, "360-byte base64 decoder circuit constraints");
     });
 
     it("should decode a real world case", async function (): Promise<void> {

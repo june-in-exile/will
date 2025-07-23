@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester, recordCircuitConstraints } from "./utils";
 
 describe("Mod2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -9,10 +9,7 @@ describe("Mod2 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Mod2",
       );
-      console.info(
-        "Mod2 circuit constraints:",
-        await circuit.getConstraintCount(), // 1
-      );
+      recordCircuitConstraints(circuit, "Mod2 circuit constraints");
     });
 
     it("should correctly identify even numbers", async function (): Promise<void> {
@@ -64,10 +61,7 @@ describe("Mask Circuit", function () {
           templateParams: ["8", "15"],
         },
       );
-      console.info(
-        "8-bit 0x0F mask circuit constraints:",
-        await circuit.getConstraintCount(), // 24
-      );
+      recordCircuitConstraints(circuit, "8-bit 0x0F mask circuit constraints");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -152,10 +146,7 @@ describe("Mask Circuit", function () {
           templateParams: ["16", "255"],
         },
       );
-      console.info(
-        "16-bit 0xFF mask circuit constraints:",
-        await circuit.getConstraintCount(), // 48
-      );
+      recordCircuitConstraints(circuit, "16-bit 0xFF mask circuit constraints");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -209,10 +200,7 @@ describe("Mask Circuit", function () {
           templateParams: ["32", "65535"],
         },
       );
-      console.info(
-        "32-bit 0xFFFF mask circuit constraints:",
-        await circuit.getConstraintCount(), // 96
-      );
+      recordCircuitConstraints(circuit, "32-bit 0xFFFF mask circuit constraints");
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -270,10 +258,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "1"],
         },
       );
-      console.info(
-        "8-bit 1-offset shift circuit constraints:",
-        await circuit.getConstraintCount(), // 8
-      );
+      recordCircuitConstraints(circuit, "8-bit 1-offset shift right circuit constraints");
     });
 
     it("should perform correct 1-bit right shift operations", async function (): Promise<void> {
@@ -323,10 +308,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "2"],
         },
       );
-      console.info(
-        "8-bit 2-offset shift circuit constraints:",
-        await circuit.getConstraintCount(), // 8
-      );
+      recordCircuitConstraints(circuit, "8-bit 2-offset shift right circuit constraints");
     });
 
     it("should perform correct 2-bit right shift operations", async function (): Promise<void> {
@@ -372,10 +354,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["8", "4"],
         },
       );
-      console.info(
-        "8-bit 4-offset shift circuit constraints:",
-        await circuit.getConstraintCount(), // 8
-      );
+      recordCircuitConstraints(circuit, "8-bit 4-offset shift right circuit constraints");
     });
 
     it("should perform correct 4-bit right shift operations", async function (): Promise<void> {
@@ -419,10 +398,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["16", "8"],
         },
       );
-      console.info(
-        "16-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(), // 16
-      );
+      recordCircuitConstraints(circuit, "16-bit 8-offset shift right circuit constraints");
     });
 
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
@@ -464,10 +440,7 @@ describe("ShiftRight Circuit", function () {
           templateParams: ["32", "8"],
         },
       );
-      console.info(
-        "32-bit 8-offset shift circuit constraints:",
-        await circuit.getConstraintCount(), // 32
-      );
+      recordCircuitConstraints(circuit, "32-bit 8-offset shift right circuit constraints");
     });
 
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
@@ -536,10 +509,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "8"],
         },
       );
-      console.info(
-        "2x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 24
-      );
+      recordCircuitConstraints(circuit, "2x8-bit Xor circuit constraints");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -625,14 +595,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "8"],
         },
       );
-      console.info(
-        "3x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 40
-      );
-      console.info(
-        "Optimized 3x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 32
-      );
+      recordCircuitConstraints(circuit, "3x8-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 3x8-bit Xor circuit constraints");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -722,14 +686,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "8"],
         },
       );
-      console.info(
-        "5x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 72
-      );
-      console.info(
-        "Optimized 5x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 48
-      );
+      recordCircuitConstraints(circuit, "5x8-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 5x8-bit Xor circuit constraints");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -757,10 +715,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "16"],
         },
       );
-      console.info(
-        "2x16-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 48
-      );
+      recordCircuitConstraints(circuit, "2x16-bit Xor circuit constraints");
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -812,14 +767,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "16"],
         },
       );
-      console.info(
-        "3x8-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 80
-      );
-      console.info(
-        "Optimized 3x8-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 64
-      );
+      recordCircuitConstraints(circuit, "3x8-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 3x8-bit Xor circuit constraints");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -855,14 +804,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["5", "16"],
         },
       );
-      console.info(
-        "5x16-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 144
-      );
-      console.info(
-        "Optimized 5x16-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 96
-      );
+      recordCircuitConstraints(circuit, "5x16-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 5x16-bit Xor circuit constraints");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -902,14 +845,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["10", "4"],
         },
       );
-      console.info(
-        "10x4-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 76
-      );
-      console.info(
-        "Optimized 10x4-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 44
-      );
+      recordCircuitConstraints(circuit, "10x4-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 10x4-bit Xor circuit constraints");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -942,10 +879,7 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["2", "32"],
         },
       );
-      console.info(
-        "2x32-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 96
-      );
+      recordCircuitConstraints(circuit, "2x32-bit Xor circuit constraints");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -997,14 +931,8 @@ describe("BitwiseXor Circuit", function () {
           templateParams: ["3", "32"],
         },
       );
-      console.info(
-        "3x32-bit Xor circuit constraints:",
-        await circuit.getConstraintCount(), // 1160
-      );
-      console.info(
-        "Optimized 3x32-bit Xor circuit constraints:",
-        await circuitOptimized.getConstraintCount(), // 128
-      );
+      recordCircuitConstraints(circuit, "3x32-bit Xor circuit constraints");
+      recordCircuitConstraints(circuit, "Optimized 3x32-bit Xor circuit constraints");
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -1034,10 +962,7 @@ describe("ByteAdder Circuits", function () {
         "circuits/shared/components/bits.circom",
         "ByteAdder",
       );
-      console.info(
-        "ByteAdder circuit constraints:",
-        await circuit.getConstraintCount(), // 34
-      );
+      recordCircuitConstraints(circuit, "ByteAdder circuit constraints");
     });
 
     it("should correctly add bytes without carry", async function (): Promise<void> {
@@ -1092,10 +1017,7 @@ describe("Byte16ToBit128 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Byte16ToBit128",
       );
-      console.info(
-        "16-byte to 128-bit circuit constraints:",
-        await circuit.getConstraintCount(), // 128
-      );
+      recordCircuitConstraints(circuit, "Convert 16-byte to 128-bit circuit constraints");
     });
 
     it("should correctly convert all zero bytes", async function (): Promise<void> {
@@ -1136,10 +1058,7 @@ describe("Bit128ToByte16 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Bit128ToByte16",
       );
-      console.info(
-        "128-bit to 16-byte circuit constraints:",
-        await circuit.getConstraintCount(), // 0
-      );
+      recordCircuitConstraints(circuit, "Convert 128-bit to 16-byte circuit constraints");
     });
 
     it("should correctly convert all zero bits", async function (): Promise<void> {
@@ -1180,10 +1099,7 @@ describe("Byte16ToNum Circuit", function () {
         "circuits/shared/components/bits.circom",
         "Byte16ToNum",
       );
-      console.info(
-        "16-byte to 128-bit number circuit constraints:",
-        await circuit.getConstraintCount(), // 128
-      );
+      recordCircuitConstraints(circuit, "Convert 16-byte to 128-bit number circuit constraints");
     });
 
     it("should convert minimum and maximum value correctly", async function (): Promise<void> {
@@ -1265,10 +1181,7 @@ describe("NumToByte16 Circuit", function () {
         "circuits/shared/components/bits.circom",
         "NumToByte16",
       );
-      console.info(
-        "128-bit number to 16-byte circuit constraints:",
-        await circuit.getConstraintCount(), // 128
-      );
+      recordCircuitConstraints(circuit, "Convert 128-bit number to 16-byte circuit constraints");
     });
 
     it("should convert minimum and maximum value correctly", async function (): Promise<void> {

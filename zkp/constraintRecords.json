@@ -1,0 +1,50 @@
+{
+  "base64": {
+    "Base64 character circuit constraints": 144,
+    "Base64 character excluding padding circuit constraints": 142,
+    "Base64 character with padding detector circuit constraints": 144,
+    "Group base64 decoder circuit constraints": 65,
+    "Group base64 decoder without padding circuit constraints": 24,
+    "Group base64 decoder with padding circuit constraints": 29,
+    "4-byte base64 decoder circuit constraints": 601,
+    "8-byte base64 decoder circuit constraints": 1193,
+    "360-byte base64 decoder circuit constraints": 53289
+  },
+  "bits": {
+    "Mod2 circuit constraints": 1,
+    "8-bit 0x0F mask circuit constraints": 24,
+    "16-bit 0xFF mask circuit constraints": 48,
+    "32-bit 0xFFFF mask circuit constraints": 96,
+    "8-bit 1-offset shift right circuit constraints": 8,
+    "8-bit 2-offset shift right circuit constraints": 8,
+    "8-bit 4-offset shift right circuit constraints": 8,
+    "16-bit 8-offset shift right circuit constraints": 16,
+    "32-bit 8-offset shift right circuit constraints": 32,
+    "2x8-bit Xor circuit constraints": 24,
+    "Optimized 3x8-bit Xor circuit constraints": 80,
+    "3x8-bit Xor circuit constraints": 80,
+    "5x8-bit Xor circuit constraints": 72,
+    "Optimized 5x8-bit Xor circuit constraints": 72,
+    "2x16-bit Xor circuit constraints": 48,
+    "5x16-bit Xor circuit constraints": 144,
+    "Optimized 5x16-bit Xor circuit constraints": 144,
+    "10x4-bit Xor circuit constraints": 76,
+    "Optimized 10x4-bit Xor circuit constraints": 76,
+    "2x32-bit Xor circuit constraints": 96,
+    "3x32-bit Xor circuit constraints": 160,
+    "Optimized 3x32-bit Xor circuit constraints": 160,
+    "ByteAdder circuit constraints": 34,
+    "Convert 16-byte to 128-bit circuit constraints": 128,
+    "Convert 128-bit to 16-byte circuit constraints": 0,
+    "Convert 16-byte to 128-bit number circuit constraints": 128,
+    "Convert 128-bit number to 16-byte circuit constraints": 128
+  },
+  "arithmetic": {
+    "8-by-6-bit divide circuit constraints": 35,
+    "12-by-8-bit divide circuit constraints": 49,
+    "1-bit multiplyArray circuit constraints": 1,
+    "3-bit multiplyArray circuit constraints": 3,
+    "5-bit multiplyArray circuit constraints": 5,
+    "10-bit multiplyArray circuit constraints": 10
+  }
+}

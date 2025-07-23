@@ -10,39 +10,20 @@ interface ConstraintRecords {
     };
 }
 
-/**
- * Initialize constraint records file with default structure
- */
-function initializeConstraintRecords(): void {
-    const defaultRecords: ConstraintRecords = {
-        arithmetic: {},
-        base64: {},
-        bits: {},
-        byteSubstitution: {},
-        columnMixing: {},
-        counterIncrement: {},
-        ctrEncrypt: {},
-        encryptBlock: {},
-        galoisField: {},
-        gcmEncrypt: {},
-        j0Computation: {},
-        keyExpansion: {},
-        multiplier2: {},
-        range: {},
-        roundKeyAddition: {},
-        rowShifting: {},
-        utf8: {},
-    };
 
-    if (!fs.existsSync(CONSTRAINT_RECORDS_PATH)) {
-        fs.writeFileSync(CONSTRAINT_RECORDS_PATH, JSON.stringify(defaultRecords, null, 2));
-        console.log(`✅ Initialized constraint records file: ${CONSTRAINT_RECORDS_PATH}`);
+function getCurrentTestFileName(): string {
+    try {
+        const testPath = expect.getState().testPath as string;
+        const fileNameWithExt = path.basename(testPath);
+        return fileNameWithExt.replace(/\.test\.ts$/, "");
+    } catch {
+        return "unknown";
     }
 }
 
 /**
  * Record constraint count for a specific circuit and description
- * @param circuitType - The type of circuit (e.g., 'gcmEncrypt', 'ctrEncrypt')
+ * @param circuitType - The type of circuit
  * @param description - Description of the constraint test
  * @param constraintCount - The actual constraint count
  */
@@ -83,23 +64,25 @@ function recordConstraint(
 
 /**
  * Get constraint count for a specific circuit and description
- * @param circuitType - The type of circuit
  * @param description - Description of the constraint test
+ * @param circuitType - The type of circuit
  * @returns The recorded constraint count or null if not found
  */
 function getRecordedConstraint(
-    circuitType: string,
-    description: string
+    description: string,
+    circuitType?: string
 ): number | null {
     if (!fs.existsSync(CONSTRAINT_RECORDS_PATH)) {
         return null;
     }
 
+    const actualCircuitType = circuitType || getCurrentTestFileName();
+
     try {
         const data = fs.readFileSync(CONSTRAINT_RECORDS_PATH, 'utf8');
         const records: ConstraintRecords = JSON.parse(data);
 
-        return records[circuitType]?.[description] || null;
+        return records[actualCircuitType]?.[description] || null;
     } catch (error) {
         console.warn(`Warning: Could not read constraint records: ${error}`);
         return null;
@@ -107,19 +90,20 @@ function getRecordedConstraint(
 }
 
 /**
- * Helper function to be used in beforeAll blocks
+ * Helper function to be used in beforeAll blocks (with explicit circuit type)
  * @param circuit - The circuit instance with getConstraintCount method
- * @param circuitType - The type of circuit
  * @param description - Description of the constraint test
+ * @param circuitType - The type of circuit
  */
 async function recordCircuitConstraints(
     circuit: { getConstraintCount(): Promise<number> },
-    circuitType: string,
-    description: string
+    description: string,
+    circuitType?: string
 ): Promise<void> {
     const constraintCount = await circuit.getConstraintCount();
+    const actualCircuitType = circuitType || getCurrentTestFileName();
     console.info(description, constraintCount);
-    recordConstraint(circuitType, description, constraintCount);
+    recordConstraint(actualCircuitType, description, constraintCount);
 }
 
-export { initializeConstraintRecords, recordConstraint, getRecordedConstraint, recordCircuitConstraints }
+export { getRecordedConstraint, recordCircuitConstraints }
