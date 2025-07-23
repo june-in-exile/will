@@ -1,5 +1,5 @@
 {
-  "name": "circom-typescript-project",
+  "name": "zkp-circuits-tested-by-jest",
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "scripts": {
@@ -11,12 +11,15 @@
     "clean": "make clean-all"
   },
   "keywords": [
+    "zkp",
+    "zero-knowledge proof",
     "circom",
     "zk-snarks",
-    "typescript",
-    "testing"
+    "aes",
+    "aes-ctr",
+    "aes-gcm"
   ],
-  "author": "Your Name",
+  "author": "June",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.0",
