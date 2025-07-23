@@ -1,4 +1,14 @@
+import { LOG_LEVELS } from "./constants";
+
 declare global {
+  type LogLevel = keyof typeof LOG_LEVELS;
+
+  interface GlobalThis {
+    CIRCOM_DEFAULTS?: Record<string, unknown>;
+    CONSTRAINT_RECORDS_PATH?: string;
+    LOG_LEVEL?: LogLevel;
+  }
+
   type Range<
     N extends number,
     Result extends Array<unknown> = [],

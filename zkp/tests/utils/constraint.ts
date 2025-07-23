@@ -1,13 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-interface GlobalWithConstraints {
-    CONSTRAINT_RECORDS_PATH?: string;
-}
-
 function getConstraintRecordsPath(): string {
-    const globalWithConstraints = globalThis as GlobalWithConstraints;
-    return globalWithConstraints.CONSTRAINT_RECORDS_PATH || './constraintRecords.json';
+    return (globalThis as GlobalThis).CONSTRAINT_RECORDS_PATH || "./constraints.json";
 }
 
 const CONSTRAINT_RECORDS_PATH = getConstraintRecordsPath();
@@ -17,7 +12,6 @@ interface ConstraintRecords {
         [description: string]: number;
     };
 }
-
 
 function getCurrentTestFileName(): string {
     try {
@@ -112,6 +106,39 @@ async function recordCircuitConstraints(
     const actualCircuitType = circuitType || getCurrentTestFileName();
     console.info(description, constraintCount);
     recordConstraint(actualCircuitType, description, constraintCount);
+}
+
+function initializeConstraintRecords(): void {
+    const defaultRecords: ConstraintRecords = {
+        arithmetic: {},
+        base64: {},
+        bits: {},
+        byteSubstitution: {},
+        columnMixing: {},
+        counterIncrement: {},
+        ctrEncrypt: {},
+        encryptBlock: {},
+        galoisField: {},
+        gcmEncrypt: {},
+        j0Computation: {},
+        keyExpansion: {},
+        multiplier2: {},
+        range: {},
+        roundKeyAddition: {},
+        rowShifting: {},
+        utf8: {},
+    };
+
+    fs.writeFileSync(CONSTRAINT_RECORDS_PATH, JSON.stringify(defaultRecords, null, 2));
+    console.log(`✅ Initialized constraint records file: ${CONSTRAINT_RECORDS_PATH}`);
+}
+
+if (
+    typeof process !== "undefined" &&
+    process.argv?.[1] &&
+    process.argv[1].endsWith("constraint.ts")
+) {
+    initializeConstraintRecords();
 }
 
 export { getRecordedConstraint, recordCircuitConstraints }

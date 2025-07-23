@@ -10,9 +10,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "include": ["**/*.ts", "**/*.test.ts", "types/**/*.d.ts"],
+  "include": ["**/*.ts", "**/*.test.ts", "./tests"],
   "exclude": [
     "node_modules",
     "dist",

@@ -1,20 +1,9 @@
-const LOG_LEVELS = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3,
-  log: 4,
-};
+import { LOG_LEVELS } from './types/constants';
 
-type LogLevel = keyof typeof LOG_LEVELS;
-
-interface GlobalWithLogLevel {
-  LOG_LEVEL?: LogLevel;
+function shouldLog(level: LogLevel): boolean {
+  const currentLevel = (globalThis as GlobalThis).LOG_LEVEL || "error";
+  return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
 }
-
-function shouldLog(level: LogLevel): boolean { 
-  return LOG_LEVELS[level] <= LOG_LEVELS[(globalThis as GlobalWithLogLevel).LOG_LEVEL || "error"];
-} 
 
 globalThis.console = {
   ...console,

@@ -42,7 +42,7 @@ async function construct_wasm(
   const circomlibPath = await getCircomlibPath();
 
   const defaultOptions = (
-    globalThis as { CIRCOM_DEFAULTS?: Record<string, unknown> }
+    globalThis as GlobalThis
   ).CIRCOM_DEFAULTS;
 
   const wasm_tester = await circom_tester.wasm(testCircuitPath, {

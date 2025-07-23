@@ -1,4 +1,4 @@
-// Original Code: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
+// Reference: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
 import { construct_wasm } from ".";
 import { AssertionError } from "node:assert";
