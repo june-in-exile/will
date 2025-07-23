@@ -1,4 +1,4 @@
-import type { CircomTester, CompilationOptions } from "../types";
+import type { CircomTester, CompilationOptions } from ".";
 import {
   generateUntaggedTemplate,
   modifyComponentMainInFile,

@@ -11,13 +11,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./types", "./node_modules/@types"]
+    "typeRoots": ["./@types", "./node_modules/@types"]
   },
-  "include": ["**/*.ts", "**/*.test.ts", "./tests"],
+  "include": ["**/*.ts", "./tests"],
   "exclude": [
     "node_modules",
-    "dist",
-    "coverage",
     "circuits/*/build",
     "**/*.js"
   ],
