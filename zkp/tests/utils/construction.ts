@@ -56,6 +56,8 @@ async function construct_wasm(
     ...options,
   });
 
+  wasm_tester.templateName = templateName;
+
   await modifyComponentMainInFile(circuitPath, "uncomment");
 
   return wasm_tester;

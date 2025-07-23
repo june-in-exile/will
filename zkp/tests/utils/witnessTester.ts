@@ -96,6 +96,8 @@ type CircomTester = {
     sanityCheck: boolean,
   ) => Promise<WitnessType>;
 
+  templateName: string; // Customized
+
   loadConstraints: () => Promise<void>;
   constraints: unknown[] | undefined;
 
@@ -464,41 +466,47 @@ class WitnessTester<
   }
 
   /**
-   * Record constraint count for a specific circuit and description
-   * @param description - Description of the constraint test
-   * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
-   */
+ * Record constraint count for a specific circuit and description
+ * @param description - Description of the constraint test
+ * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
+ */
   async setConstraint(description: string): Promise<void> {
-    const circuitType = this.getCurrentTestFileName();
+    const testFileName = this.getCurrentTestFileName();
+    const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
     console.info(`${description}: ${constraintCount}`);
 
-    let contraints: Constraints = {};
+    let constraints: Constraints = {};
 
-    // Load existing contraints if file exists
+    // Load existing constraints if file exists
     if (fs.existsSync(this.constraintsPath)) {
       try {
         const data = fs.readFileSync(this.constraintsPath, "utf8");
-        contraints = JSON.parse(data);
+        constraints = JSON.parse(data);
       } catch (error) {
         console.warn(`Warning: Could not parse existing constraints: ${error}`);
-        contraints = {};
+        constraints = {};
       }
     }
 
-    // Initialize circuit type if it doesn't exist
-    if (!contraints[circuitType]) {
-      contraints[circuitType] = {};
+    // Initialize test file category if it doesn't exist
+    if (!constraints[testFileName]) {
+      constraints[testFileName] = {};
+    }
+
+    // Initialize template name category if it doesn't exist
+    if (!constraints[testFileName][templateName]) {
+      constraints[testFileName][templateName] = {};
     }
 
     // Update the constraint count
-    contraints[circuitType][description] = constraintCount;
+    constraints[testFileName][templateName][description] = constraintCount;
 
     // Write back to file with pretty formatting
     try {
       fs.writeFileSync(
         this.constraintsPath,
-        JSON.stringify(contraints, null, 2),
+        JSON.stringify(constraints, null, 2),
       );
     } catch (error) {
       console.error(`Error writing constraints: ${error}`);
@@ -506,12 +514,13 @@ class WitnessTester<
   }
 
   /**
-   * Get constraint count for a specific circuit and description
-   * @param circuitType - The type of circuit
-   * @param description - Description of the constraint test
-   * @returns The constraint count or null if not found
-   */
-  getConstraint(circuitType: string, description: string): number | null {
+  * Get constraint count for a specific circuit and description
+  * @param testFileName - The test file name (without .test.ts extension)
+  * @param templateName - The circuit template name
+  * @param description - Description of the constraint test
+  * @returns The constraint count or null if not found
+  */
+  getConstraint(testFileName: string, templateName: string, description: string): number | null {
     if (!fs.existsSync(this.constraintsPath)) {
       return null;
     }
@@ -520,7 +529,7 @@ class WitnessTester<
       const data = fs.readFileSync(this.constraintsPath, "utf8");
       const constraints: Constraints = JSON.parse(data);
 
-      return constraints[circuitType]?.[description] || null;
+      return constraints[testFileName]?.[templateName]?.[description] || null;
     } catch (error) {
       console.warn(`Warning: Could not read constraints: ${error}`);
       return null;
@@ -528,31 +537,31 @@ class WitnessTester<
   }
 
   /**
-   * Initialize constraints file with default structure
-   */
+ * Initialize constraints file with default structure
+ */
   static initializeConstraints(): void {
     const constraintsPath =
       (globalThis as GlobalThis).CONSTRAINTS_PATH ||
       "./constraints.json";
 
     const defaultConstraints: Constraints = {
-      arithmetic: {},
-      base64: {},
-      bits: {},
-      byteSubstitution: {},
-      columnMixing: {},
-      counterIncrement: {},
-      ctrEncrypt: {},
-      encryptBlock: {},
-      galoisField: {},
-      gcmEncrypt: {},
-      j0Computation: {},
-      keyExpansion: {},
-      multiplier2: {},
-      range: {},
-      roundKeyAddition: {},
-      rowShifting: {},
-      utf8: {},
+      arithmetic: { Divide: {}, MultiplyArray: {} },
+      base64: { Base64Char: {}, Base64CharExcludingPadding: {}, Base64CharWithPaddingDetector: {}, Base64GroupDecoder: {}, Base64GroupDecoderWithoutPadding: {}, Base64GroupDecoderWithPadding: {}, Base64Decoder: {}, },
+      bits: { Mod2: {}, Mask: {}, ShiftRight: {}, BitwiseXor: {}, ByteAdder: {}, Byte16ToBit128: {}, Bit128ToByte16: {}, Byte16ToNum: {}, NumToByte16: {}, },
+      byteSubstitution: { SubWord: {}, SubBytes: {}, SubstituteBytes: {} },
+      columnMixing: { MixColumn: {}, MixColumns: {} },
+      counterIncrement: { IncrementCounter: {} },
+      ctrEncrypt: { CtrEncrypt: {} },
+      encryptBlock: { EncryptBlock: {} },
+      galoisField: { GF8Mul2: {}, GF8Mul3: {}, GF128Multiply: {}, GHash: {} },
+      gcmEncrypt: { GcmEncrypt: {} },
+      j0Computation: { ComputeJ0Standard: {}, ComputeJ0NonStandard: {} },
+      keyExpansion: { ExpandKey: {} },
+      multiplier2: { Multiplier2: {} },
+      range: { InRange: {} },
+      roundKeyAddition: { AddRoundKey: {} },
+      rowShifting: { ShiftRows: {} },
+      utf8: { Utf8ByteLength: {}, Utf8Encoder: {}, Utf8StringEncoder: {} },
     };
 
     const dir = path.dirname(constraintsPath);

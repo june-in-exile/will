@@ -65,7 +65,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
     ).rejects.toThrow();
   });
 
-  describe("8-Byte-IV Compute J0 Non-Standard Circuit", function () {
+  describe("Compute J0 Non-Standard (8-Byte IV) Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/aes-gcm/j0Computation.circom",
@@ -88,7 +88,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
     });
   });
 
-  describe("16-Byte-IV Compute J0 Non-Standard Circuit", function () {
+  describe("Compute J0 Non-Standard (16-Byte IV) Circuit", function () {
     let circuit: WitnessTester<["iv", "hashKey"], ["j0"]>;
 
     beforeAll(async function (): Promise<void> {
@@ -130,7 +130,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
     });
   });
 
-  describe("1-to-32-byte IV Lengths (Except for 12-Byte)", function () {
+  describe("Varaible IV Lengths (Except for 12-Byte)", function () {
     it("should correctly compute J0 for different IV lengths", async function (): Promise<void> {
       const ivLengths = [1, 4, 7, 8, 13, 15, 16, 31, 32, 63, 64];
 

@@ -300,7 +300,7 @@ describe("GHash Circuit", function () {
       await circuitOptimized.expectPass({ data, hashKey }, { result });
     });
 
-    it("should compute GHASH for random data", async function (): Promise<void> {
+    it("should compute GHASH for random data and key", async function (): Promise<void> {
       const data = Array.from(AESUtils.randomBytes(32));
       const hashKey = Array.from(AESUtils.randomBytes(16));
 
@@ -333,28 +333,8 @@ describe("GHash Circuit", function () {
       circuitOptimized.setConstraint("optimized 4-block GHASH");
     });
 
-    it("should compute GHASH for pattern data", async function (): Promise<void> {
-      const pattern = [
-        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98,
-        0x76, 0x54, 0x32, 0x10,
-      ];
-      const data = [...pattern, ...pattern, ...pattern, ...pattern];
-      const hashKey = HASH_KEY;
-
-      const result = Array.from(
-        AESGCM.ghash(Buffer.from(data), Buffer.from(HASH_KEY)),
-      );
-
-      await circuit.expectPass({ data, hashKey }, { result });
-      await circuitOptimized.expectPass({ data, hashKey }, { result });
-    });
-
-    it("should handle mixed block patterns", async function (): Promise<void> {
-      const block1 = new Array(16).fill(0xaa);
-      const block2 = new Array(16).fill(0x55);
-      const block3 = Array.from({ length: 16 }, (_, i) => i);
-      const block4 = Array.from({ length: 16 }, (_, i) => 0xff - i);
-      const data = [...block1, ...block2, ...block3, ...block4];
+    it("should compute GHASH for random data and key", async function (): Promise<void> {
+      const data = Array.from(AESUtils.randomBytes(64));
       const hashKey = Array.from(AESUtils.randomBytes(16));
 
       const result = Array.from(

@@ -7,11 +7,14 @@ declare global {
     LOG_LEVEL?: LogLevel;
   }
 
-  interface Constraints {
-    [circuitType: string]: {
-      [description: string]: number;
+  type Constraints = {
+    [testFileName: string]: {
+      [templateName: string]: {
+        [description: string]: number;
+      };
     };
-  }
+  };
+
 
   type Range<
     N extends number,
