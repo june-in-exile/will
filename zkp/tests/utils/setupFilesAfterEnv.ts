@@ -1,0 +1,23 @@
+const LOG_LEVELS = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+  log: 4,
+} as const;
+
+function shouldLog(level: LogLevel): boolean {
+  const currentLevel = (globalThis as GlobalThis).LOG_LEVEL || "error";
+  return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
+}
+
+function noop(): void { }
+
+globalThis.console = {
+  ...console,
+  log: shouldLog("log") ? console.log : noop,
+  debug: shouldLog("debug") ? console.debug : noop,
+  info: shouldLog("info") ? console.info : noop,
+  warn: shouldLog("warn") ? console.warn : noop,
+  error: shouldLog("error") ? console.error : noop,
+};

@@ -57,8 +57,9 @@
       "lcov",
       "html"
     ],
+    "globalSetup": "<rootDir>/tests/utils/globalSetup.ts",
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup.ts"
+      "<rootDir>/tests/utils/setupFilesAfterEnv.ts"
     ],
     "testTimeout": 60000,
     "globals": {
