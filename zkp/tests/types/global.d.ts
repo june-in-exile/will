@@ -1,7 +1,5 @@
-import { LOG_LEVELS } from "./constants";
-
 declare global {
-  type LogLevel = keyof typeof LOG_LEVELS;
+  type LogLevel = "error" | "warn" | "info" | "debug" | "log";
 
   interface GlobalThis {
     CIRCOM_DEFAULTS?: Record<string, unknown>;
@@ -78,3 +76,5 @@ declare global {
   type Word = { bytes: Byte4 };
   type Word4 = [Word, Word, Word, Word];
 }
+
+export { };

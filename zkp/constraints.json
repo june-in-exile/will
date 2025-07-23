@@ -34,8 +34,8 @@
     "optimized 5x8-bit xor": 48,
     "5x8-bit xor": 72,
     "2x16-bit Xor circuit constraints": 48,
-    "optimized 5x16-bit xor": 96,
     "5x16-bit xor": 144,
+    "optimized 5x16-bit xor": 96,
     "10x4-bit xor": 76,
     "optimized 10x4-bit xor": 44,
     "2x32-bit xor": 96,
@@ -49,16 +49,16 @@
     "2x8-bit xor operation": 24,
     "3x8-bit xor operation": 80,
     "optimized 3x8-bit xor operation": 64,
-    "optimized 5x8-bit xor operation": 48,
     "5x8-bit xor operation": 72,
+    "optimized 5x8-bit xor operation": 48,
     "2x16-bit xor operation": 48,
     "5x16-bit xor operation": 144,
     "optimized 5x16-bit xor operation": 96,
     "10x4-bit xor operation": 76,
     "optimized 10x4-bit xor operation": 44,
     "2x32-bit xor operation": 96,
-    "optimized 3x32-bit xor operation": 128,
-    "3x32-bit xor operation": 160
+    "3x32-bit xor operation": 160,
+    "optimized 3x32-bit xor operation": 128
   },
   "byteSubstitution": {
     "word substitution": 1024,
@@ -114,8 +114,7 @@
     "AES-192-GCM standard IV, 12-byte plaintext, 5-byte aad encryption": 350433,
     "AES-192-GCM standard IV, 2-block plaintext, 1-block aad encryption": 467650,
     "AES-256-GCM standard IV, 1-block plaintext, no aad encryption": 394529,
-    "AES-256-GCM standard IV, 2-block plaintext, 1-block aad encryption": 549186,
-    "AES-256-GCM 16-byte IV, 1-block plaintext, no aad encryption": 428849
+    "AES-256-GCM standard IV, 2-block plaintext, 1-block aad encryption": 549186
   },
   "j0Computation": {
     "j0 computation for standard IV (12 bytes)": 4,
