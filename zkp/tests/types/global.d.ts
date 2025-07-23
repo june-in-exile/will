@@ -9,6 +9,12 @@ declare global {
     LOG_LEVEL?: LogLevel;
   }
 
+  interface ConstraintRecords {
+    [circuitType: string]: {
+      [description: string]: number;
+    };
+  }
+
   type Range<
     N extends number,
     Result extends Array<unknown> = [],

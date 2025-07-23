@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints } from "./utils";
+import { WitnessTester } from "./utils";
 import { AESUtils, subWord, subBytes, substituteBytes } from "./helpers";
 
 describe("SubWord Circuit", function () {
@@ -10,7 +10,7 @@ describe("SubWord Circuit", function () {
         "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubWord",
       );
-      recordCircuitConstraints(circuit, "word substitution");
+      circuit.recordConstraint("word substitution");
     });
 
     it("should substitute random words according to AES specification", async function (): Promise<void> {
@@ -35,7 +35,7 @@ describe("SubBytes Circuit", function () {
         "circuits/shared/components/aes-gcm/byteSubstitution.circom",
         "SubBytes",
       );
-      recordCircuitConstraints(circuit, "16-byte substitution");
+      circuit.recordConstraint("16-byte substitution");
     });
 
     it("should substitute random 4x4 bytes according to AES specification", async function (): Promise<void> {
@@ -60,7 +60,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["1"],
         },
       );
-      recordCircuitConstraints(circuit, "1-byte bytes substitution");
+      circuit.recordConstraint("1-byte bytes substitution");
     });
 
     it("should substitute all bytes according to AES specification", async function (): Promise<void> {
@@ -84,7 +84,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["4"],
         },
       );
-      recordCircuitConstraints(circuit, "4-byte bytes substitution");
+      circuit.recordConstraint("4-byte bytes substitution");
     });
 
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {
@@ -108,7 +108,7 @@ describe("SubstituteBytes Circuit", function () {
           templateParams: ["16"],
         },
       );
-      recordCircuitConstraints(circuit, "16-byte bytes substitution");
+      circuit.recordConstraint("16-byte bytes substitution");
     });
 
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {

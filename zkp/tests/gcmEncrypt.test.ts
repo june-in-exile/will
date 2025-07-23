@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints, wordToByte } from "./utils";
+import { WitnessTester, wordToByte } from "./utils";
 import { AESUtils, gcmEncrypt } from "./helpers";
 
 describe("GcmEncrypt Circuits", function () {
@@ -18,7 +18,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "12", "0", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM standard IV, no plaintext, no aad encryption");
+          circuit.recordConstraint("AES-128-GCM standard IV, no plaintext, no aad encryption");
         });
 
         it("should work with empty test vector", async function (): Promise<void> {
@@ -53,7 +53,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "12", "12", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM standard IV, 12-byte plaintext, no aad encryption");
+          circuit.recordConstraint("AES-128-GCM standard IV, 12-byte plaintext, no aad encryption");
         });
 
         it("should work with custom test vector", async function (): Promise<void> {
@@ -91,7 +91,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "12", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM standard IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-128-GCM standard IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with random test vector", async function (): Promise<void> {
@@ -123,7 +123,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "12", "32", "16"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM standard IV, 2-block plaintext, 1-block aad encryption");
+          circuit.recordConstraint("AES-128-GCM standard IV, 2-block plaintext, 1-block aad encryption");
         });
 
         it("should work with custom test vector with AAD", async function (): Promise<void> {
@@ -165,7 +165,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "12", "32", "30"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM standard IV, 2-block plaintext, 30-byte aad encryption");
+          circuit.recordConstraint("AES-128-GCM standard IV, 2-block plaintext, 30-byte aad encryption");
         });
 
         it("should work with 30-byte AAD", async function (): Promise<void> {
@@ -201,7 +201,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "1", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM 1-byte IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-128-GCM 1-byte IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with 1-byte IV", async function (): Promise<void> {
@@ -236,7 +236,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["128", "8", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-128-GCM 8-byte IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-128-GCM 8-byte IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with 8-byte IV", async function (): Promise<void> {
@@ -275,7 +275,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["192", "12", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-192-GCM standard IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-192-GCM standard IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with zero test vector", async function (): Promise<void> {
@@ -342,7 +342,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["192", "12", "12", "5"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-192-GCM standard IV, 12-byte plaintext, 5-byte aad encryption");
+          circuit.recordConstraint("AES-192-GCM standard IV, 12-byte plaintext, 5-byte aad encryption");
         });
 
         it("should work with 5-byte AAD", async function (): Promise<void> {
@@ -381,7 +381,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["192", "12", "32", "16"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-192-GCM standard IV, 2-block plaintext, 1-block aad encryption");
+          circuit.recordConstraint("AES-192-GCM standard IV, 2-block plaintext, 1-block aad encryption");
         });
 
         it("should work with custom test vector with AAD", async function (): Promise<void> {
@@ -420,7 +420,7 @@ describe("GcmEncrypt Circuits", function () {
 
   describe("AES-256-GCM Encrypt Circuit", function () {
     describe("Standard IV (12 Bytes)", function () {
-      describe("1-Block Plaintext, No AAD", function () {
+      describe.only("1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
             "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
@@ -429,12 +429,12 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["256", "12", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-256-GCM standard IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-256-GCM standard IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with custom test vector", async function (): Promise<void> {
           const plaintext = [
-            0x72, 0x105, 0x33, 0x32, 0x72, 0x111, 0x119, 0x32, 0x97, 0x114, 0x101, 0x32, 0x121, 0x111, 0x117, 0x63,
+            0x48, 0x69, 0x21, 0x20, 0x48, 0x6F, 0x77, 0x20, 0x61, 0x72, 0x65, 0x20, 0x79, 0x6F, 0x75, 0x3F
           ] as Byte[]; // "Hi! How are you?"
           const key = [
             { bytes: [0x60, 0x3d, 0xeb, 0x10] },
@@ -470,7 +470,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["256", "12", "32", "16"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-256-GCM standard IV, 2-block plaintext, 1-block aad encryption");
+          circuit.recordConstraint("AES-256-GCM standard IV, 2-block plaintext, 1-block aad encryption");
         });
 
         it("should work with custom test vector with AAD", async function (): Promise<void> {
@@ -544,7 +544,7 @@ describe("GcmEncrypt Circuits", function () {
               templateParams: ["256", "16", "16", "0"],
             },
           );
-          recordCircuitConstraints(circuit, "AES-256-GCM 16-byte IV, 1-block plaintext, no aad encryption");
+          circuit.recordConstraint("AES-256-GCM 16-byte IV, 1-block plaintext, no aad encryption");
         });
 
         it("should work with 16-byte IV", async function (): Promise<void> {

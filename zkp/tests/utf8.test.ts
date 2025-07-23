@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints } from "./utils";
+import { WitnessTester } from "./utils";
 import { utf8ByteLength, utf8Encoder, utf8StringEncoder } from "./helpers";
 
 const testCases1Byte = [
@@ -54,7 +54,7 @@ describe("Utf8ByteLength Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8ByteLength",
     );
-    recordCircuitConstraints(circuit, "utf8 length (in bytes) calculation")
+    circuit.recordConstraint("utf8 length (in bytes) calculation")
   });
 
   describe("Byte Length Calculation for UTF8 Encoding", function (): void {
@@ -92,7 +92,7 @@ describe("Utf8Encoder Circuit", function (): void {
       "circuits/shared/components/utf8.circom",
       "Utf8Encoder",
     );
-    recordCircuitConstraints(circuit, "utf8 encoder")
+    circuit.recordConstraint("utf8 encoder")
   });
 
   describe("Individual Character Encoding", function (): void {
@@ -146,7 +146,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["3"],
         },
       );
-      recordCircuitConstraints(circuit, "3-character utf8 string encoder")
+      circuit.recordConstraint("3-character utf8 string encoder")
     });
 
     it("should correctly encode pure ASCII strings", async () => {
@@ -206,7 +206,7 @@ describe("Utf8StringEncoder Circuit", function (): void {
           templateParams: ["15"],
         },
       );
-      recordCircuitConstraints(circuit, "15-character utf8 string encoder")
+      circuit.recordConstraint("15-character utf8 string encoder")
     });
 
     it("should correctly encode pure ASCII strings", async () => {

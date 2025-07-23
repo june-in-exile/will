@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "scripts": {
-    "test": "pnpm exec tsx ./tests/utils/constraint.ts && pnpm exec tsx ./tests/helpers/aes-gcm.ts && jest --verbose",
+    "test": "pnpm exec tsx ./tests/helpers/aes-gcm.ts && jest --verbose",
     "test:simple": "jest",
     "test:single": "jest --verbose --testNamePattern=",
     "lint": "eslint '**/*.ts'",

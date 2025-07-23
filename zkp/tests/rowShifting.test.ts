@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints } from "./utils";
+import { WitnessTester } from "./utils";
 import { AESUtils, shiftRows } from "./helpers";
 
 describe("ShiftRows Circuit", function () {
@@ -10,7 +10,7 @@ describe("ShiftRows Circuit", function () {
         "circuits/shared/components/aes-gcm/rowShifting.circom",
         "ShiftRows",
       );
-      recordCircuitConstraints(circuit, "rows shifting");
+      circuit.recordConstraint("rows shifting");
     });
 
     it("should shift rows according to AES specification", async function (): Promise<void> {

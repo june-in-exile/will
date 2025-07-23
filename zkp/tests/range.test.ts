@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints } from "./utils";
+import { WitnessTester } from "./utils";
 
 describe("InRange Circuit", function () {
   let circuit: WitnessTester<["in", "min", "max"], ["out"]>;
@@ -12,7 +12,7 @@ describe("InRange Circuit", function () {
           templateParams: ["4"],
         },
       );
-      recordCircuitConstraints(circuit, "4-bit in-range check");
+      circuit.recordConstraint("4-bit in-range check");
     });
 
     it("should validate full range [0, 15]", async function (): Promise<void> {
@@ -59,7 +59,7 @@ describe("InRange Circuit", function () {
           templateParams: ["8"],
         },
       );
-      recordCircuitConstraints(circuit, "8-bit in-range check");
+      circuit.recordConstraint("8-bit in-range check");
     });
 
     it("should validate full range [0, 255]", async function (): Promise<void> {

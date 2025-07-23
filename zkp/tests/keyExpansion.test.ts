@@ -1,4 +1,4 @@
-import { WitnessTester, recordCircuitConstraints } from "./utils";
+import { WitnessTester } from "./utils";
 import { expandKey } from "./helpers";
 
 describe("ExpandKey Circuit", function () {
@@ -13,7 +13,7 @@ describe("ExpandKey Circuit", function () {
           templateParams: ["128"],
         },
       );
-      recordCircuitConstraints(circuit, "AES-128 key expansion");
+      circuit.recordConstraint("AES-128 key expansion");
     });
 
     it("should expand 16-byte key to 176-byte correctly", async function (): Promise<void> {
@@ -42,7 +42,7 @@ describe("ExpandKey Circuit", function () {
           templateParams: ["192"],
         },
       );
-      recordCircuitConstraints(circuit, "AES-192 key expansion");
+      circuit.recordConstraint("AES-192 key expansion");
     });
 
     it("should expand 24-byte key to 208-byte correctly", async function (): Promise<void> {
@@ -70,7 +70,7 @@ describe("ExpandKey Circuit", function () {
           templateParams: ["256"],
         },
       );
-      recordCircuitConstraints(circuit, "AES-256 key expansion");
+      circuit.recordConstraint("AES-256 key expansion");
     });
 
     it("should expand 32-byte key to 240-byte correctly", async function (): Promise<void> {
