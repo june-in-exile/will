@@ -1,8 +1,35 @@
 # Zero-Knowledge Proof Circuits
 
-This directory contains multiple Circom circuit implementations, supporting a complete ZK-SNARK workflow from circuit compilation to smart contract deployment.
+This directory contains multiple Circom circuit implementations for the **Web3 Will System**, supporting a complete ZK-SNARK workflow from circuit compilation to smart contract deployment. The project focuses on privacy-preserving functionality for digital estate management.
 
-## Prerequisites
+## 🎯 Project Overview
+
+This ZKP module is a core component of the Web3 will management system, implementing two main circuits that enable privacy-preserving will management:
+
+### Main Circuits
+
+#### 1. **uploadCid Circuit** 
+
+- **Scenario**: Testator uploads encrypted will to IPFS and proves its validity to the blockchain without revealing will content.
+- **Process**:
+  1. Decrypt ciphertext (public) to plaintext (private).
+  2. Validate permit2 signature (private) within the decrypted content.
+- **Components**: Decryption + Permit2 signature verification
+
+#### 2. **createWill Circuit**
+
+- **Scenario**: After testator's death, executor creates will contract with verified decryption.
+- **Process**:
+  1. Decrypt ciphertext (public) to plaintext (public).
+  2. Verify that the given fields (public) correspond to specific sections of the plaintext.
+- **Components**: Decryption + Field validation
+
+### Shared Infrastructure
+
+- **Modular design**: Shared components in [`circuits/shared/components/`](./circuits/shared/components/)
+- **Circuit-specific logic**: Custom components in respective `circuits/{circuitName}/components/` directories
+
+## 📋 Prerequisites
 
 ```bash
 # Install circom
@@ -13,15 +40,16 @@ cd circom
 cargo build --release
 cargo install --path circom
 
-# Install Node.js (v18+ recommended)
+# Node.js (v18+ recommended)
+# pnpm (package manager used by this project)
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Install Dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Setup Powers of Tau (shared across all circuits)
@@ -47,7 +75,7 @@ Or run individual steps:
 ```bash
 make compile                    # Compile Circuit
 make witness                    # Generate Witness
-make trusted-setup-pahse2       # Circuit-Specific Trusted Setup
+make trusted-setup-phase2       # Circuit-Specific Trusted Setup
 make prove                      # Generate Proof
 make verify                     # Verify Proof
 make solidity                   # Generate Solidity Verifier Contract
@@ -63,6 +91,22 @@ make <command> CIRCUIT=createWill
 make <command> CIRCUIT=uploadCid
 ```
 
+### Testing
+
+```bash
+# Test current circuit
+make test
+
+# Test specific circuit
+make test CIRCUIT=multiplier2
+
+# Test all circuits
+make test-circuits
+
+# Test AES-256-GCM helpers and all circuits
+make test-all
+```
+
 ### Clean Up
 
 ```bash
@@ -73,55 +117,67 @@ make clean
 make clean-all
 ```
 
-## Workflow Explanation
+### Adding New Circuits
 
-### 1. Trusted Setup Phase
+1. Create a new directory under `circuits/`
+2. Add the `.circom` circuit file
+3. Add the `inputs/example.json` input file
+4. Run the workflow:
 
-#### Powers of Tau (General Setup)
+   ```bash
+   make circuit CIRCUIT=your_new_circuit
+   ```
 
-```bash
-# Generate powers of tau
-snarkjs powersoftau new bn128 12 pot12_0000.ptau
-snarkjs powersoftau contribute pot12_0000.ptau pot12_0001.ptau
-snarkjs powersoftau prepare phase2 pot12_0001.ptau pot12_final.ptau
+## 📖 Makefile Usage Guide
 
-# Or download existing powers of tau:
-# https://github.com/privacy-scaling-explorations/perpetualpowersoftau
-```
+### Available Commands
 
-#### Circuit-Specific Setup
-
-```bash
-# Generate circuit keys
-snarkjs groth16 setup circuit.r1cs pot12_final.ptau circuit_0000.zkey
-snarkjs zkey contribute circuit_0000.zkey circuit_0001.zkey
-snarkjs zkey export verificationkey circuit_0001.zkey verification_key.json
-```
-
-### 2. Proof Generation Phase
+To see all available commands:
 
 ```bash
-# Calculate witness
-snarkjs wtns calculate circuit.wasm input.json witness.wtns
-
-# Generate proof
-snarkjs groth16 prove circuit_0001.zkey witness.wtns proof.json public.json
-
-# Verify proof
-snarkjs groth16 verify verification_key.json public.json proof.json
+make help
 ```
 
-### 3. Smart Contract Deployment Preparation
+### Circuit Management
+
+The Makefile operates on a default circuit (currently `multiplier2`), but you can specify any circuit:
 
 ```bash
-# Generate Solidity verifier contract
-snarkjs zkey export solidityverifier circuit_0001.zkey verifier.sol
+# Use default circuit
+make compile
 
-# Generate contract call parameters
-snarkjs generatecall public.json proof.json
+# Use specific circuit
+make compile CIRCUIT=createWill
 ```
+
+### Key Makefile Variables
+
+- `CIRCUIT`: Target circuit name (default: `multiplier2`)
+- `TEMPLATE`: Circuit template name (default: `Multiplier2`)
+- `PTAU_PATH`: Path to Powers of Tau file
+
+### Project Status
+
+Check the current status of all circuits:
+
+```bash
+make status
+```
+
+This shows compilation status, key generation, and verifier contract status for each circuit.
 
 ## Generated Files
+
+### Directory Structure Created
+
+```bash
+circuits/<CIRCUIT>/
+├── build/          # Compiled artifacts (.r1cs, .wasm, .sym)
+├── inputs/         # Input files (example.json)
+├── keys/           # Circuit keys and verification key
+├── proofs/         # Generated proofs and public signals
+└── contracts/      # Solidity verifier contracts
+```
 
 ### Compilation Artifacts
 
@@ -148,34 +204,17 @@ snarkjs generatecall public.json proof.json
 - `example.json` - Input example
 - `verifier.sol` - Solidity verifier contract
 
-## Multi-Circuit Management
+## 🔬 Testing Framework
 
-### Currently Available Circuits
-
-- `multiplier2` - Multiplier example circuit
-- `uploadCid` - CID upload circuit
-- `createWill` - Will creation circuit
-
-### Switch Circuits
+The project includes comprehensive testing using Jest and TypeScript:
 
 ```bash
-# Method 1: Modify CIRCUIT variable in Makefile
-CIRCUIT ?= createWill
-
-# Method 2: Override on command line
-make circuit CIRCUIT=createWill
+tests/
+├── helpers/          # Test helper functions
+├── utils/            # Testing utilities and setup
+├── <circuit>.test.ts # Individual circuit tests
+└── workflow.test.ts  # E2E workflow tests
 ```
-
-### Adding New Circuits
-
-1. Create a new directory under `circuits/`
-2. Add the `.circom` circuit file
-3. Add the `inputs/example.json` input file
-4. Run the workflow using Makefile:
-
-   ```bash
-   make circuit CIRCUIT=your_new_circuit
-   ```
 
 ## References
 
@@ -191,44 +230,3 @@ make circuit CIRCUIT=createWill
 - [NIST FIPS 197](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
 - [NIST SP 800-38A](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38a.pdf)
 - [NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf)
-
-## Common Errors for Development
-
-1. Output not defined.
-
-   ```
-    RUNS  tests/utf8Encoder.test.ts
-   will/zkp/node_modules/circom_tester/common/tester.js:264
-                     throw new Error("Output variable not defined: " + prefix);
-                           ^
-
-   Error: Output variable not defined: main.length[0]
-   ```
-
-   Reason: forget to add `await` before `circuit.expectPass()` / `circuit.expectFail()`
-
-   ```
-   // incorrect
-   circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
-
-   // correct
-   await circuit.expectPass({ codepoint: testCase.codepoint }, utf8ByteLength(testCase.codepoint));
-   ```
-
-2. The number of template input signals must coincide with the number of input parameters.
-
-   ```
-    error[TAC01]: The number of template input signals must coincide with the number of input parameters
-        ┌─ "will/zkp/circuits/shared/components/utf8Encoder.circom":188:23
-        │
-    188 │     validBytes[2] <== IsEqual()(length[1],1);
-        │                       ^^^^^^^^^^^^^^^^^^^^^^ This is the anonymous component whose use is not allowed
-
-    previous errors were found
-   ```
-
-   Reason: should input array
-
-   ```
-   validBytes[2] <== IsEqual()([length[1],1]);
-   ```

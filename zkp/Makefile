@@ -176,13 +176,13 @@ clean-all:
 
 # Test
 test:
-	@npm run test:single ./tests/$(CIRCUIT).test.ts
+	@npm run test ./tests/$(CIRCUIT).test.ts
 
 test-circuits:
 	@npx jest --verbose
 
 test-all:
-	@npm run test
+	@npm run test:all
 
 
 # Project status
@@ -190,9 +190,9 @@ status:
 	@echo "📊 Project Status:"
 	@echo "=================="
 	@if [ -d "circuits" ]; then \
-		echo "📁 Circuits found: $$(find circuits -maxdepth 1 -type d ! -name circuits ! -name shared | wc -l)"; \
+		echo "📁 Circuits found: $$(find circuits -maxdepth 1 -type d ! -name circuits ! -name shared ! -name test | wc -l)"; \
 		for circuit in circuits/*/; do \
-			if [ -d "$$circuit" ] && [ "$$(basename $$circuit)" != "shared" ]; then \
+			if [ -d "$$circuit" ] && [ "$$(basename $$circuit)" != "shared" ] && [ "$$(basename $$circuit)" != "test" ]; then \
 				circuit_name=$$(basename $$circuit); \
 				echo "  🔧 $$circuit_name:"; \
 				if [ -f "$$circuit/build/$$circuit_name.r1cs" ]; then echo "    ✅ Compiled"; else echo "    ❌ Not compiled"; fi; \
@@ -205,4 +205,4 @@ status:
 	fi
 	@if [ -f "package.json" ]; then echo "📦 TypeScript project: ✅"; else echo "📦 TypeScript project: ❌"; fi
 	@if [ -d "node_modules" ]; then echo "📚 Dependencies: ✅"; else echo "📚 Dependencies: ❌"; fi
-	@if [ -f "circuits/shared/keys/pot12_final.ptau" ]; then echo "⚡ Powers of Tau: ✅"; else echo "⚡ Powers of Tau: ❌"; fi
+	@if [ -f $(PTAU_PATH) ]; then echo "⚡ Powers of Tau: ✅"; else echo "⚡ Powers of Tau: ❌"; fi
