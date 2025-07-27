@@ -1,6 +1,6 @@
 import { WitnessTester } from "./utils";
 
-describe("Base64Char Cicuit", function () {
+describe("Base64Char Circuit", function () {
   let circuit: WitnessTester<["ascii"], ["base64"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -12,7 +12,7 @@ describe("Base64Char Cicuit", function () {
   });
 
   describe("Complete Base64 Character Set", function (): void {
-    test("should handle all valid Base64 characters", async function (): Promise<void> {
+    it("should handle all valid Base64 characters", async function (): Promise<void> {
       const base64Chars: string =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
@@ -27,7 +27,7 @@ describe("Base64Char Cicuit", function () {
   });
 
   describe("Invalid Base64 Characters", function (): void {
-    test("should handle invalid characters", async function (): Promise<void> {
+    it("should handle invalid characters", async function (): Promise<void> {
       const invalidChars = [
         64, // "@"
         35, // "#"
@@ -47,7 +47,7 @@ describe("Base64Char Cicuit", function () {
       }
     });
 
-    test("should handle characters adjacent to valid range", async function (): Promise<void> {
+    it("should handle characters adjacent to valid range", async function (): Promise<void> {
       const adjacentInvalid = [
         46, // '/' 's previous character ('.')
         58, // '9' 's next character (':')
@@ -64,7 +64,7 @@ describe("Base64Char Cicuit", function () {
   });
 });
 
-describe("Base64CharExcludingPadding Cicuit", function () {
+describe("Base64CharExcludingPadding Circuit", function () {
   let circuit: WitnessTester<["ascii"], ["base64"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -135,7 +135,7 @@ describe("Base64CharExcludingPadding Cicuit", function () {
   });
 });
 
-describe("Base64CharWithPaddingDetector Cicuit", function () {
+describe("Base64CharWithPaddingDetector Circuit", function () {
   let circuit: WitnessTester<["ascii"], ["base64", "isPadding"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -209,7 +209,7 @@ describe("Base64CharWithPaddingDetector Cicuit", function () {
   });
 });
 
-describe("Base64GroupDecoder Cicuit", function () {
+describe("Base64GroupDecoder Circuit", function () {
   let circuit: WitnessTester<["base64Group"], ["bytes"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -333,7 +333,7 @@ describe("Base64GroupDecoder Cicuit", function () {
   });
 });
 
-describe("Base64GroupDecoderWithoutPadding Cicuit", function () {
+describe("Base64GroupDecoderWithoutPadding Circuit", function () {
   let circuit: WitnessTester<["base64Group"], ["bytes"]>;
 
   beforeAll(async function (): Promise<void> {
@@ -395,7 +395,7 @@ describe("Base64GroupDecoderWithoutPadding Cicuit", function () {
   });
 });
 
-describe("Base64GroupDecoderWithPadding Cicuit", function () {
+describe("Base64GroupDecoderWithPadding Circuit", function () {
   let circuit: WitnessTester<["base64Group", "isPadding"], ["bytes"]>;
 
   beforeAll(async function (): Promise<void> {
