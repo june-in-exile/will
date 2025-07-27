@@ -179,7 +179,7 @@ test:
 	@npm run test ./tests/$(CIRCUIT).test.ts
 
 test-circuits:
-	@npx jest --verbose
+	@npm run test
 
 test-all:
 	@npm run test:all
