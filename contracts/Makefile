@@ -3,7 +3,7 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: init
+.PHONY: init sync_anvil sync_groth16verifier_and_proof sync clean_address clean_groth16verifier_and_proof clean_typechain clean install build test test_fuzz deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -14,7 +14,7 @@ ifeq ($(USE_ANVIL),true)
 	RPC_URL := $(ANVIL_RPC_URL)
 	CHAIN_ID := $(ANVIL_CHAIN_ID)
 else
-    RPC_URL := $(ARB_SEPOLIA_RPC_URL)
+	RPC_URL := $(ARB_SEPOLIA_RPC_URL)
 	CHAIN_ID := $(ARB_SEPOLIA_CHAIN_ID)
 endif
 
@@ -28,7 +28,7 @@ sync_anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 
 sync_groth16verifier_and_proof:
-	@pnpm exec tsx ../shared/utils/env/syncZkp.ts	
+	@pnpm exec tsx ../shared/utils/env/syncZkp.ts
 
 sync: sync_anvil sync_groth16verifier_and_proof
 
@@ -60,8 +60,33 @@ build: sync_groth16verifier_and_proof
 	@forge build
 	@pnpm typechain
 
-test: build sync_groth16verifier_and_proof
+test:
+	@$(MAKE) sync_groth16verifier_and_proof
+	@$(MAKE) _test
+
+_test:
 	@forge test --match-path "test/*"
+
+test_fuzz:
+	@$(MAKE) sync_groth16verifier_and_proof
+	@$(MAKE) _test_fuzz
+
+_test_fuzz:
+	@forge test --match-path "test/fuzz/*"
+
+test_integration:
+	@$(MAKE) sync_groth16verifier_and_proof
+	@$(MAKE) _test_integration
+
+_test_integration:
+	@forge test --match-path "test/integration/*"
+
+test_unit:
+	@$(MAKE) sync_groth16verifier_and_proof
+	@$(MAKE) _test_unit
+
+_test_unit:
+	@forge test --match-path "test/unit/*"
 
 # --------------- Conditional Deployment ----------------
 
@@ -108,7 +133,7 @@ deploy_groth16verifier_to_arb_sepolia:
 
 deploy_jsonCidVerifier_to_arb_sepolia:
 	@forge script \
-	 	--broadcast \
+		--broadcast \
 		--verify \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
@@ -118,12 +143,12 @@ deploy_jsonCidVerifier_to_arb_sepolia:
 
 deploy_willFactory_to_arb_sepolia:
 	@forge script \
-    	--broadcast \
+		--broadcast \
 		--verify \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
-    	--private-key $(MY_PRIVATE_KEY) \
-    	script/WillFactory.s.sol:WillFactoryScript
+		--private-key $(MY_PRIVATE_KEY) \
+		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerifier_to_arb_sepolia
@@ -153,10 +178,10 @@ deploy_jsonCidVerifier_to_forked_arb_sepolia:
 
 deploy_willFactory_to_forked_arb_sepolia:
 	@forge script \
-    	--broadcast \
+		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
-    	--private-key $(MY_PRIVATE_KEY) \
-    	script/WillFactory.s.sol:WillFactoryScript
+		--private-key $(MY_PRIVATE_KEY) \
+		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy_to_forked_arb_sepolia: deploy_groth16verifier_to_forked_arb_sepolia deploy_jsonCidVerifier_to_forked_arb_sepolia

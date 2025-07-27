@@ -64,7 +64,6 @@ export async function main(): Promise<void> {
 
     const proof: ProofData = readProof();
 
-    // Update .env file
     await updateEnvironmentVariables(proof);
 
     console.log("✅ Successfully synced proof data to .env file.");
