@@ -52,7 +52,11 @@
       "^.+\\.ts$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "tests/**/*.ts"
+      "circuits/**/*.ts",
+      "helpers/**/*.ts",
+      "utils/**/*.ts",
+      "!tests/**",
+      "!**/*.test.ts"
     ],
     "coverageDirectory": "coverage",
     "coverageReporters": [
