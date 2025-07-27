@@ -58,6 +58,7 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 *.icloud
+*.claude
 * 2.*
 * 3.*
 * 4.*
