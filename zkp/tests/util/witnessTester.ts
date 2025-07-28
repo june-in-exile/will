@@ -1,11 +1,18 @@
 // Reference: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
-import { Constraints } from "../type/constraint.js";
 import { construct_wasm } from "./construction.js";
 import { AssertionError } from "assert";
 import path from "path";
 import fs from "fs";
 
+type Constraints = {
+  [testFileName: string]: {
+    [templateName: string]: {
+      [description: string]: number;
+    };
+  };
+};
+  
 type ConstraintSimplification = 0 | 1 | 2;
 
 type CurveName =
@@ -135,7 +142,7 @@ class WitnessTester<
     /** The underlying `circom_tester` object */
     private circomTester: CircomTester,
   ) {
-    this.constraintsPath = this.getConstraintsPath();
+    this.constraintsPath = globalThis.CONSTRAINT_COUNTS_PATH;
   }
 
   static async construct(
@@ -609,14 +616,6 @@ class WitnessTester<
       };
       symbolsToFind.delete(symbolName); // Remove from list
     }
-  }
-
-  /**
-   * Get constraints file path
-   * This tries to get from global config or uses a default path
-   */
-  private getConstraintsPath(): string {
-    return globalThis.CONSTRAINTS_PATH || "./constraintCounts.json";
   }
 
   /**

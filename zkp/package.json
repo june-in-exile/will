@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:detail": "node --experimental-vm-modules node_modules/.bin/jest --verbose",
-    "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && node --experimental-vm-modules node_modules/.bin/jest --verbose",
+    "test:detail": "NODE_OPTIONS='--experimental-vm-modules' jest --verbose",
+    "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && NODE_OPTIONS='--experimental-vm-modules' jest --verbose",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "clean": "make clean-all"

@@ -1,4 +1,3 @@
-import { modifyComponentMainInFile } from "./util/index.js";
 import * as fs from "fs/promises";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -12,7 +11,6 @@ interface Groth16Proof {
 
 describe("Workflow CLI Tests", () => {
   const circuitName = "multiplier2";
-  const templateName = "Multiplier2";
   const circuitDir = `circuits/${circuitName}`;
   const inputDir = `${circuitDir}/inputs`;
   const buildDir = `${circuitDir}/build`;
@@ -32,7 +30,6 @@ describe("Workflow CLI Tests", () => {
   const verifierFile = `${circuitDir}/contracts/test_verifier.sol`;
 
   async function compileCircuit() {
-    modifyComponentMainInFile(`${circuitFile}`, "uncomment", templateName);
     const { stderr } = await execAsync(
       `circom ${circuitFile} --r1cs --sym --wasm --output ${buildDir} -l node_modules --O2`,
     );
