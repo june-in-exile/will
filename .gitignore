@@ -177,6 +177,3 @@ contracts/lib/
 
 # ESLint cache
 .eslintcache
-
-# temp
-apps/backend/tests

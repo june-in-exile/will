@@ -1,36 +1,26 @@
 export default {
-  preset: "ts-jest",
+  preset: "ts-jest/presets/default-esm",
   testEnvironment: "node",
-  roots: [
-    "<rootDir>/tests"
-  ],
-  testMatch: [
-    "**/?(*.)+(spec|test).ts"
-  ],
-  transform: {
-    "^.+\\.ts$": "ts-jest"
-  },
+  extensionsToTreatAsEsm: [".ts"],
+  roots: ["<rootDir>/tests"],
+  testMatch: ["**/?(*.)+(spec|test).ts"],
   moduleNameMapper: {
-    "^@shared/(.*)$": "<rootDir>/../../shared/$1",
-    "^@constant/(.*)$": "<rootDir>/../../shared/constant/$1",
-    "^@type/(.*)$": "<rootDir>/../../shared/type/$1",
-    "^@util/(.*)$": "<rootDir>/../../shared/util/$1",
-    "^@config$": "<rootDir>/../../shared/config"
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+    "^@src/(.*)\\.(js|ts)$": "<rootDir>/src/$1",
+    "^@shared/(.*)\\.(js|ts)$": "<rootDir>/../../shared/$1",
+    "^@constant/(.*)\\.(js|ts)$": "<rootDir>/../../shared/constant/$1",
+    "^@type/(.*)\\.(js|ts)$": "<rootDir>/../../shared/type/$1",
+    "^@util/(.*)\\.(js|ts)$": "<rootDir>/../../shared/util/$1",
+    "^@config$": "<rootDir>/../../shared/config",
   },
-  setupFilesAfterEnv: [
-    "<rootDir>/tests/setup.ts"
-  ],
-  collectCoverageFrom: [
-    "src/**/*.ts",
-    "!src/**/*.test.ts"
-  ],
+  setupFilesAfterEnv: ["<rootDir>/tests/setupFilesAfterEnv.ts"],
+  collectCoverageFrom: ["src/**/*.ts", "!src/**/*.test.ts"],
   coverageDirectory: "coverage",
-  coverageReporters: [
-    "text",
-    "lcov",
-    "html"
-  ],
+  coverageReporters: ["text", "lcov", "html"],
   clearMocks: true,
   resetMocks: true,
-  restoreMocks: true
+  restoreMocks: true,
+  globals: {
+    LOG_LEVEL: "error",
+  },
 };

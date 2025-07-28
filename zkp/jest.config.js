@@ -7,7 +7,6 @@ export default {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
-  transform: {},
   globalSetup: "<rootDir>/tests/config/globalSetup.ts",
   setupFilesAfterEnv: ["<rootDir>/tests/config/setupFilesAfterEnv.ts"],
   collectCoverageFrom: [
@@ -19,6 +18,9 @@ export default {
   ],
   coverageDirectory: "coverage",
   coverageReporters: ["text", "lcov", "html"],
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
   testTimeout: 60000,
   globals: {
     LOG_LEVEL: "error",

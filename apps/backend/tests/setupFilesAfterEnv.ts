@@ -31,4 +31,4 @@ globalThis.console = {
   error: shouldLog("error") ? console.error : jest.fn(),
 };
 
-export { };
+export {};
