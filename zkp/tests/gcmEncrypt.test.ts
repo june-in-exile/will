@@ -1,4 +1,4 @@
-import { Byte, Byte16, Word } from "./type/index.js";
+import { Byte, Word } from "./type/index.js";
 import { WitnessTester, wordToByte } from "./util/index.js";
 import { AESUtils, gcmEncrypt } from "./logic/index.js";
 

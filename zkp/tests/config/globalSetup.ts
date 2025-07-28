@@ -1,4 +1,4 @@
-import emptyConstraintCounts from './constraintCounts.json' with { type: 'json' };
+import emptyConstraintCounts from "./constraintCounts.json" with { type: "json" };
 import path from "path";
 import fs from "fs";
 

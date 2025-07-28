@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { jest } from "@jest/globals";
 
 const LOG_LEVELS = {
   error: 0,
@@ -17,7 +17,6 @@ declare global {
   }
 }
 
-
 function shouldLog(level: LogLevel): boolean {
   const currentLevel = globalThis.LOG_LEVEL || "error";
   return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
@@ -32,4 +31,4 @@ globalThis.console = {
   error: shouldLog("error") ? console.error : jest.fn(),
 };
 
-export { };
+export {};

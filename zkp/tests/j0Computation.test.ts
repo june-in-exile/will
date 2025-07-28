@@ -1,6 +1,10 @@
 import { Byte, Byte12, Byte16 } from "./type/index.js";
 import { WitnessTester } from "./util/index.js";
-import { AESUtils, computeJ0Standard, computeJ0NonStandard } from "./logic/index.js";
+import {
+  AESUtils,
+  computeJ0Standard,
+  computeJ0NonStandard,
+} from "./logic/index.js";
 
 describe("ComputeJ0Standard Circuits", function () {
   describe("Compute J0 Standard Circuit", function () {

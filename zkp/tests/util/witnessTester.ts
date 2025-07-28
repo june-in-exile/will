@@ -12,7 +12,7 @@ type Constraints = {
     };
   };
 };
-  
+
 type ConstraintSimplification = 0 | 1 | 2;
 
 type CurveName =
