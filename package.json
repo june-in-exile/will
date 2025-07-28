@@ -28,7 +28,7 @@
     "deps:update": "pnpm update --latest",
     "deps:audit": "pnpm audit --fix",
     "deps:clean": "rm -rf node_modules pnpm-lock.yaml && pnpm install",
-    "e2e": "cd contracts && make fork && make init && make deploy && cd ../apps/backend && make all"
+    "e2e": "cd zkp && make circuit && cd ../contracts && make fork-background && make deploy && cd ../apps/backend && make all && pkill anvil"
   },
   "dependencies": {
     "@ethersproject/keccak256": "^5.8.0",

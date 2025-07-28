@@ -74,7 +74,7 @@ trusted-setup-phase1:
 	mkdir -p $(SHARED_KEYS)/generated
 	@if [ ! -f $(FINAL_PTAU_PATH) ]; then \
 		snarkjs powersoftau new bn128 $(PTAU_SIZE) $(SHARED_KEYS)/pot$(PTAU_SIZE)_0000.ptau -v; \
-		snarkjs powersoftau contribute $(SHARED_KEYS)/pot$(PTAU_SIZE)_0000.ptau $(SHARED_KEYS)/pot$(PTAU_SIZE)_0001.ptau --name="First contribution" -v; \
+		snarkjs powersoftau contribute $(SHARED_KEYS)/pot$(PTAU_SIZE)_0000.ptau $(SHARED_KEYS)/pot$(PTAU_SIZE)_0001.ptau --name="First contribution" -v -e="some random text"; \
 		snarkjs powersoftau prepare phase2 $(SHARED_KEYS)/pot$(PTAU_SIZE)_0001.ptau $(FINAL_PTAU_PATH) -v; \
 		snarkjs powersoftau truncate $(FINAL_PTAU_PATH); \
 		rm -rf $(SHARED_KEYS)/pot*.ptau; \
@@ -114,7 +114,7 @@ trusted-setup-phase2:
 		exit 1; \
 	fi
 	NODE_OPTIONS=--max-old-space-size=16384 snarkjs groth16 setup $(BUILD)/$(CIRCUIT).r1cs $(PTAU_PATH) $(KEYS)/$(CIRCUIT)_0000.zkey
-	snarkjs zkey contribute $(KEYS)/$(CIRCUIT)_0000.zkey $(KEYS)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v
+	snarkjs zkey contribute $(KEYS)/$(CIRCUIT)_0000.zkey $(KEYS)/$(CIRCUIT)_0001.zkey --name="1st Contributor Name" -v -e="another random entropy"
 	snarkjs zkey export verificationkey $(KEYS)/$(CIRCUIT)_0001.zkey $(KEYS)/verification_key.json
 	@echo "✅ Keys generated successfully!"
 

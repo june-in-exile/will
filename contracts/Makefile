@@ -152,7 +152,12 @@ deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerif
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
-fork:
+fork-foreground:
+	@pkill anvil 2>/dev/null || true
+	@sleep 1
+	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID)
+
+fork-background:
 	@pkill anvil 2>/dev/null || true
 	@sleep 1
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
