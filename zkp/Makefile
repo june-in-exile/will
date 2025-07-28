@@ -84,7 +84,7 @@ trusted-setup-phase1:
 	fi
 
 # Circuit operations
-circuit: untag compile witness trusted-setup-phase2 prove verify solidity generate-call
+circuit: compile witness trusted-setup-phase2 prove verify solidity generate-call
 	@echo "✅ Circuit $(CIRCUIT) setup completed!"
 
 untag:

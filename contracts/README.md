@@ -17,7 +17,7 @@
 2. Update the `USE_ANVIL` in `.env`, build the contracts, generate TypeScript types, etc.
 
    ```sh
-   make init
+   make build
    ```
 
 3. Deploy `Groth16Verifier.sol`.

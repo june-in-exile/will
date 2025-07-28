@@ -1,19 +1,9 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "allowJs": true,
-    "checkJs": false,
-    "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "baseUrl": "./",
     "paths": {
       "@shared/*": ["../shared/*"]
     }
   },
-  "include": ["../shared/**/*"],
   "exclude": ["node_modules", "cache"]
 }

@@ -1,12 +1,4 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": {
-    "isolatedModules": true,
-    "resolveJsonModule": true
-  },
-  "include": ["**/*.ts", "./tests"],
-  "exclude": ["circuits/*/build", "**/*.js"],
-  "ts-node": {
-    "esm": true
-  }
+  "exclude": ["node_modules", "build"]
 }

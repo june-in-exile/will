@@ -3,7 +3,7 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: init sync_anvil sync_groth16verifier_and_proof sync clean_address clean_groth16verifier_and_proof clean_typechain clean install build test test_fuzz deploy
+.PHONY: sync_anvil sync_groth16verifier_and_proof sync clean_address clean_groth16verifier_and_proof clean_typechain clean install build test test_fuzz deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -17,10 +17,6 @@ else
 	RPC_URL := $(ARB_SEPOLIA_RPC_URL)
 	CHAIN_ID := $(ARB_SEPOLIA_CHAIN_ID)
 endif
-
-# ----------------- Initialization ----------------------	
-
-init: sync_anvil sync_groth16verifier_and_proof build
 
 # ------------- Synchronization Commands ----------------
 
@@ -56,7 +52,7 @@ install:
 	@forge install OpenZeppelin/openzeppelin-contracts
 	@forge install Uniswap/permit2
 
-build: sync_groth16verifier_and_proof
+build: sync
 	@forge build
 	@pnpm typechain
 
@@ -157,6 +153,7 @@ deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerif
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
 fork:
+	@pkill anvil
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
 
 deploy_groth16verifier_to_forked_arb_sepolia:
