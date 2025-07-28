@@ -1,7 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
+      "@src/*": ["./src/*"],
       "@shared/*": ["../../shared/*"],
       "@constant/*": ["../../shared/constant/*"],
       "@type/*": ["../../shared/type/*"],

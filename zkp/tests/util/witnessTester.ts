@@ -12,13 +12,13 @@ declare global {
 }
 
 type Constraints = {
-    [testFileName: string]: {
-      [templateName: string]: {
-        [description: string]: number;
-      };
+  [testFileName: string]: {
+    [templateName: string]: {
+      [description: string]: number;
     };
+  };
 };
-  
+
 type ConstraintSimplification = 0 | 1 | 2;
 
 type CurveName =
@@ -559,7 +559,7 @@ class WitnessTester<
    */
   static initializeConstraints(): void {
     const constraintsPath =
-      globalThis.CONSTRAINTS_PATH || "./constraints.json";
+      globalThis.CONSTRAINTS_PATH || "./constraintCounts.json";
 
     const defaultConstraints: Constraints = {
       arithmetic: { Divide: {}, MultiplyArray: {} },
@@ -689,7 +689,7 @@ class WitnessTester<
    * This tries to get from global config or uses a default path
    */
   private getConstraintsPath(): string {
-    return globalThis.CONSTRAINTS_PATH || "./constraints.json";
+    return globalThis.CONSTRAINTS_PATH || "./constraintCounts.json";
   }
 
   /**

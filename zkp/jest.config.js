@@ -33,6 +33,6 @@ export default {
       no_asm: false,
       no_init: false,
     },
-    CONSTRAINT_RECORDS_PATH: "./constraints.json",
+    CONSTRAINT_RECORDS_PATH: "./constraintCounts.json",
   },
 };

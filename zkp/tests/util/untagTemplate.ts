@@ -1037,7 +1037,11 @@ async function main() {
   }
 }
 
-if (require.main === module) {
+if (
+  typeof process !== "undefined" &&
+  process.argv?.[1] &&
+  process.argv[1].endsWith("untagTemplate.ts")
+) {
   main();
 }
 
