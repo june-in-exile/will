@@ -3,7 +3,7 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   plugins: ["@typescript-eslint"],
   parserOptions: {
-    ecmaVersion: 2020,
+    ecmaVersion: "latest",
     sourceType: "module",
   },
   env: {
@@ -26,5 +26,14 @@ module.exports = {
     "circuits/*/build/",
     "circuits/*/keys/",
     "circuits/*/proofs/",
+  ],
+  overrides: [
+    {
+      files: ["**/*.test.ts", "**/tests/**/*.ts"],
+      rules: {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+      },
+    },
   ],
 };
