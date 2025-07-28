@@ -8,8 +8,8 @@ export default {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
   transform: {},
-  globalSetup: "<rootDir>/tests/util/globalSetup.ts",
-  setupFilesAfterEnv: ["<rootDir>/tests/util/setupFilesAfterEnv.ts"],
+  globalSetup: "<rootDir>/tests/config/globalSetup.ts",
+  setupFilesAfterEnv: ["<rootDir>/tests/config/setupFilesAfterEnv.ts"],
   collectCoverageFrom: [
     "circuits/**/*.ts",
     "logic/**/*.ts",

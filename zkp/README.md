@@ -199,6 +199,7 @@ The project includes comprehensive testing using Jest and TypeScript:
 
 ```bash
 tests/
+├── config/          # Configuration handling
 ├── logic/          # Logics of the circuit
 ├── type/            # Data type in logics
 ├── util/            # Testing utilities and setup

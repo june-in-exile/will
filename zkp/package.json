@@ -4,7 +4,7 @@
   "description": "TypeScript testing framework for Circom circuit development",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:detail": "node --experimental-vm-modules node_modules/.bin/jest --verbose",
     "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && node --experimental-vm-modules node_modules/.bin/jest --verbose",
     "lint": "eslint '**/*.ts'",
@@ -23,20 +23,22 @@
   "author": "June",
   "license": "MIT",
   "devDependencies": {
+    "@jest/types": "^30.0.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "circom_tester": "0.0.24",
     "eslint": "^8.57.1",
+    "jest": "^30.0.5",
     "prettier": "^3.0.0",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "circomkit": "^0.3.3",
     "circomlib": "^2.0.5",
-    "jest": "^30.0.4",
     "snarkjs": "^0.7.5"
   }
 }
