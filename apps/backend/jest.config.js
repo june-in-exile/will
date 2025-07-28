@@ -23,4 +23,7 @@ export default {
   globals: {
     LOG_LEVEL: "error",
   },
+  transformIgnorePatterns: [
+    "node_modules/(?!(@uniswap/permit2-sdk)/)"
+  ],
 };

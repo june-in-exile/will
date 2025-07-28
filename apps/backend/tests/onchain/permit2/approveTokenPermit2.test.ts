@@ -1,19 +1,9 @@
 import { jest, describe, beforeEach, afterEach, it, expect, beforeAll } from '@jest/globals';
 import { ethers, FeeData, JsonRpcProvider, Wallet } from 'ethers';
-import { readFileSync, existsSync } from 'fs';
-import {
-  validateEnvironment,
-  // validateFiles,
-  // createSigner,
-  // validateNetwork,
-  // readWillData,
-  // extractUniqueTokens,
-  // getTokenInfo,
-  // checkCurrentAllowance,
-  // approveToken,
-  // processTokenApprovals,
-  // processTokenApprovalWorkflow
-} from '@src/onchain/permit2/approveTokenPermit2.js';
+
+const TESTATOR_PRIVATE_KEY = "1234567890123456789012345678901234567890123456789012345678901234";
+const TESTATOR = '0x1234567890123456789012345678901234567890';
+const PERMIT2 = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
 // Create mock functions
 const mockIsAddress = jest.fn();
@@ -24,7 +14,7 @@ const mockWallet = jest.fn();
 const mockContract = jest.fn();
 
 // Mock the entire module to avoid actual network calls
-jest.mock('ethers', () => {
+jest.unstable_mockModule('ethers', () => {
   const actualEthers = jest.requireActual('ethers') as typeof import('ethers');
   return {
     ...actualEthers,
@@ -38,17 +28,46 @@ jest.mock('ethers', () => {
   };
 });
 
+// Mock dotenv to prevent loading .env file during tests
+jest.unstable_mockModule('dotenv', () => ({
+  config: jest.fn(),
+}));
+
+// Mock the config module to avoid loading .env 
+jest.unstable_mockModule('@config', () => ({
+  PATHS_CONFIG: {
+    env: '/mock/path/.env',
+    will: {
+      formatted: '/mock/path/formatted.json'
+    }
+  },
+  APPROVAL_CONFIG: {
+    tokenAbi: [],
+    gasLimitMultiplier: 1.2,
+    confirmationBlocks: 1,
+    maxRetries: 3,
+    retryDelay: 1000
+  },
+  NETWORK_CONFIG: {
+    rpc: {
+      current: 'http://localhost:8545'
+    }
+  }
+}));
+
 // Create fs mock functions
 const mockReadFileSync = jest.fn();
 const mockExistsSync = jest.fn();
 
-jest.mock('fs', () => ({
+// Use unstable_mockModule for ES modules mocking
+jest.unstable_mockModule('fs', () => ({
   readFileSync: mockReadFileSync,
   existsSync: mockExistsSync,
 }));
 
+// Mock the permit2SDK module using traditional mock for CommonJS require
 jest.mock('@uniswap/permit2-sdk', () => ({
-  PERMIT2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+  PERMIT2: PERMIT2,
 }));
 
 describe('Token Permit2 Approval Workflow', () => {
@@ -56,13 +75,13 @@ describe('Token Permit2 Approval Workflow', () => {
   let mockSigner: jest.Mocked<Wallet>;
   let mockTokenContract: any;
 
-  const validWillData = {
-    estates: [
-      { token: '0x1234567890123456789012345678901234567890', amount: '1000000000000000000' },
-      { token: '0x2345678901234567890123456789012345678901', amount: '2000000000000000000' },
-      { token: '0x1234567890123456789012345678901234567890', amount: '500000000000000000' }, // Duplicate token
-    ],
-  };
+  // const validWillData = {
+  //   estates: [
+  //     { token: '0x1234567890123456789012345678901234567890', amount: '1000000000000000000' },
+  //     { token: '0x2345678901234567890123456789012345678901', amount: '2000000000000000000' },
+  //     { token: '0x1234567890123456789012345678901234567890', amount: '500000000000000000' }, // Duplicate token
+  //   ],
+  // };
 
   beforeAll(() => {
     // Mock console methods to avoid output during tests
@@ -76,8 +95,8 @@ describe('Token Permit2 Approval Workflow', () => {
     jest.clearAllMocks();
 
     // Setup environment variables
-    process.env.TESTATOR_PRIVATE_KEY = '1234567890123456789012345678901234567890123456789012345678901234';
-    process.env.PERMIT2 = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+    process.env.TESTATOR_PRIVATE_KEY = TESTATOR_PRIVATE_KEY;
+    process.env.PERMIT2 = PERMIT2;
 
     // Setup mock provider
     mockProvider = {
@@ -103,11 +122,11 @@ describe('Token Permit2 Approval Workflow', () => {
     };
 
     // Setup default mock implementations
-    mockIsAddress.mockReturnValue(true);
-    mockFormatEther.mockReturnValue('1.0');
-    mockFormatUnits.mockReturnValue('20.0');
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockReturnValue(JSON.stringify(validWillData));
+    // mockIsAddress.mockReturnValue(true);
+    // mockFormatEther.mockReturnValue('1.0');
+    // mockFormatUnits.mockReturnValue('20.0');
+    // mockExistsSync.mockReturnValue(true);
+    // mockReadFileSync.mockReturnValue(JSON.stringify(validWillData));
 
     mockProvider.getNetwork.mockResolvedValue({
       name: 'localhost',
@@ -127,7 +146,7 @@ describe('Token Permit2 Approval Workflow', () => {
     mockContract.mockImplementation(() => mockTokenContract);
   });
 
-  describe.only('validateEnvironment', () => {
+  describe('validateEnvironment', () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
@@ -139,89 +158,104 @@ describe('Token Permit2 Approval Workflow', () => {
       process.env = originalEnv;
     });
 
-    it('should validate and return environment variables', () => {
-      process.env.TESTATOR_PRIVATE_KEY = '1234567890123456789012345678901234567890123456789012345678901234';
-      process.env.PERMIT2 = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+    it('should validate and return environment variables', async () => {
       mockIsAddress.mockReturnValue(true);
 
+      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
       const result = validateEnvironment();
 
       expect(result).toEqual({
-        TESTATOR_PRIVATE_KEY: '1234567890123456789012345678901234567890123456789012345678901234',
-        PERMIT2: '0x000000000022D473030F116dDEE9F6B43aC78BA3'
+        TESTATOR_PRIVATE_KEY: TESTATOR_PRIVATE_KEY,
+        PERMIT2: PERMIT2
       });
     });
 
-    it('should throw error when TESTATOR_PRIVATE_KEY is missing', () => {
+    it('should throw error when TESTATOR_PRIVATE_KEY is missing', async () => {
       delete process.env.TESTATOR_PRIVATE_KEY;
 
+      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
       expect(() => validateEnvironment()).toThrow('Environment variable TESTATOR_PRIVATE_KEY is not set');
     });
 
-    it('should throw error for invalid private key format', () => {
+    it('should throw error for invalid private key format', async () => {
       process.env.TESTATOR_PRIVATE_KEY = 'invalid_key';
 
+      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
       expect(() => validateEnvironment()).toThrow('Invalid private key format');
     });
 
-    it('should throw error for invalid PERMIT2 address', () => {
-      process.env.TESTATOR_PRIVATE_KEY = '1234567890123456789012345678901234567890123456789012345678901234';
+    it('should use SDK PERMIT2 when environment variable is missing', async () => {
+      delete process.env.PERMIT2;
+      mockIsAddress.mockReturnValue(true);
+
+      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
+      const result = validateEnvironment();
+
+      expect(result).toEqual({
+        TESTATOR_PRIVATE_KEY: TESTATOR_PRIVATE_KEY,
+        PERMIT2: PERMIT2
+      });
+    });
+
+    it('should throw error for invalid PERMIT2 address', async () => {
       process.env.PERMIT2 = 'invalid_address';
       mockIsAddress.mockReturnValue(false);
 
+      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
       expect(() => validateEnvironment()).toThrow('Invalid PERMIT2');
     });
+  });
 
-    it('should validate PERMIT2 address format', () => {
-      mockIsAddress.mockReturnValue(false);
+  describe('validateFiles', () => {
+    it('should pass when will file exists', async () => {
+      mockExistsSync.mockReturnValue(true);
 
-      expect(() => {
-        const permit2Address = '0xinvalid';
-        if (!ethers.isAddress(permit2Address)) {
-          throw new Error(`Invalid PERMIT2: ${permit2Address}`);
-        }
-      }).toThrow('Invalid PERMIT2');
+      const { validateFiles } = await import('@src/onchain/permit2/approveTokenPermit2.js');
+      expect(() => validateFiles()).not.toThrow();
+    });
+
+    it('should throw error when will file does not exist', async () => {
+      mockExistsSync.mockReturnValue(false);
+
+      const { validateFiles } = await import('@src/onchain/permit2/approveTokenPermit2.js');
+      expect(() => validateFiles()).toThrow(/Formatted will file does not exist/);
+    });
+  });
+
+  describe('createSigner', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    it('should create and validate signer successfully', async () => {
+      mockWallet.mockImplementation(() => mockSigner);
+      mockSigner.getAddress.mockResolvedValue(TESTATOR);
+      mockProvider.getBalance.mockResolvedValue(BigInt('1000000000000000000'));
+      mockFormatEther.mockReturnValue('1.0');
+
+      const { createSigner } = await import('@src/onchain/permit2/approveTokenPermit2.js');
+      const signer = await createSigner(TESTATOR_PRIVATE_KEY, mockProvider);
+
+      // Verify that signer has the expected properties
+      expect(signer.provider).toBe(mockProvider);
+      expect(typeof signer.getAddress).toBe('function');
+      
+      // Check that the provider methods were called for balance check
+      expect(mockProvider.getBalance).toHaveBeenCalled();
+    });
+
+    it('should handle signer creation failure', async () => {
+      const privateKey = 'invalid_key';
+      mockWallet.mockImplementation(() => {
+        throw new Error('Invalid private key');
+      });
+
+      const { createSigner } = await import('@src/onchain/permit2/approveTokenPermit2.js');
+      await expect(createSigner(privateKey, mockProvider)).rejects.toThrow('Failed to create signer');
     });
   });
 });
 
-// describe('validateFiles', () => {
-//   it('should pass when will file exists', () => {
-//     mockExistsSync.mockReturnValue(true);
-
-//     expect(() => validateFiles()).not.toThrow();
-//   });
-
-//   it('should throw error when will file does not exist', () => {
-//     mockExistsSync.mockReturnValue(false);
-
-//     expect(() => validateFiles()).toThrow('Formatted will file does not exist');
-//   });
-// });
-
-// describe('createSigner', () => {
-//   it('should create and validate signer successfully', async () => {
-//     const privateKey = '1234567890123456789012345678901234567890123456789012345678901234';
-//     mockSigner.getAddress.mockResolvedValue('0x1234567890123456789012345678901234567890');
-//     mockProvider.getBalance.mockResolvedValue(BigInt('1000000000000000000'));
-//     mockFormatEther.mockReturnValue('1.0');
-
-//     const signer = await createSigner(privateKey, mockProvider);
-
-//     expect(signer).toBe(mockSigner);
-//     expect(mockSigner.getAddress).toHaveBeenCalled();
-//     expect(mockProvider.getBalance).toHaveBeenCalled();
-//   });
-
-//   it('should handle signer creation failure', async () => {
-//     const privateKey = 'invalid_key';
-//     (ethers.Wallet as jest.MockedClass<typeof Wallet>).mockImplementation(() => {
-//       throw new Error('Invalid private key');
-//     });
-
-//     await expect(createSigner(privateKey, mockProvider)).rejects.toThrow('Failed to create signer');
-//   });
-// });
 
 // describe('validateNetwork', () => {
 //   it('should validate network connection successfully', async () => {
