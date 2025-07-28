@@ -888,3 +888,24 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export {
+  validateEnvironment,
+  parseEstatesFromEnvironment,
+  validateFiles,
+  validateRpcConnection,
+  createWallet,
+  validateRequiredFields,
+  validateWillBusinessRules,
+  readWillData,
+  convertToJsonObject,
+  createContractInstance,
+  validateCidPrerequisites,
+  validateEstateBusinessRules,
+  predictWillAddress,
+  printCreateWillData,
+  executeCreateWill,
+  updateEnvironmentVariables,
+  getContractInfo,
+  processCreateWill
+}

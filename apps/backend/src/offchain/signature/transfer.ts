@@ -534,3 +534,18 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export {
+  validateEnvironment,
+  validateFiles,
+  createSigner,
+  validateNetwork,
+  readWillData,
+  calculateDeadline,
+  generateSecureNonce,
+  createPermitStructure,
+  signPermit,
+  saveSignedWill,
+  updateEnvironmentVariables,
+  processWillSigning
+}

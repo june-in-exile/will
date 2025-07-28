@@ -1,7 +1,7 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
 import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
 import {
-  type Estate,
+  type Will,
   type WillFactory,
   WillFactory__factory,
 } from "@type/typechain-types/index.js";
@@ -21,7 +21,7 @@ interface EnvironmentVariables {
 
 interface WillData {
   testator: string;
-  estates: Estate[];
+  estates: Will.EstateStruct[];
 }
 
 interface AddressedWill extends WillData {
@@ -138,7 +138,7 @@ function readWillData(): WillData {
 
     // Validate estate structure
     willJson.estates.forEach((estate, index) => {
-      const requiredFields: (keyof Estate)[] = [
+      const requiredFields: (keyof Will.EstateStruct)[] = [
         "beneficiary",
         "token",
         "amount",
@@ -208,7 +208,7 @@ async function createContractInstance(
 async function predictWillAddress(
   contract: WillFactory,
   testator: string,
-  estates: Estate[],
+  estates: Will.EstateStruct[],
   salt: number,
 ): Promise<string> {
   try {
@@ -283,7 +283,7 @@ function saveAddressedWill(
  * Update environment variables with estate and contract data
  */
 async function updateEnvironmentVariables(
-  estates: Estate[],
+  estates: Will.EstateStruct[],
   salt: number,
   predictedAddress: string,
 ): Promise<void> {
@@ -442,4 +442,18 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });
+}
+
+export {
+  validateEnvironment,
+  validateFiles,
+  validateRpcConnection,
+  generateSecureSalt,
+  readWillData,
+  createContractInstance,
+  predictWillAddress,
+  saveAddressedWill,
+  updateEnvironmentVariables,
+  getContractInfo,
+  processWillAddressing
 }

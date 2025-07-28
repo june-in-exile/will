@@ -54,7 +54,7 @@ function validateFiles(): void {
 /**
  * Read and validate will data
  */
-export function readWillData(): EncryptedWillData {
+function readWillData(): EncryptedWillData {
   try {
     console.log(chalk.blue("Reading encrypted will data..."));
     const willContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
@@ -422,4 +422,15 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });
+}
+
+export {
+  validateFiles,
+  readWillData,
+  createHeliaInstance,
+  uploadToIPFS,
+  pinInLocalDaemon,
+  displayAccessInfo,
+  updateEnvironmentVariables,
+  processIPFSUpload
 }
