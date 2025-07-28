@@ -1,10 +1,10 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@shared/config";
-import { updateEnvVariable } from "@shared/utils/env";
+import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
+import { updateEnvVariable } from "@util/index.js";
 import {
   type Estate,
   type WillFactory,
   WillFactory__factory,
-} from "@shared/types";
+} from "@type/index.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
@@ -146,7 +146,7 @@ function readWillData(): WillData {
       for (const field of requiredFields) {
         if (!estate[field]) {
           throw new Error(
-            `Missing required field '${field}' in estate ${index}`,
+            `Missing required field '${String(field)}' in estate ${index}`,
           );
         }
       }

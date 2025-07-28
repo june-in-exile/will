@@ -1,19 +1,17 @@
-import { PATHS_CONFIG, CRYPTO_CONFIG } from "@shared/config";
+import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import {
   generateEncryptionKey,
   generateInitializationVector,
   encrypt,
-} from "@shared/utils/crypto";
-import {
   validateEthereumAddress,
   validateSignature,
-} from "@shared/utils/format";
+} from "@util/index.js";
 import {
   Base64String,
   type EncryptionArgs,
   type EncryptedWill,
   type SupportedAlgorithm,
-} from "@shared/types";
+} from "@type/index.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

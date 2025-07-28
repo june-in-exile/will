@@ -1,20 +1,21 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@shared/config";
-import { updateEnvVariable } from "@shared/utils/env";
-import { readProof } from "@shared/utils/read";
-import {
-  validateEthereumAddress,
-  validatePrivateKey,
-  validateCidv1,
-} from "@shared/utils/format";
-import { Base64String, type SupportedAlgorithm } from "@shared/types";
-import { readFileSync, existsSync } from "fs";
-import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
+import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
   ProofData,
-} from "@shared/types";
+  Base64String,
+  type SupportedAlgorithm
+} from "@type/index.js";
+import {
+  updateEnvVariable,
+  readProof,
+  validateEthereumAddress,
+  validatePrivateKey,
+  validateCidv1,
+} from "@util/index.js";
+import { readFileSync, existsSync } from "fs";
+import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -349,7 +350,7 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
 
   // Print Will Data
   console.log(chalk.blue("\n📝 Excrypted Will Keys & Values:"));
-  uploadData.will.keys.forEach((key, index) => {
+  uploadData.will.keys.forEach((key: string, index: string) => {
     const value = uploadData.will.values[index];
     console.log(
       chalk.gray(`  [${index}]`),

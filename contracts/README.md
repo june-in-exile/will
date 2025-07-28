@@ -25,13 +25,13 @@
    Check the deployment
 
    ```sh
-   make groth16verify_on_chain
+   make groth16verify-on-chain
    ```
 
    If it returns `true`, skip the deployment. Otherwise, execute the instruction.
 
    ```sh
-   make deploy_groth16verifier
+   make deploy-groth16verifier
    ```
 
 4. Deploy `JsonCidVerifier.sol`.
@@ -39,13 +39,13 @@
    Check the deployment
 
    ```sh
-   make jsoncidverify_on_chain
+   make jsoncidverify-on-chain
    ```
 
    If it returns `true`, skip the deployment. Otherwise, execute the instruction.
 
    ```sh
-   make deploy_jsonCidVerifier
+   make deploy-jsonCidVerifier
    ```
 
 5. Deploy `WillFactory.sol`.
@@ -61,7 +61,7 @@
    If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `UPLOAD_CID_VERIFIER`, `CREATE_WILL_VERIFIER` in the `.env` are set. Then, execute the instruction.
 
    ```sh
-   make deploy_willFactory
+   make deploy-willFactory
    ```
 
 ## Execution
@@ -114,7 +114,7 @@
    > make testator
    > make estate0
    > make estate1
-   > make executed_before
+   > make executed-before
    > ```
 
 2. (Arbitrum Sepolia only) Verify `Will.sol`.
@@ -122,7 +122,7 @@
    Check the contract on https://sepolia.arbiscan.io/address/\<WILL\>. If it's not verified yet, run the following command to verify it.
 
    ```sh
-   make verify_will
+   make verify-will
    ```
 
 3. Teansfer the tokens from the testator to the beneficiary.
@@ -130,7 +130,7 @@
    > Check
    >
    > ```sh
-   > make check_balance_before
+   > make check-balance-before
    > ```
 
    ```sh
@@ -140,9 +140,9 @@
    > Check
    >
    > ```sh
-   > make executed_after
+   > make executed-after
    > ```
    >
    > ```sh
-   > make check_balance_after
+   > make check-balance-after
    > ```

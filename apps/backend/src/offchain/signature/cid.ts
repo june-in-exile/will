@@ -1,11 +1,12 @@
-import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@shared/config";
+import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@config";
 import {
   validateCidv1,
   validateEthereumAddress,
   validatePrivateKey,
-} from "@shared/utils/format";
-import { signString, verify } from "@shared/utils/crypto";
-import { updateEnvVariable } from "@shared/utils/env";
+  signString,
+  verify,
+  updateEnvVariable,
+} from "@util/index.js";
 import { config } from "dotenv";
 import assert from "assert";
 import chalk from "chalk";

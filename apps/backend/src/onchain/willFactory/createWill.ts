@@ -1,8 +1,6 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@shared/config.js";
-import { updateEnvVariable } from "@shared/utils/env";
-import { readProof } from "@shared/utils/read";
-import { validatePrivateKey, validateCidv1 } from "@shared/utils/format";
-import { Base64String, type SupportedAlgorithm } from "@shared/types";
+import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
+import { updateEnvVariable, readProof, validatePrivateKey, validateCidv1 } from "@util/index.js";
+import { Base64String, type SupportedAlgorithm } from "@type/index.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import {
@@ -10,7 +8,7 @@ import {
   WillFactory__factory,
   JsonCidVerifier,
   ProofData,
-} from "@shared/types";
+} from "@type/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -460,7 +458,7 @@ function validateEstateBusinessRules(
       const otherEstate = estates[j];
       if (
         estate.beneficiary.toLowerCase() ===
-          otherEstate.beneficiary.toLowerCase() &&
+        otherEstate.beneficiary.toLowerCase() &&
         estate.token.toLowerCase() === otherEstate.token.toLowerCase()
       ) {
         console.warn(
@@ -583,7 +581,7 @@ function printCreateWillData(createData: CreateWillData): void {
 
   // Print Will Data
   console.log(chalk.blue("\n📝 Encrypted Will Keys & Values:"));
-  createData.will.keys.forEach((key, index) => {
+  createData.will.keys.forEach((key: string, index: string) => {
     const value = createData.will.values[index];
     console.log(
       chalk.gray(`  [${index}]`),
@@ -679,7 +677,7 @@ async function executeCreateWill(
     console.log(chalk.gray("Gas used:"), receipt.gasUsed.toString());
 
     // Find the WillCreated event to get the actual will address
-    const willCreatedEvent = receipt.logs.find((log) => {
+    const willCreatedEvent = receipt.logs.find((log: string) => {
       try {
         const parsed = contract.interface.parseLog(log);
         return parsed?.name === "WillCreated";

@@ -1,10 +1,10 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from "@shared/config";
-import { readProof } from "@shared/utils/read";
+import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from "@config";
+import { readProof } from "@util/index.js";
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
   type ProofData,
-} from "@shared/types";
+} from "@type/index.js";
 import { existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";

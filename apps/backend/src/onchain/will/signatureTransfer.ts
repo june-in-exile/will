@@ -1,12 +1,12 @@
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
-import { PATHS_CONFIG, NETWORK_CONFIG } from "@shared/config.js";
-import { updateEnvVariable } from "@shared/utils/env";
-import { validatePrivateKey } from "@shared/utils/format";
+import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
+import { updateEnvVariable, validatePrivateKey } from "@util/index.js";
 import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
-import { Will, Will__factory } from "@shared/types";
+import { Will, Will__factory } from "@type/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
+
+// Load environment configuration
+config({ path: PATHS_CONFIG.env });
 
 // Type definitions
 interface EnvironmentVariables {
@@ -225,7 +225,7 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
       contract.getAllEstates(),
     ]);
 
-    const formattedEstates: Estate[] = estates.map((estate) => ({
+    const formattedEstates: Estate[] = estates.map((estate: Estate) => ({
       beneficiary: estate.beneficiary,
       token: estate.token,
       amount: estate.amount,
@@ -419,7 +419,7 @@ function compareBalanceSnapshots(
         afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
           ? "Testator"
           : afterBalance.address.toLowerCase() ===
-              willInfo.executor.toLowerCase()
+            willInfo.executor.toLowerCase()
             ? "Executor"
             : "Beneficiary";
 

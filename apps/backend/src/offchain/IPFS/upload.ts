@@ -1,6 +1,6 @@
-import { PATHS_CONFIG, IPFS_CONFIG } from "@shared/config";
-import type { SupportedAlgorithm } from "@shared/types";
-import { updateEnvVariable } from "@shared/utils/env";
+import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
+import type { SupportedAlgorithm } from "@type/index.js";
+import { updateEnvVariable } from "@util/index.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";

@@ -3,7 +3,7 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: sync_anvil sync_groth16verifier_and_proof sync clean_address clean_groth16verifier_and_proof clean_typechain clean install build test test_fuzz deploy
+.PHONY: sync-anvil sync-groth16verifier-and-proof sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -20,27 +20,27 @@ endif
 
 # ------------- Synchronization Commands ----------------
 
-sync_anvil:
+sync-anvil:
 	@pnpm exec tsx ../shared/utils/env/syncAnvil.ts
 
-sync_groth16verifier_and_proof:
+sync-groth16verifier-and-proof:
 	@pnpm exec tsx ../shared/utils/env/syncZkp.ts
 
-sync: sync_anvil sync_groth16verifier_and_proof
+sync: sync-anvil sync-groth16verifier-and-proof
 
 # ---------------- Clean Commands -----------------------
 
-clean_address:
+clean-address:
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_WILL_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
 
-clean_groth16verifier_and_proof:
+clean-groth16verifier-and-proof:
 	@rm -rf src/Groth16Verifier.sol
 	@pnpm exec tsx ../shared/utils/env/resetEnvVariable.ts PA_ARRAY PB_ARRAY PC_ARRAY PUBSIGNALS_ARRAY
 
-clean_typechain:
+clean-typechain:
 	@rm -rf ../shared/typechain-types
 
-clean: clean_address clean_groth16verifier_and_proof clean_typechain
+clean: clean-address clean-groth16verifier-and-proof clean-typechain
 	@forge clean
 	@rm -rf cache broadcast lib
 
@@ -57,66 +57,66 @@ build: sync
 	@pnpm typechain
 
 test:
-	@$(MAKE) sync_groth16verifier_and_proof
+	@$(MAKE) sync-groth16verifier-and-proof
 	@$(MAKE) _test
 
 _test:
 	@forge test --match-path "test/*"
 
-test_fuzz:
-	@$(MAKE) sync_groth16verifier_and_proof
-	@$(MAKE) _test_fuzz
+test-fuzz:
+	@$(MAKE) sync-groth16verifier-and-proof
+	@$(MAKE) _test-fuzz
 
-_test_fuzz:
+_test-fuzz:
 	@forge test --match-path "test/fuzz/*"
 
-test_integration:
-	@$(MAKE) sync_groth16verifier_and_proof
-	@$(MAKE) _test_integration
+test-integration:
+	@$(MAKE) sync-groth16verifier-and-proof
+	@$(MAKE) _test-integration
 
-_test_integration:
+_test-integration:
 	@forge test --match-path "test/integration/*"
 
-test_unit:
-	@$(MAKE) sync_groth16verifier_and_proof
-	@$(MAKE) _test_unit
+test-unit:
+	@$(MAKE) sync-groth16verifier-and-proof
+	@$(MAKE) _test-unit
 
-_test_unit:
+_test-unit:
 	@forge test --match-path "test/unit/*"
 
 # --------------- Conditional Deployment ----------------
 
-deploy_groth16verifier:
+deploy-groth16verifier:
 ifeq ($(USE_ANVIL),true)
-	@make deploy_groth16verifier_to_forked_arb_sepolia
+	@make deploy-groth16verifier_to_forked_arb_sepolia
 else
-	@make deploy_groth16verifier_to_arb_sepolia
+	@make deploy-groth16verifier-to-arb-sepolia
 endif
 
-deploy_jsonCidVerifier:
+deploy-jsonCidVerifier:
 ifeq ($(USE_ANVIL),true)
-	@make deploy_jsonCidVerifier_to_forked_arb_sepolia
+	@make deploy-jsonCidVerifier-to-forked-arb-sepolia
 else
-	@make deploy_jsonCidVerifier_to_arb_sepolia
+	@make deploy-jsonCidVerifier-to-arb-sepolia
 endif
 
-deploy_willFactory:
+deploy-willFactory:
 ifeq ($(USE_ANVIL),true)
-	@make deploy_willFactory_to_forked_arb_sepolia
+	@make deploy-willFactory-to-forked-arb-sepolia
 else
-	@make deploy_willFactory_to_arb_sepolia
+	@make deploy-willFactory-to-arb-sepolia
 endif
 
 deploy: build
 ifeq ($(USE_ANVIL),true)
-	@make deploy_to_forked_arb_sepolia
+	@make deploy-to-forked-arb-sepolia
 else
-	@make deploy_to_arb_sepolia
+	@make deploy-to-arb-sepolia
 endif
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 
-deploy_groth16verifier_to_arb_sepolia:
+deploy-groth16verifier-to-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
@@ -127,7 +127,7 @@ deploy_groth16verifier_to_arb_sepolia:
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
-deploy_jsonCidVerifier_to_arb_sepolia:
+deploy-jsonCidVerifier-to-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
@@ -137,7 +137,7 @@ deploy_jsonCidVerifier_to_arb_sepolia:
 		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
-deploy_willFactory_to_arb_sepolia:
+deploy-willFactory-to-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
@@ -147,16 +147,17 @@ deploy_willFactory_to_arb_sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy_to_arb_sepolia: deploy_groth16verifier_to_arb_sepolia deploy_jsonCidVerifier_to_arb_sepolia
-	@make deploy_willFactory_to_arb_sepolia
+deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
+	@make deploy-willFactory-to-arb-sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
 fork:
-	@pkill anvil
+	@pkill anvil 2>/dev/null || true
+	@sleep 1
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
 
-deploy_groth16verifier_to_forked_arb_sepolia:
+deploy-groth16verifier_to_forked_arb_sepolia:
 	@forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
@@ -165,7 +166,7 @@ deploy_groth16verifier_to_forked_arb_sepolia:
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
-deploy_jsonCidVerifier_to_forked_arb_sepolia:
+deploy-jsonCidVerifier-to-forked-arb-sepolia:
 	@forge script \
 	 	--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
@@ -173,7 +174,7 @@ deploy_jsonCidVerifier_to_forked_arb_sepolia:
 		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
-deploy_willFactory_to_forked_arb_sepolia:
+deploy-willFactory-to-forked-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
@@ -181,12 +182,12 @@ deploy_willFactory_to_forked_arb_sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy_to_forked_arb_sepolia: deploy_groth16verifier_to_forked_arb_sepolia deploy_jsonCidVerifier_to_forked_arb_sepolia
-	@make deploy_willFactory_to_forked_arb_sepolia
+deploy-to-forked-arb-sepolia: deploy-groth16verifier_to_forked_arb_sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
+	@make deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
 
-groth16verify_on_chain:
+groth16verify-on-chain:
 	@cast call $(UPLOAD_CID_VERIFIER) --rpc-url $(RPC_URL) \
 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
 		$(PA) $(PB) $(PC) $(PUBSIGNALS)
@@ -197,7 +198,7 @@ groth16verify_on_chain:
 EXAMPLE_JSON_OBJ := '(["algorithm","iv","authTag","ciphertext","timestamp"],["aes-256-gcm","SXwGj4zpnPz6fJvo","tp0VPERBYMhUac8HyQwfFA==","47ljOJWRts3C03tiY0OWLqCfioKKp9p9RFWPB2j/qJ3P2ZLVKMDVdbTa/DJcf7mqnFhJkBToyiA51e4GfNK4SOjshBi4XdT/bB2JMrb5KJKMbCQ+yWsCpr8Ujx9WyyRYV1CtY4LL3ob0Wm6kCygABaoxFX/6dgUbRmLSrUjK0Xf3lj+jP5Oidx/dDlu308E5VqHDSGj0xAvieJjEbdSEwanoCzSALzBI/wN9JhPar/YU8IWdDs6BMKN98ops4olWiGLZl2MmWI/GqzREyg7bqiLQic3ui2dwI9FrNvMB42NKk+qwJQt8jvlrXpaVRij4KpTUtCJVdRK0v91XdC3sjHRxP1mNzfVz1vjrHauh2m14G9CBZDQEm0qoUwjkiO8zoaGpbhLtX1kYKASe0V1v0amN2FXHKqHAXHGo7VVNFaFH8hHlLD0VXroacsSnMzA5dQQJ6Q5m71Kh6TyuRqmGqmPLg5umt+eqkcYiFkAh2qnCY9tWMReYkwZOIFwv8gjd7waERHtm+HZ0M+u+IFw2lA8qyLC4WjOKzu4qVR7BeScjsj3WOvPaPcURefmkZQuQBluBGd3iqwjX89ovfNSmLjbkQ4eGijif3u9O2pIwY9+FrQWYx+ZMv9eIweIRJIWFq8RzleXKx6CNlbRkYfLXs51FTHCdzuH/gbc8jj7orlB4LgZG5d04Z89Zfmnfzfh4raycABY+RR6nDc6bXz8mpbEhfN9GHmxsXDYEkWdyvXjqicNwXwgMzUQBqlLiJyw6PrzGX2f2ZjZ/cQ7uA0NYc47kz0NyJTP/rYTZYrNJgKS0WvCJH2laiSnoNqdEf7RTX5Yffk+ksUwpitq724y5BtNuLP5V3RAevH+/hFCJSTzEoiUbsT1i3YlcyxVP5zfDdTY8PIHAKlTCAoRk7giImm8VAZ9Wf1YUaKsCgXz12kIEZTHso+a7eFl9lUbrniPLdRaXdGp7Cns6t9RhU3YLdBoF3R7XLkOd3Mh9mlXXVraXILHKPaKgVHDUgoBuCvz7nMR44abD2Cd/3+Yot2lu1Ac4V1tKxarRuWzmSooxfpEQ0esgVQFWVtMtDQ+sau2+MmyXGR4th96McXxeMu2u6pbjbhVewdrO6aaOiGFzoXSMfHrHEegvay1YOavYR0Ducd87BaYRIHhvP4cDyi0baJAFiPBLlzLBswjTLK/EqXV2t5wrpnT4OLcvWWd+cTK/w2m09ZD1IhsUje4UUeVQqmQ+JRmOrsu1jhTcCA==","2025-06-17T18:34:55.262Z"])'
 EXAMPLE_CID := 'bagaaieraxixnqlxvscc7b4v6d5gpl3wwig6okfftz62xtle32tdzlewerepa'
 
-jsoncidverify_on_chain:
+jsoncidverify-on-chain:
 	@cast call $(JSON_CID_VERIFIER) --rpc-url $(RPC_URL) \
 		"verifyCID((string[],string[]),string)(bool)" \
 		$(EXAMPLE_JSON_OBJ) $(EXAMPLE_CID)
@@ -275,7 +276,7 @@ notarizeCid:
 	
 # ------------------- Verify Contract -------------------
 
-verify_will:
+verify-will:
 	forge verify-contract \
 		--chain-id $(ARB_SEPOLIA_CHAIN_ID) \
 		--constructor-args $$(cast abi-encode "constructor(address,address,address,(address,address,uint256)[])" \
@@ -319,11 +320,11 @@ executed:
 	@cast call $(WILL) --rpc-url $(RPC_URL) \
 		"executed()(bool)"
 
-executed_before:
+executed-before:
 	@make executed
 	@echo "$(YELLOW)Expect: false$(RESET)"
 
-executed_after:
+executed-after:
 	@make executed
 	@echo "$(YELLOW)Expect: true$(RESET)"
 
@@ -336,64 +337,64 @@ signatureTransferToBeneficiaries:
 
 # ------------------- Check Balance ----------------------
 
-check_testator_usdc_balance:
+check-testator-usdc-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_USDC) $(TESTATOR) --rpc-url $(RPC_URL)
 
-check_beneficiary_usdc_balance:
+check-beneficiary-usdc-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_USDC) $(BENEFICIARY0) --rpc-url $(RPC_URL)
 
-check_executor_usdc_balance:
+check-executor-usdc-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_USDC) $(EXECUTOR) --rpc-url $(RPC_URL)
 
-check_testator_link_balance:
+check-testator-link-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_LINK) $(TESTATOR) --rpc-url $(RPC_URL)
 
-check_beneficiary_link_balance:
+check-beneficiary-link-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_LINK) $(BENEFICIARY1) --rpc-url $(RPC_URL)
 
-check_executor_link_balance:
+check-executor-link-balance:
 	@cast balance --erc20 $(ARB_SEPOLIA_LINK) $(EXECUTOR) --rpc-url $(RPC_URL)
 
-check_balance_before:
+check-balance-before:
 	@echo "Testator's USDC:"
-	@make check_testator_usdc_balance
+	@make check-testator-usdc-balance
 
 	@echo "\nBeneficiary's USDC:"
-	@make check_beneficiary_usdc_balance
+	@make check-beneficiary-usdc-balance
 
 	@echo "\nExecutor's USDC:"
-	@make check_executor_usdc_balance
+	@make check-executor-usdc-balance
 
 	@echo "\nTestator's LINK:"
-	@make check_testator_link_balance
+	@make check-testator-link-balance
 
 	@echo "\nBeneficiary's LINK:"
-	@make check_beneficiary_link_balance
+	@make check-beneficiary-link-balance
 
 	@echo "\nExecutor's LINK:"
-	@make check_executor_link_balance
+	@make check-executor-link-balance
 
-check_balance_after:
+check-balance-after:
 	@echo "Testator's USDC:"
-	@make check_testator_usdc_balance
+	@make check-testator-usdc-balance
 	@echo "$(YELLOW)Expect: 1000 less$(RESET)"
 
 	@echo "\nBeneficiary's USDC:"
-	@make check_beneficiary_usdc_balance
+	@make check-beneficiary-usdc-balance
 	@echo "$(YELLOW)Expect: 1000 more$(RESET)"
 
 	@echo "\nExecutor's USDC:"
-	@make check_executor_usdc_balance
+	@make check-executor-usdc-balance
 	@echo "$(YELLOW)Expect: unchanged$(RESET)"
 
 	@echo "\nTestator's LINK:"
-	@make check_testator_link_balance
+	@make check-testator-link-balance
 	@echo "$(YELLOW)Expect: 5000000 less$(RESET)"
 
 	@echo "\nBeneficiary's LINK:"
-	@make check_beneficiary_link_balance
+	@make check-beneficiary-link-balance
 	@echo "$(YELLOW)Expect: 5000000 more$(RESET)"
 	
 	@echo "\nExecutor's LINK:"
-	@make check_executor_link_balance
+	@make check-executor-link-balance
 	@echo "$(YELLOW)Expect: unchanged$(RESET)"
