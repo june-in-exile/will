@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG } from "@config";
 import { readFileSync, writeFileSync } from "fs";
 import chalk from "chalk";
 

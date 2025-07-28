@@ -1,4 +1,4 @@
-import { SIGNATURE_CONFIG } from "@shared/config";
+import { SIGNATURE_CONFIG } from "@config";
 import { ethers } from "ethers";
 
 export function validateEthereumAddress(address: string): boolean {

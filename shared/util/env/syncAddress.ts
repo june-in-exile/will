@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@shared/config.js";
+import { PATHS_CONFIG } from "@config";
 import { updateEnvVariable } from "./updateEnvVariable.js";
 import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import path from "path";

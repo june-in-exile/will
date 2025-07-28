@@ -17,4 +17,4 @@ export const CONTRACT_ADDRESSES = {
 
 export type NetworkId = keyof typeof NETWORKS;
 
-export * from "./crypto";
+export * from "./crypto.js";

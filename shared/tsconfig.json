@@ -5,7 +5,11 @@
     "declarationMap": true, // generate .d.ts.map
     "sourceMap": true, // generate .js.map
     "paths": {
-      "@shared/*": ["./*"]
+      "@shared/*": ["./*"],
+      "@constant/*": ["./constant/*"],
+      "@type/*": ["./type/*"],
+      "@util/*": ["./util/*"],
+      "@config": ["./config.js"]
     }
   },
   "exclude": ["node_modules", "dist"]

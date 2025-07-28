@@ -1,7 +1,7 @@
-import { SIGNATURE_CONFIG } from "@shared/config";
-import type { SignatureValidationResult } from "@shared/types";
+import { SIGNATURE_CONFIG } from "@config";
+import type { SignatureValidationResult } from "@type/index.js";
+import { keccak256 } from "@util/index.js";
 import { ethers, Wallet } from "ethers";
-import { keccak256 } from "../hash/keccak256";
 import chalk from "chalk";
 
 /**
