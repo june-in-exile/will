@@ -1,26 +1,12 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "es2022",
-    "moduleResolution": "nodenext",
-    "lib": ["ES2022"],
     "isolatedModules": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./@types", "./node_modules/@types"]
+    "resolveJsonModule": true
   },
   "include": ["**/*.ts", "./tests"],
-  "exclude": [
-    "node_modules",
-    "circuits/*/build",
-    "**/*.js"
-  ],
+  "exclude": ["circuits/*/build", "**/*.js"],
   "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
+    "esm": true
   }
 }
