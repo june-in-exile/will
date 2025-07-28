@@ -1,6 +1,11 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { WillFactory, WillFactory__factory } from "@type/index.js";
-import { updateEnvVariable, validatePrivateKey, validateCidv1 } from "@util/index.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
+import { validatePrivateKey } from "@util/format/wallet.js";
+import { validateCidv1 } from "@util/format/cid.js";
+import {
+  WillFactory,
+  WillFactory__factory,
+} from "@type/typechain-types/index.js";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { config } from "dotenv";
 import chalk from "chalk";

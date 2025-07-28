@@ -1,5 +1,5 @@
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@constant/index.js";
-import type { SupportedAlgorithm } from "@type/index.js";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "@constant/crypto.js";
+import type { SupportedAlgorithm } from "@type/crypto.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { config } from "dotenv";
@@ -448,7 +448,7 @@ export const CRYPTO_CONFIG: CryptoConfig = {
   plaintextEncoding: "utf8",
   cyphertextEncoding: "base64",
 
-  // File paths (relative to utils/crypto/)
+  // File paths (relative to util/crypto/)
   paths: {
     keyFile: "./key.txt",
   },
@@ -649,8 +649,8 @@ export const PATHS_CONFIG: PathsConfig = {
 
   // Crypto keys
   crypto: {
-    keyDir: resolve(modulePath, "utils/crypto"),
-    keyFile: resolve(modulePath, "utils/crypto/key.txt"),
+    keyDir: resolve(modulePath, "util/crypto"),
+    keyFile: resolve(modulePath, "util/crypto/key.txt"),
   },
 };
 

@@ -1,7 +1,8 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { updateEnvVariable, validatePrivateKey } from "@util/index.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
+import { validatePrivateKey } from "@util/format/wallet.js";
 import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
-import { Will, Will__factory } from "@type/index.js";
+import { Will, Will__factory } from "@type/typechain-types/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -419,7 +420,7 @@ function compareBalanceSnapshots(
         afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
           ? "Testator"
           : afterBalance.address.toLowerCase() ===
-            willInfo.executor.toLowerCase()
+              willInfo.executor.toLowerCase()
             ? "Executor"
             : "Beneficiary";
 

@@ -1,11 +1,11 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import {
-  type DecryptionArgs,
-  type EncryptedWill,
-  type SupportedAlgorithm,
-  Base64String,
-} from "@type/index.js";
-import { getDecryptionKey, decrypt } from "@util/index.js";
+import type {
+  DecryptionArgs,
+  EncryptedWill,
+  SupportedAlgorithm,
+} from "@type/crypto.js";
+import { Base64String } from "@type/encoding.js";
+import { getDecryptionKey, decrypt } from "@util/crypto/decrypt.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

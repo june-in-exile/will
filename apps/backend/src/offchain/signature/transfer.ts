@@ -4,7 +4,7 @@ import {
   PERMIT2_CONFIG,
   NETWORK_CONFIG,
 } from "@config";
-import { updateEnvVariable } from "@util/index.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";

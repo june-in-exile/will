@@ -8,7 +8,7 @@
   },
   "scripts": {
     "install": "make install",
-    "typechain": "pnpm exec typechain --target ethers-v6 --out-dir ../shared/typechain-types 'out/**/*.sol/*.json'",
+    "typechain": "make typechain",
     "build": "make build",
     "test": "make test",
     "clean": "make clean"

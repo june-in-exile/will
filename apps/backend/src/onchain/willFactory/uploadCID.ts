@@ -1,19 +1,18 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
+import type { SupportedAlgorithm, ProofData } from "@type/crypto.js";
+import { Base64String } from "@type/encoding.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
+import { readProof } from "@util/read/proof.js";
+import {
+  validateEthereumAddress,
+  validatePrivateKey,
+} from "@util/format/wallet.js";
+import { validateCidv1 } from "@util/format/cid.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
-  ProofData,
-  Base64String,
-  type SupportedAlgorithm
-} from "@type/index.js";
-import {
-  updateEnvVariable,
-  readProof,
-  validateEthereumAddress,
-  validatePrivateKey,
-  validateCidv1,
-} from "@util/index.js";
+} from "@type/typechain-types/index.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { config } from "dotenv";

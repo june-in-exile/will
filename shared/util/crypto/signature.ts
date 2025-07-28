@@ -1,6 +1,10 @@
 import { SIGNATURE_CONFIG } from "@config";
-import type { SignatureValidationResult } from "@type/index.js";
-import { keccak256 } from "@util/index.js";
+import type { SignatureValidationResult } from "@type/crypto.js";
+import {
+  validateEthereumAddress,
+  validateSignature,
+} from "@util/format/wallet.js";
+import { keccak256 } from "@util/hash/keccak256.js";
 import { ethers, Wallet } from "ethers";
 import chalk from "chalk";
 
@@ -58,48 +62,6 @@ function validatePrivateKey(privateKey: string): string {
   }
 
   return cleanKey;
-}
-
-/**
- * Validate Ethereum address format
- */
-function validateEthereumAddress(address: string): string {
-  if (typeof address !== "string") {
-    throw new Error("Address must be a string");
-  }
-
-  if (!ethers.isAddress(address)) {
-    throw new Error(`Invalid Ethereum address format: ${address}`);
-  }
-
-  return address.toLowerCase(); // Normalize to lowercase for comparison
-}
-
-/**
- * Validate signature format
- */
-function validateSignature(signature: string): boolean {
-  if (typeof signature !== "string") {
-    throw new Error("Signature must be a string");
-  }
-
-  if (!signature.startsWith("0x")) {
-    throw new Error("Signature must start with 0x prefix");
-  }
-
-  if (signature.length !== SIGNATURE_CONFIG.signatureLength) {
-    throw new Error(
-      `Invalid signature length: expected ${SIGNATURE_CONFIG.signatureLength} characters, got ${signature.length}`,
-    );
-  }
-
-  // Validate hex format
-  const hexPart = signature.slice(2);
-  if (!/^[0-9a-fA-F]+$/.test(hexPart)) {
-    throw new Error("Signature must be in hexadecimal format");
-  }
-
-  return true;
 }
 
 /**
@@ -229,7 +191,10 @@ export async function verify(
     // Validate inputs
     validateMessage(message);
     validateSignature(signature);
-    const normalizedExpectedSigner = validateEthereumAddress(expectedSigner);
+    if (!validateEthereumAddress(expectedSigner)) {
+      throw new Error(`Invalid Ethereum address format: ${expectedSigner}`);
+    }
+    const normalizedExpectedSigner = expectedSigner.toLocaleLowerCase();
 
     // Hash the message
     const hash = keccak256(message);

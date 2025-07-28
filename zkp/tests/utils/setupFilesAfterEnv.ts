@@ -11,7 +11,7 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
 }
 
-function noop(): void { }
+function noop(): void {}
 
 globalThis.console = {
   ...console,

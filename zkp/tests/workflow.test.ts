@@ -229,7 +229,7 @@ describe("Workflow CLI Tests", () => {
     await fs.unlink(vkeyFile);
     await fs.rm(buildDir, { recursive: true, force: true }).catch(() => {});
     await fs.rm(keysDir, { recursive: true, force: true }).catch(() => {});
-    await fs.rm(proofsDir, { recursive: true, force: true }).catch(() => { });
+    await fs.rm(proofsDir, { recursive: true, force: true }).catch(() => {});
     await fs.rm(contractsDir, { recursive: true, force: true }).catch(() => {});
   });
 });

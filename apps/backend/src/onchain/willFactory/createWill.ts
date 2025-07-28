@@ -1,14 +1,18 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
-import { updateEnvVariable, readProof, validatePrivateKey, validateCidv1 } from "@util/index.js";
-import { Base64String, type SupportedAlgorithm } from "@type/index.js";
+import { readProof } from "@util/read/proof.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
+import { validatePrivateKey } from "@util/format/wallet.js";
+import { validateCidv1 } from "@util/format/cid.js";
+import { type SupportedAlgorithm } from "@type/crypto.js";
+import { Base64String } from "@type/encoding.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
+import { ProofData } from "@type/crypto.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
-  ProofData,
-} from "@type/index.js";
+} from "@type/typechain-types/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -458,7 +462,7 @@ function validateEstateBusinessRules(
       const otherEstate = estates[j];
       if (
         estate.beneficiary.toLowerCase() ===
-        otherEstate.beneficiary.toLowerCase() &&
+          otherEstate.beneficiary.toLowerCase() &&
         estate.token.toLowerCase() === otherEstate.token.toLowerCase()
       ) {
         console.warn(

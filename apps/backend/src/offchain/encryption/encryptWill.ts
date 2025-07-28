@@ -1,17 +1,19 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
+import type {
+  EncryptionArgs,
+  EncryptedWill,
+  SupportedAlgorithm,
+} from "@type/crypto.js";
+import { Base64String } from "@type/encoding.js";
 import {
   generateEncryptionKey,
   generateInitializationVector,
   encrypt,
+} from "@util/crypto/encrypt.js";
+import {
   validateEthereumAddress,
   validateSignature,
-} from "@util/index.js";
-import {
-  Base64String,
-  type EncryptionArgs,
-  type EncryptedWill,
-  type SupportedAlgorithm,
-} from "@type/index.js";
+} from "@util/format/wallet.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

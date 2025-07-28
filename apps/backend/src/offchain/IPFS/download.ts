@@ -1,6 +1,7 @@
 import { PATHS_CONFIG } from "@config";
-import { validateCidv1 } from "@util/index.js";
-import type { Base64String, SupportedAlgorithm } from "@type/index.js";
+import { validateCidv1 } from "@util/format/cid.js";
+import type { SupportedAlgorithm } from "@type/crypto.js";
+import type { Base64String } from "@type/encoding.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";

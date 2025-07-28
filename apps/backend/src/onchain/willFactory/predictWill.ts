@@ -1,10 +1,10 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
-import { updateEnvVariable } from "@util/index.js";
+import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
 import {
   type Estate,
   type WillFactory,
   WillFactory__factory,
-} from "@type/index.js";
+} from "@type/typechain-types/index.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";

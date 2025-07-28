@@ -1,8 +1,4 @@
-import {
-  PATHS_CONFIG,
-  APPROVAL_CONFIG,
-  NETWORK_CONFIG,
-} from "@config";
+import { PATHS_CONFIG, APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";
