@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 const LOG_LEVELS = {
   error: 0,
   warn: 1,
@@ -21,15 +23,13 @@ function shouldLog(level: LogLevel): boolean {
   return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
 }
 
-function noop(): void { }
-
 globalThis.console = {
   ...console,
-  log: shouldLog("log") ? console.log : noop,
-  debug: shouldLog("debug") ? console.debug : noop,
-  info: shouldLog("info") ? console.info : noop,
-  warn: shouldLog("warn") ? console.warn : noop,
-  error: shouldLog("error") ? console.error : noop,
+  log: shouldLog("log") ? console.log : jest.fn(),
+  debug: shouldLog("debug") ? console.debug : jest.fn(),
+  info: shouldLog("info") ? console.info : jest.fn(),
+  warn: shouldLog("warn") ? console.warn : jest.fn(),
+  error: shouldLog("error") ? console.error : jest.fn(),
 };
 
 export { };

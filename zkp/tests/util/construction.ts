@@ -4,7 +4,9 @@ import {
   modifyComponentMainInFile,
 } from "./untagTemplate.js";
 import path from "path";
-/* eslint-disable @typescript-eslint/no-require-imports */
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 const circom_tester = require("circom_tester");
 
 declare global {

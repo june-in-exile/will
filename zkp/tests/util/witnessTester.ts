@@ -1,9 +1,9 @@
 // Reference: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
 import { construct_wasm } from "./construction.js";
-import { AssertionError } from "node:assert";
-import path from "node:path";
-import fs from "node:fs";
+import { AssertionError } from "assert";
+import path from "path";
+import fs from "fs";
 
 declare global {
   namespace globalThis {

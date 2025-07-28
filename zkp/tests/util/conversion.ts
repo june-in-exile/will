@@ -1,3 +1,5 @@
+import { Byte, Byte4, Word } from "../type/index.js";
+
 /**
  * @param bytes - Byte array (length should be a multiple of 4)
  * @returns Word[]

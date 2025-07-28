@@ -15,7 +15,7 @@ export default {
     "^@constant/(.*)$": "<rootDir>/../../shared/constant/$1",
     "^@type/(.*)$": "<rootDir>/../../shared/type/$1",
     "^@util/(.*)$": "<rootDir>/../../shared/util/$1",
-    "^@config$": "<rootDir>/../../shared/config.js"
+    "^@config$": "<rootDir>/../../shared/config"
   },
   setupFilesAfterEnv: [
     "<rootDir>/tests/setup.ts"
