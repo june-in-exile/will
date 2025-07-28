@@ -1,5 +1,6 @@
-import { WitnessTester, wordToByte, byteToWord } from "./utils";
-import { AESUtils, encryptBlock } from "./helpers";
+import { Byte, Byte16, Word } from "./type/index.js";
+import { WitnessTester, wordToByte, byteToWord } from "./util/index.js";
+import { AESUtils, encryptBlock } from "./logic/index.js";
 
 describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;

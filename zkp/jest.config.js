@@ -1,0 +1,38 @@
+export default {
+  preset: "ts-jest/presets/default-esm",
+  testEnvironment: "node",
+  extensionsToTreatAsEsm: [".ts"],
+  roots: ["<rootDir>/tests"],
+  testMatch: ["**/?(*.)+(spec|test).ts"],
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
+  transform: {},
+  globalSetup: "<rootDir>/tests/util/globalSetup.ts",
+  setupFilesAfterEnv: ["<rootDir>/tests/util/setupFilesAfterEnv.ts"],
+  collectCoverageFrom: [
+    "circuits/**/*.ts",
+    "logic/**/*.ts",
+    "util/**/*.ts",
+    "!tests/**",
+    "!**/*.test.ts",
+  ],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "html"],
+  testTimeout: 60000,
+  globals: {
+    LOG_LEVEL: "error",
+    CIRCOM_DEFAULTS: {
+      O: 2,
+      verbose: false,
+      inspect: false,
+      json: false,
+      recompile: true,
+      prime: "bn128",
+      simplification_substitution: false,
+      no_asm: false,
+      no_init: false,
+    },
+    CONSTRAINT_RECORDS_PATH: "./constraints.json",
+  },
+};

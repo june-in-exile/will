@@ -92,7 +92,7 @@ make test CIRCUIT=multiplier2
 # Test all circuits
 make test-circuits
 
-# Test AES-256-GCM helpers and all circuits
+# Test AES-256-GCM logics and all circuits
 make test-all
 ```
 
@@ -199,8 +199,9 @@ The project includes comprehensive testing using Jest and TypeScript:
 
 ```bash
 tests/
-├── helpers/          # Test helper functions
-├── utils/            # Testing utilities and setup
+├── logic/          # Logics of the circuit
+├── type/            # Data type in logics
+├── util/            # Testing utilities and setup
 ├── <circuit>.test.ts # Individual circuit tests
 └── workflow.test.ts  # E2E workflow tests
 ```

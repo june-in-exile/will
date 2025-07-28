@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester } from "./util/index.js";
 
 describe("InRange Circuit", function () {
   let circuit: WitnessTester<["in", "min", "max"], ["out"]>;

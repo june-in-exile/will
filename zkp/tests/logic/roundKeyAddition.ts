@@ -1,5 +1,6 @@
-import { AESTransforms } from "./aes-gcm";
-import { wordToByte } from "../utils";
+import { Word4, Byte16 } from "../type/index.js";
+import { AESTransforms } from "./aes-gcm.js";
+import { wordToByte } from "../util/index.js";
 
 function addRoundKey(state: Byte16, roundKey: Word4): { out: Byte16 } {
   const stateBuffer = Buffer.from(state);

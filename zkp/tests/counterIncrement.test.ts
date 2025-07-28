@@ -1,5 +1,6 @@
-import { WitnessTester } from "./utils";
-import { incrementCounter } from "./helpers";
+import { Byte16 } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
+import { incrementCounter } from "./logic/index.js";
 
 describe("IncrementCounter Circuits", function () {
   let circuit: WitnessTester<["in"], ["out"]>;

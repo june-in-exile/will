@@ -1,11 +1,17 @@
-import type { CircomTester, CompilationOptions } from ".";
+import type { CircomTester, CompilationOptions } from "./witnessTester.js";
 import {
   generateUntaggedTemplate,
   modifyComponentMainInFile,
-} from "./untagTemplate";
+} from "./untagTemplate.js";
 import path from "path";
 /* eslint-disable @typescript-eslint/no-require-imports */
 const circom_tester = require("circom_tester");
+
+declare global {
+  namespace globalThis {
+    var CIRCOM_DEFAULTS: Record<string, unknown>;
+  }
+}
 
 async function getCircomlibPath() {
   let circomlibPath: string;
@@ -41,7 +47,7 @@ async function construct_wasm(
 
   const circomlibPath = await getCircomlibPath();
 
-  const defaultOptions = (globalThis as GlobalThis).CIRCOM_DEFAULTS;
+  const defaultOptions = globalThis.CIRCOM_DEFAULTS;
 
   const wasm_tester = await circom_tester.wasm(testCircuitPath, {
     include: circomlibPath,

@@ -1,5 +1,6 @@
-import { WitnessTester, wordToByte } from "./utils";
-import { AESUtils, ctrEncrypt } from "./helpers";
+import { Byte, Byte16, Word } from "./type/index.js";
+import { WitnessTester, wordToByte } from "./util/index.js";
+import { AESUtils, ctrEncrypt } from "./logic/index.js";
 
 describe("CtrEncrypt Circuits", function () {
   let circuit: WitnessTester<["plaintext", "key", "iv"], ["ciphertext"]>;

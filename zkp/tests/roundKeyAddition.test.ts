@@ -1,5 +1,6 @@
-import { WitnessTester, byteToWord } from "./utils";
-import { AESUtils, addRoundKey } from "./helpers";
+import { Byte, Byte16, Word4 } from "./type/index.js";
+import { WitnessTester, byteToWord } from "./util/index.js";
+import { AESUtils, addRoundKey } from "./logic/index.js";
 
 describe("AddRoundKey Circuit", function () {
   let circuit: WitnessTester<["state", "roundKey"], ["out"]>;

@@ -1,4 +1,4 @@
-import { WitnessTester } from "./utils";
+import { WitnessTester } from "./util/index.js";
 
 describe("Divide Circuit", function () {
   let circuit: WitnessTester<

@@ -1,5 +1,6 @@
-import { WitnessTester } from "./utils";
-import { AESUtils, mixColumn, mixColumns } from "./helpers";
+import { Byte4, Byte16 } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
+import { AESUtils, mixColumn, mixColumns } from "./logic/index.js";
 
 describe("MixColumn Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;

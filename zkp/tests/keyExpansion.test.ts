@@ -1,5 +1,6 @@
-import { WitnessTester } from "./utils";
-import { expandKey } from "./helpers";
+import { Byte4, Word } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
+import { expandKey } from "./logic/index.js";
 
 describe("ExpandKey Circuit", function () {
   let circuit: WitnessTester<["key"], ["roundKey"]>;

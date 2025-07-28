@@ -1,5 +1,5 @@
-import { WitnessTester } from "./utils";
-import { utf8ByteLength, utf8Encoder, utf8StringEncoder } from "./helpers";
+import { WitnessTester } from "./util/index.js";
+import { utf8ByteLength, utf8Encoder, utf8StringEncoder } from "./logic/index.js";
 
 const testCases1Byte = [
   { codepoint: 65 }, // A

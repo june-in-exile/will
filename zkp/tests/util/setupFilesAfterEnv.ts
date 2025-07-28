@@ -6,12 +6,22 @@ const LOG_LEVELS = {
   log: 4,
 } as const;
 
+type LogLevel = keyof typeof LOG_LEVELS;
+
+declare global {
+  namespace globalThis {
+    var LOG_LEVEL: LogLevel;
+    var console: Console;
+  }
+}
+
+
 function shouldLog(level: LogLevel): boolean {
-  const currentLevel = (globalThis as GlobalThis).LOG_LEVEL || "error";
+  const currentLevel = globalThis.LOG_LEVEL || "error";
   return LOG_LEVELS[level] <= LOG_LEVELS[currentLevel];
 }
 
-function noop(): void {}
+function noop(): void { }
 
 globalThis.console = {
   ...console,
@@ -21,3 +31,5 @@ globalThis.console = {
   warn: shouldLog("warn") ? console.warn : noop,
   error: shouldLog("error") ? console.error : noop,
 };
+
+export { };

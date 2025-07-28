@@ -1,10 +1,24 @@
 // Reference: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
-import { construct_wasm } from ".";
+import { construct_wasm } from "./construction.js";
 import { AssertionError } from "node:assert";
 import path from "node:path";
 import fs from "node:fs";
 
+declare global {
+  namespace globalThis {
+    var CONSTRAINTS_PATH: string;
+  }
+}
+
+type Constraints = {
+    [testFileName: string]: {
+      [templateName: string]: {
+        [description: string]: number;
+      };
+    };
+};
+  
 type ConstraintSimplification = 0 | 1 | 2;
 
 type CurveName =
@@ -545,7 +559,7 @@ class WitnessTester<
    */
   static initializeConstraints(): void {
     const constraintsPath =
-      (globalThis as GlobalThis).CONSTRAINTS_PATH || "./constraints.json";
+      globalThis.CONSTRAINTS_PATH || "./constraints.json";
 
     const defaultConstraints: Constraints = {
       arithmetic: { Divide: {}, MultiplyArray: {} },
@@ -675,7 +689,7 @@ class WitnessTester<
    * This tries to get from global config or uses a default path
    */
   private getConstraintsPath(): string {
-    return (globalThis as GlobalThis).CONSTRAINTS_PATH || "./constraints.json";
+    return globalThis.CONSTRAINTS_PATH || "./constraints.json";
   }
 
   /**

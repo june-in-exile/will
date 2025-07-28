@@ -1,3 +1,5 @@
+import { Bit2, Byte, Utf8 } from "../type/index.js";
+
 function utf8ByteLength(codepoint: number): { length: Bit2 } {
   let length: Bit2;
   if (codepoint < 0x0080) {

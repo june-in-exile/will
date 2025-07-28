@@ -1,5 +1,6 @@
-import { WitnessTester } from "./utils";
-import { AESUtils, subWord, subBytes, substituteBytes } from "./helpers";
+import { Byte, Byte4, Byte16 } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
+import { AESUtils, subWord, subBytes, substituteBytes } from "./logic/index.js";
 
 describe("SubWord Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;

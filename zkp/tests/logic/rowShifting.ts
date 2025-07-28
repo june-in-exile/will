@@ -1,4 +1,5 @@
-import { AESTransforms } from "./aes-gcm";
+import { Byte16 } from "../type/index.js";
+import { AESTransforms } from "./aes-gcm.js";
 
 function shiftRows(_in: Byte16): Byte16 {
   const inBuffer = Buffer.from(_in);

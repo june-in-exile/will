@@ -1,5 +1,6 @@
-import { byteToWord, wordToByte } from "../utils";
-import { AESKeyExpansion } from "./aes-gcm";
+import { Word, Byte } from "../type/index.js";
+import { AESKeyExpansion } from "./aes-gcm.js";
+import { byteToWord, wordToByte } from "../util/index.js";
 
 function expandKey(key: Word[]): Word[] {
   const keyBytes = wordToByte(key);

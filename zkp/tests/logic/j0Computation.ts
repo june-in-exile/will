@@ -1,4 +1,5 @@
-import { AESGCM } from "./aes-gcm";
+import { Byte, Byte12, Byte16 } from "../type/index.js";
+import { AESGCM } from "./aes-gcm.js";
 
 function computeJ0Standard(iv: Byte12): Byte16 {
   const ivBuffer = Buffer.from(iv);

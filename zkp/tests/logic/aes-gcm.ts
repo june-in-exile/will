@@ -352,7 +352,7 @@ class AES {
     const rounds = config.rounds;
     const roundKeys = AESKeyExpansion.expandKey(key);
 
-    let state = Buffer.from(plaintext);
+    let state: Buffer<ArrayBufferLike> = Buffer.from(plaintext);
 
     // Initial round
     state = AESTransforms.addRoundKey(state, roundKeys[0]);
@@ -465,7 +465,7 @@ class AESGCM {
    * GHASH authentication function
    */
   static ghash(data: Buffer, hashKey: Buffer): Buffer {
-    let result = Buffer.alloc(16);
+    let result: Buffer<ArrayBufferLike> = Buffer.alloc(16);
 
     // Process each 16-byte block
     for (let i = 0; i < data.length; i += 16) {

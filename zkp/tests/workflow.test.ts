@@ -1,4 +1,4 @@
-import { modifyComponentMainInFile } from "./utils";
+import { modifyComponentMainInFile } from "./util/index.js";
 import * as fs from "fs/promises";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -73,7 +73,7 @@ describe("Workflow CLI Tests", () => {
     ];
 
     for (const dir of dirs) {
-      await fs.mkdir(dir, { recursive: true }).catch(() => {});
+      await fs.mkdir(dir, { recursive: true }).catch(() => { });
     }
 
     await compileCircuit();
@@ -227,9 +227,9 @@ describe("Workflow CLI Tests", () => {
   afterAll(async () => {
     await fs.unlink(zkeyFile);
     await fs.unlink(vkeyFile);
-    await fs.rm(buildDir, { recursive: true, force: true }).catch(() => {});
-    await fs.rm(keysDir, { recursive: true, force: true }).catch(() => {});
-    await fs.rm(proofsDir, { recursive: true, force: true }).catch(() => {});
-    await fs.rm(contractsDir, { recursive: true, force: true }).catch(() => {});
+    await fs.rm(buildDir, { recursive: true, force: true }).catch(() => { });
+    await fs.rm(keysDir, { recursive: true, force: true }).catch(() => { });
+    await fs.rm(proofsDir, { recursive: true, force: true }).catch(() => { });
+    await fs.rm(contractsDir, { recursive: true, force: true }).catch(() => { });
   });
 });

@@ -1,5 +1,5 @@
-import { WitnessTester } from "./utils";
-import { AESGCM, AESUtils, GaloisField, GF128 } from "./helpers";
+import { WitnessTester } from "./util/index.js";
+import { AESGCM, AESUtils, GaloisField, GF128 } from "./logic/index.js";
 
 describe("GF8Mul2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;

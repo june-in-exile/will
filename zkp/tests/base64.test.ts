@@ -1,4 +1,5 @@
-import { WitnessTester } from "./utils";
+import { Base64, Ascii, Bit } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
 
 describe("Base64Char Circuit", function () {
   let circuit: WitnessTester<["ascii"], ["base64"]>;

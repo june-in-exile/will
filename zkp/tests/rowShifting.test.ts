@@ -1,5 +1,6 @@
-import { WitnessTester } from "./utils";
-import { AESUtils, shiftRows } from "./helpers";
+import { Byte16 } from "./type/index.js";
+import { WitnessTester } from "./util/index.js";
+import { AESUtils, shiftRows } from "./logic/index.js";
 
 describe("ShiftRows Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;

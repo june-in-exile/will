@@ -1,5 +1,6 @@
-import { wordToBuffer } from "../utils";
-import { AESGCM } from "./aes-gcm";
+import { Word, Byte } from "../type/index.js";
+import { AESGCM } from "./aes-gcm.js";
+import { wordToBuffer } from "../util/index.js";
 
 function gcmEncrypt(
   plaintext: Byte[],

@@ -1,5 +1,6 @@
-import { WitnessTester, wordToByte } from "./utils";
-import { AESUtils, gcmEncrypt } from "./helpers";
+import { Byte, Byte16, Word } from "./type/index.js";
+import { WitnessTester, wordToByte } from "./util/index.js";
+import { AESUtils, gcmEncrypt } from "./logic/index.js";
 
 describe("GcmEncrypt Circuits", function () {
   let circuit: WitnessTester<

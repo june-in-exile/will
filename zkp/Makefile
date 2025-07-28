@@ -88,7 +88,7 @@ circuit: compile witness trusted-setup-phase2 prove verify solidity generate-cal
 	@echo "✅ Circuit $(CIRCUIT) setup completed!"
 
 untag:
-	@pnpm exec tsx ./tests/utils/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
+	@pnpm exec tsx ./tests/util/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
 	
 compile:
 	@echo "🔨 Compiling circuit: $(CIRCUIT)..."

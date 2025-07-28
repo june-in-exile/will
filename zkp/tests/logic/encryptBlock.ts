@@ -1,5 +1,6 @@
-import { AES } from "./aes-gcm";
-import { wordToByte } from "../utils";
+import { Word, Byte16 } from "../type/index.js";
+import { AES } from "./aes-gcm.js";
+import { wordToByte } from "../util/index.js";
 
 function encryptBlock(plaintext: Byte16, key: Word[]): Byte16 {
   const plaintextBuffer = Buffer.from(plaintext);
