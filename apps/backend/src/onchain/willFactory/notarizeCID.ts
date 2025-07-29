@@ -102,72 +102,6 @@ async function createContractInstance(
 }
 
 /**
- * Validate CID status before notarization
- */
-async function validateCidStatus(
-  contract: WillFactory,
-  cid: string,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Validating CID status..."));
-
-    // Check if CID has been validated by testator
-    const testatorValidateTime = await contract.testatorValidateTimes(cid);
-
-    if (testatorValidateTime === 0n) {
-      throw new Error(
-        `CID ${cid} has not been validated by testator yet. Please run uploadCid first.`,
-      );
-    }
-
-    console.log(
-      chalk.green("✅ CID validated by testator at:"),
-      new Date(Number(testatorValidateTime) * 1000).toISOString(),
-    );
-
-    // Check if CID has already been notarized
-    const executorValidateTime = await contract.executorValidateTimes(cid);
-
-    if (executorValidateTime > 0n) {
-      console.log(
-        chalk.yellow("⚠️  Warning: CID already notarized at:"),
-        new Date(Number(executorValidateTime) * 1000).toISOString(),
-      );
-      console.log(chalk.yellow("Proceeding with re-notarization..."));
-    }
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to validate CID status: ${errorMessage}`);
-  }
-}
-
-/**
- * Verify executor signature before transaction
- */
-async function verifyExecutorSignature(
-  contract: WillFactory,
-  cid: string,
-  signature: string,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Verifying executor signature..."));
-
-    const isValid = await contract.verifyExecutorSignature(cid, signature);
-
-    if (!isValid) {
-      throw new Error("Executor signature verification failed");
-    }
-
-    console.log(chalk.green("✅ Executor signature verified successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Signature verification failed: ${errorMessage}`);
-  }
-}
-
-/**
  * Print notarization details
  */
 function printNotarizationDetails(cid: string, signature: string): void {
@@ -196,12 +130,6 @@ async function executeNotarizeCID(
 
     // Print detailed notarization information
     printNotarizationDetails(cid, signature);
-
-    // Validate CID status
-    await validateCidStatus(contract, cid);
-
-    // Verify signature before transaction
-    await verifyExecutorSignature(contract, cid, signature);
 
     // Estimate gas
     const gasEstimate = await contract.notarizeCid.estimateGas(cid, signature);
@@ -275,31 +203,6 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * Get contract information
- */
-async function getContractInfo(contract: WillFactory): Promise<void> {
-  try {
-    console.log(chalk.blue("Fetching contract information..."));
-
-    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
-      await Promise.all([
-        contract.executor(),
-        contract.uploadCidVerifier(),
-        contract.createWillVerifier(),
-        contract.jsonCidVerifier(),
-      ]);
-
-    console.log(chalk.gray("Contract addresses:"));
-    console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
-    console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
-  } catch (error) {
-    console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
-  }
-}
-
-/**
  * Process CID notarization workflow
  */
 async function processNotarizeCID(): Promise<NotarizeResult> {
@@ -317,9 +220,6 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
 
     // Create contract instance
     const contract = await createContractInstance(WILL_FACTORY, wallet);
-
-    // Get contract information
-    await getContractInfo(contract);
 
     // Execute notarization
     const result = await executeNotarizeCID(contract, CID, EXECUTOR_SIGNATURE);
@@ -388,11 +288,8 @@ export {
   validateRpcConnection,
   createWallet,
   createContractInstance,
-  validateCidStatus,
-  verifyExecutorSignature,
   printNotarizationDetails,
   executeNotarizeCID,
   updateEnvironmentVariables,
-  getContractInfo,
   processNotarizeCID
 }

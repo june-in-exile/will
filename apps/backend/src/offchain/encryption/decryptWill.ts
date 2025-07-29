@@ -1,12 +1,12 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import type {
   DecryptionArgs,
-  EncryptedWill,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/base64String.js";
+import { DownloadedWillData, WillFileType, type EncryptedWillData } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 import { config } from "dotenv";
@@ -22,90 +22,10 @@ interface ProcessResult {
 }
 
 /**
- * Validate file existence
- */
-function validateFiles(filePath: string): void {
-  if (!existsSync(filePath)) {
-    throw new Error(`The file to be decrpyted does not exist: ${filePath}`);
-  }
-}
-
-function readEncryptedWill(filePath: string): EncryptedWill {
-  try {
-    console.log(chalk.blue("Reading encrypted will..."));
-    const encryptedContent = readFileSync(filePath, "utf8");
-    const encryptedJson: EncryptedWill = JSON.parse(encryptedContent);
-
-    // Validate required fields
-    const requiredFields: (keyof EncryptedWill)[] = [
-      "algorithm",
-      "iv",
-      "authTag",
-      "ciphertext",
-      "timestamp",
-    ];
-    for (const field of requiredFields) {
-      if (!encryptedJson[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-
-    // Validate algorithm
-    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedJson.algorithm)) {
-      throw new Error(
-        `Unsupported decryption algorithm: ${encryptedJson.algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
-      );
-    }
-
-    // Validate Base64 strings
-    const base64Fields: (keyof Pick<
-      EncryptedWill,
-      "iv" | "authTag" | "ciphertext"
-    >)[] = ["iv", "authTag", "ciphertext"];
-    for (const field of base64Fields) {
-      if (!Base64String.isValid(encryptedJson[field])) {
-        throw new Error(`Invalid Base64 format for field: ${field}`);
-      }
-    }
-
-    // Validate timestamp format (ISO 8601)
-    const timestamp = new Date(encryptedJson.timestamp);
-    if (isNaN(timestamp.getTime())) {
-      throw new Error(`Invalid timestamp format: ${encryptedJson.timestamp}`);
-    }
-
-    // Validate minimum field lengths for security
-    if (Buffer.from(encryptedJson.iv, "base64").length < 12) {
-      throw new Error("IV length is too short (minimum 12 bytes required)");
-    }
-
-    if (Buffer.from(encryptedJson.authTag, "base64").length < 16) {
-      throw new Error(
-        "AuthTag length is too short (minimum 16 bytes required)",
-      );
-    }
-
-    if (Buffer.from(encryptedJson.ciphertext, "base64").length === 0) {
-      throw new Error("Ciphertext cannot be empty");
-    }
-
-    console.log(chalk.green("✅ Encrypted will validated successfully"));
-
-    return encryptedJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in encrypted file: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-/**
  * Get decryption arguments
  */
-function getDecryptionArgs(filePath: string): DecryptionArgs {
-  validateFiles(filePath);
-  const encryptedWill = readEncryptedWill(filePath);
+function getDecryptionArgs(type: WillFileType): DecryptionArgs {
+  const encryptedWill: EncryptedWillData | DownloadedWillData = readWill(type);
 
   const algorithm: SupportedAlgorithm = encryptedWill.algorithm;
   const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
@@ -140,13 +60,13 @@ async function processWillDecryption(
   isTestMode: boolean,
 ): Promise<ProcessResult> {
   try {
-    const filePath = isTestMode
-      ? PATHS_CONFIG.will.encrypted
-      : PATHS_CONFIG.will.downloaded;
+    const type: WillFileType = isTestMode
+      ? WillFileType.ENCRYPTED
+      : WillFileType.DOWNLOADED;
 
     // Get decryption parameters
     const { algorithm, ciphertext, key, iv, authTag } =
-      getDecryptionArgs(filePath);
+      getDecryptionArgs(type);
 
     console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
@@ -224,8 +144,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateFiles,
-  readEncryptedWill,
   getDecryptionArgs,
   saveDecryptedWill,
   processWillDecryption

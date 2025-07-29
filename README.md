@@ -236,9 +236,6 @@ pnpm build
 
 1. **TODO**
    - [ ] @shared: files = read + env + partial encrypt.ts + partial decrypt.ts
-2. **Refactor**
-   - [ ] Unify the types in backend.
-   - [ ] Combine the repeated functions in backend.
 3. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.
    - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content.

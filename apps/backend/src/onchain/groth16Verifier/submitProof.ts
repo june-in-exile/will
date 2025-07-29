@@ -59,7 +59,7 @@ function validateEnvironmentVariables(): SubmitProof {
 /**
  * Validate required files
  */
-function validateFiles(): void {
+function validateZkpFiles(): void {
   const requiredFiles = [
     PATHS_CONFIG.zkp.multiplier2.proof,
     PATHS_CONFIG.zkp.multiplier2.public,
@@ -220,7 +220,7 @@ async function submitProofToContract(
 async function processProofSubmission(): Promise<ProofSubmissionResult> {
   try {
     // Validate prerequisites
-    validateFiles();
+    validateZkpFiles();
     const { UPLOAD_CID_VERIFIER } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
@@ -321,8 +321,8 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
+  validateZkpFiles,
   validateEnvironmentVariables,
-  validateFiles,
   validateRpcConnection,
   createContractInstance,
   printProofData,

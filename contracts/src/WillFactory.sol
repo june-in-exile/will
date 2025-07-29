@@ -86,7 +86,7 @@ contract WillFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JsonCidVerifier.JsonObject memory _will,
+        JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
@@ -148,7 +148,7 @@ contract WillFactory {
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
         uint256[1] calldata _pubSignals,
-        JsonCidVerifier.JsonObject memory _will,
+        JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid,
         address _testator,
         Will.Estate[] calldata _estates,

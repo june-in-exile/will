@@ -6,11 +6,11 @@ interface Estate {
 }
 
 
-interface WillData {
-  testator: string;
-  estates: Estate[];
-  will: EthereumAddress;
-}
+// interface WillData {
+//   testator: string;
+//   estates: Estate[];
+//   will: EthereumAddress;
+// }
 
 /**
  * Will information interface
@@ -42,4 +42,10 @@ interface BalanceSnapshot {
   balances: TokenBalance[];
 }
 
-export type { EthereumAddress, Estate, WillData, WillInfo, TokenBalance, BalanceSnapshot };
+interface Permit2Signature {
+    nonce: number;
+    deadline: number;
+    signature: string;
+}
+
+export type { EthereumAddress, Estate, WillData, WillInfo, TokenBalance, BalanceSnapshot, Permit2Signature };

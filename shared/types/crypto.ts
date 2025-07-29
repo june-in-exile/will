@@ -25,14 +25,6 @@ export interface DecryptionArgs {
   authTag: Buffer;
 }
 
-export interface EncryptedWill {
-  algorithm: SupportedAlgorithm;
-  iv: Base64String;
-  authTag: Base64String;
-  ciphertext: Base64String;
-  timestamp: string;
-}
-
 export interface SignatureValidationResult {
   valid: boolean;
   signer?: string;

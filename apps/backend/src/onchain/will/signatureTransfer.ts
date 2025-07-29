@@ -364,35 +364,6 @@ function compareBalanceSnapshots(
 }
 
 /**
- * Validate execution prerequisites
- */
-function validateExecutionPrerequisites(
-  willInfo: WillInfo,
-  executorAddress: string,
-): void {
-  console.log(chalk.blue("Validating execution prerequisites..."));
-
-  // Check if caller is the executor
-  if (executorAddress.toLowerCase() !== willInfo.executor.toLowerCase()) {
-    throw new Error(
-      `Only executor can call this function. Expected: ${willInfo.executor}, Got: ${executorAddress}`,
-    );
-  }
-
-  // Check if will has already been executed
-  if (willInfo.executed) {
-    throw new Error("Will has already been executed");
-  }
-
-  // Check if there are estates to transfer
-  if (willInfo.estates.length === 0) {
-    throw new Error("No estates found in will");
-  }
-
-  console.log(chalk.green("✅ Execution prerequisites validated"));
-}
-
-/**
  * Print signature transfer details
  */
 function printSignatureTransferDetails(
@@ -449,7 +420,6 @@ async function executeSignatureTransfer(
   nonce: string,
   deadline: string,
   signature: string,
-  executorAddress: string,
 ): Promise<SignatureTransferResult> {
   try {
     console.log(
@@ -458,9 +428,6 @@ async function executeSignatureTransfer(
 
     // Print detailed transfer information
     printSignatureTransferDetails(willInfo, nonce, deadline, signature);
-
-    // Validate execution prerequisites
-    validateExecutionPrerequisites(willInfo, executorAddress);
 
     // Convert string parameters to appropriate types
     const nonceBigInt = BigInt(nonce);
@@ -569,30 +536,6 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * Verify will execution status
- */
-async function verifyWillExecution(contract: Will): Promise<void> {
-  try {
-    console.log(chalk.blue("Verifying will execution status..."));
-
-    const executed = await contract.executed();
-
-    if (executed) {
-      console.log(chalk.green("✅ Will execution confirmed on-chain"));
-    } else {
-      console.warn(
-        chalk.yellow("⚠️  Warning: Will execution status not updated"),
-      );
-    }
-  } catch (error) {
-    console.warn(
-      chalk.yellow("Warning: Could not verify execution status"),
-      error,
-    );
-  }
-}
-
-/**
  * Process signature transfer workflow
  */
 async function processSignatureTransfer(): Promise<SignatureTransferResult> {
@@ -632,7 +575,6 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
       NONCE,
       DEADLINE,
       PERMIT2_SIGNATURE,
-      wallet.address,
     );
 
     // Check balances after execution
@@ -648,9 +590,6 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
 
     // Compare and show differences
     compareBalanceSnapshots(beforeSnapshot, afterSnapshot, willInfo);
-
-    // Verify execution
-    await verifyWillExecution(contract);
 
     // Update environment
     await updateEnvironmentVariables(result);
@@ -727,10 +666,8 @@ export {
   checkTokenBalances,
   printBalanceSnapshot,
   compareBalanceSnapshots,
-  validateExecutionPrerequisites,
   printSignatureTransferDetails,
   executeSignatureTransfer,
   updateEnvironmentVariables,
-  verifyWillExecution,
   processSignatureTransfer
 }

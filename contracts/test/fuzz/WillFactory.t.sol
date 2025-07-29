@@ -16,7 +16,7 @@ contract WillFactoryFuzzTest is Test {
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
 
-    JsonCidVerifier.JsonObject willJson;
+    JsonCidVerifier.TypedJsonObject willJson;
 
     function setUp() public {
         mockuploadCidVerifier = new MockGroth16Verifier();
@@ -34,10 +34,10 @@ contract WillFactoryFuzzTest is Test {
         string[] memory keys = new string[](1);
         keys[0] = "salt";
 
-        string[] memory values = new string[](1);
-        values[0] = "12345";
+        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](1);
+        values[0] = JsonCidVerifier.JsonValue("12345", JsonCidVerifier.JsonValueType(1));
 
-        willJson = JsonCidVerifier.JsonObject({keys: keys, values: values});
+        willJson = JsonCidVerifier.TypedJsonObject({keys: keys, values: values});
     }
 
     function test_PredictWill_DeterministicOutput(

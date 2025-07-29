@@ -1,14 +1,14 @@
-import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
+import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { CreateWill } from "@shared/types/environment.js";
 import type { Estate } from "@shared/types/blockchain.js";
-import { type SupportedAlgorithm } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/base64String.js";
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { ProofData } from "@shared/types/crypto.js";
+import { EncryptedWillData, WillFileType } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js"
 import {
   WillFactory,
   WillFactory__factory,
@@ -19,15 +19,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-
-interface EncryptedWillData {
-  algorithm: SupportedAlgorithm;
-  iv: string;
-  authTag: string;
-  ciphertext: string;
-  timestamp: string;
-}
 
 interface CreateWillData {
   proof: ProofData;
@@ -125,11 +116,10 @@ function parseEstatesFromEnvironment(): Estate[] {
 /**
  * Validate required files
  */
-function validateFiles(): void {
+function validateZkpFiles(): void {
   const requiredFiles = [
     PATHS_CONFIG.zkp.multiplier2.proof,
     PATHS_CONFIG.zkp.multiplier2.public,
-    PATHS_CONFIG.will.encrypted,
   ];
 
   for (const filePath of requiredFiles) {
@@ -178,94 +168,6 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
 }
 
 /**
- * Validate required fields
- */
-function validateRequiredFields(
-  will: Partial<EncryptedWillData>,
-): asserts will is EncryptedWillData {
-  const REQUIRED_FIELDS: (keyof EncryptedWillData)[] = [
-    "algorithm",
-    "iv",
-    "authTag",
-    "ciphertext",
-    "timestamp",
-  ] as const;
-
-  for (const field of REQUIRED_FIELDS) {
-    if (!will[field]) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
-}
-
-/**
- * Validate business rules
- */
-function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
-  // Validate encryption algorithm
-  if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedWill.algorithm)) {
-    throw new Error(
-      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`,
-    );
-  }
-
-  // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
-  if (encryptedWill.iv.length < 12) {
-    throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`,
-    );
-  }
-
-  // Validate timestamp format
-  const timestamp = new Date(encryptedWill.timestamp);
-  if (isNaN(timestamp.getTime())) {
-    throw new Error(`Invalid timestamp format: ${encryptedWill.timestamp}`);
-  }
-
-  // Validate authTag is Base64
-  if (!Base64String.isValid(encryptedWill.authTag)) {
-    throw new Error("AuthTag must be valid Base64");
-  }
-
-  // Validate ciphertext is not empty
-  if (!encryptedWill.ciphertext || encryptedWill.ciphertext.length === 0) {
-    throw new Error("Ciphertext cannot be empty");
-  }
-
-  // Warn if timestamp is too old
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-  if (timestamp < oneYearAgo) {
-    console.warn(
-      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year"),
-    );
-  }
-}
-
-/**
- * Read will JSON data
- */
-function readWillData(): EncryptedWillData {
-  try {
-    console.log(chalk.blue("Reading encrypted will JSON data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
-    const encryptedWillJson = JSON.parse(willContent) as EncryptedWillData;
-
-    validateRequiredFields(encryptedWillJson);
-
-    validateWillBusinessRules(encryptedWillJson);
-
-    console.log(chalk.green("✅ Will JSON data validated successfully"));
-    return encryptedWillJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-/**
  * Convert will data to JsonObject format
  */
 function convertToJsonObject(
@@ -293,7 +195,7 @@ function convertToJsonObject(
     values.push(encryptedWillData.ciphertext);
 
     keys.push("timestamp");
-    values.push(encryptedWillData.timestamp);
+    values.push(encryptedWillData.timestamp.toString());
 
     console.log(
       chalk.green("✅ Encrypted will data converted to JsonObject format"),
@@ -333,129 +235,6 @@ async function createContractInstance(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to create contract instance: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate CID prerequisites
- */
-async function validateCidPrerequisites(
-  contract: WillFactory,
-  cid: string,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Validating CID prerequisites..."));
-
-    // Check if CID has been validated by testator
-    const testatorValidateTime = await contract.testatorValidateTimes(cid);
-    if (testatorValidateTime === 0n) {
-      throw new Error(
-        `CID ${cid} has not been validated by testator. Please run uploadCid first.`,
-      );
-    }
-
-    // Check if CID has been notarized by executor
-    const executorValidateTime = await contract.executorValidateTimes(cid);
-    if (executorValidateTime <= testatorValidateTime) {
-      throw new Error(
-        `CID ${cid} has not been notarized by executor or was notarized before testator validation. Please run notarizeCid first.`,
-      );
-    }
-
-    // Check if will already exists for this CID
-    const existingWill = await contract.wills(cid);
-    if (existingWill !== ethers.ZeroAddress) {
-      throw new Error(
-        `Will already exists for CID ${cid} at address: ${existingWill}`,
-      );
-    }
-
-    console.log(chalk.green("✅ CID prerequisites validated successfully"));
-    console.log(
-      chalk.gray("- Testator validated at:"),
-      new Date(Number(testatorValidateTime) * 1000).toISOString(),
-    );
-    console.log(
-      chalk.gray("- Executor notarized at:"),
-      new Date(Number(executorValidateTime) * 1000).toISOString(),
-    );
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to validate CID prerequisites: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate estate business rules
- */
-function validateEstateBusinessRules(
-  estates: Estate[],
-  testator: string,
-): void {
-  console.log(chalk.blue("Validating estate business rules..."));
-
-  for (let i = 0; i < estates.length; i++) {
-    const estate = estates[i];
-
-    // Check beneficiary is not testator
-    if (estate.beneficiary.toLowerCase() === testator.toLowerCase()) {
-      throw new Error(
-        `Estate ${i}: Beneficiary cannot be the same as testator (${estate.beneficiary})`,
-      );
-    }
-
-    // Check for duplicate beneficiary-token pairs
-    for (let j = i + 1; j < estates.length; j++) {
-      const otherEstate = estates[j];
-      if (
-        estate.beneficiary.toLowerCase() ===
-        otherEstate.beneficiary.toLowerCase() &&
-        estate.token.toLowerCase() === otherEstate.token.toLowerCase()
-      ) {
-        console.warn(
-          chalk.yellow(
-            `⚠️  Warning: Duplicate beneficiary-token pair found at estates ${i} and ${j}: ${estate.beneficiary} - ${estate.token}`,
-          ),
-        );
-      }
-    }
-  }
-
-  console.log(chalk.green("✅ Estate business rules validated"));
-}
-
-/**
- * Predict will address
- */
-async function predictWillAddress(
-  contract: WillFactory,
-  testator: string,
-  estates: Estate[],
-  salt: bigint,
-): Promise<string> {
-  try {
-    console.log(chalk.blue("Predicting will address..."));
-
-    // Convert estates to the format expected by the contract
-    const contractEstates = estates.map((estate) => ({
-      beneficiary: estate.beneficiary,
-      token: estate.token,
-      amount: estate.amount,
-    }));
-
-    const predictedAddress = await contract.predictWill(
-      testator,
-      contractEstates,
-      salt,
-    );
-
-    console.log(chalk.green("✅ Will address predicted:"), predictedAddress);
-    return predictedAddress;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to predict will address: ${errorMessage}`);
   }
 }
 
@@ -559,20 +338,6 @@ async function executeCreateWill(
     // Print detailed create will data information
     printCreateWillData(createData);
 
-    // Validate CID prerequisites
-    await validateCidPrerequisites(contract, createData.cid);
-
-    // Validate estate business rules
-    validateEstateBusinessRules(createData.estates, createData.testator);
-
-    // Predict will address
-    const predictedAddress = await predictWillAddress(
-      contract,
-      createData.testator,
-      createData.estates,
-      createData.salt,
-    );
-
     // Convert estates to the format expected by the contract
     const contractEstates = createData.estates.map((estate) => ({
       beneficiary: estate.beneficiary,
@@ -638,21 +403,12 @@ async function executeCreateWill(
       }
     });
 
-    let willAddress = predictedAddress;
+    let willAddress;
     if (willCreatedEvent) {
       const parsed = contract.interface.parseLog(willCreatedEvent);
       if (parsed) {
         willAddress = parsed.args.will;
         console.log(chalk.green("✅ Will created at:"), willAddress);
-
-        // Verify the address matches prediction
-        if (willAddress.toLowerCase() !== predictedAddress.toLowerCase()) {
-          console.warn(
-            chalk.yellow(
-              "⚠️  Warning: Actual will address differs from prediction",
-            ),
-          );
-        }
       }
     }
 
@@ -703,37 +459,12 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * Get contract information
- */
-async function getContractInfo(contract: WillFactory): Promise<void> {
-  try {
-    console.log(chalk.blue("Fetching contract information..."));
-
-    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
-      await Promise.all([
-        contract.executor(),
-        contract.uploadCidVerifier(),
-        contract.createWillVerifier(),
-        contract.jsonCidVerifier(),
-      ]);
-
-    console.log(chalk.gray("Contract addresses:"));
-    console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
-    console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
-  } catch (error) {
-    console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
-  }
-}
-
-/**
  * Process will creation workflow
  */
 async function processCreateWill(): Promise<CreateWillResult> {
   try {
     // Validate prerequisites
-    validateFiles();
+    validateZkpFiles();
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
       validateEnvironmentVariables();
 
@@ -758,12 +489,9 @@ async function processCreateWill(): Promise<CreateWillResult> {
     // Create contract instance
     const contract = await createContractInstance(WILL_FACTORY, wallet);
 
-    // Get contract information
-    await getContractInfo(contract);
-
     // Read required data
     const proof: ProofData = readProof();
-    const willData: EncryptedWillData = readWillData();
+    const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
     const will: JsonCidVerifier.JsonObjectStruct =
       convertToJsonObject(willData);
 
@@ -840,20 +568,13 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   parseEstatesFromEnvironment,
-  validateFiles,
+  validateZkpFiles,
   validateRpcConnection,
   createWallet,
-  validateRequiredFields,
-  validateWillBusinessRules,
-  readWillData,
   convertToJsonObject,
   createContractInstance,
-  validateCidPrerequisites,
-  validateEstateBusinessRules,
-  predictWillAddress,
   printCreateWillData,
   executeCreateWill,
   updateEnvironmentVariables,
-  getContractInfo,
   processCreateWill
 }

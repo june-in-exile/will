@@ -1,24 +1,15 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
-import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";
-import { readFileSync, existsSync } from "fs";
 import { exec } from "child_process";
 import { promisify } from "util";
 import chalk from "chalk";
 
 const execPromise = promisify(exec);
-
-// Type definitions
-interface EncryptedWillData {
-  algorithm: SupportedAlgorithm;
-  iv: string;
-  authTag: string;
-  ciphertext: string;
-  timestamp: string;
-}
 
 interface HeliaInstance {
   helia: Helia;
@@ -38,48 +29,6 @@ interface UploadResult {
 interface ExecResult {
   stdout: string;
   stderr: string;
-}
-
-/**
- * Validate file existence and readability
- */
-function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.will.encrypted)) {
-    throw new Error(
-      `Encrypted will file does not exist: ${PATHS_CONFIG.will.encrypted}`,
-    );
-  }
-}
-
-/**
- * Read and validate will data
- */
-function readWillData(): EncryptedWillData {
-  try {
-    console.log(chalk.blue("Reading encrypted will data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
-    const willJson: EncryptedWillData = JSON.parse(willContent);
-
-    // Validate required fields
-    const requiredFields: (keyof EncryptedWillData)[] = [
-      "ciphertext",
-      "iv",
-      "authTag",
-    ];
-    for (const field of requiredFields) {
-      if (!willJson[field]) {
-        throw new Error(`Missing required field in will: ${field}`);
-      }
-    }
-
-    console.log(chalk.green("✅ Encrypted data structure validated"));
-    return willJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
-  }
 }
 
 /**
@@ -205,7 +154,6 @@ async function pinInLocalDaemon(
     }
   }
 
-  // This should never be reached due to the throw in the loop, but TypeScript requires it
   return false;
 }
 
@@ -254,11 +202,8 @@ async function processIPFSUpload(): Promise<UploadResult> {
   let helia: Helia | undefined;
 
   try {
-    // Validate prerequisites
-    validateFiles();
-
     // Read and validate will data
-    const willData = readWillData();
+    const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
 
     // Create Helia instance
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
@@ -425,8 +370,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateFiles,
-  readWillData,
   createHeliaInstance,
   uploadToIPFS,
   pinInLocalDaemon,

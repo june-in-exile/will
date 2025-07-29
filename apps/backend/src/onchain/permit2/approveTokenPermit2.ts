@@ -1,8 +1,9 @@
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { PATHS_CONFIG, APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
-import { Estate, WillData } from "@shared/types/blockchain.js";
-import { readFileSync, existsSync } from "fs";
+import { Estate } from "@shared/types/blockchain.js";
+import { readWill } from "@shared/utils/file/readWill.js";
+import { WillFileType, FormattedWillData } from "@shared/types/will.js";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";
 import { createRequire } from "module";
@@ -70,17 +71,6 @@ function validateEnvironmentVariables(): TokenApproval {
 }
 
 /**
- * Validate file existence
- */
-function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.will.formatted)) {
-    throw new Error(
-      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`,
-    );
-  }
-}
-
-/**
  * Create and validate signer
  */
 async function createSigner(
@@ -133,53 +123,6 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to connect to network: ${errorMessage}`);
-  }
-}
-
-/**
- * Read and validate will data
- */
-function readWillData(): WillData {
-  try {
-    console.log(chalk.blue("Reading formatted will data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.formatted, "utf8");
-    const willJson: WillData = JSON.parse(willContent);
-
-    // Validate required fields
-    if (!willJson.estates || !Array.isArray(willJson.estates)) {
-      throw new Error("Missing or invalid estates array");
-    }
-
-    if (willJson.estates.length === 0) {
-      throw new Error("Estates array cannot be empty");
-    }
-
-    // Validate each estate
-    willJson.estates.forEach((estate, index) => {
-      if (!estate.token) {
-        throw new Error(`Missing token address in estate ${index}`);
-      }
-
-      if (!ethers.isAddress(estate.token)) {
-        throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
-        );
-      }
-
-      if (!estate.amount) {
-        throw new Error(`Missing amount in estate ${index}`);
-      }
-    });
-
-    console.log(chalk.green("✅ Will data validated successfully"));
-    console.log(chalk.gray("Estates count:"), willJson.estates.length);
-
-    return willJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
   }
 }
 
@@ -485,7 +428,6 @@ async function processTokenApprovals(
 async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
   try {
     // Validate prerequisites
-    validateFiles();
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
     // Initialize provider and validate network
@@ -496,7 +438,8 @@ async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    const willData = readWillData();
+    // const willData = readWillData();
+    const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
 
     // Extract unique tokens
     const { tokens } = extractUniqueTokens(willData.estates);
@@ -600,10 +543,8 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateFiles,
   createSigner,
   validateNetwork,
-  readWillData,
   extractUniqueTokens,
   getTokenInfo,
   checkCurrentAllowance,

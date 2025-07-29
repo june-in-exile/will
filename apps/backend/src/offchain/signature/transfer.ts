@@ -2,13 +2,14 @@ import { validateEnvironment, presetValidations } from "@shared/utils/validation
 import type { TransferSigning } from "@shared/types/environment.js";
 import {
   PATHS_CONFIG,
-  VALIDATION_CONFIG,
   PERMIT2_CONFIG,
   NETWORK_CONFIG,
 } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { Estate, WillData } from "@shared/types/blockchain.js"
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { Estate } from "@shared/types/blockchain.js"
+import { WillFileType, AddressedWillData, SignedWillData } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js";
+import { writeFileSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";
 import { createRequire } from "module";
@@ -33,16 +34,6 @@ interface Permit {
   spender: string;
   nonce: number;
   deadline: number;
-}
-
-interface Signature {
-  nonce: number;
-  deadline: number;
-  signature: string;
-}
-
-export interface SignedWillData extends WillData {
-  signature: Signature;
 }
 
 interface ProcessResult {
@@ -72,17 +63,6 @@ function validateEnvironmentVariables(): TransferSigning {
   }
 
   return result.data;
-}
-
-/**
- * Validate file existence
- */
-function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.will.addressed)) {
-    throw new Error(
-      `Addressed will file does not exist: ${PATHS_CONFIG.will.addressed}`,
-    );
-  }
 }
 
 /**
@@ -127,77 +107,6 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to connect to network: ${errorMessage}`);
-  }
-}
-
-/**
- * Read and validate will data
- */
-function readWillData(): WillData {
-  try {
-    console.log(chalk.blue("Reading addressed will data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.addressed, "utf8");
-    const willJson: WillData = JSON.parse(willContent);
-
-    // Validate required fields
-    const requiredFields: (keyof WillData)[] = ["will", "estates", "testator"];
-    for (const field of requiredFields) {
-      if (!willJson[field]) {
-        throw new Error(`Missing required field: ${field}`);
-      }
-    }
-
-    // Validate will address
-    if (!ethers.isAddress(willJson.will)) {
-      throw new Error(`Invalid will address: ${willJson.will}`);
-    }
-
-    // Validate estates
-    if (
-      !Array.isArray(willJson.estates) ||
-      willJson.estates.length < VALIDATION_CONFIG.will.minEstatesRequired
-    ) {
-      throw new Error(
-        `Invalid estates array or insufficient estates (minimum: ${VALIDATION_CONFIG.will.minEstatesRequired})`,
-      );
-    }
-
-    // Validate each estate
-    willJson.estates.forEach((estate, index) => {
-      const requiredEstateFields: (keyof Estate)[] = [
-        "beneficiary",
-        "token",
-        "amount",
-      ];
-      for (const field of requiredEstateFields) {
-        if (!estate[field]) {
-          throw new Error(
-            `Missing required field '${field}' in estate ${index}`,
-          );
-        }
-      }
-
-      if (!ethers.isAddress(estate.token)) {
-        throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
-        );
-      }
-
-      if (!ethers.isAddress(estate.beneficiary)) {
-        throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
-        );
-      }
-    });
-
-    console.log(chalk.green("✅ Will data validated successfully"));
-
-    return willJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
   }
 }
 
@@ -318,7 +227,7 @@ async function signPermit(
  * Save signed will
  */
 function saveSignedWill(
-  willData: WillData,
+  willData: AddressedWillData,
   nonce: number,
   deadline: number,
   signature: string,
@@ -387,7 +296,6 @@ async function updateEnvironmentVariables(
 async function processWillSigning(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
-    validateFiles();
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
     // Initialize provider and validate network
@@ -398,7 +306,7 @@ async function processWillSigning(): Promise<ProcessResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    const willData = readWillData();
+    const willData: AddressedWillData = readWill(WillFileType.ADDRESSED);
 
     // Generate signature parameters
     console.log(chalk.blue("Generating signature parameters..."));
@@ -504,10 +412,8 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateFiles,
   createSigner,
   validateNetwork,
-  readWillData,
   calculateDeadline,
   generateSecureNonce,
   createPermitStructure,

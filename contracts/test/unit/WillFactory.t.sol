@@ -28,7 +28,7 @@ contract WillFactoryUnitTest is Test {
 
     uint256 salt = 12345;
 
-    JsonCidVerifier.JsonObject willJson;
+    JsonCidVerifier.TypedJsonObject willJson;
     string cid = "cid";
 
     uint256[2] pA = [1, 2];
@@ -70,13 +70,16 @@ contract WillFactoryUnitTest is Test {
             })
         );
 
-        string[] memory keys = new string[](1);
-        keys[0] = "salt";
+        string[] memory keys = new string[](2);
+        keys[0] = "text";
+        keys[1] = "timestamp";
 
-        string[] memory values = new string[](1);
-        values[0] = "12345";
 
-        willJson = JsonCidVerifier.JsonObject({keys: keys, values: values});
+        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](2);
+        values[0] = JsonCidVerifier.JsonValue("hello world", JsonCidVerifier.JsonValueType(0));
+        values[1] = JsonCidVerifier.JsonValue("1753824424", JsonCidVerifier.JsonValueType(1));
+
+        willJson = JsonCidVerifier.TypedJsonObject({keys: keys, values: values});
     }
 
     function test_Constructor() public view {
@@ -323,20 +326,20 @@ contract WillFactoryUnitTest is Test {
         string[] memory keys1 = new string[](1);
         keys1[0] = "salt";
 
-        string[] memory values1 = new string[](1);
-        values1[0] = "13579";
+        JsonCidVerifier.JsonValue[] memory values1 = new JsonCidVerifier.JsonValue[](1);
+        values1[0] = JsonCidVerifier.JsonValue("13579", JsonCidVerifier.JsonValueType(1));
 
-        JsonCidVerifier.JsonObject memory willJson1 = JsonCidVerifier
-            .JsonObject({keys: keys1, values: values1});
+        JsonCidVerifier.TypedJsonObject memory willJson1 = JsonCidVerifier
+            .TypedJsonObject({keys: keys1, values: values1});
 
         string[] memory keys2 = new string[](1);
         keys2[0] = "salt";
 
-        string[] memory values2 = new string[](1);
-        values2[0] = "24680";
+        JsonCidVerifier.JsonValue[] memory values2 = new JsonCidVerifier.JsonValue[](1);
+        values2[0] = JsonCidVerifier.JsonValue("24680", JsonCidVerifier.JsonValueType(1));
 
-        JsonCidVerifier.JsonObject memory willJson2 = JsonCidVerifier
-            .JsonObject({keys: keys2, values: values2});
+        JsonCidVerifier.TypedJsonObject memory willJson2 = JsonCidVerifier
+            .TypedJsonObject({keys: keys2, values: values2});
 
         // Different wills result in different cids
         string memory cid1 = "cid1";

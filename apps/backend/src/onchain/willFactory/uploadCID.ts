@@ -1,7 +1,8 @@
 import type { UploadCid } from "@shared/types/environment.js";
-import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
+import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import type { SupportedAlgorithm, ProofData } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/base64String.js";
+import { WillFileType } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
@@ -10,7 +11,7 @@ import {
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { config } from "dotenv";
 import chalk from "chalk";
@@ -28,7 +29,7 @@ interface EncryptedWillData {
 
 interface UploadCidData {
   proof: ProofData;
-  will: JsonCidVerifier.JsonObjectStruct;
+  will: JsonCidVerifier.TypedJsonObject;
   cid: string;
 }
 
@@ -56,12 +57,11 @@ function validateEnvironmentVariables(): UploadCid {
 /**
  * Validate required files
  */
-function validateFiles(): void {
+function validateZkpFiles(): void {
   const requiredFiles = [
     PATHS_CONFIG.zkp.multiplier2.verifier,
     PATHS_CONFIG.zkp.multiplier2.proof,
     PATHS_CONFIG.zkp.multiplier2.public,
-    PATHS_CONFIG.will.encrypted,
   ];
 
   for (const filePath of requiredFiles) {
@@ -110,94 +110,6 @@ function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
 }
 
 /**
- * Validate required fields
- */
-function validateRequiredFields(
-  will: Partial<EncryptedWillData>,
-): asserts will is EncryptedWillData {
-  const REQUIRED_FIELDS: (keyof EncryptedWillData)[] = [
-    "algorithm",
-    "iv",
-    "authTag",
-    "ciphertext",
-    "timestamp",
-  ] as const;
-
-  for (const field of REQUIRED_FIELDS) {
-    if (!will[field]) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
-}
-
-/**
- * Validate business rules
- */
-function validateWillBusinessRules(encryptedWill: EncryptedWillData): void {
-  // Validate encryption algorithm
-  if (!CRYPTO_CONFIG.supportedAlgorithms.includes(encryptedWill.algorithm)) {
-    throw new Error(
-      `Unsupported encryption algorithm: ${encryptedWill.algorithm}`,
-    );
-  }
-
-  // Validate IV length (AES-GCM typically uses 12 or 16 bytes)
-  if (encryptedWill.iv.length < 12) {
-    throw new Error(
-      `IV too short: expected at least 12 characters, got ${encryptedWill.iv.length}`,
-    );
-  }
-
-  // Validate timestamp format
-  const timestamp = new Date(encryptedWill.timestamp);
-  if (isNaN(timestamp.getTime())) {
-    throw new Error(`Invalid timestamp format: ${encryptedWill.timestamp}`);
-  }
-
-  // Validate authTag is Base64
-  if (!Base64String.isValid(encryptedWill.authTag)) {
-    throw new Error("AuthTag must be valid Base64");
-  }
-
-  // Validate ciphertext is not empty
-  if (!encryptedWill.ciphertext || encryptedWill.ciphertext.length === 0) {
-    throw new Error("Ciphertext cannot be empty");
-  }
-
-  // Warn if timestamp is too old
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-  if (timestamp < oneYearAgo) {
-    console.warn(
-      chalk.yellow("⚠️  Warning: Will timestamp is older than 1 year"),
-    );
-  }
-}
-
-/**
- * Read will JSON data
- */
-function readWillData(): EncryptedWillData {
-  try {
-    console.log(chalk.blue("Reading encrypted will JSON data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.encrypted, "utf8");
-    const encryptedWillJson = JSON.parse(willContent) as EncryptedWillData;
-
-    validateRequiredFields(encryptedWillJson);
-
-    validateWillBusinessRules(encryptedWillJson);
-
-    console.log(chalk.green("✅ Will JSON data validated successfully"));
-    return encryptedWillJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-/**
  * Convert will data to JsonObject format
  */
 function convertToJsonObject(
@@ -229,6 +141,62 @@ function convertToJsonObject(
 
     console.log(
       chalk.green("✅ Encrypted will data converted to JsonObject format"),
+    );
+
+    return { keys, values };
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to convert encrypted will data: ${errorMessage}`);
+  }
+}
+
+/**
+ * Convert will data to TypedJsonObject format
+ */
+function convertToTypedJsonObject(
+  encryptedWillData: EncryptedWillData,
+): JsonCidVerifier.TypedJsonObjectStruct {
+  try {
+    console.log(
+      chalk.blue("Converting encrypted will data to TypedJsonObject format..."),
+    );
+
+    const keys: string[] = [];
+    const values: JsonCidVerifier.JsonValueStruct[] = [];
+
+    keys.push("algorithm");
+    values.push({
+      value: encryptedWillData.algorithm,
+      valueType: 0, // JsonValueType.STRING
+    });
+
+    keys.push("iv");
+    values.push({
+      value: encryptedWillData.iv,
+      valueType: 0, // JsonValueType.STRING
+    });
+
+    keys.push("authTag");
+    values.push({
+      value: encryptedWillData.authTag,
+      valueType: 0, // JsonValueType.STRING
+    });
+
+    keys.push("ciphertext");
+    values.push({
+      value: encryptedWillData.ciphertext,
+      valueType: 0, // JsonValueType.STRING
+    });
+
+    keys.push("timestamp");
+    values.push({
+      value: encryptedWillData.timestamp,
+      valueType: 1, // JsonValueType.NUMBER
+    });
+
+    console.log(
+      chalk.green("✅ Encrypted will data converted to TypedJsonObject format"),
     );
 
     return { keys, values };
@@ -320,12 +288,29 @@ function printUploadCidData(uploadData: UploadCidData): void {
   // Print Will Data
   console.log(chalk.blue("\n📝 Excrypted Will Keys & Values:"));
   uploadData.will.keys.forEach((key: string, index: string) => {
-    const value = uploadData.will.values[index];
+    const jsonValue: JsonCidVerifier.JsonValue = uploadData.will.values[index];
+    let valueType: string;
+    switch (jsonValue.valueType) {
+      case 0:
+        valueType = "STRING";
+        break;
+      case 1:
+        valueType = "NUMBER";
+        break;
+      case 2:
+        valueType = "BOOLEAN";
+        break;
+      case 3:
+        valueType = "NULL";
+        break;
+      default:
+        throw new Error("Invalid JsonValueType");
+    }
     console.log(
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
       chalk.gray("=>"),
-      chalk.white(value),
+      chalk.white(`{value: ${jsonValue.value}, valueType: ${valueType}}`),
     );
   });
 
@@ -430,37 +415,12 @@ async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
 }
 
 /**
- * List the contract's information
- */
-async function getContractInfo(contract: WillFactory): Promise<void> {
-  try {
-    console.log(chalk.blue("Fetching contract information..."));
-
-    const [executor, uploadCidVerifier, createWillVerifier, jsonCidVerifier] =
-      await Promise.all([
-        contract.executor(),
-        contract.uploadCidVerifier(),
-        contract.createWillVerifier(),
-        contract.jsonCidVerifier(),
-      ]);
-
-    console.log(chalk.gray("Contract addresses:"));
-    console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
-    console.log(chalk.gray("- JSON CID Verifier:"), jsonCidVerifier);
-  } catch (error) {
-    console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
-  }
-}
-
-/**
  * Process CID upload workflow
  */
 async function processUploadCid(): Promise<UploadResult> {
   try {
     // Validate prerequisites
-    validateFiles();
+    validateZkpFiles();
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
@@ -473,14 +433,11 @@ async function processUploadCid(): Promise<UploadResult> {
     // Create contract instance
     const contract = await createContractInstance(WILL_FACTORY, wallet);
 
-    // Get contract information
-    await getContractInfo(contract);
-
     // Read required data
     const proof: ProofData = readProof();
-    const willData: EncryptedWillData = readWillData();
-    const will: JsonCidVerifier.JsonObjectStruct =
-      convertToJsonObject(willData);
+    const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
+    const will: JsonCidVerifier.TypedJsonObject =
+      convertToTypedJsonObject(willData);
 
     // Execute upload
     const result = await executeUploadCid(contract, {
@@ -546,18 +503,15 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
+  validateZkpFiles,
   validateEnvironmentVariables,
-  validateFiles,
   validateRpcConnection,
   createWallet,
-  validateRequiredFields,
-  validateWillBusinessRules,
-  readWillData,
   convertToJsonObject,
+  convertToTypedJsonObject,
   createContractInstance,
-  printUploadCidData as printUploadCIDData,
-  executeUploadCid as executeUploadCID,
+  printUploadCidData,
+  executeUploadCid,
   updateEnvironmentVariables,
-  getContractInfo,
   processUploadCid
 }

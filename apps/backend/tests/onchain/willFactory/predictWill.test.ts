@@ -27,10 +27,6 @@ const validAddressedWill = {
   salt: MOCK_SALT,
   will: MOCK_PREDICTED_ADDRESS,
   timestamp: '2024-01-01T12:00:00.000Z',
-  metadata: {
-    predictedAt: 1704110400000,
-    estatesCount: 1,
-  },
 };
 
 // Mock constants

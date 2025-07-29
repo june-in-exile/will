@@ -7,8 +7,10 @@ import {
   type WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
-import { EthereumAddress, Estate, WillData } from "@shared/types/blockchain.js";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
+import { WillFileType, FormattedWillData, AddressedWillData } from "@shared/types/will.js";
+import { readWill } from "@shared/utils/file/readWill.js";
+import { writeFileSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
 import crypto from "crypto";
@@ -16,15 +18,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-interface AddressedWill extends WillData {
-  salt: number;
-  timestamp: string;
-  metadata: {
-    predictedAt: number;
-    estatesCount: number;
-  };
-}
 
 interface ProcessResult {
   predictedAddress: string;
@@ -45,17 +38,6 @@ function validateEnvironmentVariables(): PredictWill {
   }
 
   return result.data;
-}
-
-/**
- * Validate file existence
- */
-function validateFiles(): void {
-  if (!existsSync(PATHS_CONFIG.will.formatted)) {
-    throw new Error(
-      `Formatted will file does not exist: ${PATHS_CONFIG.will.formatted}`,
-    );
-  }
 }
 
 /**
@@ -103,67 +85,6 @@ function generateSecureSalt(timestamp: number = Date.now()): number {
 }
 
 /**
- * Read and validate will data
- */
-function readWillData(): WillData {
-  try {
-    console.log(chalk.blue("Reading formatted will data..."));
-    const willContent = readFileSync(PATHS_CONFIG.will.formatted, "utf8");
-    const willJson: WillData = JSON.parse(willContent);
-
-    // Validate required fields
-    if (!willJson.testator) {
-      throw new Error("Missing required field: testator");
-    }
-
-    if (!willJson.estates || !Array.isArray(willJson.estates)) {
-      throw new Error("Missing or invalid estates array");
-    }
-
-    if (willJson.estates.length === 0) {
-      throw new Error("Estates array cannot be empty");
-    }
-
-    // Validate estate structure
-    willJson.estates.forEach((estate, index) => {
-      const requiredFields: (keyof Estate)[] = [
-        "beneficiary",
-        "token",
-        "amount",
-      ];
-      for (const field of requiredFields) {
-        if (!estate[field]) {
-          throw new Error(
-            `Missing required field '${String(field)}' in estate ${index}`,
-          );
-        }
-      }
-
-      // Validate addresses
-      if (!ethers.isAddress(estate.beneficiary)) {
-        throw new Error(
-          `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
-        );
-      }
-
-      if (!ethers.isAddress(estate.token)) {
-        throw new Error(
-          `Invalid token address in estate ${index}: ${estate.token}`,
-        );
-      }
-    });
-
-    console.log(chalk.green("✅ Will data validated successfully"));
-    return willJson;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON in will file: ${error.message}`);
-    }
-    throw error;
-  }
-}
-
-/**
  * Create contract instance with validation
  */
 async function createContractInstance(
@@ -195,8 +116,8 @@ async function createContractInstance(
  */
 async function predictWillAddress(
   contract: WillFactory,
-  testator: string,
-  estates: Will.EstateStruct[],
+  testator: EthereumAddress,
+  estates: Estate[],
   salt: number,
 ): Promise<EthereumAddress> {
   try {
@@ -232,22 +153,17 @@ async function predictWillAddress(
  * Save addressed will
  */
 function saveAddressedWill(
-  willData: WillData,
+  willData: FormattedWillData,
   salt: number,
   predictedAddress: EthereumAddress,
-): AddressedWill {
+): AddressedWillData {
   try {
     console.log(chalk.blue("Preparing addressed will..."));
 
-    const addressedWill: AddressedWill = {
+    const addressedWill: AddressedWillData = {
       ...willData,
       salt: salt,
       will: predictedAddress,
-      timestamp: new Date().toISOString(),
-      metadata: {
-        predictedAt: Date.now(),
-        estatesCount: willData.estates.length,
-      },
     };
 
     writeFileSync(
@@ -307,36 +223,11 @@ async function updateEnvironmentVariables(
 }
 
 /**
- * List the contract's information
- */
-async function getContractInfo(contract: WillFactory): Promise<void> {
-  try {
-    console.log(chalk.blue("Fetching contract information..."));
-
-    const [executor, uploadCidVerifier, createWillVerifier] = await Promise.all(
-      [
-        contract.executor(),
-        contract.uploadCidVerifier(),
-        contract.createWillVerifier(),
-      ],
-    );
-
-    console.log(chalk.gray("Contract addresses:"));
-    console.log(chalk.gray("- Executor:"), executor);
-    console.log(chalk.gray("- Testator Verifier:"), uploadCidVerifier);
-    console.log(chalk.gray("- Decryption Verifier:"), createWillVerifier);
-  } catch (error) {
-    console.warn(chalk.yellow("Warning: Could not fetch contract info"), error);
-  }
-}
-
-/**
  * Process will addressing workflow
  */
 async function processWillAddressing(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
-    validateFiles();
     const { WILL_FACTORY } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
@@ -346,11 +237,8 @@ async function processWillAddressing(): Promise<ProcessResult> {
     // Create contract instance
     const contract = await createContractInstance(WILL_FACTORY, provider);
 
-    // Get contract information
-    await getContractInfo(contract);
-
     // Read and validate will data
-    const willData = readWillData();
+    const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
 
     // Generate salt
     const salt = generateSecureSalt();
@@ -434,14 +322,11 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateFiles,
   validateRpcConnection,
   generateSecureSalt,
-  readWillData,
   createContractInstance,
   predictWillAddress,
   saveAddressedWill,
   updateEnvironmentVariables,
-  getContractInfo,
   processWillAddressing
 }

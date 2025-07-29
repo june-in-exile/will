@@ -30,7 +30,7 @@ contract WillFactoryIntegrationTest is Test {
         address testator;
         Will.Estate[] estates;
         uint256 salt;
-        JsonCidVerifier.JsonObject willJsonObj;
+        JsonCidVerifier.TypedJsonObject willTypedJsonObj;
         string cid;
         ProofData proof;
         bytes executorSignature;
@@ -59,21 +59,21 @@ contract WillFactoryIntegrationTest is Test {
 
     function _setupTestVectors() internal {
         {
-            JsonCidVerifier.JsonObject memory willJsonObj;
-            willJsonObj.keys = new string[](5);
-            willJsonObj.values = new string[](5);
-            willJsonObj.keys[0] = "algorithm";
-            willJsonObj.keys[1] = "iv";
-            willJsonObj.keys[2] = "authTag";
-            willJsonObj.keys[3] = "ciphertext";
-            willJsonObj.keys[4] = "timestamp";
-            willJsonObj.values[0] = "aes-256-gcm";
-            willJsonObj.values[1] = "SXwGj4zpnPz6fJvo";
-            willJsonObj.values[2] = "tp0VPERBYMhUac8HyQwfFA==";
-            willJsonObj.values[
+            JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
+            willTypedJsonObj.keys = new string[](5);
+            willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
+            willTypedJsonObj.keys[0] = "algorithm";
+            willTypedJsonObj.keys[1] = "iv";
+            willTypedJsonObj.keys[2] = "authTag";
+            willTypedJsonObj.keys[3] = "ciphertext";
+            willTypedJsonObj.keys[4] = "timestamp";
+            willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue("aes-256-gcm", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("SXwGj4zpnPz6fJvo", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue("tp0VPERBYMhUac8HyQwfFA==", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[
                     3
-                ] = "47ljOJWRts3C03tiY0OWLqCfioKKp9p9RFWPB2j/qJ3P2ZLVKMDVdbTa/DJcf7mqnFhJkBToyiA51e4GfNK4SOjshBi4XdT/bB2JMrb5KJKMbCQ+yWsCpr8Ujx9WyyRYV1CtY4LL3ob0Wm6kCygABaoxFX/6dgUbRmLSrUjK0Xf3lj+jP5Oidx/dDlu308E5VqHDSGj0xAvieJjEbdSEwanoCzSALzBI/wN9JhPar/YU8IWdDs6BMKN98ops4olWiGLZl2MmWI/GqzREyg7bqiLQic3ui2dwI9FrNvMB42NKk+qwJQt8jvlrXpaVRij4KpTUtCJVdRK0v91XdC3sjHRxP1mNzfVz1vjrHauh2m14G9CBZDQEm0qoUwjkiO8zoaGpbhLtX1kYKASe0V1v0amN2FXHKqHAXHGo7VVNFaFH8hHlLD0VXroacsSnMzA5dQQJ6Q5m71Kh6TyuRqmGqmPLg5umt+eqkcYiFkAh2qnCY9tWMReYkwZOIFwv8gjd7waERHtm+HZ0M+u+IFw2lA8qyLC4WjOKzu4qVR7BeScjsj3WOvPaPcURefmkZQuQBluBGd3iqwjX89ovfNSmLjbkQ4eGijif3u9O2pIwY9+FrQWYx+ZMv9eIweIRJIWFq8RzleXKx6CNlbRkYfLXs51FTHCdzuH/gbc8jj7orlB4LgZG5d04Z89Zfmnfzfh4raycABY+RR6nDc6bXz8mpbEhfN9GHmxsXDYEkWdyvXjqicNwXwgMzUQBqlLiJyw6PrzGX2f2ZjZ/cQ7uA0NYc47kz0NyJTP/rYTZYrNJgKS0WvCJH2laiSnoNqdEf7RTX5Yffk+ksUwpitq724y5BtNuLP5V3RAevH+/hFCJSTzEoiUbsT1i3YlcyxVP5zfDdTY8PIHAKlTCAoRk7giImm8VAZ9Wf1YUaKsCgXz12kIEZTHso+a7eFl9lUbrniPLdRaXdGp7Cns6t9RhU3YLdBoF3R7XLkOd3Mh9mlXXVraXILHKPaKgVHDUgoBuCvz7nMR44abD2Cd/3+Yot2lu1Ac4V1tKxarRuWzmSooxfpEQ0esgVQFWVtMtDQ+sau2+MmyXGR4th96McXxeMu2u6pbjbhVewdrO6aaOiGFzoXSMfHrHEegvay1YOavYR0Ducd87BaYRIHhvP4cDyi0baJAFiPBLlzLBswjTLK/EqXV2t5wrpnT4OLcvWWd+cTK/w2m09ZD1IhsUje4UUeVQqmQ+JRmOrsu1jhTcCA==";
-            willJsonObj.values[4] = "2025-06-17T18:34:55.262Z";
+                ] = JsonCidVerifier.JsonValue("47ljOJWRts3C03tiY0OWLqCfioKKp9p9RFWPB2j/qJ3P2ZLVKMDVdbTa/DJcf7mqnFhJkBToyiA51e4GfNK4SOjshBi4XdT/bB2JMrb5KJKMbCQ+yWsCpr8Ujx9WyyRYV1CtY4LL3ob0Wm6kCygABaoxFX/6dgUbRmLSrUjK0Xf3lj+jP5Oidx/dDlu308E5VqHDSGj0xAvieJjEbdSEwanoCzSALzBI/wN9JhPar/YU8IWdDs6BMKN98ops4olWiGLZl2MmWI/GqzREyg7bqiLQic3ui2dwI9FrNvMB42NKk+qwJQt8jvlrXpaVRij4KpTUtCJVdRK0v91XdC3sjHRxP1mNzfVz1vjrHauh2m14G9CBZDQEm0qoUwjkiO8zoaGpbhLtX1kYKASe0V1v0amN2FXHKqHAXHGo7VVNFaFH8hHlLD0VXroacsSnMzA5dQQJ6Q5m71Kh6TyuRqmGqmPLg5umt+eqkcYiFkAh2qnCY9tWMReYkwZOIFwv8gjd7waERHtm+HZ0M+u+IFw2lA8qyLC4WjOKzu4qVR7BeScjsj3WOvPaPcURefmkZQuQBluBGd3iqwjX89ovfNSmLjbkQ4eGijif3u9O2pIwY9+FrQWYx+ZMv9eIweIRJIWFq8RzleXKx6CNlbRkYfLXs51FTHCdzuH/gbc8jj7orlB4LgZG5d04Z89Zfmnfzfh4raycABY+RR6nDc6bXz8mpbEhfN9GHmxsXDYEkWdyvXjqicNwXwgMzUQBqlLiJyw6PrzGX2f2ZjZ/cQ7uA0NYc47kz0NyJTP/rYTZYrNJgKS0WvCJH2laiSnoNqdEf7RTX5Yffk+ksUwpitq724y5BtNuLP5V3RAevH+/hFCJSTzEoiUbsT1i3YlcyxVP5zfDdTY8PIHAKlTCAoRk7giImm8VAZ9Wf1YUaKsCgXz12kIEZTHso+a7eFl9lUbrniPLdRaXdGp7Cns6t9RhU3YLdBoF3R7XLkOd3Mh9mlXXVraXILHKPaKgVHDUgoBuCvz7nMR44abD2Cd/3+Yot2lu1Ac4V1tKxarRuWzmSooxfpEQ0esgVQFWVtMtDQ+sau2+MmyXGR4th96McXxeMu2u6pbjbhVewdrO6aaOiGFzoXSMfHrHEegvay1YOavYR0Ducd87BaYRIHhvP4cDyi0baJAFiPBLlzLBswjTLK/EqXV2t5wrpnT4OLcvWWd+cTK/w2m09ZD1IhsUje4UUeVQqmQ+JRmOrsu1jhTcCA==", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue("1753824424", JsonCidVerifier.JsonValueType(1));
 
             Will.Estate[] memory estates = new Will.Estate[](2);
 
@@ -97,14 +97,14 @@ contract WillFactoryIntegrationTest is Test {
 
             testVectors.push(
                 TestVector({
-                    name: "20250618 Will",
+                    name: "20250730 Will",
                     testator: address(
                         0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc
                     ),
                     estates: estates,
                     salt: 864777079914391,
-                    willJsonObj: willJsonObj,
-                    cid: "bagaaieraxixnqlxvscc7b4v6d5gpl3wwig6okfftz62xtle32tdzlewerepa",
+                    willTypedJsonObj: willTypedJsonObj,
+                    cid: "bagaaierau2azn4yiytg44bbqkptqqpto6jtwpo2gvmenghzs7zuswwclq2na",
                     proof: proof,
                     executorSignature: hex"f3bb9d0e0d2923ee57cd1d5a34e00ba6412a6f217ef763d31b4fd7452f71370950fa181b4e49142f9302c29a8731a59c99a8eb8b76fd01b74f704299888721d21c"
                 })
@@ -124,7 +124,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid
         );
 
@@ -162,7 +162,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
             tv.estates,
@@ -193,7 +193,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid
         );
 
@@ -209,7 +209,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
             tv.estates,
@@ -230,7 +230,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
             tv.estates,
@@ -246,7 +246,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.proof.pB,
             tv.proof.pC,
             tv.proof.pubSignals,
-            tv.willJsonObj,
+            tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
             tv.estates,
