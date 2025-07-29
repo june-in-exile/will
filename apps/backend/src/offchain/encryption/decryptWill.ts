@@ -3,9 +3,9 @@ import type {
   DecryptionArgs,
   EncryptedWill,
   SupportedAlgorithm,
-} from "@type/crypto.js";
-import { Base64String } from "@type/encoding.js";
-import { getDecryptionKey, decrypt } from "@util/crypto/decrypt.js";
+} from "@shared/types/crypto.js";
+import { Base64String } from "@shared/types/encoding.js";
+import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

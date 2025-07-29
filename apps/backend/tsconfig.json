@@ -4,9 +4,6 @@
     "paths": {
       "@src/*": ["./src/*"],
       "@shared/*": ["../../shared/*"],
-      "@constant/*": ["../../shared/constant/*"],
-      "@type/*": ["../../shared/type/*"],
-      "@util/*": ["../../shared/util/*"],
       "@config": ["../../shared/config.js"]
     }
   },

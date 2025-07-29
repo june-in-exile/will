@@ -1,10 +1,10 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/type/constants.js";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
 import type {
   DecryptionArgs,
   AuthenticatedDecipher,
   SupportedAlgorithm,
-} from "@type/crypto.js";
+} from "@shared/types/crypto.js";
 import { createDecipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";

@@ -234,8 +234,8 @@ pnpm build
 
 ## 🎯 Next Steps
 
-1. **Fix Bugs**
-   - [ ] IPFS related actions would stuck.
+1. **TODO**
+   - [ ] @shared: files = read + env + partial encrypt.ts + partial decrypt.ts
 2. **Refactor**
    - [ ] Unify the types in backend.
    - [ ] Combine the repeated functions in backend.

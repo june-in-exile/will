@@ -1,18 +1,18 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
-import type { SupportedAlgorithm, ProofData } from "@type/crypto.js";
-import { Base64String } from "@type/encoding.js";
-import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
-import { readProof } from "@util/read/proof.js";
+import type { SupportedAlgorithm, ProofData } from "@shared/types/crypto.js";
+import { Base64String } from "@shared/types/encoding.js";
+import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { readProof } from "@shared/utils/file/readProof.js";
 import {
   validateEthereumAddress,
   validatePrivateKey,
-} from "@util/format/wallet.js";
-import { validateCidv1 } from "@util/format/cid.js";
+} from "@shared/utils/format/wallet.js";
+import { validateCidv1 } from "@shared/utils/format/cid.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
-} from "@type/typechain-types/index.js";
+} from "@shared/types/typechain-types/index.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { config } from "dotenv";

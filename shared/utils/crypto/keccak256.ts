@@ -1,5 +1,5 @@
 import { HASH_CONFIG } from "@config";
-import type { HashableInput, ByteInput } from "@type/crypto.js";
+import type { HashableInput, ByteInput } from "@shared/types/crypto.js";
 import { ethers } from "ethers";
 import chalk from "chalk";
 

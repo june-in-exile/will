@@ -1,10 +1,10 @@
 import { SIGNATURE_CONFIG } from "@config";
-import type { SignatureValidationResult } from "@type/crypto.js";
+import type { SignatureValidationResult } from "@shared/types/crypto.js";
 import {
   validateEthereumAddress,
   validateSignature,
-} from "@util/format/wallet.js";
-import { keccak256 } from "@shared/util/crypto/keccak256.js";
+} from "@shared/utils/format/wallet.js";
+import { keccak256 } from "@shared/utils/crypto/keccak256.js";
 import { ethers, Wallet } from "ethers";
 import chalk from "chalk";
 

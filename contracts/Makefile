@@ -21,24 +21,24 @@ endif
 # ------------- Synchronization Commands ----------------
 
 sync-anvil:
-	@pnpm exec tsx ../shared/util/env/syncAnvil.ts
+	@pnpm exec tsx ../shared/utils/file/syncAnvil.ts
 
 sync-groth16verifier-and-proof:
-	@pnpm exec tsx ../shared/util/env/syncZkp.ts
+	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
 sync: sync-anvil sync-groth16verifier-and-proof
 
 # ---------------- Clean Commands -----------------------
 
 clean-address:
-	@pnpm exec tsx ../shared/util/env/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_WILL_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
+	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_WILL_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
 
 clean-groth16verifier-and-proof:
 	@rm -rf src/Groth16Verifier.sol
-	@pnpm exec tsx ../shared/util/env/resetEnvVariable.ts PA_ARRAY PB_ARRAY PC_ARRAY PUBSIGNALS_ARRAY
+	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts PA_ARRAY PB_ARRAY PC_ARRAY PUBSIGNALS_ARRAY
 
 clean-typechain:
-	@rm -rf ../shared/type/typechain-types
+	@rm -rf ../shared/types/typechain-types
 
 clean: clean-address clean-groth16verifier-and-proof clean-typechain
 	@forge clean
@@ -54,7 +54,7 @@ install:
 
 build: sync-groth16verifier-and-proof
 	@forge build
-	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/type/typechain-types 'out/**/*.sol/*.json'
+	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/types/typechain-types 'out/**/*.sol/*.json'
 
 test:
 	@cd ../zkp && make circuit
@@ -125,8 +125,8 @@ deploy-groth16verifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-arb-sepolia:
 	@forge script \
@@ -136,7 +136,7 @@ deploy-jsonCidVerifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
 deploy-willFactory-to-arb-sepolia:
 	@forge script \
@@ -146,7 +146,7 @@ deploy-willFactory-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/WillFactory.s.sol:WillFactoryScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
 	@make deploy-willFactory-to-arb-sepolia
@@ -169,8 +169,8 @@ deploy-groth16verifier_to_forked_arb_sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -178,7 +178,7 @@ deploy-jsonCidVerifier-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/JsonCidVerifier.s.sol:JsonCidVerifierScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts JSON_CID_VERIFIER JsonCidVerifier $(CHAIN_ID)
 
 deploy-willFactory-to-forked-arb-sepolia:
 	@forge script \
@@ -186,7 +186,7 @@ deploy-willFactory-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/WillFactory.s.sol:WillFactoryScript
-	@pnpm exec tsx ../shared/util/env/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy-to-forked-arb-sepolia: deploy-groth16verifier_to_forked_arb_sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@make deploy-willFactory-to-forked-arb-sepolia

@@ -13,9 +13,6 @@ export default defineConfig({
     alias: {
       '@src': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, '../../shared'),
-      '@constant': path.resolve(__dirname, '../../shared/constant'),
-      '@type': path.resolve(__dirname, '../../shared/type'),
-      '@util': path.resolve(__dirname, '../../shared/util'),
       '@config': path.resolve(__dirname, '../../shared/config'),
     },
   },

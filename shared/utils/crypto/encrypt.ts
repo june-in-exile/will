@@ -1,11 +1,11 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM } from "@shared/type/constants.js";
+import { AES_256_GCM } from "@shared/types/constants.js";
 import type {
   EncryptionArgs,
   AuthenticatedCipher,
   SupportedAlgorithm,
-} from "@type/crypto.js";
-import { Base64String } from "@type/encoding.js";
+} from "@shared/types/crypto.js";
+import { Base64String } from "@shared/types/encoding.js";
 import { randomBytes, createCipheriv } from "crypto";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";

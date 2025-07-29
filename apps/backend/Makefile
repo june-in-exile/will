@@ -4,7 +4,7 @@ all: clean phase1 phase2 phase3
 
 clean:
 	@echo "Resetting environment variables..."
-	@pnpm exec tsx ../../shared/util/env/resetEnvVariable.ts SALT WILL \
+	@pnpm exec tsx ../../shared/utils/file/resetEnvVariable.ts SALT WILL \
         BENEFICIARY0 TOKEN0 AMOUNT0 \
         BENEFICIARY1 TOKEN1 AMOUNT1 \
         NONCE DEADLINE PERMIT2_SIGNATURE \
@@ -20,7 +20,7 @@ clean:
 	@-rm -f will/5_encrypted*.json
 	@-rm -f will/6_decrypted*.json
 	@echo "Removing secret key..."
-	@-rm -f ../../shared/util/crypto/key.txt
+	@-rm -f ../../shared/utils/crypto/key.txt
 
 	@@echo "Initialization completed"
 
@@ -40,12 +40,12 @@ encrypt-will:
 	@pnpm exec tsx src/offchain/encryption/encryptWill.ts
 
 encrypt-data:
-	@pnpm exec tsx ../../shared/util/crypto/encrypt.ts	\
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts	\
 		--plaintext "Hello, World!"
-	@pnpm exec tsx ../../shared/util/crypto/encrypt.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts \
 		--algorithm chacha20-poly1305 \
 		--plaintext "Secret message"
-	@pnpm exec tsx ../../shared/util/crypto/encrypt.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts \
 		--plaintext "Text" \
 		--key "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=" \
 		--iv "YjgZJzfIXjAYvwt/"
@@ -73,20 +73,20 @@ decrypt-will-local:
 	@pnpm exec tsx src/offchain/encryption/decryptWill.ts --local
 
 decrypt-data:
-	@pnpm exec tsx ../../shared/util/crypto/decrypt.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/decrypt.ts \
 		--ciphertext "Gpom0+vuv9teKLYbPg==" \
 		--key "6jGDknBabkzOqplZpenhe9M/4iF2hotChGiVvOERQ7k=" \
 		--iv "lV8jzMw8l38VL+kA" \
 		--authTag "UKLNsX07gXEth4BE2uFCcw=="
 # Hello, World!
-	@pnpm exec tsx ../../shared/util/crypto/decrypt.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/decrypt.ts \
 		--algorithm chacha20-poly1305 \
 		--ciphertext "GbqjqkNZGT1DIEmfPqI=" \
 		--key "i3ysCaBP/LhiFIdN9KAxd5PdIq0ptvJGzwd0FuzJmy4=" \
 		--iv "grOq8Gex5t4EIWRI" \
 		--authTag "Yu1tQXI0/uqRxDIkSPwzrA=="
 # Secret message
-	@pnpm exec tsx ../../shared/util/crypto/decrypt.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/decrypt.ts \
 		--ciphertext "PgG52g==" \
 		--key "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=" \
 		--iv "YjgZJzfIXjAYvwt/" \
@@ -94,11 +94,11 @@ decrypt-data:
 # Text
 
 hash-will:
-	@pnpm exec tsx ../../shared/util/hash/cid.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/cid.ts \
 		--path './will/5_encrypted.json'
 
 hash-data:
-	@pnpm exec tsx ../../shared/util/hash/cid.ts \
+	@pnpm exec tsx ../../shared/utils/crypto/cid.ts \
 		--json '{"algorithm":"aes-256-gcm","iv":"SXwGj4zpnPz6fJvo","authTag":"tp0VPERBYMhUac8HyQwfFA==","ciphertext":"47ljOJWRts3C03tiY0OWLqCfioKKp9p9RFWPB2j/qJ3P2ZLVKMDVdbTa/DJcf7mqnFhJkBToyiA51e4GfNK4SOjshBi4XdT/bB2JMrb5KJKMbCQ+yWsCpr8Ujx9WyyRYV1CtY4LL3ob0Wm6kCygABaoxFX/6dgUbRmLSrUjK0Xf3lj+jP5Oidx/dDlu308E5VqHDSGj0xAvieJjEbdSEwanoCzSALzBI/wN9JhPar/YU8IWdDs6BMKN98ops4olWiGLZl2MmWI/GqzREyg7bqiLQic3ui2dwI9FrNvMB42NKk+qwJQt8jvlrXpaVRij4KpTUtCJVdRK0v91XdC3sjHRxP1mNzfVz1vjrHauh2m14G9CBZDQEm0qoUwjkiO8zoaGpbhLtX1kYKASe0V1v0amN2FXHKqHAXHGo7VVNFaFH8hHlLD0VXroacsSnMzA5dQQJ6Q5m71Kh6TyuRqmGqmPLg5umt+eqkcYiFkAh2qnCY9tWMReYkwZOIFwv8gjd7waERHtm+HZ0M+u+IFw2lA8qyLC4WjOKzu4qVR7BeScjsj3WOvPaPcURefmkZQuQBluBGd3iqwjX89ovfNSmLjbkQ4eGijif3u9O2pIwY9+FrQWYx+ZMv9eIweIRJIWFq8RzleXKx6CNlbRkYfLXs51FTHCdzuH/gbc8jj7orlB4LgZG5d04Z89Zfmnfzfh4raycABY+RR6nDc6bXz8mpbEhfN9GHmxsXDYEkWdyvXjqicNwXwgMzUQBqlLiJyw6PrzGX2f2ZjZ/cQ7uA0NYc47kz0NyJTP/rYTZYrNJgKS0WvCJH2laiSnoNqdEf7RTX5Yffk+ksUwpitq724y5BtNuLP5V3RAevH+/hFCJSTzEoiUbsT1i3YlcyxVP5zfDdTY8PIHAKlTCAoRk7giImm8VAZ9Wf1YUaKsCgXz12kIEZTHso+a7eFl9lUbrniPLdRaXdGp7Cns6t9RhU3YLdBoF3R7XLkOd3Mh9mlXXVraXILHKPaKgVHDUgoBuCvz7nMR44abD2Cd/3+Yot2lu1Ac4V1tKxarRuWzmSooxfpEQ0esgVQFWVtMtDQ+sau2+MmyXGR4th96McXxeMu2u6pbjbhVewdrO6aaOiGFzoXSMfHrHEegvay1YOavYR0Ducd87BaYRIHhvP4cDyi0baJAFiPBLlzLBswjTLK/EqXV2t5wrpnT4OLcvWWd+cTK/w2m09ZD1IhsUje4UUeVQqmQ+JRmOrsu1jhTcCA==","timestamp":"2025-06-17T18:34:55.262Z"}'
 # Results: {
 #   json: { id: '1' },

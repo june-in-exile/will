@@ -1,5 +1,6 @@
 import { vi, describe, beforeEach, afterEach, it, expect, beforeAll } from 'vitest';
 import { ethers, FeeData, JsonRpcProvider, Wallet } from 'ethers';
+import * as approveTokenPermit2Module from '@src/onchain/permit2/approveTokenPermit2.js';
 
 const TESTATOR_PRIVATE_KEY = "1234567890123456789012345678901234567890123456789012345678901234";
 const TESTATOR = '0x1234567890123456789012345678901234567890';
@@ -62,9 +63,16 @@ vi.mock('fs', () => ({
   existsSync: vi.fn(),
 }));
 
-// Mock the permit2SDK module
+// Mock the permit2SDK module - both ES module and CommonJS require
 vi.mock('@uniswap/permit2-sdk', () => ({
-  PERMIT2: PERMIT2,
+  PERMIT2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+}));
+
+// Mock the createRequire for CommonJS module loading
+vi.mock('module', () => ({
+  createRequire: vi.fn(() => vi.fn(() => ({
+    PERMIT2: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
+  })))
 }));
 
 describe('Token Permit2 Approval Workflow', () => {  
@@ -172,11 +180,10 @@ describe('Token Permit2 Approval Workflow', () => {
       process.env = originalEnv;
     });
 
-    it('should validate and return environment variables', async () => {
+    it('should validate and return environment variables', () => {
       mockIsAddress.mockReturnValue(true);
 
-      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = validateEnvironment();
+      const result = approveTokenPermit2Module.validateEnvironment();
 
       expect(result).toEqual({
         TESTATOR_PRIVATE_KEY: TESTATOR_PRIVATE_KEY,
@@ -184,26 +191,24 @@ describe('Token Permit2 Approval Workflow', () => {
       });
     });
 
-    it('should throw error when TESTATOR_PRIVATE_KEY is missing', async () => {
+    it('should throw error when TESTATOR_PRIVATE_KEY is missing', () => {
       delete process.env.TESTATOR_PRIVATE_KEY;
 
-      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => validateEnvironment()).toThrow('Environment variable TESTATOR_PRIVATE_KEY is not set');
+      expect(() => approveTokenPermit2Module.validateEnvironment()).toThrow('Environment variable TESTATOR_PRIVATE_KEY is not set');
     });
 
-    it('should throw error for invalid private key format', async () => {
+    it('should throw error for invalid private key format', () => {
       process.env.TESTATOR_PRIVATE_KEY = 'invalid_key';
 
-      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => validateEnvironment()).toThrow('Invalid private key format');
+      expect(() => approveTokenPermit2Module.validateEnvironment()).toThrow('Invalid private key format');
     });
 
-    it('should use SDK PERMIT2 when environment variable is missing', async () => {
+    it('should use SDK PERMIT2 when environment variable is missing', () => {
       delete process.env.PERMIT2;
       mockIsAddress.mockReturnValue(true);
 
-      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = validateEnvironment();
+      // Since the code uses require() for permit2SDK, the mock should be available
+      const result = approveTokenPermit2Module.validateEnvironment();
 
       expect(result).toEqual({
         TESTATOR_PRIVATE_KEY: TESTATOR_PRIVATE_KEY,
@@ -211,12 +216,11 @@ describe('Token Permit2 Approval Workflow', () => {
       });
     });
 
-    it('should throw error for invalid PERMIT2 address', async () => {
+    it('should throw error for invalid PERMIT2 address', () => {
       process.env.PERMIT2 = 'invalid_address';
       mockIsAddress.mockReturnValue(false);
 
-      const { validateEnvironment } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => validateEnvironment()).toThrow('Invalid PERMIT2');
+      expect(() => approveTokenPermit2Module.validateEnvironment()).toThrow('Invalid PERMIT2');
     });
   });
 
@@ -225,16 +229,14 @@ describe('Token Permit2 Approval Workflow', () => {
       const fs = await import('fs');
       vi.mocked(fs.existsSync).mockReturnValue(true);
 
-      const { validateFiles } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => validateFiles()).not.toThrow();
+      expect(() => approveTokenPermit2Module.validateFiles()).not.toThrow();
     });
 
     it('should throw error when will file does not exist', async () => {
       const fs = await import('fs');
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
-      const { validateFiles } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => validateFiles()).toThrow(/Formatted will file does not exist/);
+      expect(() => approveTokenPermit2Module.validateFiles()).toThrow(/Formatted will file does not exist/);
     });
   });
 
@@ -249,8 +251,7 @@ describe('Token Permit2 Approval Workflow', () => {
       mockProvider.getBalance.mockResolvedValue(BigInt('1000000000000000000'));
       mockFormatEther.mockReturnValue('1.0');
 
-      const { createSigner } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const signer = await createSigner(TESTATOR_PRIVATE_KEY, mockProvider);
+      const signer = await approveTokenPermit2Module.createSigner(TESTATOR_PRIVATE_KEY, mockProvider);
 
       // Verify that signer has the expected properties
       expect(signer.provider).toBe(mockProvider);
@@ -266,8 +267,7 @@ describe('Token Permit2 Approval Workflow', () => {
         throw new Error('Invalid private key');
       });
 
-      const { createSigner } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(createSigner(privateKey, mockProvider)).rejects.toThrow('Failed to create signer');
+      await expect(approveTokenPermit2Module.createSigner(privateKey, mockProvider)).rejects.toThrow('Failed to create signer');
     });
   });
 
@@ -286,8 +286,7 @@ describe('Token Permit2 Approval Workflow', () => {
       mockProvider.getFeeData.mockResolvedValue(mockFeeData);
       mockFormatUnits.mockReturnValue('20.0');
 
-      const { validateNetwork } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const network = await validateNetwork(mockProvider);
+      const network = await approveTokenPermit2Module.validateNetwork(mockProvider);
 
       expect(network).toEqual(mockNetwork);
       expect(mockProvider.getNetwork).toHaveBeenCalled();
@@ -297,8 +296,7 @@ describe('Token Permit2 Approval Workflow', () => {
     it('should handle network connection failure', async () => {
       mockProvider.getNetwork.mockRejectedValue(new Error('Network unreachable'));
 
-      const { validateNetwork } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(validateNetwork(mockProvider)).rejects.toThrow('Failed to connect to network');
+      await expect(approveTokenPermit2Module.validateNetwork(mockProvider)).rejects.toThrow('Failed to connect to network');
     });
   });
 
@@ -316,8 +314,7 @@ describe('Token Permit2 Approval Workflow', () => {
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(validWillData));
       mockIsAddress.mockReturnValue(true);
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = readWillData();
+      const result = approveTokenPermit2Module.readWillData();
 
       expect(result).toEqual(validWillData);
       expect(vi.mocked(fs.readFileSync)).toHaveBeenCalled();
@@ -327,24 +324,21 @@ describe('Token Permit2 Approval Workflow', () => {
       const fs = await import('fs');
       vi.mocked(fs.readFileSync).mockReturnValue('invalid json');
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => readWillData()).toThrow('Invalid JSON in will file');
+      expect(() => approveTokenPermit2Module.readWillData()).toThrow('Invalid JSON in will file');
     });
 
     it('should throw error for missing estates array', async () => {
       const fs = await import('fs');
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({}));
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => readWillData()).toThrow('Missing or invalid estates array');
+      expect(() => approveTokenPermit2Module.readWillData()).toThrow('Missing or invalid estates array');
     });
 
     it('should throw error for empty estates array', async () => {
       const fs = await import('fs');
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({ estates: [] }));
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => readWillData()).toThrow('Estates array cannot be empty');
+      expect(() => approveTokenPermit2Module.readWillData()).toThrow('Estates array cannot be empty');
     });
 
     it('should throw error for invalid token address', async () => {
@@ -355,8 +349,7 @@ describe('Token Permit2 Approval Workflow', () => {
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(invalidData));
       mockIsAddress.mockReturnValue(false);
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => readWillData()).toThrow('Invalid token address in estate 0');
+      expect(() => approveTokenPermit2Module.readWillData()).toThrow('Invalid token address in estate 0');
     });
 
     it('should throw error for invalid amount', async () => {
@@ -367,8 +360,7 @@ describe('Token Permit2 Approval Workflow', () => {
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(invalidData));
       mockIsAddress.mockReturnValue(true);
 
-      const { readWillData } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      expect(() => readWillData()).toThrow('Invalid amount in estate 0');
+      expect(() => approveTokenPermit2Module.readWillData()).toThrow('Invalid amount in estate 0');
     });
   });
 
@@ -378,11 +370,10 @@ describe('Token Permit2 Approval Workflow', () => {
       vi.clearAllMocks();
     });
 
-    it('should extract unique tokens correctly', async () => {
+    it('should extract unique tokens correctly', () => {
       const estates = validWillData.estates;
 
-      const { extractUniqueTokens } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = extractUniqueTokens(estates);
+      const result = approveTokenPermit2Module.extractUniqueTokens(estates);
 
       expect(result.tokens).toHaveLength(2);
       expect(result.tokens).toContain('0x1234567890123456789012345678901234567890');
@@ -396,21 +387,19 @@ describe('Token Permit2 Approval Workflow', () => {
       });
     });
 
-    it('should handle single token correctly', async () => {
+    it('should handle single token correctly', () => {
       const singleTokenEstates = [
         { token: '0x1234567890123456789012345678901234567890', amount: '1000000000000000000' }
       ];
 
-      const { extractUniqueTokens } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = extractUniqueTokens(singleTokenEstates);
+      const result = approveTokenPermit2Module.extractUniqueTokens(singleTokenEstates);
 
       expect(result.tokens).toHaveLength(1);
       expect(result.tokenDetails.size).toBe(1);
     });
 
-    it('should handle empty estates array', async () => {
-      const { extractUniqueTokens } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = extractUniqueTokens([]);
+    it('should handle empty estates array', () => {
+      const result = approveTokenPermit2Module.extractUniqueTokens([]);
 
       expect(result.tokens).toHaveLength(0);
       expect(result.tokenDetails.size).toBe(0);
@@ -419,28 +408,34 @@ describe('Token Permit2 Approval Workflow', () => {
 
   describe('getTokenInfo', () => {
     it('should fetch token information successfully', async () => {
-      vi.resetModules();
-      vi.clearAllMocks();
+      // Debug: check if ethers.Contract is properly mocked
+      console.log('ethers.Contract is mocked:', typeof ethers.Contract);
+      console.log('mockContract mock calls:', mockContract.mock.calls.length);
       
-      // Fresh mock setup for this test
-      const freshTokenContract = {
-        name: vi.fn().mockResolvedValue('Test Token'),
-        symbol: vi.fn().mockResolvedValue('TEST'),
-        decimals: vi.fn().mockResolvedValue(18),
-      };
-      
-      mockContract.mockImplementation(() => freshTokenContract);
+      // Setup the existing mockTokenContract with successful responses
+      mockTokenContract.name.mockResolvedValue('Test Token');
+      mockTokenContract.symbol.mockResolvedValue('TEST');
+      mockTokenContract.decimals.mockResolvedValue(18);
       
       const tokenAddress = '0x1234567890123456789012345678901234567890';
 
-      const { getTokenInfo } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await getTokenInfo(tokenAddress, mockSigner);
+      const result = await approveTokenPermit2Module.getTokenInfo(tokenAddress, mockSigner);
+      
+      // Debug output
+      console.log('Result:', result);
+      console.log('mockContract calls after execution:', mockContract.mock.calls.length);
 
       expect(result).toEqual({
         name: 'Test Token',
         symbol: 'TEST',
         decimals: 18
       });
+      
+      // Verify the calls were made
+      expect(mockContract).toHaveBeenCalled();
+      expect(mockTokenContract.name).toHaveBeenCalled();
+      expect(mockTokenContract.symbol).toHaveBeenCalled();
+      expect(mockTokenContract.decimals).toHaveBeenCalled();
     });
 
     it('should handle token info fetch errors gracefully', async () => {
@@ -458,8 +453,7 @@ describe('Token Permit2 Approval Workflow', () => {
 
       const tokenAddress = '0x1234567890123456789012345678901234567890';
 
-      const { getTokenInfo } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await getTokenInfo(tokenAddress, mockSigner);
+      const result = await approveTokenPermit2Module.getTokenInfo(tokenAddress, mockSigner);
 
       expect(result).toEqual({
         name: 'Unknown',
@@ -471,18 +465,12 @@ describe('Token Permit2 Approval Workflow', () => {
 
   describe('checkCurrentAllowance', () => {
     it('should check current allowance successfully', async () => {
-      vi.resetModules();
-      vi.clearAllMocks();
-      
       const allowance = BigInt('1000000000000000000');
-      const freshTokenContract = {
-        allowance: vi.fn().mockResolvedValue(allowance),
-      };
       
-      mockContract.mockImplementation(() => freshTokenContract);
+      // Setup the existing mockTokenContract with successful response
+      mockTokenContract.allowance.mockResolvedValue(allowance);
 
-      const { checkCurrentAllowance } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await checkCurrentAllowance(
+      const result = await approveTokenPermit2Module.checkCurrentAllowance(
         '0x1234567890123456789012345678901234567890',
         '0xowner',
         '0xspender',
@@ -490,6 +478,9 @@ describe('Token Permit2 Approval Workflow', () => {
       );
 
       expect(result).toBe(allowance);
+      
+      // Verify the call was made
+      expect(mockTokenContract.allowance).toHaveBeenCalledWith('0xowner', '0xspender');
     });
 
     it('should handle allowance check failure', async () => {
@@ -502,8 +493,7 @@ describe('Token Permit2 Approval Workflow', () => {
       
       mockContract.mockImplementation(() => freshTokenContract);
 
-      const { checkCurrentAllowance } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await checkCurrentAllowance(
+      const result = await approveTokenPermit2Module.checkCurrentAllowance(
         '0x1234567890123456789012345678901234567890',
         '0xowner',
         '0xspender',
@@ -516,27 +506,32 @@ describe('Token Permit2 Approval Workflow', () => {
 
   describe('approveToken', () => {
     beforeEach(() => {
-      vi.resetModules();
       vi.clearAllMocks();
-      mockTokenContract.name.mockResolvedValue('Test Token');
-      mockTokenContract.symbol.mockResolvedValue('TEST');
-      mockTokenContract.decimals.mockResolvedValue(18);
-      mockTokenContract.allowance.mockResolvedValue(BigInt(0));
-      mockTokenContract.approve.mockResolvedValue({
-        hash: '0xabcdef1234567890',
-        wait: vi.fn().mockResolvedValue({ status: 1 }),
-      });
-      (mockTokenContract.approve as any).estimateGas = vi.fn().mockResolvedValue(BigInt(50000));
+      
+      // Recreate the mock token contract for this test suite
+      const approveTokenMockContract = {
+        name: vi.fn().mockResolvedValue('Test Token'),
+        symbol: vi.fn().mockResolvedValue('TEST'),
+        decimals: vi.fn().mockResolvedValue(18),
+        allowance: vi.fn().mockResolvedValue(BigInt(0)),
+        approve: vi.fn().mockResolvedValue({
+          hash: '0xabcdef1234567890',
+          wait: vi.fn().mockResolvedValue({ status: 1 }),
+        }),
+      };
+      
+      // Add estimateGas as a property of approve function
+      (approveTokenMockContract.approve as any).estimateGas = vi.fn().mockResolvedValue(BigInt(50000));
+      
       mockSigner.getAddress.mockResolvedValue('0xowner');
-      mockContract.mockImplementation(() => mockTokenContract);
+      mockContract.mockImplementation(() => approveTokenMockContract);
     });
 
     it('should approve token successfully', async () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result).toEqual({
         success: true,
@@ -551,8 +546,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result).toEqual({
         success: true,
@@ -570,8 +564,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Transaction failed');
@@ -593,8 +586,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner, 0);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner, 0);
 
       expect(result.success).toBe(true);
       expect(attemptCount).toBe(2);
@@ -622,8 +614,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokens = ['0x1234567890123456789012345678901234567890', '0x2345678901234567890123456789012345678901'];
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { processTokenApprovals } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovals(tokens, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.processTokenApprovals(tokens, spenderAddress, mockSigner);
 
       expect(result).toEqual({
         total: 2,
@@ -656,8 +647,7 @@ describe('Token Permit2 Approval Workflow', () => {
         }
       });
 
-      const { processTokenApprovals } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovals(tokens, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.processTokenApprovals(tokens, spenderAddress, mockSigner);
 
       expect(result.successful).toBe(1);
       expect(result.failed).toBe(1);
@@ -668,8 +658,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokens: string[] = [];
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { processTokenApprovals } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovals(tokens, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.processTokenApprovals(tokens, spenderAddress, mockSigner);
 
       expect(result).toEqual({
         total: 0,
@@ -720,8 +709,7 @@ describe('Token Permit2 Approval Workflow', () => {
     });
 
     it('should complete workflow successfully', async () => {
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovalWorkflow();
+      const result = await approveTokenPermit2Module.processTokenApprovalWorkflow();
 
       expect(result).toEqual(expect.objectContaining({
         success: true,
@@ -739,30 +727,26 @@ describe('Token Permit2 Approval Workflow', () => {
       const fs = await import('fs');
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify({ estates: [] }));
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(processTokenApprovalWorkflow()).rejects.toThrow('Estates array cannot be empty');
+      await expect(approveTokenPermit2Module.processTokenApprovalWorkflow()).rejects.toThrow('Estates array cannot be empty');
     });
 
     it('should handle file validation failure', async () => {
       const fs = await import('fs');
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(processTokenApprovalWorkflow()).rejects.toThrow('Formatted will file does not exist');
+      await expect(approveTokenPermit2Module.processTokenApprovalWorkflow()).rejects.toThrow('Formatted will file does not exist');
     });
 
     it('should handle environment validation failure', async () => {
       delete process.env.TESTATOR_PRIVATE_KEY;
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(processTokenApprovalWorkflow()).rejects.toThrow('Environment variable TESTATOR_PRIVATE_KEY is not set');
+      await expect(approveTokenPermit2Module.processTokenApprovalWorkflow()).rejects.toThrow('Environment variable TESTATOR_PRIVATE_KEY is not set');
     });
 
     it('should handle network validation failure', async () => {
       mockProvider.getNetwork.mockRejectedValue(new Error('Network unreachable'));
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(processTokenApprovalWorkflow()).rejects.toThrow('Failed to connect to network');
+      await expect(approveTokenPermit2Module.processTokenApprovalWorkflow()).rejects.toThrow('Failed to connect to network');
     });
 
     it('should handle signer creation failure', async () => {
@@ -770,8 +754,7 @@ describe('Token Permit2 Approval Workflow', () => {
         throw new Error('Invalid private key');
       });
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      await expect(processTokenApprovalWorkflow()).rejects.toThrow('Failed to create signer');
+      await expect(approveTokenPermit2Module.processTokenApprovalWorkflow()).rejects.toThrow('Failed to create signer');
     });
 
     it('should handle partial approval failures gracefully', async () => {
@@ -789,8 +772,7 @@ describe('Token Permit2 Approval Workflow', () => {
         }
       });
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovalWorkflow();
+      const result = await approveTokenPermit2Module.processTokenApprovalWorkflow();
 
       expect(result.success).toBe(true);
       expect(result.allSuccessful).toBe(false);
@@ -831,7 +813,7 @@ describe('Token Permit2 Approval Workflow', () => {
       });
     });
 
-    it('should handle duplicate tokens in estates', async () => {
+    it('should handle duplicate tokens in estates', () => {
       const duplicateTokenData = {
         estates: [
           { token: '0x1234567890123456789012345678901234567890', amount: '1000000000000000000' },
@@ -840,8 +822,7 @@ describe('Token Permit2 Approval Workflow', () => {
         ]
       };
 
-      const { extractUniqueTokens } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const { tokens, tokenDetails } = extractUniqueTokens(duplicateTokenData.estates);
+      const { tokens, tokenDetails } = approveTokenPermit2Module.extractUniqueTokens(duplicateTokenData.estates);
 
       expect(tokens).toHaveLength(1);
       expect(tokenDetails.get('0x1234567890123456789012345678901234567890'.toLowerCase())).toEqual({
@@ -870,8 +851,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result.success).toBe(true);
     });
@@ -896,8 +876,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Transaction timeout');
@@ -919,8 +898,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Persistent failure');
@@ -942,8 +920,7 @@ describe('Token Permit2 Approval Workflow', () => {
       const tokenAddress = '0x1234567890123456789012345678901234567890';
       const spenderAddress = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
 
-      const { approveToken } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await approveToken(tokenAddress, spenderAddress, mockSigner);
+      const result = await approveTokenPermit2Module.approveToken(tokenAddress, spenderAddress, mockSigner);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('insufficient funds for intrinsic transaction cost');
@@ -1015,8 +992,7 @@ describe('Token Permit2 Approval Workflow', () => {
       mockFormatEther.mockReturnValue('1.0');
       mockFormatUnits.mockReturnValue('20.0');
 
-      const { processTokenApprovalWorkflow } = await import('@src/onchain/permit2/approveTokenPermit2.js');
-      const result = await processTokenApprovalWorkflow();
+      const result = await approveTokenPermit2Module.processTokenApprovalWorkflow();
 
       expect(result.success).toBe(true);
       expect(result.total).toBe(3);

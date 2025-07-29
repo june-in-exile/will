@@ -3,9 +3,6 @@
   "compilerOptions": {
     "paths": {
       "@shared/*": ["../shared/*"],
-      "@constant/*": ["../shared/constant/*"],
-      "@type/*": ["../shared/type/*"],
-      "@util/*": ["../shared/util/*"],
       "@config": ["../shared/config.js"]
     }
   },

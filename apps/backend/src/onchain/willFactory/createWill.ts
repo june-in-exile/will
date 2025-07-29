@@ -1,18 +1,18 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
-import { readProof } from "@util/read/proof.js";
-import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
-import { validatePrivateKey } from "@util/format/wallet.js";
-import { validateCidv1 } from "@util/format/cid.js";
-import { type SupportedAlgorithm } from "@type/crypto.js";
-import { Base64String } from "@type/encoding.js";
+import { readProof } from "@shared/utils/file/readProof.js";
+import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { validatePrivateKey } from "@shared/utils/format/wallet.js";
+import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { type SupportedAlgorithm } from "@shared/types/crypto.js";
+import { Base64String } from "@shared/types/encoding.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
-import { ProofData } from "@type/crypto.js";
+import { ProofData } from "@shared/types/crypto.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
-} from "@type/typechain-types/index.js";
+} from "@shared/types/typechain-types/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -462,7 +462,7 @@ function validateEstateBusinessRules(
       const otherEstate = estates[j];
       if (
         estate.beneficiary.toLowerCase() ===
-          otherEstate.beneficiary.toLowerCase() &&
+        otherEstate.beneficiary.toLowerCase() &&
         estate.token.toLowerCase() === otherEstate.token.toLowerCase()
       ) {
         console.warn(

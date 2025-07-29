@@ -3,17 +3,17 @@ import type {
   EncryptionArgs,
   EncryptedWill,
   SupportedAlgorithm,
-} from "@type/crypto.js";
-import { Base64String } from "@type/encoding.js";
+} from "@shared/types/crypto.js";
+import { Base64String } from "@shared/types/encoding.js";
 import {
   generateEncryptionKey,
   generateInitializationVector,
   encrypt,
-} from "@util/crypto/encrypt.js";
+} from "@shared/utils/crypto/encrypt.js";
 import {
   validateEthereumAddress,
   validateSignature,
-} from "@util/format/wallet.js";
+} from "@shared/utils/format/wallet.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

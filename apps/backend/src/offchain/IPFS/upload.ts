@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
-import type { SupportedAlgorithm } from "@type/crypto.js";
-import { updateEnvVariable } from "@util/env/updateEnvVariable.js";
+import type { SupportedAlgorithm } from "@shared/types/crypto.js";
+import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";
