@@ -1,4 +1,4 @@
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@constant/crypto.js";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/type/constants.js";
 import type { SupportedAlgorithm } from "@type/crypto.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

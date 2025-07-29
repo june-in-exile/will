@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@constant/crypto.js";
+import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/type/constants.js";
 import type {
   DecryptionArgs,
   AuthenticatedDecipher,
@@ -118,25 +118,25 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-      chalk.gray(
-        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-      ),
+    chalk.gray(
+      "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+    ),
   );
   console.log(
     chalk.cyan("  --ciphertext") +
-      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+    chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-      chalk.gray("          Base64-encoded decryption key [required]"),
+    chalk.gray("          Base64-encoded decryption key [required]"),
   );
   console.log(
     chalk.cyan("  --iv") +
-      chalk.gray("           Base64-encoded initialization vector [required]"),
+    chalk.gray("           Base64-encoded initialization vector [required]"),
   );
   console.log(
     chalk.cyan("  --authTag") +
-      chalk.gray("      Base64-encoded authentication tag [required]"),
+    chalk.gray("      Base64-encoded authentication tag [required]"),
   );
 
   console.log(chalk.red("\nImportant:"));

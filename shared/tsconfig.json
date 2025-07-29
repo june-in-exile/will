@@ -6,7 +6,6 @@
     "sourceMap": true, // generate .js.map
     "paths": {
       "@shared/*": ["./*"],
-      "@constant/*": ["./constant/*"],
       "@type/*": ["./type/*"],
       "@util/*": ["./util/*"],
       "@config": ["./config.js"]
