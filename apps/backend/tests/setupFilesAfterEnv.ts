@@ -1,4 +1,4 @@
-import { jest } from "@jest/globals";
+import { vi } from "vitest";
 
 const LOG_LEVELS = {
   error: 0,
@@ -24,11 +24,11 @@ function shouldLog(level: LogLevel): boolean {
 
 globalThis.console = {
   ...console,
-  log: shouldLog("log") ? console.log : jest.fn(),
-  debug: shouldLog("debug") ? console.debug : jest.fn(),
-  info: shouldLog("info") ? console.info : jest.fn(),
-  warn: shouldLog("warn") ? console.warn : jest.fn(),
-  error: shouldLog("error") ? console.error : jest.fn(),
+  log: shouldLog("log") ? console.log : vi.fn(),
+  debug: shouldLog("debug") ? console.debug : vi.fn(),
+  info: shouldLog("info") ? console.info : vi.fn(),
+  warn: shouldLog("warn") ? console.warn : vi.fn(),
+  error: shouldLog("error") ? console.error : vi.fn(),
 };
 
 export {};
