@@ -2,6 +2,7 @@ import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
+import type { Estate, WillInfo, TokenBalance, BalanceSnapshot } from "@shared/types/blockchain.js";
 import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import { config } from "dotenv";
@@ -10,18 +11,6 @@ import chalk from "chalk";
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
-interface Estate {
-  beneficiary: string;
-  token: string;
-  amount: bigint;
-}
-
-interface WillInfo {
-  testator: string;
-  executor: string;
-  executed: boolean;
-  estates: Estate[];
-}
 
 interface SignatureTransferResult {
   transactionHash: string;
@@ -32,19 +21,6 @@ interface SignatureTransferResult {
   estateCount: number;
 }
 
-interface TokenBalance {
-  address: string;
-  tokenAddress: string;
-  balance: bigint;
-  formattedBalance: string;
-  symbol: string;
-  decimals: number;
-}
-
-interface BalanceSnapshot {
-  timestamp: number;
-  balances: TokenBalance[];
-}
 
 // ERC20 ABI for token operations
 const ERC20_ABI = [

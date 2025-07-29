@@ -1,4 +1,4 @@
-import type { CIDSigning } from "@shared/types/environment.js";
+import type { CidSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@config";
 import { signString, verify } from "@shared/utils/crypto/signature.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
@@ -21,8 +21,8 @@ interface ProcessResult {
 /**
  * Validate environment variables
  */
-function validateEnvironmentVariables(): CIDSigning {
-  const result = validateEnvironment<CIDSigning>(presetValidations.cidSigning());
+function validateEnvironmentVariables(): CidSigning {
+  const result = validateEnvironment<CidSigning>(presetValidations.cidSigning());
 
   if (!result.isValid) {
     throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);

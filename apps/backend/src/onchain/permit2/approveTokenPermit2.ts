@@ -1,6 +1,7 @@
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { PATHS_CONFIG, APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
+import { Estate, WillData } from "@shared/types/blockchain.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";
@@ -48,16 +49,6 @@ interface WorkflowResult extends TokenApprovalSummary {
   signerAddress: string;
   success: boolean;
   message?: string;
-}
-
-interface Estate {
-  token: string;
-  amount: string;
-  beneficiary?: string;
-}
-
-interface WillData {
-  estates: Estate[];
 }
 
 /**
@@ -178,13 +169,6 @@ function readWillData(): WillData {
       if (!estate.amount) {
         throw new Error(`Missing amount in estate ${index}`);
       }
-
-      // Validate amount is a valid number
-      try {
-        BigInt(estate.amount);
-      } catch {
-        throw new Error(`Invalid amount in estate ${index}: ${estate.amount}`);
-      }
     });
 
     console.log(chalk.green("✅ Will data validated successfully"));
@@ -217,12 +201,12 @@ function extractUniqueTokens(estates: Estate[]): {
       tokenDetails.set(token, {
         address: estate.token,
         estates: [index],
-        totalAmount: BigInt(estate.amount),
+        totalAmount: estate.amount,
       });
     } else {
       const details = tokenDetails.get(token)!;
       details.estates.push(index);
-      details.totalAmount += BigInt(estate.amount);
+      details.totalAmount += estate.amount;
     }
   });
 

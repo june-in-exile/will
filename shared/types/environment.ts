@@ -12,28 +12,27 @@ export interface TransferSigning {
   PERMIT2: string;
 }
 
-export interface UploadCID {
+export interface UploadCid {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
 }
 
-
 export interface SubmitProof {
   UPLOAD_CID_VERIFIER: string;
 }
 
-export interface IPFSDownload {
+export interface IpfsDownload {
   CID: string;
 }
 
-export interface CIDSigning {
+export interface CidSigning {
   CID: string;
   EXECUTOR_PRIVATE_KEY: string;
   EXECUTOR: string;
 }
 
-export interface NotarizeCID {
+export interface NotarizeCid {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;

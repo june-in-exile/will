@@ -3,6 +3,7 @@ import { readProof } from "@shared/utils/file/readProof.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { CreateWill } from "@shared/types/environment.js";
+import type { Estate } from "@shared/types/blockchain.js";
 import { type SupportedAlgorithm } from "@shared/types/crypto.js";
 import { Base64String } from "@shared/types/base64String.js";
 import { readFileSync, existsSync } from "fs";
@@ -19,11 +20,6 @@ import chalk from "chalk";
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
-interface Estate {
-  beneficiary: string;
-  token: string;
-  amount: bigint;
-}
 
 interface EncryptedWillData {
   algorithm: SupportedAlgorithm;

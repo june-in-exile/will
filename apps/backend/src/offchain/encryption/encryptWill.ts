@@ -4,6 +4,7 @@ import type {
   EncryptedWill,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
+import type { Estate } from "@shared/types/blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import {
   generateEncryptionKey,
@@ -13,7 +14,7 @@ import {
 import {
   validateEthereumAddress,
   validateSignature,
-} from "@shared/utils/format/wallet.js";
+} from "@shared/utils/validation/blockchain.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -40,11 +41,6 @@ interface SignedWill {
   signature: Signature;
 }
 
-interface Estate {
-  beneficiary: string;
-  token: string;
-  amount: bigint;
-}
 
 interface Metadata {
   predictedAt: number;
@@ -157,16 +153,9 @@ function readSignedWill(): SignedWill {
       }
 
       // Validate amount is a positive number
-      if (typeof estate.amount !== "number" || estate.amount <= 0) {
+      if (estate.amount <= 0) {
         throw new Error(
           `Invalid amount in estate ${index}: ${estate.amount} (must be a positive number)`,
-        );
-      }
-
-      // Validate amount is an integer (no decimals for token amounts)
-      if (!Number.isInteger(estate.amount)) {
-        throw new Error(
-          `Amount must be an integer in estate ${index}: ${estate.amount}`,
         );
       }
     });

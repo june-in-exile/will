@@ -1,4 +1,4 @@
-import type { IPFSDownload } from "@shared/types/environment.js";
+import type { IpfsDownload } from "@shared/types/environment.js";
 import { PATHS_CONFIG } from "@config";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
@@ -33,8 +33,8 @@ interface DownloadResult {
 /**
  * Validate environment variables
  */
-function validateEnvironmentVariables(): IPFSDownload {
-  const result = validateEnvironment<IPFSDownload>(presetValidations.ipfsDownload());
+function validateEnvironmentVariables(): IpfsDownload {
+  const result = validateEnvironment<IpfsDownload>(presetValidations.ipfsDownload());
 
   if (!result.isValid) {
     throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);

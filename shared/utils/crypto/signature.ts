@@ -3,7 +3,7 @@ import type { SignatureValidationResult } from "@shared/types/crypto.js";
 import {
   validateEthereumAddress,
   validateSignature,
-} from "@shared/utils/format/wallet.js";
+} from "@shared/utils/validation/blockchain.js";
 import { keccak256 } from "@shared/utils/crypto/keccak256.js";
 import { ethers, Wallet } from "ethers";
 import chalk from "chalk";

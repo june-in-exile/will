@@ -1,4 +1,4 @@
-import type { NotarizeCID } from "@shared/types/environment.js";
+import type { NotarizeCid } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
@@ -24,8 +24,8 @@ interface NotarizeResult {
 /**
  * Validate environment variables
  */
-function validateEnvironmentVariables(): NotarizeCID {
-  const result = validateEnvironment<NotarizeCID>(presetValidations.notarizeCID());
+function validateEnvironmentVariables(): NotarizeCid {
+  const result = validateEnvironment<NotarizeCid>(presetValidations.notarizeCid());
 
   if (!result.isValid) {
     throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);

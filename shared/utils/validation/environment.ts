@@ -1,5 +1,4 @@
-import { ethers } from "ethers";
-import { validatePrivateKey } from "@shared/utils/format/wallet.js";
+import { validateEthereumAddress, validatePrivateKey, validateSignature } from "@shared/utils/validation/blockchain.js";
 import { validateCidv1 } from "@shared/utils/format/cid.js";
 import type { EnvironmentValidationOptions, ValidationResult } from "@shared/types/validation.js";
 
@@ -68,132 +67,113 @@ export function validateEnvironment<T extends Record<string, any>>(
   };
 }
 
-// Common validators
-export const commonValidators = {
-  ethereumAddress: (value: string): boolean => ethers.isAddress(value),
+const validators = {
+  ethereumAddress: (value: string): boolean => validateEthereumAddress(value),
   privateKey: (value: string): boolean => validatePrivateKey(value),
   cidv1: (value: string): boolean => validateCidv1(value),
-  hexSignature: (value: string): boolean => {
-    return value.match(/^0x[0-9a-fA-F]+$/) !== null;
-  },
-  signatureLength: (expectedLength: number) => (value: string): boolean => {
-    return value.length === expectedLength;
-  },
+  signature: (value: string): boolean => validateSignature(value),
   numericString: (value: string): boolean => /^\d+$/.test(value),
-  positiveNumber: (value: string): boolean => {
-    const num = parseInt(value);
-    return !isNaN(num) && num > 0;
-  },
-  futureTimestamp: (value: string): boolean => {
-    const timestamp = parseInt(value);
-    const currentTimestamp = Math.floor(Date.now() / 1000);
-    return !isNaN(timestamp) && timestamp > currentTimestamp;
-  }
 };
 
-// Common transforms
-export const commonTransforms = {
+const transforms = {
   toBigInt: (value: string): bigint => BigInt(value),
-  toNumber: (value: string): number => parseInt(value),
-  toLowerCase: (value: string): string => value.toLowerCase(),
-  removeHexPrefix: (value: string): string => value.startsWith("0x") ? value.slice(2) : value
 };
 
 // Preset validation configurations for common use cases
 export const presetValidations = {
-  notarizeCID: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "EXECUTOR_SIGNATURE"],
+  tokenApproval: (): EnvironmentValidationOptions => ({
+    required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
-      WILL_FACTORY: commonValidators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: commonValidators.privateKey,
-      CID: commonValidators.cidv1,
-      EXECUTOR_SIGNATURE: (value: string) => 
-        commonValidators.hexSignature(value) && commonValidators.signatureLength(132)(value)
-    }
-  }),
-
-  createWill: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "TESTATOR", "SALT"],
-    validators: {
-      WILL_FACTORY: commonValidators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: commonValidators.privateKey,
-      CID: commonValidators.cidv1,
-      TESTATOR: commonValidators.ethereumAddress,
-      SALT: commonValidators.numericString
-    },
-    transforms: {
-      SALT: commonTransforms.toBigInt
-    }
-  }),
-
-  signatureTransfer: (): EnvironmentValidationOptions => ({
-    required: ["WILL", "EXECUTOR_PRIVATE_KEY", "NONCE", "DEADLINE", "PERMIT2_SIGNATURE"],
-    validators: {
-      WILL: commonValidators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: commonValidators.privateKey,
-      NONCE: commonValidators.numericString,
-      DEADLINE: commonValidators.numericString,
-      PERMIT2_SIGNATURE: (value: string) => 
-        commonValidators.hexSignature(value) && commonValidators.signatureLength(132)(value)
-    },
-    transforms: {
-      NONCE: commonTransforms.toBigInt,
-      DEADLINE: commonTransforms.toBigInt
-    }
-  }),
-
-  submitProof: (): EnvironmentValidationOptions => ({
-    required: ["UPLOAD_CID_VERIFIER"],
-    validators: {
-      UPLOAD_CID_VERIFIER: commonValidators.ethereumAddress
-    }
-  }),
-
-  ipfsDownload: (): EnvironmentValidationOptions => ({
-    required: ["CID"],
-    validators: {
-      CID: commonValidators.cidv1
-    }
-  }),
-
-  uploadCID: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID"],
-    validators: {
-      WILL_FACTORY: commonValidators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: commonValidators.privateKey,
-      CID: commonValidators.cidv1
+      TESTATOR_PRIVATE_KEY: validators.privateKey,
+      PERMIT2: validators.ethereumAddress
     }
   }),
 
   predictWill: (): EnvironmentValidationOptions => ({
     required: ["WILL_FACTORY"],
     validators: {
-      WILL_FACTORY: commonValidators.ethereumAddress
+      WILL_FACTORY: validators.ethereumAddress
     }
   }),
 
   transferSigning: (): EnvironmentValidationOptions => ({
     required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
-      TESTATOR_PRIVATE_KEY: commonValidators.privateKey,
-      PERMIT2: commonValidators.ethereumAddress
+      TESTATOR_PRIVATE_KEY: validators.privateKey,
+      PERMIT2: validators.ethereumAddress
+    }
+  }),
+
+  uploadCid: (): EnvironmentValidationOptions => ({
+    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID"],
+    validators: {
+      WILL_FACTORY: validators.ethereumAddress,
+      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      CID: validators.cidv1
+    }
+  }),
+
+  submitProof: (): EnvironmentValidationOptions => ({
+    required: ["UPLOAD_CID_VERIFIER"],
+    validators: {
+      UPLOAD_CID_VERIFIER: validators.ethereumAddress
+    }
+  }),
+
+  ipfsDownload: (): EnvironmentValidationOptions => ({
+    required: ["CID"],
+    validators: {
+      CID: validators.cidv1
     }
   }),
 
   cidSigning: (): EnvironmentValidationOptions => ({
     required: ["CID", "EXECUTOR_PRIVATE_KEY", "EXECUTOR"],
     validators: {
-      CID: commonValidators.cidv1,
-      EXECUTOR_PRIVATE_KEY: commonValidators.privateKey,
-      EXECUTOR: commonValidators.ethereumAddress
+      CID: validators.cidv1,
+      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      EXECUTOR: validators.ethereumAddress
     }
   }),
 
-  tokenApproval: (): EnvironmentValidationOptions => ({
-    required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
+  notarizeCid: (): EnvironmentValidationOptions => ({
+    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "EXECUTOR_SIGNATURE"],
     validators: {
-      TESTATOR_PRIVATE_KEY: commonValidators.privateKey,
-      PERMIT2: commonValidators.ethereumAddress
+      WILL_FACTORY: validators.ethereumAddress,
+      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      CID: validators.cidv1,
+      EXECUTOR_SIGNATURE: (value: string) =>
+        validators.signature(value)
     }
-  })
+  }),
+
+  createWill: (): EnvironmentValidationOptions => ({
+    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "TESTATOR", "SALT"],
+    validators: {
+      WILL_FACTORY: validators.ethereumAddress,
+      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      CID: validators.cidv1,
+      TESTATOR: validators.ethereumAddress,
+      SALT: validators.numericString
+    },
+    transforms: {
+      SALT: transforms.toBigInt
+    }
+  }),
+
+  signatureTransfer: (): EnvironmentValidationOptions => ({
+    required: ["WILL", "EXECUTOR_PRIVATE_KEY", "NONCE", "DEADLINE", "PERMIT2_SIGNATURE"],
+    validators: {
+      WILL: validators.ethereumAddress,
+      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      NONCE: validators.numericString,
+      DEADLINE: validators.numericString,
+      PERMIT2_SIGNATURE: (value: string) =>
+        validators.signature(value)
+    },
+    transforms: {
+      NONCE: transforms.toBigInt,
+      DEADLINE: transforms.toBigInt
+    }
+  }),
 };

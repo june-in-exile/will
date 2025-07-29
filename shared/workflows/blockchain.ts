@@ -71,7 +71,7 @@ export abstract class BlockchainWorkflow<TInput, TResult> extends BaseWorkflow<T
 
 // 需要連接 RPC、創建錢包、執行交易的檔案
 // apps/backend/src/onchain/permit2/approveTokenPermit2.ts          // ✅ BlockchainWorkflow
-// apps/backend/src/onchain/willFactory/uploadCID.ts               // ✅ BlockchainWorkflow  
+// apps/backend/src/onchain/willFactory/uploadCid.ts               // ✅ BlockchainWorkflow  
 // apps/backend/src/onchain/willFactory/createWill.ts              // ✅ BlockchainWorkflow
 // apps/backend/src/onchain/willFactory/predictWill.ts             // ✅ BlockchainWorkflow
 // apps/backend/src/onchain/willFactory/notarizeCid.ts             // ✅ BlockchainWorkflow

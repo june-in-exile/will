@@ -1,4 +1,4 @@
-import type { UploadCID } from "@shared/types/environment.js";
+import type { UploadCid } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
 import type { SupportedAlgorithm, ProofData } from "@shared/types/crypto.js";
 import { Base64String } from "@shared/types/base64String.js";
@@ -26,7 +26,7 @@ interface EncryptedWillData {
   timestamp: string;
 }
 
-interface UploadCIDData {
+interface UploadCidData {
   proof: ProofData;
   will: JsonCidVerifier.JsonObjectStruct;
   cid: string;
@@ -43,8 +43,8 @@ interface UploadResult {
 /**
  * Validate environment variables
  */
-function validateEnvironmentVariables(): UploadCID {
-  const result = validateEnvironment<UploadCID>(presetValidations.uploadCID());
+function validateEnvironmentVariables(): UploadCid {
+  const result = validateEnvironment<UploadCid>(presetValidations.uploadCid());
 
   if (!result.isValid) {
     throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
@@ -271,7 +271,7 @@ async function createContractInstance(
 /**
  * Print detailed UploadCIDData information
  */
-function printUploadCIDData(uploadData: UploadCIDData): void {
+function printUploadCidData(uploadData: UploadCidData): void {
   console.log(chalk.cyan("\n=== UploadCIDData Details ==="));
 
   // Print CID
@@ -329,21 +329,21 @@ function printUploadCIDData(uploadData: UploadCIDData): void {
     );
   });
 
-  console.log(chalk.cyan("\n=== End of UploadCIDData Details ===\n"));
+  console.log(chalk.cyan("\n=== End of UploadCidData Details ===\n"));
 }
 
 /**
  * Execute uploadCid transaction
  */
-async function executeUploadCID(
+async function executeUploadCid(
   contract: WillFactory,
-  uploadData: UploadCIDData,
+  uploadData: UploadCidData,
 ): Promise<UploadResult> {
   try {
     console.log(chalk.blue("Executing uploadCid transaction..."));
 
     // Print detailed upload data information
-    printUploadCIDData(uploadData);
+    printUploadCidData(uploadData);
 
     // Estimate gas
     const gasEstimate = await contract.uploadCid.estimateGas(
@@ -457,7 +457,7 @@ async function getContractInfo(contract: WillFactory): Promise<void> {
 /**
  * Process CID upload workflow
  */
-async function processUploadCID(): Promise<UploadResult> {
+async function processUploadCid(): Promise<UploadResult> {
   try {
     // Validate prerequisites
     validateFiles();
@@ -483,7 +483,7 @@ async function processUploadCID(): Promise<UploadResult> {
       convertToJsonObject(willData);
 
     // Execute upload
-    const result = await executeUploadCID(contract, {
+    const result = await executeUploadCid(contract, {
       proof,
       will,
       cid: CID,
@@ -510,7 +510,7 @@ async function processUploadCID(): Promise<UploadResult> {
  */
 async function main(): Promise<void> {
   try {
-    const result = await processUploadCID();
+    const result = await processUploadCid();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"));
@@ -555,9 +555,9 @@ export {
   readWillData,
   convertToJsonObject,
   createContractInstance,
-  printUploadCIDData,
-  executeUploadCID,
+  printUploadCidData as printUploadCIDData,
+  executeUploadCid as executeUploadCID,
   updateEnvironmentVariables,
   getContractInfo,
-  processUploadCID
+  processUploadCid
 }

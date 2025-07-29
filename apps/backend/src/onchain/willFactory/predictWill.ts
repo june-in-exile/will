@@ -7,6 +7,7 @@ import {
   type WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
+import { EthereumAddress, Estate, WillData } from "@shared/types/blockchain.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
@@ -16,13 +17,7 @@ import chalk from "chalk";
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
-interface WillData {
-  testator: string;
-  estates: Will.EstateStruct[];
-}
-
 interface AddressedWill extends WillData {
-  will: string;
   salt: number;
   timestamp: string;
   metadata: {
@@ -131,7 +126,7 @@ function readWillData(): WillData {
 
     // Validate estate structure
     willJson.estates.forEach((estate, index) => {
-      const requiredFields: (keyof Will.EstateStruct)[] = [
+      const requiredFields: (keyof Estate)[] = [
         "beneficiary",
         "token",
         "amount",
@@ -203,7 +198,7 @@ async function predictWillAddress(
   testator: string,
   estates: Will.EstateStruct[],
   salt: number,
-): Promise<string> {
+): Promise<EthereumAddress> {
   try {
     console.log(chalk.blue("Predicting will address..."));
     console.log(chalk.gray("Parameters:"));
@@ -211,7 +206,7 @@ async function predictWillAddress(
     console.log(chalk.gray("- Estates count:"), estates.length);
     console.log(chalk.gray("- Salt:"), salt);
 
-    const predictedAddress = await contract.predictWill(
+    const predictedAddress: EthereumAddress = await contract.predictWill(
       testator,
       estates,
       salt,
@@ -239,7 +234,7 @@ async function predictWillAddress(
 function saveAddressedWill(
   willData: WillData,
   salt: number,
-  predictedAddress: string,
+  predictedAddress: EthereumAddress,
 ): AddressedWill {
   try {
     console.log(chalk.blue("Preparing addressed will..."));

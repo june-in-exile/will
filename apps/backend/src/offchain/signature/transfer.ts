@@ -7,6 +7,7 @@ import {
   NETWORK_CONFIG,
 } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { Estate, WillData } from "@shared/types/blockchain.js"
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
 import { config } from "dotenv";
@@ -21,18 +22,6 @@ config({ path: PATHS_CONFIG.env });
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");
 const { SignatureTransfer } = permit2SDK;
-
-interface Estate {
-  token: string;
-  amount: string;
-  beneficiary: string;
-}
-
-interface WillData {
-  testator: string;
-  estates: Estate[];
-  will: string;
-}
 
 interface PermittedToken {
   token: string;
@@ -176,9 +165,9 @@ function readWillData(): WillData {
     // Validate each estate
     willJson.estates.forEach((estate, index) => {
       const requiredEstateFields: (keyof Estate)[] = [
+        "beneficiary",
         "token",
         "amount",
-        "beneficiary",
       ];
       for (const field of requiredEstateFields) {
         if (!estate[field]) {
@@ -198,13 +187,6 @@ function readWillData(): WillData {
         throw new Error(
           `Invalid beneficiary address in estate ${index}: ${estate.beneficiary}`,
         );
-      }
-
-      // Validate amount is a valid number
-      try {
-        BigInt(estate.amount);
-      } catch {
-        throw new Error(`Invalid amount in estate ${index}: ${estate.amount}`);
       }
     });
 
@@ -265,14 +247,14 @@ function createPermitStructure(
 
     const permitted: PermittedToken[] = estates.map((estate, index) => {
       console.log(chalk.gray(`Estate ${index}:`), {
+        beneficiary: estate.beneficiary,
         token: estate.token,
         amount: estate.amount,
-        beneficiary: estate.beneficiary,
       });
 
       return {
         token: estate.token,
-        amount: BigInt(estate.amount),
+        amount: estate.amount,
       };
     });
 
