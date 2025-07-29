@@ -1,5 +1,5 @@
 packages:
-  - 'apps/*'
-  - 'contracts'
-  - 'zkp'
-  - 'shared'
+  - "apps/*"
+  - "contracts"
+  - "zkp"
+  - "shared"

@@ -1,5 +1,5 @@
 {
-  "name": "zkp-circuits-tested-by-vitest",
+  "name": "zkp",
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "type": "module",

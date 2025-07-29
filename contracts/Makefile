@@ -57,6 +57,7 @@ build: sync-groth16verifier-and-proof
 	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/type/typechain-types 'out/**/*.sol/*.json'
 
 test:
+	@cd ../zkp && make circuit
 	@$(MAKE) sync-groth16verifier-and-proof
 	@$(MAKE) _test
 
