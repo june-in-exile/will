@@ -1,10 +1,10 @@
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { validatePrivateKey } from "@shared/utils/format/wallet.js";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import type { CreateWill } from "@shared/types/environment.js";
 import { type SupportedAlgorithm } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/encoding.js";
+import { Base64String } from "@shared/types/base64String.js";
 import { readFileSync, existsSync } from "fs";
 import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
 import { ProofData } from "@shared/types/crypto.js";
@@ -18,15 +18,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  CID: string;
-  TESTATOR: string;
-  SALT: string;
-}
 
 interface Estate {
   beneficiary: string;
@@ -63,53 +54,14 @@ interface CreateWillResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
-    process.env;
+function validateEnvironmentVariables(): CreateWill {
+  const result = validateEnvironment<CreateWill>(presetValidations.createWill());
 
-  if (!WILL_FACTORY) {
-    throw new Error("Environment variable WILL_FACTORY is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable EXECUTOR_PRIVATE_KEY is not set");
-  }
-
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
-  }
-
-  if (!TESTATOR) {
-    throw new Error("Environment variable TESTATOR is not set");
-  }
-
-  if (!SALT) {
-    throw new Error("Environment variable SALT is not set");
-  }
-
-  if (!ethers.isAddress(WILL_FACTORY)) {
-    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  if (!validateCidv1(CID)) {
-    throw new Error("Invalid CID v1 format");
-  }
-
-  if (!ethers.isAddress(TESTATOR)) {
-    throw new Error(`Invalid testator address: ${TESTATOR}`);
-  }
-
-  return {
-    WILL_FACTORY,
-    EXECUTOR_PRIVATE_KEY,
-    CID,
-    TESTATOR,
-    SALT,
-  };
+  return result.data;
 }
 
 /**
@@ -787,7 +739,7 @@ async function processCreateWill(): Promise<CreateWillResult> {
     // Validate prerequisites
     validateFiles();
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
-      validateEnvironment();
+      validateEnvironmentVariables();
 
     // Parse estates from environment
     const estates = parseEstatesFromEnvironment();
@@ -890,7 +842,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   parseEstatesFromEnvironment,
   validateFiles,
   validateRpcConnection,

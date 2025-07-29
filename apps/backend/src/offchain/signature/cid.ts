@@ -1,10 +1,7 @@
+import type { CIDSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@config";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
 import { signString, verify } from "@shared/utils/crypto/signature.js";
-import {
-  validateEthereumAddress,
-  validatePrivateKey,
-} from "@shared/utils/format/wallet.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { config } from "dotenv";
 import assert from "assert";
@@ -12,13 +9,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  CID: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  EXECUTOR: string;
-}
 
 interface ProcessResult {
   cid: string;
@@ -31,34 +21,14 @@ interface ProcessResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = process.env;
+function validateEnvironmentVariables(): CIDSigning {
+  const result = validateEnvironment<CIDSigning>(presetValidations.cidSigning());
 
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable EXECUTOR_PRIVATE_KEY is not set");
-  }
-
-  if (!EXECUTOR) {
-    throw new Error("Environment variable EXECUTOR is not set");
-  }
-
-  if (!validateCidv1(CID)) {
-    throw new Error("Invalid CID v1 format");
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  if (!validateEthereumAddress(EXECUTOR)) {
-    throw new Error("Invalid executor address");
-  }
-
-  return { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR };
+  return result.data;
 }
 
 /**
@@ -179,7 +149,7 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
 async function processCidSigning(): Promise<ProcessResult> {
   try {
     // Validate environment variables
-    const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = validateEnvironment();
+    const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = validateEnvironmentVariables();
 
     console.log(chalk.cyan("\n🔐 Starting CID signing process..."));
     console.log(chalk.gray("CID to sign:"), CID);
@@ -273,7 +243,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   signCidWithRetry,
   verifySignatureWithDetails,
   updateEnvironmentVariable,

@@ -5,7 +5,7 @@ import type {
   AuthenticatedCipher,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/encoding.js";
+import { Base64String } from "@shared/types/base64String.js";
 import { randomBytes, createCipheriv } from "crypto";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";

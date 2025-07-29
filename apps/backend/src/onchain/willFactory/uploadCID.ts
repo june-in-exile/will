@@ -1,13 +1,10 @@
+import type { UploadCID } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, CRYPTO_CONFIG } from "@config";
 import type { SupportedAlgorithm, ProofData } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/encoding.js";
+import { Base64String } from "@shared/types/base64String.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { readProof } from "@shared/utils/file/readProof.js";
-import {
-  validateEthereumAddress,
-  validatePrivateKey,
-} from "@shared/utils/format/wallet.js";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
   WillFactory,
   WillFactory__factory,
@@ -20,13 +17,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  CID: string;
-}
 
 interface EncryptedWillData {
   algorithm: SupportedAlgorithm;
@@ -53,34 +43,14 @@ interface UploadResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = process.env;
+function validateEnvironmentVariables(): UploadCID {
+  const result = validateEnvironment<UploadCID>(presetValidations.uploadCID());
 
-  if (!WILL_FACTORY) {
-    throw new Error("Environment variable WILL_FACTORY is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable TESTATOR_PRIVATE_KEY is not set");
-  }
-
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
-  }
-
-  if (!validateEthereumAddress(WILL_FACTORY)) {
-    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  if (!validateCidv1(CID)) {
-    throw new Error("Invalid CID v1 format");
-  }
-
-  return { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID };
+  return result.data;
 }
 
 /**
@@ -491,7 +461,7 @@ async function processUploadCID(): Promise<UploadResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = validateEnvironment();
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -576,7 +546,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateFiles,
   validateRpcConnection,
   createWallet,

@@ -1,5 +1,7 @@
+import type { PredictWill } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
   type Will,
   type WillFactory,
@@ -13,11 +15,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  WILL_FACTORY: string;
-}
 
 interface WillData {
   testator: string;
@@ -45,18 +42,14 @@ interface ProcessResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { WILL_FACTORY } = process.env;
+function validateEnvironmentVariables(): PredictWill {
+  const result = validateEnvironment<PredictWill>(presetValidations.predictWill());
 
-  if (!WILL_FACTORY) {
-    throw new Error("Environment variable WILL_FACTORY is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!ethers.isAddress(WILL_FACTORY)) {
-    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
-  }
-
-  return { WILL_FACTORY };
+  return result.data;
 }
 
 /**
@@ -349,7 +342,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { WILL_FACTORY } = validateEnvironment();
+    const { WILL_FACTORY } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -445,7 +438,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateFiles,
   validateRpcConnection,
   generateSecureSalt,

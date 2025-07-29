@@ -1,7 +1,7 @@
+import type { NotarizeCID } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { validatePrivateKey } from "@shared/utils/format/wallet.js";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
   WillFactory,
   WillFactory__factory,
@@ -12,14 +12,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  CID: string;
-  EXECUTOR_SIGNATURE: string;
-}
 
 interface NotarizeResult {
   transactionHash: string;
@@ -32,56 +24,14 @@ interface NotarizeResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
-    process.env;
+function validateEnvironmentVariables(): NotarizeCID {
+  const result = validateEnvironment<NotarizeCID>(presetValidations.notarizeCID());
 
-  if (!WILL_FACTORY) {
-    throw new Error("Environment variable WILL_FACTORY is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable EXECUTOR_PRIVATE_KEY is not set");
-  }
-
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
-  }
-
-  if (!EXECUTOR_SIGNATURE) {
-    throw new Error("Environment variable EXECUTOR_SIGNATURE is not set");
-  }
-
-  if (!ethers.isAddress(WILL_FACTORY)) {
-    throw new Error(`Invalid will factory address: ${WILL_FACTORY}`);
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  if (!validateCidv1(CID)) {
-    throw new Error("Invalid CID v1 format");
-  }
-
-  // Validate signature format (should be hex string starting with 0x)
-  if (!EXECUTOR_SIGNATURE.match(/^0x[0-9a-fA-F]+$/)) {
-    throw new Error("Invalid executor signature format");
-  }
-
-  // Validate signature length (should be 65 bytes = 130 hex chars + 0x prefix)
-  if (EXECUTOR_SIGNATURE.length !== 132) {
-    throw new Error(
-      `Invalid executor signature length: expected 132 characters, got ${EXECUTOR_SIGNATURE.length}`,
-    );
-  }
-
-  return {
-    WILL_FACTORY,
-    EXECUTOR_PRIVATE_KEY,
-    CID,
-    EXECUTOR_SIGNATURE,
-  };
+  return result.data;
 }
 
 /**
@@ -356,7 +306,7 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
   try {
     // Validate prerequisites
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
-      validateEnvironment();
+      validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -434,7 +384,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateRpcConnection,
   createWallet,
   createContractInstance,

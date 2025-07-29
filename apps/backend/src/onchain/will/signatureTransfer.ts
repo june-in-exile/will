@@ -1,6 +1,7 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { validatePrivateKey } from "@shared/utils/format/wallet.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import type { SignatureTransfer } from "@shared/types/environment.js";
 import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import { config } from "dotenv";
@@ -8,15 +9,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  WILL: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  NONCE: string;
-  DEADLINE: string;
-  PERMIT2_SIGNATURE: string;
-}
 
 interface Estate {
   beneficiary: string;
@@ -65,64 +57,16 @@ const ERC20_ABI = [
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
-    process.env;
+function validateEnvironmentVariables(): SignatureTransfer {
+  const result = validateEnvironment<SignatureTransfer>(presetValidations.signatureTransfer());
 
-  if (!WILL) {
-    throw new Error("Environment variable WILL is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!EXECUTOR_PRIVATE_KEY) {
-    throw new Error("Environment variable EXECUTOR_PRIVATE_KEY is not set");
-  }
-
-  if (!NONCE) {
-    throw new Error("Environment variable NONCE is not set");
-  }
-
-  if (!DEADLINE) {
-    throw new Error("Environment variable DEADLINE is not set");
-  }
-
-  if (!PERMIT2_SIGNATURE) {
-    throw new Error("Environment variable PERMIT2_SIGNATURE is not set");
-  }
-
-  if (!ethers.isAddress(WILL)) {
-    throw new Error(`Invalid will address: ${WILL}`);
-  }
-
-  if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
-    throw new Error("Invalid private key format");
-  }
-
-  // Validate nonce format (should be a number)
-  if (!/^\d+$/.test(NONCE)) {
-    throw new Error(`Invalid nonce format: ${NONCE}`);
-  }
-
-  // Validate deadline format (should be a number)
-  if (!/^\d+$/.test(DEADLINE)) {
-    throw new Error(`Invalid deadline format: ${DEADLINE}`);
-  }
-
-  // Validate signature format (should be hex string starting with 0x)
-  if (!PERMIT2_SIGNATURE.match(/^0x[0-9a-fA-F]+$/)) {
-    throw new Error("Invalid permit2 signature format");
-  }
-
-  // Validate signature length (should be 65 bytes = 130 hex chars + 0x prefix)
-  if (PERMIT2_SIGNATURE.length !== 132) {
-    throw new Error(
-      `Invalid permit2 signature length: expected 132 characters, got ${PERMIT2_SIGNATURE.length}`,
-    );
-  }
-
-  // Validate deadline is in the future
-  const deadlineTimestamp = parseInt(DEADLINE);
+  // Additional deadline validation warning
   const currentTimestamp = Math.floor(Date.now() / 1000);
-  if (deadlineTimestamp <= currentTimestamp) {
+  if (Number(result.data.DEADLINE) <= currentTimestamp) {
     console.warn(
       chalk.yellow(
         "⚠️  Warning: Deadline is in the past or very close to current time",
@@ -130,18 +74,12 @@ function validateEnvironment(): EnvironmentVariables {
     );
     console.warn(
       chalk.yellow(
-        `Current time: ${currentTimestamp}, Deadline: ${deadlineTimestamp}`,
+        `Current time: ${currentTimestamp}, Deadline: ${result.data.DEADLINE}`,
       ),
     );
   }
 
-  return {
-    WILL,
-    EXECUTOR_PRIVATE_KEY,
-    NONCE,
-    DEADLINE,
-    PERMIT2_SIGNATURE,
-  };
+  return result.data;
 }
 
 /**
@@ -685,7 +623,7 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
   try {
     // Validate prerequisites
     const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
-      validateEnvironment();
+      validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -804,7 +742,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateRpcConnection,
   createWallet,
   createWillContract,

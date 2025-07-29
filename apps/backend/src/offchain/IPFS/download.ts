@@ -1,7 +1,8 @@
+import type { IPFSDownload } from "@shared/types/environment.js";
 import { PATHS_CONFIG } from "@config";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
-import type { Base64String } from "@shared/types/encoding.js";
+import type { Base64String } from "@shared/types/base64String.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";
@@ -13,10 +14,6 @@ import chalk from "chalk";
 
 const modulePath = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(modulePath, "../.env") });
-
-interface EnvironmentVariables {
-  CID: string;
-}
 
 interface DownloadedWill {
   algorithm: SupportedAlgorithm;
@@ -36,18 +33,14 @@ interface DownloadResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { CID } = process.env;
+function validateEnvironmentVariables(): IPFSDownload {
+  const result = validateEnvironment<IPFSDownload>(presetValidations.ipfsDownload());
 
-  if (!CID) {
-    throw new Error("Environment variable CID is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (!validateCidv1) {
-    throw new Error("Environment variable CID is not set");
-  }
-
-  return { CID };
+  return result.data;
 }
 
 /**
@@ -77,7 +70,7 @@ async function processIPFSDownload(): Promise<DownloadResult> {
   let helia: Helia | undefined;
 
   try {
-    const { CID: cidString } = validateEnvironment();
+    const { CID: cidString } = validateEnvironmentVariables();
 
     // Create Helia instance
     helia = await createHelia();
@@ -164,7 +157,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   saveDownloadedWill,
   processIPFSDownload
 }

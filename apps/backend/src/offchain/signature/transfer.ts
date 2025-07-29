@@ -1,3 +1,5 @@
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import type { TransferSigning } from "@shared/types/environment.js";
 import {
   PATHS_CONFIG,
   VALIDATION_CONFIG,
@@ -19,12 +21,6 @@ config({ path: PATHS_CONFIG.env });
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");
 const { SignatureTransfer } = permit2SDK;
-
-// Type definitions
-interface EnvironmentVariables {
-  TESTATOR_PRIVATE_KEY: string;
-  PERMIT2: string;
-}
 
 interface Estate {
   token: string;
@@ -74,30 +70,19 @@ interface ProcessResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
-  const { TESTATOR_PRIVATE_KEY, PERMIT2 } = process.env;
+function validateEnvironmentVariables(): TransferSigning {
+  const result = validateEnvironment<TransferSigning>(presetValidations.transferSigning());
 
-  if (!TESTATOR_PRIVATE_KEY) {
-    throw new Error("Environment variable TESTATOR_PRIVATE_KEY is not set");
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  if (
-    TESTATOR_PRIVATE_KEY.length !== 64 &&
-    TESTATOR_PRIVATE_KEY.length !== 66
-  ) {
-    throw new Error("Invalid private key format");
+  // Handle default PERMIT2 address from SDK if not provided
+  if (!result.data.PERMIT2) {
+    result.data.PERMIT2 = permit2SDK.PERMIT2;
   }
 
-  const permit2Address = PERMIT2 || permit2SDK.PERMIT2;
-  if (!permit2Address) {
-    throw new Error("PERMIT2 not found in environment or SDK");
-  }
-
-  if (!ethers.isAddress(permit2Address)) {
-    throw new Error(`Invalid PERMIT2: ${permit2Address}`);
-  }
-
-  return { TESTATOR_PRIVATE_KEY, PERMIT2: permit2Address };
+  return result.data;
 }
 
 /**
@@ -421,7 +406,7 @@ async function processWillSigning(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironment();
+    const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
     // Initialize provider and validate network
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -536,7 +521,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateFiles,
   createSigner,
   validateNetwork,

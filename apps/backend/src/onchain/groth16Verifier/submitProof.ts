@@ -1,5 +1,7 @@
+import type { SubmitProof } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from "@config";
 import { readProof } from "@shared/utils/file/readProof.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
@@ -12,11 +14,6 @@ import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
-
-// Type definitions
-interface EnvironmentVariables {
-  UPLOAD_CID_VERIFIER: string;
-}
 
 interface ProofSubmissionResult {
   isValid: boolean;
@@ -34,7 +31,7 @@ interface ProofValidationResult {
 /**
  * Validate environment variables
  */
-function validateEnvironment(): EnvironmentVariables {
+function validateEnvironmentVariables(): SubmitProof {
   try {
     console.log(chalk.blue("Validating environment..."));
     CONFIG_UTILS.validateEnvironment();
@@ -43,15 +40,15 @@ function validateEnvironment(): EnvironmentVariables {
       console.log(chalk.gray("Using Anvil for local development"));
     }
 
-    const { UPLOAD_CID_VERIFIER } = process.env;
+    const result = validateEnvironment<SubmitProof>(presetValidations.submitProof());
 
-    if (!UPLOAD_CID_VERIFIER) {
-      throw new Error("Environment variable UPLOAD_CID_VERIFIER is not set");
+    if (!result.isValid) {
+      throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
     }
 
     console.log(chalk.green("✅ Environment validated"));
 
-    return { UPLOAD_CID_VERIFIER };
+    return result.data;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -224,7 +221,7 @@ async function processProofSubmission(): Promise<ProofSubmissionResult> {
   try {
     // Validate prerequisites
     validateFiles();
-    const { UPLOAD_CID_VERIFIER } = validateEnvironment();
+    const { UPLOAD_CID_VERIFIER } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -324,7 +321,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateEnvironment,
+  validateEnvironmentVariables,
   validateFiles,
   validateRpcConnection,
   createContractInstance,

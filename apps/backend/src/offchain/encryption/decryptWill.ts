@@ -4,7 +4,7 @@ import type {
   EncryptedWill,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/encoding.js";
+import { Base64String } from "@shared/types/base64String.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
