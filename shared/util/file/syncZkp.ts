@@ -1,6 +1,6 @@
 import { PATHS_CONFIG } from "@config";
 import { ProofData } from "@type/crypto.js";
-import { readProof } from "@util/read/proof.js";
+import { readProof } from "@shared/util/file/readProof.js";
 import { bigintArrayToEnvString } from "@util/format/arrayToEnv.js";
 import { updateEnvVariable } from "./updateEnvVariable.js";
 import { mkdir, copyFile } from "fs/promises";

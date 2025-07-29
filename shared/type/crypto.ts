@@ -25,44 +25,12 @@ export interface DecryptionArgs {
   authTag: Buffer;
 }
 
-export interface EncryptionConfig {
-  keySize: number;
-  ivSize: number;
-  supportedAlgorithms: SupportedAlgorithm[];
-  maxPlaintextSize: number;
-}
-
 export interface EncryptedWill {
   algorithm: SupportedAlgorithm;
   iv: Base64String;
   authTag: Base64String;
   ciphertext: Base64String;
   timestamp: string;
-}
-
-export interface HashConfig {
-  maxInputSize: number;
-  supportedEncodings: string[];
-  expectedHashLength: number;
-  enableValidation: boolean;
-}
-
-export interface SignatureConfig {
-  maxMessageLength: number;
-  privateKeyLength: number;
-  signatureLength: number;
-  maxRetries: number;
-}
-
-// Result interfaces
-export interface EncryptionResult {
-  ciphertext: Base64String;
-  authTag: Base64String;
-}
-
-export interface HashValidationResult {
-  valid: boolean;
-  error?: string;
 }
 
 export interface SignatureValidationResult {

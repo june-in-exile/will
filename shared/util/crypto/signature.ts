@@ -4,7 +4,7 @@ import {
   validateEthereumAddress,
   validateSignature,
 } from "@util/format/wallet.js";
-import { keccak256 } from "@util/hash/keccak256.js";
+import { keccak256 } from "@shared/util/crypto/keccak256.js";
 import { ethers, Wallet } from "ethers";
 import chalk from "chalk";
 

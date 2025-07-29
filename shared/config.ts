@@ -105,8 +105,6 @@ interface HashConfig {
   supportedEncodings: string[];
   expectedHashLength: number;
   hashPattern: RegExp;
-  enableValidation: boolean;
-  enableLogging: boolean;
 }
 
 interface ApprovalConfig {
@@ -495,10 +493,6 @@ export const HASH_CONFIG: HashConfig = {
   // Output format validation
   expectedHashLength: 66, // 32 bytes + 0x prefix = 66 characters
   hashPattern: /^0x[0-9a-fA-F]{64}$/,
-
-  // Performance settings
-  enableValidation: true,
-  enableLogging: process.env.NODE_ENV === "development",
 };
 
 // ================================
