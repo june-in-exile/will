@@ -476,10 +476,10 @@ class WitnessTester<
   /**
    * Record constraint count for a specific circuit and description
    * @param description - Description of the constraint test
-   * @param constraintCount - The actual constraint count (optional, will get current count if not provided)
+   * @param testFileName - Optional test file name (will auto-detect if not provided)
    */
-  async setConstraint(description: string): Promise<void> {
-    const testFileName = this.getCurrentTestFileName();
+  async setConstraint(description: string, testFileName?: string): Promise<void> {
+    const finalTestFileName = testFileName || this.getCurrentTestFileName();
     const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
     console.info(`${description}: ${constraintCount}`);
@@ -498,17 +498,17 @@ class WitnessTester<
     }
 
     // Initialize test file category if it doesn't exist
-    if (!constraints[testFileName]) {
-      constraints[testFileName] = {};
+    if (!constraints[finalTestFileName]) {
+      constraints[finalTestFileName] = {};
     }
 
     // Initialize template name category if it doesn't exist
-    if (!constraints[testFileName][templateName]) {
-      constraints[testFileName][templateName] = {};
+    if (!constraints[finalTestFileName][templateName]) {
+      constraints[finalTestFileName][templateName] = {};
     }
 
     // Update the constraint count
-    constraints[testFileName][templateName][description] = constraintCount;
+    constraints[finalTestFileName][templateName][description] = constraintCount;
 
     // Write back to file with pretty formatting
     try {
@@ -624,16 +624,24 @@ class WitnessTester<
    */
   private getCurrentTestFileName(): string {
     try {
-      // This might not work in all environments, so we have a fallback
-      const testPath = expect.getState?.()?.testPath as string;
-      if (testPath) {
-        const fileNameWithExt = path.basename(testPath);
-        return fileNameWithExt.replace(/\.test\.ts$/, "");
+      // Try to get the test file from the call stack
+      const stack = new Error().stack;
+      if (stack) {
+        const stackLines = stack.split('\n');
+        for (const line of stackLines) {
+          // Look for .test.ts files in the stack trace
+          const match = line.match(/\/([^/]+\.test\.ts):/);
+          if (match) {
+            console.log("Hello!");
+            return match[1].replace(/\.test\.ts$/, "");
+          }
+        }
       }
     } catch {
-      // Fallback to unknown if we can't determine the test file name
+      // Continue to fallback
     }
-    return "unknown";
+
+    return "unknownCircuitType";
   }
 }
 

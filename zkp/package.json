@@ -1,12 +1,12 @@
 {
-  "name": "zkp-circuits-tested-by-jest",
+  "name": "zkp-circuits-tested-by-vitest",
   "version": "1.0.0",
   "description": "TypeScript testing framework for Circom circuit development",
   "type": "module",
   "scripts": {
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:detail": "NODE_OPTIONS='--experimental-vm-modules' jest --verbose",
-    "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && NODE_OPTIONS='--experimental-vm-modules' jest --verbose",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && vitest run --reporter=basic",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "clean": "make clean-all"
@@ -23,18 +23,15 @@
   "author": "June",
   "license": "MIT",
   "devDependencies": {
-    "@jest/types": "^30.0.5",
-    "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "circom_tester": "0.0.24",
     "eslint": "^8.57.1",
-    "jest": "^30.0.5",
     "prettier": "^3.0.0",
-    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "circomkit": "^0.3.3",
