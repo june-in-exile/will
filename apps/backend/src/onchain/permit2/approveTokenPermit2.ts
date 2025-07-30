@@ -1,4 +1,7 @@
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { Estate } from "@shared/types/blockchain.js";
@@ -53,10 +56,14 @@ interface ProcessResult extends TokenApprovalSummary {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): TokenApproval {
-  const result = validateEnvironment<TokenApproval>(presetValidations.tokenApproval());
+  const result = validateEnvironment<TokenApproval>(
+    presetValidations.tokenApproval(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   // Handle default PERMIT2 address from SDK if not provided
@@ -521,5 +528,5 @@ export {
   checkCurrentAllowance,
   approveToken,
   processTokenApprovals,
-  processTokenApprovalWorkflow
-}
+  processTokenApprovalWorkflow,
+};

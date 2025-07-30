@@ -236,13 +236,13 @@ pnpm build
 
 1. **TODO**
    - [ ] @shared: files = read + env + partial encrypt.ts + partial decrypt.ts
-3. **Complete ZKP circuits**
+2. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.
    - [ ] **format_zkp**: prove that `signed_will` is in the proper format without exposing its content.
    - [ ] **signature_zkp**: prove that `verify(signature, testator, estates) == ture`, with the fields coming from `signed_will`.
    - [ ] **inclusion_zkp**: Prove that the given `testator` and `estates` are coming from `signed_will`.
-4. **Integrate Pinata** for reliable IPFS pinning
-5. **Implement Permit2** token approval flow
-6. **Add comprehensive testing**
-7. **Deploy to testnet**
-8. **Security audit**
+3. **Integrate Pinata** for reliable IPFS pinning
+4. **Implement Permit2** token approval flow
+5. **Add comprehensive testing**
+6. **Deploy to testnet**
+7. **Security audit**

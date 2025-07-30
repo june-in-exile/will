@@ -1,7 +1,10 @@
 import type { CidSigning } from "@shared/types/environment.js";
 import { SIGNATURE_CONFIG } from "@config";
 import { signString, verify } from "@shared/utils/crypto/signature.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import assert from "assert";
 import chalk from "chalk";
@@ -18,10 +21,14 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): CidSigning {
-  const result = validateEnvironment<CidSigning>(presetValidations.cidSigning());
+  const result = validateEnvironment<CidSigning>(
+    presetValidations.cidSigning(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
@@ -145,7 +152,8 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
 async function processCidSigning(): Promise<ProcessResult> {
   try {
     // Validate environment variables
-    const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } = validateEnvironmentVariables();
+    const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } =
+      validateEnvironmentVariables();
 
     console.log(chalk.cyan("\n🔐 Starting CID signing process..."));
     console.log(chalk.gray("CID to sign:"), CID);
@@ -243,5 +251,5 @@ export {
   signCidWithRetry,
   verifySignatureWithDetails,
   updateEnvironmentVariable,
-  processCidSigning
-}
+  processCidSigning,
+};

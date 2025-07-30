@@ -29,4 +29,4 @@ globalThis.console = {
   error: shouldLog("error") ? console.error : vi.fn(),
 };
 
-export { };
+export {};

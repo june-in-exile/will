@@ -6,16 +6,23 @@ import {
 } from "@shared/types/typechain-types/index.js";
 import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
 import type { ProofData } from "@shared/types/crypto.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
-import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js"
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
+import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import type { UploadCid } from "@shared/types/environment.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
+import {
+  createWallet,
+  createContractInstance,
+} from "@shared/utils/crypto/blockchain.js";
+import { printUploadCidData } from "@shared/utils/crypto/printData.js";
 import { JsonRpcProvider } from "ethers";
-import { validateFiles } from "@shared/utils/validation/file.js"
+import { validateFiles } from "@shared/utils/validation/file.js";
 import chalk from "chalk";
 
 interface UploadCidData {
@@ -39,92 +46,12 @@ function validateEnvironmentVariables(): UploadCid {
   const result = validateEnvironment<UploadCid>(presetValidations.uploadCid());
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
-}
-
-
-/**
- * Print detailed UploadCIDData information
- */
-function printUploadCidData(uploadData: UploadCidData): void {
-  console.log(chalk.cyan("\n=== UploadCIDData Details ==="));
-
-  // Print CID
-  console.log(chalk.blue("\n📋 CID Information:"));
-  console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
-
-  // Print Proof Data
-  console.log(chalk.blue("\n🔐 Proof Data:"));
-  console.log(
-    chalk.gray("- pA[0]:"),
-    chalk.white(uploadData.proof.pA[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pA[1]:"),
-    chalk.white(uploadData.proof.pA[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][0]:"),
-    chalk.white(uploadData.proof.pB[0][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][1]:"),
-    chalk.white(uploadData.proof.pB[0][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][0]:"),
-    chalk.white(uploadData.proof.pB[1][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][1]:"),
-    chalk.white(uploadData.proof.pB[1][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[0]:"),
-    chalk.white(uploadData.proof.pC[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[1]:"),
-    chalk.white(uploadData.proof.pC[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pubSignals[0]:"),
-    chalk.white(uploadData.proof.pubSignals[0].toString()),
-  );
-
-  // Print Will Data
-  console.log(chalk.blue("\n📝 Excrypted Will Keys & Values:"));
-  uploadData.will.keys.forEach((key: string, index: string) => {
-    const jsonValue: JsonCidVerifier.JsonValue = uploadData.will.values[index];
-    let valueType: string;
-    switch (jsonValue.valueType) {
-      case 0:
-        valueType = "STRING";
-        break;
-      case 1:
-        valueType = "NUMBER";
-        break;
-      case 2:
-        valueType = "BOOLEAN";
-        break;
-      case 3:
-        valueType = "NULL";
-        break;
-      default:
-        throw new Error("Invalid JsonValueType");
-    }
-    console.log(
-      chalk.gray(`  [${index}]`),
-      chalk.cyan(key),
-      chalk.gray("=>"),
-      chalk.white(`{value: ${jsonValue.value}, valueType: ${valueType}}`),
-    );
-  });
-
-  console.log(chalk.cyan("\n=== End of UploadCidData Details ===\n"));
 }
 
 /**
@@ -207,7 +134,8 @@ async function processUploadCid(): Promise<ProcessResult> {
       PATHS_CONFIG.zkp.multiplier2.proof,
       PATHS_CONFIG.zkp.multiplier2.public,
     ]);
-    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } = validateEnvironmentVariables();
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
+      validateEnvironmentVariables();
 
     // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -295,9 +223,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  validateEnvironmentVariables,
-  printUploadCidData,
-  executeUploadCid,
-  processUploadCid
-}
+export { validateEnvironmentVariables, executeUploadCid, processUploadCid };

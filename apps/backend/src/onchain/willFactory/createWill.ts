@@ -6,18 +6,25 @@ import {
 } from "@shared/types/typechain-types/index.js";
 import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
 import { ProofData } from "@shared/types/crypto.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
-import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js"
-import { readWill } from "@shared/utils/file/readWill.js"
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
+import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
+import { readWill } from "@shared/utils/file/readWill.js";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import type { CreateWill } from "@shared/types/environment.js";
 import type { Estate } from "@shared/types/blockchain.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
+import {
+  createWallet,
+  createContractInstance,
+} from "@shared/utils/crypto/blockchain.js";
+import { printCreateWillData } from "@shared/utils/crypto/printData.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { JsonRpcProvider } from "ethers";
-import { validateFiles } from "@shared/utils/validation/file.js"
+import { validateFiles } from "@shared/utils/validation/file.js";
 import chalk from "chalk";
 
 interface CreateWillData {
@@ -42,10 +49,14 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): CreateWill {
-  const result = validateEnvironment<CreateWill>(presetValidations.createWill());
+  const result = validateEnvironment<CreateWill>(
+    presetValidations.createWill(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
@@ -111,111 +122,6 @@ function parseEstatesFromEnvironment(): Estate[] {
     chalk.green(`✅ Found ${estates.length} estate(s) in environment`),
   );
   return estates;
-}
-
-
-/**
- * Print detailed CreateWillData information
- */
-function printCreateWillData(createData: CreateWillData): void {
-  console.log(chalk.cyan("\n=== CreateWillData Details ==="));
-
-  // Print CID
-  console.log(chalk.blue("\n📋 CID Information:"));
-  console.log(chalk.gray("- CID:"), chalk.white(createData.cid));
-
-  // Print Testator
-  console.log(chalk.blue("\n👤 Testator Information:"));
-  console.log(chalk.gray("- Testator:"), chalk.white(createData.testator));
-
-  // Print Salt
-  console.log(chalk.blue("\n🧂 Salt Information:"));
-  console.log(chalk.gray("- Salt:"), chalk.white(createData.salt.toString()));
-
-  // Print Estates
-  console.log(chalk.blue("\n🏛️  Estate Information:"));
-  createData.estates.forEach((estate, index) => {
-    console.log(chalk.gray(`  Estate ${index}:`));
-    console.log(
-      chalk.gray("    - Beneficiary:"),
-      chalk.white(estate.beneficiary),
-    );
-    console.log(chalk.gray("    - Token:"), chalk.white(estate.token));
-    console.log(
-      chalk.gray("    - Amount:"),
-      chalk.white(estate.amount.toString()),
-    );
-  });
-
-  // Print Proof Data
-  console.log(chalk.blue("\n🔐 Proof Data:"));
-  console.log(
-    chalk.gray("- pA[0]:"),
-    chalk.white(createData.proof.pA[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pA[1]:"),
-    chalk.white(createData.proof.pA[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][0]:"),
-    chalk.white(createData.proof.pB[0][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][1]:"),
-    chalk.white(createData.proof.pB[0][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][0]:"),
-    chalk.white(createData.proof.pB[1][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][1]:"),
-    chalk.white(createData.proof.pB[1][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[0]:"),
-    chalk.white(createData.proof.pC[0].toString()),
-  );
-  console.log(
-    chalk.gray("- pC[1]:"),
-    chalk.white(createData.proof.pC[1].toString()),
-  );
-  console.log(
-    chalk.gray("- pubSignals[0]:"),
-    chalk.white(createData.proof.pubSignals[0].toString()),
-  );
-
-  // Print Will Data
-  console.log(chalk.blue("\n📝 Encrypted Will Keys & Values:"));
-  createData.will.keys.forEach((key: string, index: string) => {
-    const jsonValue: JsonCidVerifier.JsonValue = createData.will.values[index];
-    let valueType: string;
-    switch (jsonValue.valueType) {
-      case 0:
-        valueType = "STRING";
-        break;
-      case 1:
-        valueType = "NUMBER";
-        break;
-      case 2:
-        valueType = "BOOLEAN";
-        break;
-      case 3:
-        valueType = "NULL";
-        break;
-      default:
-        throw new Error("Invalid JsonValueType");
-    }
-    console.log(
-      chalk.gray(`  [${index}]`),
-      chalk.cyan(key),
-      chalk.gray("=>"),
-      chalk.white(`{value: ${jsonValue.value}, valueType: ${valueType}}`),
-    );
-  });
-
-  console.log(chalk.cyan("\n=== End of CreateWillData Details ===\n"));
 }
 
 /**
@@ -441,7 +347,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   parseEstatesFromEnvironment,
-  printCreateWillData,
   executeCreateWill,
-  processCreateWill
-}
+  processCreateWill,
+};

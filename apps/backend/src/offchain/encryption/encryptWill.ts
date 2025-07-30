@@ -9,7 +9,11 @@ import {
   encrypt,
 } from "@shared/utils/crypto/encrypt.js";
 import { Base64String } from "@shared/types/base64String.js";
-import { WillFileType, SignedWillData, EncryptedWillData } from "@shared/types/will.js";
+import {
+  WillFileType,
+  SignedWillData,
+  EncryptedWillData,
+} from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveEncryptedWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
@@ -133,7 +137,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  getEncryptionArgs,
-  processWillEncryption
-}
+export { getEncryptionArgs, processWillEncryption };

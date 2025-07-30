@@ -478,7 +478,10 @@ class WitnessTester<
    * @param description - Description of the constraint test
    * @param testFileName - Optional test file name (will auto-detect if not provided)
    */
-  async setConstraint(description: string, testFileName?: string): Promise<void> {
+  async setConstraint(
+    description: string,
+    testFileName?: string,
+  ): Promise<void> {
     const finalTestFileName = testFileName || this.getCurrentTestFileName();
     const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
@@ -627,7 +630,7 @@ class WitnessTester<
       // Try to get the test file from the call stack
       const stack = new Error().stack;
       if (stack) {
-        const stackLines = stack.split('\n');
+        const stackLines = stack.split("\n");
         for (const line of stackLines) {
           // Look for .test.ts files in the stack trace
           const match = line.match(/\/([^/]+\.test\.ts):/);

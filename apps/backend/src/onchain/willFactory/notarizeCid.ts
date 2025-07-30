@@ -1,13 +1,20 @@
 import type { NotarizeCid } from "@shared/types/environment.js";
 import { NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import {
   WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
+import {
+  createWallet,
+  createContractInstance,
+} from "@shared/utils/crypto/blockchain.js";
+import { printNotarizationDetails } from "@shared/utils/crypto/printData.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
@@ -23,30 +30,17 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): NotarizeCid {
-  const result = validateEnvironment<NotarizeCid>(presetValidations.notarizeCid());
+  const result = validateEnvironment<NotarizeCid>(
+    presetValidations.notarizeCid(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
-}
-
-
-/**
- * Print notarization details
- */
-function printNotarizationDetails(cid: string, signature: string): void {
-  console.log(chalk.cyan("\n=== Notarization Details ==="));
-
-  console.log(chalk.blue("\n📋 CID Information:"));
-  console.log(chalk.gray("- CID:"), chalk.white(cid));
-
-  console.log(chalk.blue("\n✍️  Signature Information:"));
-  console.log(chalk.gray("- Signature:"), chalk.white(signature));
-  console.log(chalk.gray("- Signature Length:"), chalk.white(signature.length));
-
-  console.log(chalk.cyan("\n=== End of Notarization Details ===\n"));
 }
 
 /**
@@ -192,9 +186,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  validateEnvironmentVariables,
-  printNotarizationDetails,
-  executeNotarizeCID,
-  processNotarizeCID
-}
+export { validateEnvironmentVariables, executeNotarizeCID, processNotarizeCID };

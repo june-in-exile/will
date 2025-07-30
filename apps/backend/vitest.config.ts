@@ -1,19 +1,19 @@
-import { defineConfig } from 'vitest/config';
-import path from 'path';
+import { defineConfig } from "vitest/config";
+import path from "path";
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: "node",
     globals: true,
-    include: ['tests/**/*.{test,spec}.ts'],
-    exclude: ['node_modules'],
+    include: ["tests/**/*.{test,spec}.ts"],
+    exclude: ["node_modules"],
     testTimeout: 60000,
     slowTestThreshold: 30000,
-    setupFiles: ['./tests/setupFilesAfterEnv.ts'],
+    setupFiles: ["./tests/setupFilesAfterEnv.ts"],
     alias: {
-      '@src': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../../shared'),
-      '@config': path.resolve(__dirname, '../../shared/config'),
+      "@src": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../../shared"),
+      "@config": path.resolve(__dirname, "../../shared/config"),
     },
   },
   define: {

@@ -1,15 +1,19 @@
 import type { SubmitProof } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { readProof } from "@shared/utils/file/readProof.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
 } from "@shared/types/typechain-types/index.js";
 import type { ProofData } from "@shared/types/crypto.js";
-import { validateFiles } from "@shared/utils/validation/file.js"
+import { validateFiles } from "@shared/utils/validation/file.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import { printProofData } from "@shared/utils/crypto/printData.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
@@ -30,53 +34,17 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): SubmitProof {
-  const result = validateEnvironment<SubmitProof>(presetValidations.submitProof());
+  const result = validateEnvironment<SubmitProof>(
+    presetValidations.submitProof(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
-}
-
-
-/**
- * Print detailed proof information
- */
-function printProofData(proof: ProofData): void {
-  console.log(chalk.cyan("\n=== Zero-Knowledge Proof Details ==="));
-
-  console.log(chalk.blue("\n🔐 Proof Components:"));
-  console.log(chalk.gray("- pA[0]:"), chalk.white(proof.pA[0].toString()));
-  console.log(chalk.gray("- pA[1]:"), chalk.white(proof.pA[1].toString()));
-  console.log(
-    chalk.gray("- pB[0][0]:"),
-    chalk.white(proof.pB[0][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[0][1]:"),
-    chalk.white(proof.pB[0][1].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][0]:"),
-    chalk.white(proof.pB[1][0].toString()),
-  );
-  console.log(
-    chalk.gray("- pB[1][1]:"),
-    chalk.white(proof.pB[1][1].toString()),
-  );
-  console.log(chalk.gray("- pC[0]:"), chalk.white(proof.pC[0].toString()));
-  console.log(chalk.gray("- pC[1]:"), chalk.white(proof.pC[1].toString()));
-
-  console.log(chalk.blue("\n📊 Public Signals:"));
-  proof.pubSignals.forEach((signal, index) => {
-    console.log(
-      chalk.gray(`- pubSignal[${index}]:`),
-      chalk.white(signal.toString()),
-    );
-  });
-
-  console.log(chalk.cyan("\n=== End of Proof Details ===\n"));
 }
 
 /**
@@ -238,7 +206,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  printProofData,
   submitProofToContract,
-  processProofSubmission
-}
+  processProofSubmission,
+};

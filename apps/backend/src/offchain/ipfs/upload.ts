@@ -208,9 +208,7 @@ async function processIPFSUpload(): Promise<ProcessResult> {
     displayAccessInfo(cid);
 
     // Update environment variables
-    await updateEnvironmentVariables([
-      ["CID", cid.toString()]
-    ]);
+    await updateEnvironmentVariables([["CID", cid.toString()]]);
 
     console.log(
       chalk.green.bold("\n🎉 IPFS upload process completed successfully!"),
@@ -347,5 +345,5 @@ export {
   uploadToIPFS,
   pinInLocalDaemon,
   displayAccessInfo,
-  processIPFSUpload
-}
+  processIPFSUpload,
+};

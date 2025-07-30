@@ -1,12 +1,11 @@
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
-import type { TransferSigning } from "@shared/types/environment.js";
 import {
-  PATHS_CONFIG,
-  PERMIT2_CONFIG,
-  NETWORK_CONFIG,
-} from "@config";
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
+import type { TransferSigning } from "@shared/types/environment.js";
+import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { Estate } from "@shared/types/blockchain.js"
+import { Estate } from "@shared/types/blockchain.js";
 import { WillFileType, AddressedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveSignedWill } from "@shared/utils/file/saveWill.js";
@@ -48,10 +47,14 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): TransferSigning {
-  const result = validateEnvironment<TransferSigning>(presetValidations.transferSigning());
+  const result = validateEnvironment<TransferSigning>(
+    presetValidations.transferSigning(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   // Handle default PERMIT2 address from SDK if not provided
@@ -201,7 +204,6 @@ async function signPermit(
   }
 }
 
-
 /**
  * Process will signing workflow
  */
@@ -333,5 +335,5 @@ export {
   generateSecureNonce,
   createPermitStructure,
   signPermit,
-  processWillSigning
-}
+  processWillSigning,
+};

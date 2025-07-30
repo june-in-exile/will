@@ -1,6 +1,19 @@
 import { PATHS_CONFIG } from "@config";
-import { WillFileType, type FormattedWillData, type AddressedWillData, type SignedWillData, type EncryptedWillData, type DownloadedWillData } from "@shared/types/will.js";
-import { validateFormattedWill, validateAddressedWill, validateSignedWill, validateEncryptedWill, validateDownloadedWill } from "@shared/utils/validation/will.js";
+import {
+  WillFileType,
+  type FormattedWillData,
+  type AddressedWillData,
+  type SignedWillData,
+  type EncryptedWillData,
+  type DownloadedWillData,
+} from "@shared/types/will.js";
+import {
+  validateFormattedWill,
+  validateAddressedWill,
+  validateSignedWill,
+  validateEncryptedWill,
+  validateDownloadedWill,
+} from "@shared/utils/validation/will.js";
 import { readFileSync, existsSync } from "fs";
 import chalk from "chalk";
 
@@ -26,9 +39,7 @@ const VALIDATORS: Record<WillFileType, (data: any) => void> = {
  * @param filePath Optional custom file path (uses default if not provided)
  * @returns Parsed and validated will data
  */
-export function readWill<T>(
-  type: WillFileType,
-): T {
+export function readWill<T>(type: WillFileType): T {
   const targetPath = FILE_PATHS[type];
 
   if (!existsSync(targetPath)) {
@@ -51,7 +62,8 @@ export function readWill<T>(
       throw new Error(`Invalid JSON in ${type} will file: ${error.message}`);
     }
 
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to read ${type} will: ${errorMessage}`);
   }
 }

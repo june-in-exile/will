@@ -1,5 +1,13 @@
 import { PATHS_CONFIG } from "@config";
-import { WillFileType, type WillData, type FormattedWillData, type AddressedWillData, type SignedWillData, type EncryptedWillData, type DownloadedWillData } from "@shared/types/will.js";
+import {
+  WillFileType,
+  type WillData,
+  type FormattedWillData,
+  type AddressedWillData,
+  type SignedWillData,
+  type EncryptedWillData,
+  type DownloadedWillData,
+} from "@shared/types/will.js";
 import type { EthereumAddress } from "@shared/types/blockchain.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";
@@ -68,7 +76,9 @@ function saveWill(options: SaveWillOptions): WillData {
     switch (willType) {
       case WillFileType.ADDRESSED: {
         if (!options.salt || !options.willAddress) {
-          throw new Error("Salt and will address are required for addressed will");
+          throw new Error(
+            "Salt and will address are required for addressed will",
+          );
         }
         const addressedWill: AddressedWillData = {
           ...(data as FormattedWillData),
@@ -97,7 +107,7 @@ function saveWill(options: SaveWillOptions): WillData {
     }
 
     // Save to file
-    if (typeof processedData === 'string') {
+    if (typeof processedData === "string") {
       // For decrypted will (plain text)
       writeFileSync(filePath, processedData);
     } else {
@@ -106,7 +116,9 @@ function saveWill(options: SaveWillOptions): WillData {
     }
 
     console.log(
-      chalk.green(` ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`),
+      chalk.green(
+        ` ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`,
+      ),
       filePath,
     );
 
@@ -114,7 +126,9 @@ function saveWill(options: SaveWillOptions): WillData {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save ${getWillTypeLabel(options.willType)}: ${errorMessage}`);
+    throw new Error(
+      `Failed to save ${getWillTypeLabel(options.willType)}: ${errorMessage}`,
+    );
   }
 }
 

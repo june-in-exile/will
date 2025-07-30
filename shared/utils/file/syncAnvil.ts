@@ -109,14 +109,19 @@ function testRPCConnection(): Promise<boolean> {
 
 // Sleep utility function
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Check anvil status with retry
-async function checkAnvilStatus(maxRetries: number = 10, retryDelay: number = 500): Promise<boolean> {
+async function checkAnvilStatus(
+  maxRetries: number = 10,
+  retryDelay: number = 500,
+): Promise<boolean> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    console.log(chalk.blue(`Attempt ${attempt}/${maxRetries}: Checking Anvil status...`));
-    
+    console.log(
+      chalk.blue(`Attempt ${attempt}/${maxRetries}: Checking Anvil status...`),
+    );
+
     const processRunning: boolean = await checkAnvilProcess();
     if (!processRunning) {
       console.log(chalk.gray(`✗ No anvil process found`));
@@ -142,7 +147,9 @@ async function checkAnvilStatus(maxRetries: number = 10, retryDelay: number = 50
     }
 
     // All checks passed
-    console.log(chalk.green(`✓ Anvil is running (detected on attempt ${attempt})`));
+    console.log(
+      chalk.green(`✓ Anvil is running (detected on attempt ${attempt})`),
+    );
     return true;
   }
 

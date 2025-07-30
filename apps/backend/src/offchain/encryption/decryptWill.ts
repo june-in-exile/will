@@ -3,7 +3,11 @@ import type {
   DecryptionArgs,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
-import { DownloadedWillData, WillFileType, type EncryptedWillData } from "@shared/types/will.js";
+import {
+  DownloadedWillData,
+  WillFileType,
+  type EncryptedWillData,
+} from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveDecryptedWill } from "@shared/utils/file/saveWill.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
@@ -46,8 +50,7 @@ async function processWillDecryption(
       : WillFileType.DOWNLOADED;
 
     // Get decryption parameters
-    const { algorithm, ciphertext, key, iv, authTag } =
-      getDecryptionArgs(type);
+    const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
     console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
@@ -124,7 +127,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  getDecryptionArgs,
-  processWillDecryption
-}
+export { getDecryptionArgs, processWillDecryption };

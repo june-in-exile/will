@@ -1,14 +1,25 @@
 import { NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
-import type { Estate, WillInfo, TokenBalance, BalanceSnapshot } from "@shared/types/blockchain.js";
+import type {
+  Estate,
+  WillInfo,
+  TokenBalance,
+  BalanceSnapshot,
+} from "@shared/types/blockchain.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import {
+  createWallet,
+  createContractInstance,
+} from "@shared/utils/crypto/blockchain.js";
+import { printSignatureTransferDetails } from "@shared/utils/crypto/printData.js";
 import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import chalk from "chalk";
-
 
 interface ProcessResult {
   transactionHash: string;
@@ -18,7 +29,6 @@ interface ProcessResult {
   success: boolean;
   estateCount: number;
 }
-
 
 // ERC20 ABI for token operations
 const ERC20_ABI = [
@@ -32,10 +42,14 @@ const ERC20_ABI = [
  * Validate environment variables
  */
 function validateEnvironmentVariables(): SignatureTransfer {
-  const result = validateEnvironment<SignatureTransfer>(presetValidations.signatureTransfer());
+  const result = validateEnvironment<SignatureTransfer>(
+    presetValidations.signatureTransfer(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   // Additional deadline validation warning
@@ -55,7 +69,6 @@ function validateEnvironmentVariables(): SignatureTransfer {
 
   return result.data;
 }
-
 
 /**
  * Fetch will information
@@ -295,54 +308,6 @@ function compareBalanceSnapshots(
 }
 
 /**
- * Print signature transfer details
- */
-function printSignatureTransferDetails(
-  willInfo: WillInfo,
-  nonce: string,
-  deadline: string,
-  signature: string,
-): void {
-  console.log(chalk.cyan("\n=== Signature Transfer Details ==="));
-
-  // Print Will Info
-  console.log(chalk.blue("\n🏛️  Will Information:"));
-  console.log(chalk.gray("- Testator:"), chalk.white(willInfo.testator));
-  console.log(chalk.gray("- Executor:"), chalk.white(willInfo.executor));
-  console.log(
-    chalk.gray("- Executed:"),
-    chalk.white(willInfo.executed.toString()),
-  );
-
-  // Print Estates
-  console.log(chalk.blue("\n💰 Estates to Transfer:"));
-  willInfo.estates.forEach((estate, index) => {
-    console.log(chalk.gray(`  Estate ${index}:`));
-    console.log(
-      chalk.gray("    - Beneficiary:"),
-      chalk.white(estate.beneficiary),
-    );
-    console.log(chalk.gray("    - Token:"), chalk.white(estate.token));
-    console.log(
-      chalk.gray("    - Amount:"),
-      chalk.white(estate.amount.toString()),
-    );
-  });
-
-  // Print Permit2 Parameters
-  console.log(chalk.blue("\n📋 Permit2 Parameters:"));
-  console.log(chalk.gray("- Nonce:"), chalk.white(nonce));
-  console.log(chalk.gray("- Deadline:"), chalk.white(deadline));
-  console.log(
-    chalk.gray("- Deadline (Date):"),
-    chalk.white(new Date(parseInt(deadline) * 1000).toISOString()),
-  );
-  console.log(chalk.gray("- Signature:"), chalk.white(signature));
-
-  console.log(chalk.cyan("\n=== End of Signature Transfer Details ===\n"));
-}
-
-/**
  * Execute signatureTransferToBeneficiaries transaction
  */
 async function executeSignatureTransfer(
@@ -571,7 +536,6 @@ export {
   checkTokenBalances,
   printBalanceSnapshot,
   compareBalanceSnapshots,
-  printSignatureTransferDetails,
   executeSignatureTransfer,
-  processSignatureTransfer
-}
+  processSignatureTransfer,
+};

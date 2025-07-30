@@ -129,24 +129,24 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray(
-      "         Base64-encoded encryption key [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+      ),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray(
-      "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+      ),
   );
 
   console.log(chalk.red("\nImportant:"));

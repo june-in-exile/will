@@ -1,7 +1,10 @@
 import type { PredictWill } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import {
   type WillFactory,
   WillFactory__factory,
@@ -29,10 +32,14 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): PredictWill {
-  const result = validateEnvironment<PredictWill>(presetValidations.predictWill());
+  const result = validateEnvironment<PredictWill>(
+    presetValidations.predictWill(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
@@ -59,7 +66,6 @@ function generateSecureSalt(timestamp: number = Date.now()): number {
     throw new Error(`Failed to generate salt: ${errorMessage}`);
   }
 }
-
 
 /**
  * Predict will address
@@ -98,7 +104,6 @@ async function predictWillAddress(
     throw new Error(`Failed to predict will address: ${errorMessage}`);
   }
 }
-
 
 /**
  * Process will addressing workflow
@@ -221,5 +226,5 @@ export {
   validateEnvironmentVariables,
   generateSecureSalt,
   predictWillAddress,
-  processWillAddressing
-}
+  processWillAddressing,
+};

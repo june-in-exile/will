@@ -66,13 +66,17 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-async function updateEnvironmentVariables(updates: Array<[string, string]>): Promise<void> {
+async function updateEnvironmentVariables(
+  updates: Array<[string, string]>,
+): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
 
     // Execute all updates in parallel
     await Promise.all(
-      updates.map(([key, value]) => Promise.resolve(updateEnvVariable(key, value)))
+      updates.map(([key, value]) =>
+        Promise.resolve(updateEnvVariable(key, value)),
+      ),
     );
 
     console.log(chalk.green("✅ Environment variables updated successfully"));

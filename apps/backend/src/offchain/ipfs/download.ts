@@ -1,5 +1,8 @@
 import type { IpfsDownload } from "@shared/types/environment.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import { DownloadedWillData } from "@shared/types/will.js";
 import { saveDownloadedWill } from "@shared/utils/file/saveWill.js";
 import { createHelia, Helia } from "helia";
@@ -18,15 +21,18 @@ interface ProcessResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): IpfsDownload {
-  const result = validateEnvironment<IpfsDownload>(presetValidations.ipfsDownload());
+  const result = validateEnvironment<IpfsDownload>(
+    presetValidations.ipfsDownload(),
+  );
 
   if (!result.isValid) {
-    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
+    throw new Error(
+      `Environment validation failed: ${result.errors.join(", ")}`,
+    );
   }
 
   return result.data;
 }
-
 
 /**
  * Download encrypted will from IPFS and save to local file
@@ -121,7 +127,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  validateEnvironmentVariables,
-  processIPFSDownload
-}
+export { validateEnvironmentVariables, processIPFSDownload };

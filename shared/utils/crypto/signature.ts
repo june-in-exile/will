@@ -5,7 +5,7 @@ import {
   validateSignature,
 } from "@shared/utils/validation/blockchain.js";
 import { keccak256 } from "@shared/utils/crypto/keccak256.js";
-import { createWallet } from "@shared/utils/crypto/blockchain.js"
+import { createWallet } from "@shared/utils/crypto/blockchain.js";
 import { ethers, Wallet, JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
@@ -199,4 +199,4 @@ async function recoverSigner(
   }
 }
 
-export { signString, verify, recoverSigner }
+export { signString, verify, recoverSigner };

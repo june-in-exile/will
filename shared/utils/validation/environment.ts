@@ -1,7 +1,14 @@
-import { validateEthereumAddress, validatePrivateKey, validateSignature } from "@shared/utils/validation/blockchain.js";
+import {
+  validateEthereumAddress,
+  validatePrivateKey,
+  validateSignature,
+} from "@shared/utils/validation/blockchain.js";
 import { validateCidv1 } from "@shared/utils/validation/cid.js";
 import { stringToBigInt } from "@shared/utils/transform/encoding.js";
-import type { EnvironmentValidationOptions, ValidationResult } from "@shared/types/validation.js";
+import type {
+  EnvironmentValidationOptions,
+  ValidationResult,
+} from "@shared/types/validation.js";
 
 /**
  * Generic environment variable validation function
@@ -9,7 +16,7 @@ import type { EnvironmentValidationOptions, ValidationResult } from "@shared/typ
  * @returns Validation result with validated data or errors
  */
 export function validateEnvironment<T extends Record<string, any>>(
-  options: EnvironmentValidationOptions
+  options: EnvironmentValidationOptions,
 ): ValidationResult<T> {
   const errors: string[] = [];
   const data: Record<string, any> = {};
@@ -54,7 +61,8 @@ export function validateEnvironment<T extends Record<string, any>>(
         try {
           data[field] = transform(value);
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
           errors.push(`Failed to transform ${field}: ${errorMessage}`);
         }
       }
@@ -64,7 +72,7 @@ export function validateEnvironment<T extends Record<string, any>>(
   return {
     isValid: errors.length === 0,
     data: data as T,
-    errors
+    errors,
   };
 }
 
@@ -82,23 +90,23 @@ export const presetValidations = {
     required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
       TESTATOR_PRIVATE_KEY: validators.privateKey,
-      PERMIT2: validators.ethereumAddress
-    }
+      PERMIT2: validators.ethereumAddress,
+    },
   }),
 
   predictWill: (): EnvironmentValidationOptions => ({
     required: ["WILL_FACTORY"],
     validators: {
-      WILL_FACTORY: validators.ethereumAddress
-    }
+      WILL_FACTORY: validators.ethereumAddress,
+    },
   }),
 
   transferSigning: (): EnvironmentValidationOptions => ({
     required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
       TESTATOR_PRIVATE_KEY: validators.privateKey,
-      PERMIT2: validators.ethereumAddress
-    }
+      PERMIT2: validators.ethereumAddress,
+    },
   }),
 
   uploadCid: (): EnvironmentValidationOptions => ({
@@ -106,22 +114,22 @@ export const presetValidations = {
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
-      CID: validators.cidv1
-    }
+      CID: validators.cidv1,
+    },
   }),
 
   submitProof: (): EnvironmentValidationOptions => ({
     required: ["UPLOAD_CID_VERIFIER"],
     validators: {
-      UPLOAD_CID_VERIFIER: validators.ethereumAddress
-    }
+      UPLOAD_CID_VERIFIER: validators.ethereumAddress,
+    },
   }),
 
   ipfsDownload: (): EnvironmentValidationOptions => ({
     required: ["CID"],
     validators: {
-      CID: validators.cidv1
-    }
+      CID: validators.cidv1,
+    },
   }),
 
   cidSigning: (): EnvironmentValidationOptions => ({
@@ -129,48 +137,63 @@ export const presetValidations = {
     validators: {
       CID: validators.cidv1,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
-      EXECUTOR: validators.ethereumAddress
-    }
+      EXECUTOR: validators.ethereumAddress,
+    },
   }),
 
   notarizeCid: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "EXECUTOR_SIGNATURE"],
+    required: [
+      "WILL_FACTORY",
+      "EXECUTOR_PRIVATE_KEY",
+      "CID",
+      "EXECUTOR_SIGNATURE",
+    ],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
-      EXECUTOR_SIGNATURE: (value: string) =>
-        validators.signature(value)
-    }
+      EXECUTOR_SIGNATURE: (value: string) => validators.signature(value),
+    },
   }),
 
   createWill: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID", "TESTATOR", "SALT"],
+    required: [
+      "WILL_FACTORY",
+      "EXECUTOR_PRIVATE_KEY",
+      "CID",
+      "TESTATOR",
+      "SALT",
+    ],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
       TESTATOR: validators.ethereumAddress,
-      SALT: validators.numericString
+      SALT: validators.numericString,
     },
     transforms: {
-      SALT: stringToBigInt
-    }
+      SALT: stringToBigInt,
+    },
   }),
 
   signatureTransfer: (): EnvironmentValidationOptions => ({
-    required: ["WILL", "EXECUTOR_PRIVATE_KEY", "NONCE", "DEADLINE", "PERMIT2_SIGNATURE"],
+    required: [
+      "WILL",
+      "EXECUTOR_PRIVATE_KEY",
+      "NONCE",
+      "DEADLINE",
+      "PERMIT2_SIGNATURE",
+    ],
     validators: {
       WILL: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
       NONCE: validators.numericString,
       DEADLINE: validators.numericString,
-      PERMIT2_SIGNATURE: (value: string) =>
-        validators.signature(value)
+      PERMIT2_SIGNATURE: (value: string) => validators.signature(value),
     },
     transforms: {
       NONCE: stringToBigInt,
-      DEADLINE: stringToBigInt
-    }
+      DEADLINE: stringToBigInt,
+    },
   }),
 };
