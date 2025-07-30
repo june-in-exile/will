@@ -73,33 +73,37 @@ test-unit: sync-groth16verifier-and-proof
 
 # --------------- Conditional Deployment ----------------
 
-deploy-groth16verifier:
-ifeq ($(USE_ANVIL),true)
-	@$(MAKE) deploy-groth16verifier_to_forked_arb_sepolia
-else
-	@$(MAKE) deploy-groth16verifier-to-arb-sepolia
-endif
+deploy-groth16verifier: sync
+	@source $(ENV_FILE) && \
+	if [ "$$USE_ANVIL" = "true" ]; then \
+		$(MAKE) deploy-groth16verifier-to-forked-arb-sepolia; \
+	else \
+		$(MAKE) deploy-groth16verifier-to-arb-sepolia; \
+	fi
 
-deploy-jsonCidVerifier:
-ifeq ($(USE_ANVIL),true)
-	@$(MAKE) deploy-jsonCidVerifier-to-forked-arb-sepolia
-else
-	@$(MAKE) deploy-jsonCidVerifier-to-arb-sepolia
-endif
+deploy-jsonCidVerifier: sync
+	@source $(ENV_FILE) && \
+	if [ "$$USE_ANVIL" = "true" ]; then \
+		$(MAKE) deploy-jsonCidVerifier-to-forked-arb-sepolia; \
+	else \
+		$(MAKE) deploy-jsonCidVerifier-to-arb-sepolia; \
+	fi
 
-deploy-willFactory:
-ifeq ($(USE_ANVIL),true)
-	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
-else
-	@$(MAKE) deploy-willFactory-to-arb-sepolia
-endif
+deploy-willFactory: sync
+	@source $(ENV_FILE) && \
+	if [ "$$USE_ANVIL" = "true" ]; then \
+		$(MAKE) deploy-willFactory-to-forked-arb-sepolia; \
+	else \
+		$(MAKE) deploy-willFactory-to-arb-sepolia; \
+	fi
 
-deploy: build
-ifeq ($(USE_ANVIL),true)
-	@$(MAKE) deploy-to-forked-arb-sepolia
-else
-	@$(MAKE) deploy-to-arb-sepolia
-endif
+deploy: sync
+	@source $(ENV_FILE) && \
+	if [ "$$USE_ANVIL" = "true" ]; then \
+		$(MAKE) deploy-to-forked-arb-sepolia; \
+	else \
+		$(MAKE) deploy-to-arb-sepolia; \
+	fi
 
 # ------------ Scripts for Arbitrun Sepolia -------------
 
@@ -148,8 +152,9 @@ fork-background:
 	@pkill anvil 2>/dev/null || true
 	@sleep 1
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
+	@sleep 3
 
-deploy-groth16verifier_to_forked_arb_sepolia:
+deploy-groth16verifier-to-forked-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
@@ -174,7 +179,7 @@ deploy-willFactory-to-forked-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-forked-arb-sepolia: deploy-groth16verifier_to_forked_arb_sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
+deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------

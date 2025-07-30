@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-import "forge-std/console.sol";
 
 /**
  * @title JsonCidVerifier
@@ -45,7 +44,6 @@ contract JsonCidVerifier {
         TypedJsonObject memory typedJsonObj,
         string memory cid
     ) external pure returns (bool) {
-        console.log("generated cid:", generateCIDString(typedJsonObj));
         return stringEquals(generateCIDString(typedJsonObj), cid);
     }
 
@@ -60,7 +58,6 @@ contract JsonCidVerifier {
         TypedJsonObject memory typedJsonObj
     ) public pure returns (string memory) {
         string memory json = buildStandardizedJson(typedJsonObj);
-        console.log("json:", json);
         return _generateCIDString(json);
     }
 

@@ -191,7 +191,7 @@ function convertToTypedJsonObject(
 
     keys.push("timestamp");
     values.push({
-      value: encryptedWillData.timestamp,
+      value: encryptedWillData.timestamp.toString(),
       valueType: 1, // JsonValueType.NUMBER
     });
 

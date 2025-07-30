@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
-import "forge-std/console.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
 import "src/Groth16Verifier.sol";
