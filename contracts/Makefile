@@ -59,9 +59,6 @@ build: sync
 typechain: 
 	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/types/typechain-types 'out/**/*.sol/*.json'
 
-test-all: sync-groth16verifier-and-proof
-	@pnpm test
-
 test-fuzz: sync-groth16verifier-and-proof
 	@pnpm test "test/fuzz/*"
 
@@ -70,6 +67,9 @@ test-integration: sync-groth16verifier-and-proof
 
 test-unit: sync-groth16verifier-and-proof
 	@pnpm test "test/unit/*"
+
+test: sync-groth16verifier-and-proof
+	@pnpm test
 
 # --------------- Conditional Deployment ----------------
 
@@ -143,7 +143,7 @@ deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerif
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
-fork-foreground:
+fork:
 	@pkill anvil 2>/dev/null || true
 	@sleep 1
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID)
@@ -152,7 +152,6 @@ fork-background:
 	@pkill anvil 2>/dev/null || true
 	@sleep 1
 	@anvil --fork-url $(ARB_SEPOLIA_RPC_URL) --chain-id $(ANVIL_CHAIN_ID) &
-	@sleep 3
 
 deploy-groth16verifier-to-forked-arb-sepolia:
 	@forge script \

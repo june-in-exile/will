@@ -107,27 +107,46 @@ function testRPCConnection(): Promise<boolean> {
   });
 }
 
-// Check anvil status
-async function checkAnvilStatus(): Promise<boolean> {
-  const processRunning: boolean = await checkAnvilProcess();
-  if (!processRunning) {
-    console.log(chalk.gray(`✗ No anvil process found`));
-    return false;
+// Sleep utility function
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Check anvil status with retry
+async function checkAnvilStatus(maxRetries: number = 10, retryDelay: number = 500): Promise<boolean> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(chalk.blue(`Attempt ${attempt}/${maxRetries}: Checking Anvil status...`));
+    
+    const processRunning: boolean = await checkAnvilProcess();
+    if (!processRunning) {
+      console.log(chalk.gray(`✗ No anvil process found`));
+      if (attempt === maxRetries) return false;
+      await sleep(retryDelay);
+      continue;
+    }
+
+    const portOpen: boolean = await checkPort();
+    if (!portOpen) {
+      console.log(chalk.gray(`✗ Port ${ANVIL_PORT} is not being used`));
+      if (attempt === maxRetries) return false;
+      await sleep(retryDelay);
+      continue;
+    }
+
+    const rpcWorking: boolean = await testRPCConnection();
+    if (!rpcWorking) {
+      console.log(chalk.gray(`✗ Unable to connect to anvil RPC service`));
+      if (attempt === maxRetries) return false;
+      await sleep(retryDelay);
+      continue;
+    }
+
+    // All checks passed
+    console.log(chalk.green(`✓ Anvil is running (detected on attempt ${attempt})`));
+    return true;
   }
 
-  const portOpen: boolean = await checkPort();
-  if (!portOpen) {
-    console.log(chalk.gray(`✗ Port ${ANVIL_PORT} is not being used`));
-    return false;
-  }
-
-  const rpcWorking: boolean = await testRPCConnection();
-  if (!rpcWorking) {
-    console.log(chalk.gray(`✗ Unable to connect to anvil RPC service`));
-    return false;
-  }
-
-  return true;
+  return false;
 }
 
 // Display usage information for the script
@@ -152,10 +171,9 @@ async function main(): Promise<void> {
     const isRunning: boolean = await checkAnvilStatus();
 
     if (isRunning) {
-      console.log(chalk.green("✓ Anvil is running"));
       updateEnvVariable("USE_ANVIL", "true");
     } else {
-      console.log(chalk.green("✓ Anvil is not running"));
+      console.log(chalk.yellow("✓ Anvil is not running"));
       updateEnvVariable("USE_ANVIL", "false");
     }
 

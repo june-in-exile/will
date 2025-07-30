@@ -7,6 +7,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && vitest run --reporter=basic",
+    "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "clean": "make clean-all"
