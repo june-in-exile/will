@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
 import type { Estate, WillInfo, TokenBalance, BalanceSnapshot } from "@shared/types/blockchain.js";
@@ -14,7 +14,7 @@ import chalk from "chalk";
 config({ path: PATHS_CONFIG.env });
 
 
-interface SignatureTransferResult {
+interface ProcessResult {
   transactionHash: string;
   willAddress: string;
   timestamp: number;
@@ -355,7 +355,7 @@ async function executeSignatureTransfer(
   nonce: string,
   deadline: string,
   signature: string,
-): Promise<SignatureTransferResult> {
+): Promise<ProcessResult> {
   try {
     console.log(
       chalk.blue("Executing signatureTransferToBeneficiaries transaction..."),
@@ -441,39 +441,9 @@ async function executeSignatureTransfer(
 }
 
 /**
- * Update environment variables with execution data
- */
-async function updateEnvironmentVariables(
-  result: SignatureTransferResult,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      ["EXECUTE_WILL_TX_HASH", result.transactionHash],
-      ["EXECUTE_WILL_TIMESTAMP", result.timestamp.toString()],
-    ];
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage,
-    );
-  }
-}
-
-/**
  * Process signature transfer workflow
  */
-async function processSignatureTransfer(): Promise<SignatureTransferResult> {
+async function processSignatureTransfer(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
@@ -531,7 +501,10 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
     compareBalanceSnapshots(beforeSnapshot, afterSnapshot, willInfo);
 
     // Update environment
-    await updateEnvironmentVariables(result);
+    await updateEnvironmentVariables([
+      ["EXECUTE_WILL_TX_HASH", result.transactionHash],
+      ["EXECUTE_WILL_TIMESTAMP", result.timestamp.toString()],
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 Will execution process completed successfully!"),
@@ -604,6 +577,5 @@ export {
   compareBalanceSnapshots,
   printSignatureTransferDetails,
   executeSignatureTransfer,
-  updateEnvironmentVariables,
   processSignatureTransfer
 }

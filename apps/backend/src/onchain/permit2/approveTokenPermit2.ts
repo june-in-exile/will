@@ -46,7 +46,7 @@ interface TokenApprovalSummary {
   allSuccessful: boolean;
 }
 
-interface WorkflowResult extends TokenApprovalSummary {
+interface ProcessResult extends TokenApprovalSummary {
   permit2Address: string;
   signerAddress: string;
   success: boolean;
@@ -401,7 +401,7 @@ async function processTokenApprovals(
 /**
  * Process token approval workflow
  */
-async function processTokenApprovalWorkflow(): Promise<WorkflowResult> {
+async function processTokenApprovalWorkflow(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();

@@ -1,20 +1,19 @@
 import type { PredictWill } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
-  type Will,
   type WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WillFileType, FormattedWillData, AddressedWillData } from "@shared/types/will.js";
+import { WillFileType, FormattedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { saveAddressedWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
 import { JsonRpcProvider } from "ethers";
-import { writeFileSync } from "fs";
 import { config } from "dotenv";
 import crypto from "crypto";
 import chalk from "chalk";
@@ -104,78 +103,6 @@ async function predictWillAddress(
   }
 }
 
-/**
- * Save addressed will
- */
-function saveAddressedWill(
-  willData: FormattedWillData,
-  salt: number,
-  predictedAddress: EthereumAddress,
-): AddressedWillData {
-  try {
-    console.log(chalk.blue("Preparing addressed will..."));
-
-    const addressedWill: AddressedWillData = {
-      ...willData,
-      salt: salt,
-      will: predictedAddress,
-    };
-
-    writeFileSync(
-      PATHS_CONFIG.will.addressed,
-      JSON.stringify(addressedWill, null, 4),
-    );
-    console.log(
-      chalk.green("✅ Addressed will saved to:"),
-      PATHS_CONFIG.will.addressed,
-    );
-
-    return addressedWill;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save addressed will: ${errorMessage}`);
-  }
-}
-
-/**
- * Update environment variables with estate and contract data
- */
-async function updateEnvironmentVariables(
-  estates: Will.EstateStruct[],
-  salt: number,
-  predictedAddress: string,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      // Will contract info
-      ["SALT", salt.toString()],
-      ["WILL", predictedAddress],
-    ];
-
-    // Add estate-specific variables
-    estates.forEach((estate, index) => {
-      updates.push(
-        [`BENEFICIARY${index}`, estate.beneficiary.toString()],
-        [`TOKEN${index}`, estate.token.toString()],
-        [`AMOUNT${index}`, estate.amount.toString()],
-      );
-    });
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to update environment variables: ${errorMessage}`);
-  }
-}
 
 /**
  * Process will addressing workflow
@@ -214,7 +141,22 @@ async function processWillAddressing(): Promise<ProcessResult> {
     saveAddressedWill(willData, salt, predictedAddress);
 
     // Update environment variables
-    await updateEnvironmentVariables(willData.estates, salt, predictedAddress);
+    const updates: Array<[string, string]> = [
+      // Will contract info
+      ["SALT", salt.toString()],
+      ["WILL", predictedAddress],
+    ];
+
+    // Add estate-specific variables
+    willData.estates.forEach((estate, index) => {
+      updates.push(
+        [`BENEFICIARY${index}`, estate.beneficiary.toString()],
+        [`TOKEN${index}`, estate.token.toString()],
+        [`AMOUNT${index}`, estate.amount.toString()],
+      );
+    });
+
+    await updateEnvironmentVariables(updates);
 
     console.log(
       chalk.green.bold("\n🎉 Will addressing process completed successfully!"),
@@ -283,7 +225,5 @@ export {
   validateEnvironmentVariables,
   generateSecureSalt,
   predictWillAddress,
-  saveAddressedWill,
-  updateEnvironmentVariables,
   processWillAddressing
 }

@@ -5,12 +5,12 @@ import {
   PERMIT2_CONFIG,
   NETWORK_CONFIG,
 } from "@config";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js"
-import { WillFileType, AddressedWillData, SignedWillData } from "@shared/types/will.js";
+import { WillFileType, AddressedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { saveSignedWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { writeFileSync } from "fs";
 import { ethers, JsonRpcProvider, Wallet } from "ethers";
 import { config } from "dotenv";
 import { createRequire } from "module";
@@ -205,72 +205,6 @@ async function signPermit(
   }
 }
 
-/**
- * Save signed will
- */
-function saveSignedWill(
-  willData: AddressedWillData,
-  nonce: number,
-  deadline: number,
-  signature: string,
-): SignedWillData {
-  try {
-    console.log(chalk.blue("Preparing signed will..."));
-
-    const signedWill = {
-      ...willData,
-      signature: {
-        nonce,
-        deadline,
-        signature,
-      },
-    };
-
-    writeFileSync(
-      PATHS_CONFIG.will.signed,
-      JSON.stringify(signedWill, null, 4),
-    );
-    console.log(
-      chalk.green("✅ Signed will saved to:"),
-      PATHS_CONFIG.will.signed,
-    );
-
-    return signedWill;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save signed will: ${errorMessage}`);
-  }
-}
-
-/**
- * Update environment variables
- */
-async function updateEnvironmentVariables(
-  nonce: number,
-  deadline: number,
-  signature: string,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      ["NONCE", nonce.toString()],
-      ["DEADLINE", deadline.toString()],
-      ["PERMIT2_SIGNATURE", signature],
-    ];
-
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to update environment variables: ${errorMessage}`);
-  }
-}
 
 /**
  * Process will signing workflow
@@ -323,7 +257,11 @@ async function processWillSigning(): Promise<ProcessResult> {
     saveSignedWill(willData, nonce, deadline, signature);
 
     // Update environment variables
-    await updateEnvironmentVariables(nonce, deadline, signature);
+    await updateEnvironmentVariables([
+      ["NONCE", nonce.toString()],
+      ["DEADLINE", deadline.toString()],
+      ["PERMIT2_SIGNATURE", signature],
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 Will signing process completed successfully!"),
@@ -399,7 +337,5 @@ export {
   generateSecureNonce,
   createPermitStructure,
   signPermit,
-  saveSignedWill,
-  updateEnvironmentVariables,
   processWillSigning
 }

@@ -10,7 +10,7 @@ import { validateEnvironment, presetValidations } from "@shared/utils/validation
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js"
 import { readWill } from "@shared/utils/file/readWill.js"
 import { readProof } from "@shared/utils/file/readProof.js";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import type { CreateWill } from "@shared/types/environment.js";
 import type { Estate } from "@shared/types/blockchain.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
@@ -33,7 +33,7 @@ interface CreateWillData {
   salt: bigint;
 }
 
-interface CreateWillResult {
+interface ProcessResult {
   transactionHash: string;
   willAddress: string;
   cid: string;
@@ -228,7 +228,7 @@ function printCreateWillData(createData: CreateWillData): void {
 async function executeCreateWill(
   contract: WillFactory,
   createData: CreateWillData,
-): Promise<CreateWillResult> {
+): Promise<ProcessResult> {
   try {
     console.log(chalk.blue("Executing createWill transaction..."));
 
@@ -325,40 +325,9 @@ async function executeCreateWill(
 }
 
 /**
- * Update environment variables with creation data
- */
-async function updateEnvironmentVariables(
-  result: CreateWillResult,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      ["CREATE_WILL_TX_HASH", result.transactionHash],
-      ["WILL", result.willAddress],
-      ["CREATE_WILL_TIMESTAMP", result.timestamp.toString()],
-    ];
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage,
-    );
-  }
-}
-
-/**
  * Process will creation workflow
  */
-async function processCreateWill(): Promise<CreateWillResult> {
+async function processCreateWill(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles([
@@ -410,7 +379,11 @@ async function processCreateWill(): Promise<CreateWillResult> {
     });
 
     // Update environment
-    await updateEnvironmentVariables(result);
+    await updateEnvironmentVariables([
+      ["CREATE_WILL_TX_HASH", result.transactionHash],
+      ["WILL", result.willAddress],
+      ["CREATE_WILL_TIMESTAMP", result.timestamp.toString()],
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 Will creation process completed successfully!"),
@@ -474,6 +447,5 @@ export {
   parseEstatesFromEnvironment,
   printCreateWillData,
   executeCreateWill,
-  updateEnvironmentVariables,
   processCreateWill
 }

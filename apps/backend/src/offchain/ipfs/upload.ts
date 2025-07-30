@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { createHelia, Helia } from "helia";
@@ -16,7 +16,7 @@ interface HeliaInstance {
   jsonHandler: HeliaJSON;
 }
 
-interface UploadResult {
+interface ProcessResult {
   cid?: string;
   success: boolean;
   uploadPath?: string;
@@ -24,11 +24,6 @@ interface UploadResult {
   pinnedLocally?: boolean;
   error?: string;
   stage?: string;
-}
-
-interface ExecResult {
-  stdout: string;
-  stderr: string;
 }
 
 /**
@@ -87,7 +82,7 @@ async function pinInLocalDaemon(
         ),
       );
 
-      const { stdout, stderr }: ExecResult = await execPromise(
+      const { stdout, stderr } = await execPromise(
         `ipfs pin add ${cid.toString()}`,
         { timeout: IPFS_CONFIG.pinning.timeout },
       );
@@ -172,33 +167,9 @@ function displayAccessInfo(cid: CID): void {
 }
 
 /**
- * Update environment variables
- */
-async function updateEnvironmentVariables(cid: CID): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const cidString = cid.toString();
-
-    // Update environment variables
-    await Promise.all([updateEnvVariable("CID", cidString)]);
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(
-      chalk.red("❌ Failed to update environment variables:"),
-      errorMessage,
-    );
-    throw error;
-  }
-}
-
-/**
  * Process IPFS upload workflow with strict pinning requirement
  */
-async function processIPFSUpload(): Promise<UploadResult> {
+async function processIPFSUpload(): Promise<ProcessResult> {
   let helia: Helia | undefined;
 
   try {
@@ -237,7 +208,9 @@ async function processIPFSUpload(): Promise<UploadResult> {
     displayAccessInfo(cid);
 
     // Update environment variables
-    await updateEnvironmentVariables(cid);
+    await updateEnvironmentVariables([
+      ["CID", cid.toString()]
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 IPFS upload process completed successfully!"),
@@ -374,6 +347,5 @@ export {
   uploadToIPFS,
   pinInLocalDaemon,
   displayAccessInfo,
-  updateEnvironmentVariables,
   processIPFSUpload
 }

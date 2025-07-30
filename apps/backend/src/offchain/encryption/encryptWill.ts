@@ -11,14 +11,8 @@ import {
 import { Base64String } from "@shared/types/base64String.js";
 import { WillFileType, SignedWillData, EncryptedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { writeFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
-import { config } from "dotenv";
+import { saveEncryptedWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
-
-const modulePath = dirname(fileURLToPath(import.meta.url));
-config({ path: resolve(modulePath, "../.env") });
 
 // Type definitions
 interface ProcessResult {
@@ -45,26 +39,6 @@ function getEncryptionArgs(): EncryptionArgs {
   const iv = generateInitializationVector(CRYPTO_CONFIG.ivSize);
 
   return { algorithm, plaintext, key, iv };
-}
-
-/**
- * Save encrypted will to file
- */
-function saveEncryptedWill(encryptedWill: EncryptedWillData): void {
-  try {
-    writeFileSync(
-      PATHS_CONFIG.will.encrypted,
-      JSON.stringify(encryptedWill, null, 4),
-    );
-    console.log(
-      chalk.green("Encrypted will saved to:"),
-      PATHS_CONFIG.will.encrypted,
-    );
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save encrypted will: ${errorMessage}`);
-  }
 }
 
 /**
@@ -161,6 +135,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   getEncryptionArgs,
-  saveEncryptedWill,
   processWillEncryption
 }

@@ -5,15 +5,9 @@ import type {
 } from "@shared/types/crypto.js";
 import { DownloadedWillData, WillFileType, type EncryptedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { saveDecryptedWill } from "@shared/utils/file/saveWill.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
-import { writeFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
-import { config } from "dotenv";
 import chalk from "chalk";
-
-const modulePath = dirname(fileURLToPath(import.meta.url));
-config({ path: resolve(modulePath, "../.env") });
 
 interface ProcessResult {
   decryptedPath: string;
@@ -39,19 +33,6 @@ function getDecryptionArgs(type: WillFileType): DecryptionArgs {
 /**
  * Save decrypted will to file
  */
-function saveDecryptedWill(decryptedWill: string): void {
-  try {
-    writeFileSync(PATHS_CONFIG.will.decrypted, decryptedWill);
-    console.log(
-      chalk.green("✅ Decrypted will saved to:"),
-      PATHS_CONFIG.will.decrypted,
-    );
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to save decrypted will: ${errorMessage}`);
-  }
-}
 
 /**
  * Process will decryption
@@ -145,6 +126,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   getDecryptionArgs,
-  saveDecryptedWill,
   processWillDecryption
 }

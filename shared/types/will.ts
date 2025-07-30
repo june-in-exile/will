@@ -7,8 +7,11 @@ enum WillFileType {
     ADDRESSED = "addressed",
     SIGNED = "signed",
     ENCRYPTED = "encrypted",
-    DOWNLOADED = "downloaded"
+    DOWNLOADED = "downloaded",
+    DECRYPTED = "decrypted"
 }
+
+type WillData = FormattedWillData | AddressedWillData | SignedWillData | EncryptedWillData | DownloadedWillData | string;
 
 interface FormattedWillData {
     testator: EthereumAddress;
@@ -35,4 +38,4 @@ interface EncryptedWillData {
 interface DownloadedWillData extends EncryptedWillData {
 }
 
-export { WillFileType, type FormattedWillData, type AddressedWillData, type SignedWillData, type EncryptedWillData, type DownloadedWillData }
+export { WillFileType, type WillData, type FormattedWillData, type AddressedWillData, type SignedWillData, type EncryptedWillData, type DownloadedWillData }

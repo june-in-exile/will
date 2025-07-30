@@ -2,7 +2,7 @@ import { PATHS_CONFIG } from "@config";
 import { readFileSync, writeFileSync } from "fs";
 import chalk from "chalk";
 
-export function updateEnvVariable(key: string, value: string): void {
+function updateEnvVariable(key: string, value: string): void {
   const envPath = PATHS_CONFIG.env;
   try {
     let envContent = readFileSync(envPath, "utf8");
@@ -65,3 +65,26 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+async function updateEnvironmentVariables(updates: Array<[string, string]>): Promise<void> {
+  try {
+    console.log(chalk.blue("Updating environment variables..."));
+
+    // Execute all updates in parallel
+    await Promise.all(
+      updates.map(([key, value]) => Promise.resolve(updateEnvVariable(key, value)))
+    );
+
+    console.log(chalk.green("✅ Environment variables updated successfully"));
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.warn(
+      chalk.yellow("Warning: Failed to update environment variables:"),
+      errorMessage,
+    );
+    throw error;
+  }
+}
+
+export { updateEnvVariable, updateEnvironmentVariables };

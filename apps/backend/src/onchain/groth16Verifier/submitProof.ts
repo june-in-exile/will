@@ -17,17 +17,17 @@ import chalk from "chalk";
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
-interface ProofSubmissionResult {
-  isValid: boolean;
-  contractAddress: string;
-  submittedAt: number;
-  success: boolean;
-}
-
 interface ProofValidationResult {
   proofValid: boolean;
   gasUsed?: bigint;
   executionTime: number;
+}
+
+interface ProcessResult {
+  isValid: boolean;
+  contractAddress: string;
+  submittedAt: number;
+  success: boolean;
 }
 
 /**
@@ -133,7 +133,7 @@ async function submitProofToContract(
 /**
  * Process proof submission workflow
  */
-async function processProofSubmission(): Promise<ProofSubmissionResult> {
+async function processProofSubmission(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles([
@@ -159,7 +159,7 @@ async function processProofSubmission(): Promise<ProofSubmissionResult> {
     // Submit proof for verification
     const verificationResult = await submitProofToContract(contract, proof);
 
-    const result: ProofSubmissionResult = {
+    const result: ProcessResult = {
       isValid: verificationResult.proofValid,
       contractAddress: UPLOAD_CID_VERIFIER,
       submittedAt: Date.now(),

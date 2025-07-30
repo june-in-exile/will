@@ -1,6 +1,6 @@
 import type { NotarizeCid } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
   WillFactory,
@@ -15,7 +15,7 @@ import chalk from "chalk";
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
 
-interface NotarizeResult {
+interface ProcessResult {
   transactionHash: string;
   cid: string;
   timestamp: number;
@@ -60,7 +60,7 @@ async function executeNotarizeCID(
   contract: WillFactory,
   cid: string,
   signature: string,
-): Promise<NotarizeResult> {
+): Promise<ProcessResult> {
   try {
     console.log(chalk.blue("Executing notarizeCid transaction..."));
 
@@ -109,39 +109,9 @@ async function executeNotarizeCID(
 }
 
 /**
- * Update environment variables with notarization data
- */
-async function updateEnvironmentVariables(
-  result: NotarizeResult,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      ["NOTARIZE_TX_HASH", result.transactionHash],
-      ["NOTARIZE_TIMESTAMP", result.timestamp.toString()],
-    ];
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage,
-    );
-  }
-}
-
-/**
  * Process CID notarization workflow
  */
-async function processNotarizeCID(): Promise<NotarizeResult> {
+async function processNotarizeCID(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
@@ -165,7 +135,10 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
     const result = await executeNotarizeCID(contract, CID, EXECUTOR_SIGNATURE);
 
     // Update environment
-    await updateEnvironmentVariables(result);
+    await updateEnvironmentVariables([
+      ["NOTARIZE_TX_HASH", result.transactionHash],
+      ["NOTARIZE_TIMESTAMP", result.timestamp.toString()],
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 CID notarization process completed successfully!"),
@@ -227,6 +200,5 @@ export {
   validateEnvironmentVariables,
   printNotarizationDetails,
   executeNotarizeCID,
-  updateEnvironmentVariables,
   processNotarizeCID
 }

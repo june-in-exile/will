@@ -10,7 +10,7 @@ import { validateEnvironment, presetValidations } from "@shared/utils/validation
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js"
 import { readWill } from "@shared/utils/file/readWill.js";
 import { readProof } from "@shared/utils/file/readProof.js";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import type { UploadCid } from "@shared/types/environment.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
@@ -28,7 +28,7 @@ interface UploadCidData {
   cid: string;
 }
 
-interface UploadResult {
+interface ProcessResult {
   transactionHash: string;
   cid: string;
   timestamp: number;
@@ -137,7 +137,7 @@ function printUploadCidData(uploadData: UploadCidData): void {
 async function executeUploadCid(
   contract: WillFactory,
   uploadData: UploadCidData,
-): Promise<UploadResult> {
+): Promise<ProcessResult> {
   try {
     console.log(chalk.blue("Executing uploadCid transaction..."));
 
@@ -201,37 +201,9 @@ async function executeUploadCid(
 }
 
 /**
- * Update environment variables with upload data
- */
-async function updateEnvironmentVariables(result: UploadResult): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    const updates: Array<[string, string]> = [
-      ["UPLOAD_TX_HASH", result.transactionHash],
-      ["UPLOAD_TIMESTAMP", result.timestamp.toString()],
-    ];
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) => updateEnvVariable(key, value)),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage,
-    );
-  }
-}
-
-/**
  * Process CID upload workflow
  */
-async function processUploadCid(): Promise<UploadResult> {
+async function processUploadCid(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     validateFiles([
@@ -269,7 +241,10 @@ async function processUploadCid(): Promise<UploadResult> {
     });
 
     // Update environment
-    await updateEnvironmentVariables(result);
+    await updateEnvironmentVariables([
+      ["UPLOAD_TX_HASH", result.transactionHash],
+      ["UPLOAD_TIMESTAMP", result.timestamp.toString()],
+    ]);
 
     console.log(
       chalk.green.bold("\n🎉 CID upload process completed successfully!"),
@@ -328,6 +303,5 @@ export {
   validateEnvironmentVariables,
   printUploadCidData,
   executeUploadCid,
-  updateEnvironmentVariables,
   processUploadCid
 }
