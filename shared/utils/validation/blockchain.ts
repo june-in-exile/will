@@ -1,11 +1,12 @@
 import { SIGNATURE_CONFIG } from "@config";
+import { validateHex } from "./hex.js";
 import { ethers } from "ethers";
 
-export function validateEthereumAddress(address: string): boolean {
+function validateEthereumAddress(address: string): boolean {
   return ethers.isAddress(address);
 }
 
-export function validatePrivateKey(privateKey: string): boolean {
+function validatePrivateKey(privateKey: string): boolean {
   try {
     new ethers.Wallet(privateKey);
     return true;
@@ -14,7 +15,7 @@ export function validatePrivateKey(privateKey: string): boolean {
   }
 }
 
-export function validateSignature(signature: string): boolean {
+function validateSignature(signature: string): boolean {
   if (typeof signature !== "string") {
     throw new Error("Signature must be a string");
   }
@@ -29,11 +30,11 @@ export function validateSignature(signature: string): boolean {
     );
   }
 
-  // Validate hex format
-  const hexPart = signature.slice(2);
-  if (!/^[0-9a-fA-F]+$/.test(hexPart)) {
+  if (!validateHex(signature)) {
     throw new Error("Signature must be in hexadecimal format");
   }
 
   return true;
 }
+
+export { validateEthereumAddress, validatePrivateKey, validateSignature };

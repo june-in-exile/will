@@ -1,5 +1,6 @@
 import { validateEthereumAddress, validatePrivateKey, validateSignature } from "@shared/utils/validation/blockchain.js";
-import { validateCidv1 } from "@shared/utils/format/cid.js";
+import { validateCidv1 } from "@shared/utils/validation/cid.js";
+import { stringToBigInt } from "@shared/utils/transform/encoding.js";
 import type { EnvironmentValidationOptions, ValidationResult } from "@shared/types/validation.js";
 
 /**
@@ -73,10 +74,6 @@ const validators = {
   cidv1: (value: string): boolean => validateCidv1(value),
   signature: (value: string): boolean => validateSignature(value),
   numericString: (value: string): boolean => /^\d+$/.test(value),
-};
-
-const transforms = {
-  toBigInt: (value: string): bigint => BigInt(value),
 };
 
 // Preset validation configurations for common use cases
@@ -157,7 +154,7 @@ export const presetValidations = {
       SALT: validators.numericString
     },
     transforms: {
-      SALT: transforms.toBigInt
+      SALT: stringToBigInt
     }
   }),
 
@@ -172,8 +169,8 @@ export const presetValidations = {
         validators.signature(value)
     },
     transforms: {
-      NONCE: transforms.toBigInt,
-      DEADLINE: transforms.toBigInt
+      NONCE: stringToBigInt,
+      DEADLINE: stringToBigInt
     }
   }),
 };

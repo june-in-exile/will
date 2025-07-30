@@ -9,8 +9,9 @@ import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js"
 import { WillFileType, AddressedWillData, SignedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { validateNetwork } from "@shared/utils/validation/network.js";
 import { writeFileSync } from "fs";
-import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
+import { ethers, JsonRpcProvider, Wallet } from "ethers";
 import { config } from "dotenv";
 import { createRequire } from "module";
 import chalk from "chalk";
@@ -88,25 +89,6 @@ async function createSigner(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to create signer: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate network connection and get chain info
- */
-async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating network connection..."));
-    const network = await provider.getNetwork();
-
-    console.log(chalk.green("✅ Connected to network:"), network.name);
-    console.log(chalk.gray("Chain ID:"), network.chainId.toString());
-
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to network: ${errorMessage}`);
   }
 }
 
@@ -413,7 +395,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   createSigner,
-  validateNetwork,
   calculateDeadline,
   generateSecureNonce,
   createPermitStructure,

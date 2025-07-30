@@ -1,19 +1,23 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { readProof } from "@shared/utils/file/readProof.js";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
-import type { CreateWill } from "@shared/types/environment.js";
-import type { Estate } from "@shared/types/blockchain.js";
-import { existsSync } from "fs";
-import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
-import { ProofData } from "@shared/types/crypto.js";
-import { EncryptedWillData, WillFileType } from "@shared/types/will.js";
-import { readWill } from "@shared/utils/file/readWill.js"
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
+import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
+import { ProofData } from "@shared/types/crypto.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js"
+import { readWill } from "@shared/utils/file/readWill.js"
+import { readProof } from "@shared/utils/file/readProof.js";
+import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import type { CreateWill } from "@shared/types/environment.js";
+import type { Estate } from "@shared/types/blockchain.js";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
+import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
+import { JsonRpcProvider } from "ethers";
+import { validateFiles } from "@shared/utils/validation/file.js"
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -22,7 +26,7 @@ config({ path: PATHS_CONFIG.env });
 
 interface CreateWillData {
   proof: ProofData;
-  will: JsonCidVerifier.JsonObjectStruct;
+  will: JsonCidVerifier.TypedJsonObjectStruct;
   cid: string;
   testator: string;
   estates: Estate[];
@@ -68,13 +72,13 @@ function parseEstatesFromEnvironment(): Estate[] {
     }
 
     // Validate addresses
-    if (!ethers.isAddress(beneficiary)) {
+    if (!validateEthereumAddress(beneficiary)) {
       throw new Error(
         `Invalid beneficiary address at index ${index}: ${beneficiary}`,
       );
     }
 
-    if (!ethers.isAddress(token)) {
+    if (!validateEthereumAddress(token)) {
       throw new Error(`Invalid token address at index ${index}: ${token}`);
     }
 
@@ -113,130 +117,6 @@ function parseEstatesFromEnvironment(): Estate[] {
   return estates;
 }
 
-/**
- * Validate required files
- */
-function validateZkpFiles(): void {
-  const requiredFiles = [
-    PATHS_CONFIG.zkp.multiplier2.proof,
-    PATHS_CONFIG.zkp.multiplier2.public,
-  ];
-
-  for (const filePath of requiredFiles) {
-    if (!existsSync(filePath)) {
-      throw new Error(`Required file does not exist: ${filePath}`);
-    }
-  }
-}
-
-/**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
- * Create wallet instance
- */
-function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
-  try {
-    console.log(chalk.blue("Creating wallet instance..."));
-    const wallet = new Wallet(privateKey, provider);
-    console.log(chalk.green("✅ Wallet created:"), wallet.address);
-    return wallet;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${errorMessage}`);
-  }
-}
-
-/**
- * Convert will data to JsonObject format
- */
-function convertToJsonObject(
-  encryptedWillData: EncryptedWillData,
-): JsonCidVerifier.JsonObjectStruct {
-  try {
-    console.log(
-      chalk.blue("Converting encrypted will data to JsonObject format..."),
-    );
-
-    const keys: string[] = [];
-    const values: string[] = [];
-
-    // Add encryption metadata
-    keys.push("algorithm");
-    values.push(encryptedWillData.algorithm);
-
-    keys.push("iv");
-    values.push(encryptedWillData.iv);
-
-    keys.push("authTag");
-    values.push(encryptedWillData.authTag);
-
-    keys.push("ciphertext");
-    values.push(encryptedWillData.ciphertext);
-
-    keys.push("timestamp");
-    values.push(encryptedWillData.timestamp.toString());
-
-    console.log(
-      chalk.green("✅ Encrypted will data converted to JsonObject format"),
-    );
-
-    return { keys, values };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to convert encrypted will data: ${errorMessage}`);
-  }
-}
-
-/**
- * Create contract instance with validation
- */
-async function createContractInstance(
-  factoryAddress: string,
-  wallet: Wallet,
-): Promise<WillFactory> {
-  try {
-    console.log(chalk.blue("Loading will factory contract..."));
-
-    const contract = WillFactory__factory.connect(factoryAddress, wallet);
-
-    if (!wallet.provider) {
-      throw new Error("Wallet provider is null");
-    }
-    const code = await wallet.provider.getCode(factoryAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${factoryAddress}`);
-    }
-
-    console.log(chalk.green("✅ Will factory contract loaded"));
-    return contract;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create contract instance: ${errorMessage}`);
-  }
-}
 
 /**
  * Print detailed CreateWillData information
@@ -313,12 +193,29 @@ function printCreateWillData(createData: CreateWillData): void {
   // Print Will Data
   console.log(chalk.blue("\n📝 Encrypted Will Keys & Values:"));
   createData.will.keys.forEach((key: string, index: string) => {
-    const value = createData.will.values[index];
+    const jsonValue: JsonCidVerifier.JsonValue = createData.will.values[index];
+    let valueType: string;
+    switch (jsonValue.valueType) {
+      case 0:
+        valueType = "STRING";
+        break;
+      case 1:
+        valueType = "NUMBER";
+        break;
+      case 2:
+        valueType = "BOOLEAN";
+        break;
+      case 3:
+        valueType = "NULL";
+        break;
+      default:
+        throw new Error("Invalid JsonValueType");
+    }
     console.log(
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
       chalk.gray("=>"),
-      chalk.white(value),
+      chalk.white(`{value: ${jsonValue.value}, valueType: ${valueType}}`),
     );
   });
 
@@ -464,7 +361,10 @@ async function updateEnvironmentVariables(
 async function processCreateWill(): Promise<CreateWillResult> {
   try {
     // Validate prerequisites
-    validateZkpFiles();
+    validateFiles([
+      PATHS_CONFIG.zkp.multiplier2.proof,
+      PATHS_CONFIG.zkp.multiplier2.public,
+    ]);
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
       validateEnvironmentVariables();
 
@@ -480,20 +380,24 @@ async function processCreateWill(): Promise<CreateWillResult> {
     }
 
     // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateNetwork(provider);
 
     // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create contract instance
-    const contract = await createContractInstance(WILL_FACTORY, wallet);
+    const contract = await createContractInstance<WillFactory>(
+      WILL_FACTORY,
+      WillFactory__factory,
+      wallet,
+    );
 
     // Read required data
     const proof: ProofData = readProof();
     const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
-    const will: JsonCidVerifier.JsonObjectStruct =
-      convertToJsonObject(willData);
+    const will: JsonCidVerifier.TypedJsonObjectStruct =
+      encryptedWillToTypedJsonObject(willData);
 
     // Execute will creation
     const result = await executeCreateWill(contract, {
@@ -568,11 +472,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   parseEstatesFromEnvironment,
-  validateZkpFiles,
-  validateRpcConnection,
-  createWallet,
-  convertToJsonObject,
-  createContractInstance,
   printCreateWillData,
   executeCreateWill,
   updateEnvironmentVariables,

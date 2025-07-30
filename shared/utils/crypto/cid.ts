@@ -1,4 +1,4 @@
-import { uint8ArrayToHex } from "@shared/utils/format/encoding.js";
+import { uint8ArrayToHex } from "@shared/utils/transform/encoding.js";
 import { CID } from "multiformats/cid";
 import { sha256 } from "multiformats/hashes/sha2";
 import * as json from "multiformats/codecs/json";

@@ -10,8 +10,11 @@ import {
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
 import { WillFileType, FormattedWillData, AddressedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
+import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import { JsonRpcProvider } from "ethers";
 import { writeFileSync } from "fs";
-import { ethers, JsonRpcProvider, Network } from "ethers";
 import { config } from "dotenv";
 import crypto from "crypto";
 import chalk from "chalk";
@@ -41,28 +44,6 @@ function validateEnvironmentVariables(): PredictWill {
 }
 
 /**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
  * Generate cryptographically secure salt
  */
 function generateSecureSalt(timestamp: number = Date.now()): number {
@@ -84,32 +65,6 @@ function generateSecureSalt(timestamp: number = Date.now()): number {
   }
 }
 
-/**
- * Create contract instance with validation
- */
-async function createContractInstance(
-  factoryAddress: string,
-  provider: JsonRpcProvider,
-): Promise<WillFactory> {
-  try {
-    console.log(chalk.blue("Loading will factory contract..."));
-
-    const contract = WillFactory__factory.connect(factoryAddress, provider);
-
-    // Validate contract exists at address
-    const code = await provider.getCode(factoryAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${factoryAddress}`);
-    }
-
-    console.log(chalk.green("✅ Will factory contract loaded"));
-    return contract;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create contract instance: ${errorMessage}`);
-  }
-}
 
 /**
  * Predict will address
@@ -133,7 +88,7 @@ async function predictWillAddress(
       salt,
     );
 
-    if (!ethers.isAddress(predictedAddress)) {
+    if (!validateEthereumAddress(predictedAddress)) {
       throw new Error(`Invalid predicted address: ${predictedAddress}`);
     }
 
@@ -231,11 +186,15 @@ async function processWillAddressing(): Promise<ProcessResult> {
     const { WILL_FACTORY } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateNetwork(provider);
 
     // Create contract instance
-    const contract = await createContractInstance(WILL_FACTORY, provider);
+    const contract = await createContractInstance<WillFactory>(
+      WILL_FACTORY,
+      WillFactory__factory,
+      provider,
+    );
 
     // Read and validate will data
     const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
@@ -322,9 +281,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateRpcConnection,
   generateSecureSalt,
-  createContractInstance,
   predictWillAddress,
   saveAddressedWill,
   updateEnvironmentVariables,

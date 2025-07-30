@@ -5,7 +5,8 @@ import {
   validateSignature,
 } from "@shared/utils/validation/blockchain.js";
 import { keccak256 } from "@shared/utils/crypto/keccak256.js";
-import { ethers, Wallet } from "ethers";
+import { createWallet } from "@shared/utils/crypto/blockchain.js"
+import { ethers, Wallet, JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 /**
@@ -27,67 +28,6 @@ function validateMessage(message: string): boolean {
   }
 
   return true;
-}
-
-/**
- * Validate private key format
- */
-function validatePrivateKey(privateKey: string): string {
-  if (typeof privateKey !== "string") {
-    throw new Error("Private key must be a string");
-  }
-
-  // Remove 0x prefix if present
-  const cleanKey = privateKey.startsWith("0x")
-    ? privateKey.slice(2)
-    : privateKey;
-
-  if (cleanKey.length !== SIGNATURE_CONFIG.privateKeyLength) {
-    throw new Error(
-      `Invalid private key length: expected ${SIGNATURE_CONFIG.privateKeyLength} characters, got ${cleanKey.length}`,
-    );
-  }
-
-  // Validate hex format
-  if (!/^[0-9a-fA-F]+$/.test(cleanKey)) {
-    throw new Error("Private key must be in hexadecimal format");
-  }
-
-  // Check for obviously weak keys
-  if (
-    cleanKey === "0".repeat(SIGNATURE_CONFIG.privateKeyLength) ||
-    cleanKey === "f".repeat(SIGNATURE_CONFIG.privateKeyLength)
-  ) {
-    throw new Error("Private key appears to be weak (all zeros or all ones)");
-  }
-
-  return cleanKey;
-}
-
-/**
- * Create wallet instance with validation
- */
-function createWalletInstance(privateKey: string): Wallet {
-  try {
-    // Add 0x prefix if not present
-    const formattedKey = privateKey.startsWith("0x")
-      ? privateKey
-      : `0x${privateKey}`;
-
-    const wallet = new ethers.Wallet(formattedKey);
-
-    // Verify wallet creation was successful
-    const address = wallet.address;
-    if (!ethers.isAddress(address)) {
-      throw new Error("Failed to create valid wallet from private key");
-    }
-
-    return wallet;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${errorMessage}`);
-  }
 }
 
 /**
@@ -138,17 +78,16 @@ async function performSigning(
 /**
  * Sign string message with comprehensive validation
  */
-export async function signString(
+async function signString(
   message: string,
   privateKey: string,
 ): Promise<string> {
   try {
     // Validate inputs
     validateMessage(message);
-    const cleanPrivateKey = validatePrivateKey(privateKey);
 
     // Create wallet instance
-    const wallet = createWalletInstance(cleanPrivateKey);
+    const wallet = createWallet(privateKey);
 
     // Hash the message
     const hash = keccak256(message);
@@ -182,7 +121,7 @@ export async function signString(
 /**
  * Verify signature with comprehensive validation
  */
-export async function verify(
+async function verify(
   message: string,
   signature: string,
   expectedSigner: string,
@@ -231,7 +170,7 @@ export async function verify(
 /**
  * Utility function to recover signer address from signature
  */
-export async function recoverSigner(
+async function recoverSigner(
   message: string,
   signature: string,
 ): Promise<string> {
@@ -260,30 +199,4 @@ export async function recoverSigner(
   }
 }
 
-/**
- * Utility function to validate signature without knowing the signer
- */
-export async function isValidSignature(
-  message: string,
-  signature: string,
-): Promise<SignatureValidationResult> {
-  try {
-    validateMessage(message);
-    validateSignature(signature);
-
-    // Try to recover the signer - if this succeeds, signature is valid
-    const recoveredAddress = await recoverSigner(message, signature);
-
-    return {
-      valid: true,
-      signer: recoveredAddress,
-    };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    return {
-      valid: false,
-      error: errorMessage,
-    };
-  }
-}
+export { signString, verify, recoverSigner }

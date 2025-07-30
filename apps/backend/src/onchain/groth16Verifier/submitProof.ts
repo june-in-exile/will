@@ -1,5 +1,5 @@
 import type { SubmitProof } from "@shared/types/environment.js";
-import { PATHS_CONFIG, NETWORK_CONFIG, CONFIG_UTILS } from "@config";
+import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { readProof } from "@shared/utils/file/readProof.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
@@ -7,8 +7,10 @@ import {
   Groth16Verifier__factory,
 } from "@shared/types/typechain-types/index.js";
 import type { ProofData } from "@shared/types/crypto.js";
-import { existsSync } from "fs";
-import { ethers, JsonRpcProvider, Network } from "ethers";
+import { validateFiles } from "@shared/utils/validation/file.js"
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import { JsonRpcProvider } from "ethers";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -32,101 +34,15 @@ interface ProofValidationResult {
  * Validate environment variables
  */
 function validateEnvironmentVariables(): SubmitProof {
-  try {
-    console.log(chalk.blue("Validating environment..."));
-    CONFIG_UTILS.validateEnvironment();
+  const result = validateEnvironment<SubmitProof>(presetValidations.submitProof());
 
-    if (CONFIG_UTILS.isUsingAnvil()) {
-      console.log(chalk.gray("Using Anvil for local development"));
-    }
-
-    const result = validateEnvironment<SubmitProof>(presetValidations.submitProof());
-
-    if (!result.isValid) {
-      throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
-    }
-
-    console.log(chalk.green("✅ Environment validated"));
-
-    return result.data;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to validate the environment: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate required files
- */
-function validateZkpFiles(): void {
-  const requiredFiles = [
-    PATHS_CONFIG.zkp.multiplier2.proof,
-    PATHS_CONFIG.zkp.multiplier2.public,
-  ];
-
-  for (const filePath of requiredFiles) {
-    if (!existsSync(filePath)) {
-      throw new Error(`Required file does not exist: ${filePath}`);
-    }
+  if (!result.isValid) {
+    throw new Error(`Environment validation failed: ${result.errors.join(", ")}`);
   }
 
-  console.log(chalk.green("✅ Required files validated"));
+  return result.data;
 }
 
-/**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
- * Create contract instance with validation
- */
-async function createContractInstance(
-  verifierAddress: string,
-  provider: JsonRpcProvider,
-): Promise<Groth16Verifier> {
-  try {
-    console.log(chalk.blue("Loading Groth16 verifier contract..."));
-
-    const contract = Groth16Verifier__factory.connect(
-      verifierAddress,
-      provider,
-    );
-
-    // Validate contract exists at address
-    const code = await provider.getCode(verifierAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${verifierAddress}`);
-    }
-
-    console.log(chalk.green("✅ Groth16 verifier contract loaded"));
-    console.log(chalk.gray("Contract address:"), verifierAddress);
-
-    return contract;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create contract instance: ${errorMessage}`);
-  }
-}
 
 /**
  * Print detailed proof information
@@ -220,16 +136,20 @@ async function submitProofToContract(
 async function processProofSubmission(): Promise<ProofSubmissionResult> {
   try {
     // Validate prerequisites
-    validateZkpFiles();
+    validateFiles([
+      PATHS_CONFIG.zkp.multiplier2.proof,
+      PATHS_CONFIG.zkp.multiplier2.public,
+    ]);
     const { UPLOAD_CID_VERIFIER } = validateEnvironmentVariables();
 
     // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateNetwork(provider);
 
     // Create contract instance
-    const contract = await createContractInstance(
+    const contract = await createContractInstance<Groth16Verifier>(
       UPLOAD_CID_VERIFIER,
+      Groth16Verifier__factory,
       provider,
     );
 
@@ -321,10 +241,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  validateZkpFiles,
   validateEnvironmentVariables,
-  validateRpcConnection,
-  createContractInstance,
   printProofData,
   submitProofToContract,
   processProofSubmission

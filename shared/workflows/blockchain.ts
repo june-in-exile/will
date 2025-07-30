@@ -6,7 +6,7 @@ export abstract class BlockchainWorkflow<TInput, TResult> extends BaseWorkflow<T
     protected provider!: JsonRpcProvider;
     protected network!: Network;
 
-    // 區塊鏈專用驗證方法
+    
     protected async validateRpcConnection(provider: JsonRpcProvider): Promise<Network> {
         try {
             console.log(chalk.blue("Validating RPC connection..."));

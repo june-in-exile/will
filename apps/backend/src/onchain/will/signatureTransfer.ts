@@ -3,7 +3,9 @@ import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
 import type { Estate, WillInfo, TokenBalance, BalanceSnapshot } from "@shared/types/blockchain.js";
-import { ethers, JsonRpcProvider, Network, Wallet, Contract } from "ethers";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import { config } from "dotenv";
 import chalk from "chalk";
@@ -58,73 +60,6 @@ function validateEnvironmentVariables(): SignatureTransfer {
   return result.data;
 }
 
-/**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
- * Create wallet instance
- */
-function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
-  try {
-    console.log(chalk.blue("Creating wallet instance..."));
-    const wallet = new Wallet(privateKey, provider);
-    console.log(chalk.green("✅ Wallet created:"), wallet.address);
-    return wallet;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${errorMessage}`);
-  }
-}
-
-/**
- * Create will contract instance with validation
- */
-async function createWillContract(
-  willAddress: string,
-  wallet: Wallet,
-): Promise<Will> {
-  try {
-    console.log(chalk.blue("Loading will contract..."));
-
-    if (!wallet.provider) {
-      throw new Error("Wallet provider is null");
-    }
-
-    const code = await wallet.provider.getCode(willAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${willAddress}`);
-    }
-
-    const contract = Will__factory.connect(willAddress, wallet);
-
-    console.log(chalk.green("✅ Will contract loaded"));
-    return contract;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create will contract instance: ${errorMessage}`);
-  }
-}
 
 /**
  * Fetch will information
@@ -178,7 +113,7 @@ async function getTokenBalance(
       tokenContract.decimals().catch(() => 18),
     ]);
 
-    const formattedBalance = ethers.formatUnits(balance, decimals);
+    const formattedBalance = formatUnits(balance, decimals);
 
     return {
       address: holderAddress,
@@ -338,7 +273,7 @@ function compareBalanceSnapshots(
             ? "Executor"
             : "Beneficiary";
 
-      const formattedDifference = ethers.formatUnits(
+      const formattedDifference = formatUnits(
         difference < 0n ? -difference : difference,
         afterBalance.decimals,
       );
@@ -545,14 +480,18 @@ async function processSignatureTransfer(): Promise<SignatureTransferResult> {
       validateEnvironmentVariables();
 
     // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateNetwork(provider);
 
     // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create will contract instance
-    const contract = await createWillContract(WILL, wallet);
+    const contract = await createContractInstance<Will>(
+      WILL,
+      Will__factory,
+      wallet,
+    );
 
     // Get will information
     const willInfo = await getWillInfo(contract);
@@ -658,9 +597,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateRpcConnection,
-  createWallet,
-  createWillContract,
   getWillInfo,
   getTokenBalance,
   checkTokenBalances,

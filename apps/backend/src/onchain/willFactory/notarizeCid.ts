@@ -6,7 +6,9 @@ import {
   WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
-import { ethers, JsonRpcProvider, Network, Wallet } from "ethers";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
+import { JsonRpcProvider } from "ethers";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -34,72 +36,6 @@ function validateEnvironmentVariables(): NotarizeCid {
   return result.data;
 }
 
-/**
- * Validate RPC connection
- */
-async function validateRpcConnection(
-  provider: JsonRpcProvider,
-): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating RPC connection..."));
-    const network = await provider.getNetwork();
-    console.log(
-      chalk.green("✅ Connected to network:"),
-      network.name,
-      `(Chain ID: ${network.chainId})`,
-    );
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to RPC endpoint: ${errorMessage}`);
-  }
-}
-
-/**
- * Create wallet instance
- */
-function createWallet(privateKey: string, provider: JsonRpcProvider): Wallet {
-  try {
-    console.log(chalk.blue("Creating wallet instance..."));
-    const wallet = new Wallet(privateKey, provider);
-    console.log(chalk.green("✅ Wallet created:"), wallet.address);
-    return wallet;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${errorMessage}`);
-  }
-}
-
-/**
- * Create contract instance with validation
- */
-async function createContractInstance(
-  factoryAddress: string,
-  wallet: Wallet,
-): Promise<WillFactory> {
-  try {
-    console.log(chalk.blue("Loading will factory contract..."));
-
-    const contract = WillFactory__factory.connect(factoryAddress, wallet);
-
-    if (!wallet.provider) {
-      throw new Error("Wallet provider is null");
-    }
-    const code = await wallet.provider.getCode(factoryAddress);
-    if (code === "0x") {
-      throw new Error(`No contract found at address: ${factoryAddress}`);
-    }
-
-    console.log(chalk.green("✅ Will factory contract loaded"));
-    return contract;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create contract instance: ${errorMessage}`);
-  }
-}
 
 /**
  * Print notarization details
@@ -212,14 +148,18 @@ async function processNotarizeCID(): Promise<NotarizeResult> {
       validateEnvironmentVariables();
 
     // Initialize provider and validate connection
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateRpcConnection(provider);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    await validateNetwork(provider);
 
     // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
     // Create contract instance
-    const contract = await createContractInstance(WILL_FACTORY, wallet);
+    const contract = await createContractInstance<WillFactory>(
+      WILL_FACTORY,
+      WillFactory__factory,
+      wallet,
+    );
 
     // Execute notarization
     const result = await executeNotarizeCID(contract, CID, EXECUTOR_SIGNATURE);
@@ -285,9 +225,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  validateRpcConnection,
-  createWallet,
-  createContractInstance,
   printNotarizationDetails,
   executeNotarizeCID,
   updateEnvironmentVariables,

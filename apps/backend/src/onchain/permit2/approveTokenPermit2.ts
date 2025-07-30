@@ -4,7 +4,8 @@ import { PATHS_CONFIG, APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { WillFileType, FormattedWillData } from "@shared/types/will.js";
-import { ethers, JsonRpcProvider, Wallet, Network } from "ethers";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { ethers, JsonRpcProvider, Wallet } from "ethers";
 import { config } from "dotenv";
 import { createRequire } from "module";
 import chalk from "chalk";
@@ -98,31 +99,6 @@ async function createSigner(
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to create signer: ${errorMessage}`);
-  }
-}
-
-/**
- * Validate network connection
- */
-async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
-  try {
-    console.log(chalk.blue("Validating network connection..."));
-    const network = await provider.getNetwork();
-    const gasPrice = await provider.getFeeData();
-
-    console.log(chalk.green("✅ Connected to network:"), network.name);
-    console.log(chalk.gray("Chain ID:"), network.chainId.toString());
-    console.log(
-      chalk.gray("Gas price:"),
-      ethers.formatUnits(gasPrice.gasPrice || 0n, "gwei"),
-      "gwei",
-    );
-
-    return network;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to connect to network: ${errorMessage}`);
   }
 }
 
@@ -544,7 +520,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   createSigner,
-  validateNetwork,
   extractUniqueTokens,
   getTokenInfo,
   checkCurrentAllowance,
