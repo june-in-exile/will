@@ -1,19 +1,15 @@
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
-import { PATHS_CONFIG, APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
+import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { WillFileType, FormattedWillData } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, JsonRpcProvider, Wallet } from "ethers";
-import { config } from "dotenv";
 import { createRequire } from "module";
 import chalk from "chalk";
 
 const require = createRequire(import.meta.url);
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");

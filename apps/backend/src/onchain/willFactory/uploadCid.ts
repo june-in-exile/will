@@ -16,11 +16,7 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js"
-import { config } from "dotenv";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 interface UploadCidData {
   proof: ProofData;

@@ -1,14 +1,10 @@
 import type { CidSigning } from "@shared/types/environment.js";
-import { PATHS_CONFIG, SIGNATURE_CONFIG } from "@config";
+import { SIGNATURE_CONFIG } from "@config";
 import { signString, verify } from "@shared/utils/crypto/signature.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import { config } from "dotenv";
 import assert from "assert";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 interface ProcessResult {
   cid: string;

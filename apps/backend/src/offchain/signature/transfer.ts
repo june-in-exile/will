@@ -12,14 +12,10 @@ import { readWill } from "@shared/utils/file/readWill.js";
 import { saveSignedWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, JsonRpcProvider, Wallet } from "ethers";
-import { config } from "dotenv";
 import { createRequire } from "module";
 import chalk from "chalk";
 
 const require = createRequire(import.meta.url);
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");

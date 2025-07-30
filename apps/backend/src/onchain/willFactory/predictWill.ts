@@ -14,12 +14,8 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
 import { JsonRpcProvider } from "ethers";
-import { config } from "dotenv";
 import crypto from "crypto";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 interface ProcessResult {
   predictedAddress: string;

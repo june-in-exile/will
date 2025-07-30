@@ -1,4 +1,4 @@
-import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
+import { NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
@@ -7,11 +7,7 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js";
 import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
-import { config } from "dotenv";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 
 interface ProcessResult {

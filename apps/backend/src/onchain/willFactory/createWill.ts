@@ -18,11 +18,7 @@ import { createWallet, createContractInstance } from "@shared/utils/crypto/block
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js"
-import { config } from "dotenv";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 interface CreateWillData {
   proof: ProofData;

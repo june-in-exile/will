@@ -1,5 +1,5 @@
 import type { NotarizeCid } from "@shared/types/environment.js";
-import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
+import { NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
 import {
@@ -9,11 +9,7 @@ import {
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createWallet, createContractInstance } from "@shared/utils/crypto/blockchain.js"
 import { JsonRpcProvider } from "ethers";
-import { config } from "dotenv";
 import chalk from "chalk";
-
-// Load environment configuration
-config({ path: PATHS_CONFIG.env });
 
 interface ProcessResult {
   transactionHash: string;
