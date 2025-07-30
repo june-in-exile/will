@@ -11,7 +11,11 @@
     "install": "make install",
     "typechain": "make typechain",
     "build": "make build",
-    "test": "make test",
+    "test": "export $(cat ../.env | sed 's/#.*//g' | xargs) && forge test",
+    "test:all": "make test-all",
+    "test:fuzz": "make test-fuzz",
+    "test:integration": "make test-integration",
+    "test:unit": "make test-unit",
     "clean": "make clean"
   },
   "lint-staged": {

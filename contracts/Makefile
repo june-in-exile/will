@@ -1,8 +1,3 @@
-ENV_FILE := ../.env
-
-include $(ENV_FILE)
-export
-
 .PHONY: sync-anvil sync-groth16verifier-and-proof sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
@@ -24,6 +19,7 @@ sync-anvil:
 	@pnpm exec tsx ../shared/utils/file/syncAnvil.ts
 
 sync-groth16verifier-and-proof:
+	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
 sync: sync-anvil sync-groth16verifier-and-proof
@@ -54,65 +50,51 @@ install:
 
 build: sync-groth16verifier-and-proof
 	@forge build
+	@$(MAKE) typechain
+
+typechain: 
 	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/types/typechain-types 'out/**/*.sol/*.json'
 
-test:
-	@cd ../zkp && make circuit
-	@$(MAKE) sync-groth16verifier-and-proof
-	@$(MAKE) _test
+test-all: sync-groth16verifier-and-proof
+	@pnpm test
 
-_test:
-	@forge test --match-path "test/*"
+test-fuzz: sync-groth16verifier-and-proof
+	@pnpm test "test/fuzz/*"
 
-test-fuzz:
-	@$(MAKE) sync-groth16verifier-and-proof
-	@$(MAKE) _test-fuzz
+test-integration: sync-groth16verifier-and-proof
+	@pnpm test "test/integration/*"
 
-_test-fuzz:
-	@forge test --match-path "test/fuzz/*"
-
-test-integration:
-	@$(MAKE) sync-groth16verifier-and-proof
-	@$(MAKE) _test-integration
-
-_test-integration:
-	@forge test --match-path "test/integration/*"
-
-test-unit:
-	@$(MAKE) sync-groth16verifier-and-proof
-	@$(MAKE) _test-unit
-
-_test-unit:
-	@forge test --match-path "test/unit/*"
+test-unit: sync-groth16verifier-and-proof
+	@pnpm test "test/unit/*"
 
 # --------------- Conditional Deployment ----------------
 
 deploy-groth16verifier:
 ifeq ($(USE_ANVIL),true)
-	@make deploy-groth16verifier_to_forked_arb_sepolia
+	@$(MAKE) deploy-groth16verifier_to_forked_arb_sepolia
 else
-	@make deploy-groth16verifier-to-arb-sepolia
+	@$(MAKE) deploy-groth16verifier-to-arb-sepolia
 endif
 
 deploy-jsonCidVerifier:
 ifeq ($(USE_ANVIL),true)
-	@make deploy-jsonCidVerifier-to-forked-arb-sepolia
+	@$(MAKE) deploy-jsonCidVerifier-to-forked-arb-sepolia
 else
-	@make deploy-jsonCidVerifier-to-arb-sepolia
+	@$(MAKE) deploy-jsonCidVerifier-to-arb-sepolia
 endif
 
 deploy-willFactory:
 ifeq ($(USE_ANVIL),true)
-	@make deploy-willFactory-to-forked-arb-sepolia
+	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 else
-	@make deploy-willFactory-to-arb-sepolia
+	@$(MAKE) deploy-willFactory-to-arb-sepolia
 endif
 
 deploy: build
 ifeq ($(USE_ANVIL),true)
-	@make deploy-to-forked-arb-sepolia
+	@$(MAKE) deploy-to-forked-arb-sepolia
 else
-	@make deploy-to-arb-sepolia
+	@$(MAKE) deploy-to-arb-sepolia
 endif
 
 # ------------ Scripts for Arbitrun Sepolia -------------
@@ -149,7 +131,7 @@ deploy-willFactory-to-arb-sepolia:
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
-	@make deploy-willFactory-to-arb-sepolia
+	@$(MAKE) deploy-willFactory-to-arb-sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
 
@@ -189,7 +171,7 @@ deploy-willFactory-to-forked-arb-sepolia:
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
 deploy-to-forked-arb-sepolia: deploy-groth16verifier_to_forked_arb_sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
-	@make deploy-willFactory-to-forked-arb-sepolia
+	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
 
@@ -315,11 +297,11 @@ estates:
 		$(ESTATE_INDEX)
 
 estate0:
-	@ESTATE_INDEX=1 make estates
+	@ESTATE_INDEX=1 $(MAKE) estates
 	@echo "$(YELLOW)Expect:\n$(BENEFICIARY0)\n$(TOKEN0)\n$(AMOUNT0)$(RESET)"
 
 estate1:
-	@ESTATE_INDEX=1 make estates
+	@ESTATE_INDEX=1 $(MAKE) estates
 	@echo "$(YELLOW)Expect:\n$(BENEFICIARY1)\n$(TOKEN1)\n$(AMOUNT1)$(RESET)"
 
 executed:
@@ -327,11 +309,11 @@ executed:
 		"executed()(bool)"
 
 executed-before:
-	@make executed
+	@$(MAKE) executed
 	@echo "$(YELLOW)Expect: false$(RESET)"
 
 executed-after:
-	@make executed
+	@$(MAKE) executed
 	@echo "$(YELLOW)Expect: true$(RESET)"
 
 # ----------------------- Write -------------------------
@@ -363,44 +345,44 @@ check-executor-link-balance:
 
 check-balance-before:
 	@echo "Testator's USDC:"
-	@make check-testator-usdc-balance
+	@$(MAKE) check-testator-usdc-balance
 
 	@echo "\nBeneficiary's USDC:"
-	@make check-beneficiary-usdc-balance
+	@$(MAKE) check-beneficiary-usdc-balance
 
 	@echo "\nExecutor's USDC:"
-	@make check-executor-usdc-balance
+	@$(MAKE) check-executor-usdc-balance
 
 	@echo "\nTestator's LINK:"
-	@make check-testator-link-balance
+	@$(MAKE) check-testator-link-balance
 
 	@echo "\nBeneficiary's LINK:"
-	@make check-beneficiary-link-balance
+	@$(MAKE) check-beneficiary-link-balance
 
 	@echo "\nExecutor's LINK:"
-	@make check-executor-link-balance
+	@$(MAKE) check-executor-link-balance
 
 check-balance-after:
 	@echo "Testator's USDC:"
-	@make check-testator-usdc-balance
+	@$(MAKE) check-testator-usdc-balance
 	@echo "$(YELLOW)Expect: 1000 less$(RESET)"
 
 	@echo "\nBeneficiary's USDC:"
-	@make check-beneficiary-usdc-balance
+	@$(MAKE) check-beneficiary-usdc-balance
 	@echo "$(YELLOW)Expect: 1000 more$(RESET)"
 
 	@echo "\nExecutor's USDC:"
-	@make check-executor-usdc-balance
+	@$(MAKE) check-executor-usdc-balance
 	@echo "$(YELLOW)Expect: unchanged$(RESET)"
 
 	@echo "\nTestator's LINK:"
-	@make check-testator-link-balance
+	@$(MAKE) check-testator-link-balance
 	@echo "$(YELLOW)Expect: 5000000 less$(RESET)"
 
 	@echo "\nBeneficiary's LINK:"
-	@make check-beneficiary-link-balance
+	@$(MAKE) check-beneficiary-link-balance
 	@echo "$(YELLOW)Expect: 5000000 more$(RESET)"
 	
 	@echo "\nExecutor's LINK:"
-	@make check-executor-link-balance
+	@$(MAKE) check-executor-link-balance
 	@echo "$(YELLOW)Expect: unchanged$(RESET)"
