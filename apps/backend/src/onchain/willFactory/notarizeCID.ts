@@ -161,7 +161,7 @@ async function executeNotarizeCID(
     return {
       transactionHash: receipt.hash,
       cid: cid,
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
       success: true,
     };

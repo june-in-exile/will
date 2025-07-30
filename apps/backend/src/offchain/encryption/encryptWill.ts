@@ -85,7 +85,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
       iv: Base64String.fromBuffer(iv),
       authTag: Base64String.fromBuffer(authTag),
       ciphertext: Base64String.fromBuffer(ciphertext),
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
     };
 
     console.log(chalk.gray("Encrypted will structure:"));

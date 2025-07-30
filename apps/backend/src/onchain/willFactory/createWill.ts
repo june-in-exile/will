@@ -416,7 +416,7 @@ async function executeCreateWill(
       transactionHash: receipt.hash,
       willAddress,
       cid: createData.cid,
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
       success: true,
     };

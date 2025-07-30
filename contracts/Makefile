@@ -1,3 +1,7 @@
+ENV_FILE := ../.env
+include $(ENV_FILE)
+export
+
 .PHONY: sync-anvil sync-groth16verifier-and-proof sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
@@ -48,7 +52,7 @@ install:
 	@forge install OpenZeppelin/openzeppelin-contracts
 	@forge install Uniswap/permit2
 
-build: sync-groth16verifier-and-proof
+build: sync
 	@forge build
 	@$(MAKE) typechain
 
@@ -175,11 +179,11 @@ deploy-to-forked-arb-sepolia: deploy-groth16verifier_to_forked_arb_sepolia deplo
 
 # ---------------- Call Groth16 Verifier ----------------
 
-groth16verify-on-chain:
-	@cast call $(UPLOAD_CID_VERIFIER) --rpc-url $(RPC_URL) \
-		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
-		$(PA) $(PB) $(PC) $(PUBSIGNALS)
-	@echo "$(YELLOW)Expect: true$(RESET)"
+# groth16verify-on-chain:
+# 	cast call $(UPLOAD_CID_VERIFIER) --rpc-url $(RPC_URL) \
+# 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
+# 		$(PA_ARRAY) $(PB_ARRAY) $(PC_ARRAY) $(PUBSIGNALS_ARRAY)
+# 	echo "$(YELLOW)Expect: true$(RESET)"
 
 # ------------------ Call CID Verifier ------------------
 
@@ -234,13 +238,13 @@ executorValidateTime:
 	@echo "$(YELLOW)Expect: UTC+8 time of calling notarizeCid$(RESET)"
 
 will:
-	@cast call --from $(EXECUTOR)  $(WILL_FACTORY) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
 		"wills(string)(address)" \
 		$(CID)
 	@echo "$(YELLOW)Expect: $(WILL)$(RESET)"
 
 predictWill:
-	@cast call --from $(EXECUTOR)  $(WILL_FACTORY) --rpc-url $(RPC_URL) \
+	@cast call --from $(EXECUTOR) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
 		"predictWill(address,(address,address,uint256)[],uint256)(address)" \
 		$(TESTATOR) $(ESTATES) $(SALT)
 	@echo "$(YELLOW)Expect: $(WILL)$(RESET)"

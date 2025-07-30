@@ -243,7 +243,7 @@ async function checkTokenBalances(
     );
 
     return {
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
       balances,
     };
   } catch (error) {
@@ -491,7 +491,7 @@ async function executeSignatureTransfer(
     return {
       transactionHash: receipt.hash,
       willAddress: await contract.getAddress(),
-      timestamp: Date.now(),
+      timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
       success: true,
       estateCount: willInfo.estates.length,
