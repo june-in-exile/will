@@ -1,9 +1,6 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
-import type {
-  DecryptionArgs,
-  SupportedAlgorithm,
-} from "@shared/types/crypto.js";
+import { AES_256_GCM } from "@shared/types/constants.js";
+import type { DecryptionArgs, SupportedAlgorithm } from "@shared/types/crypto.js";
 import { createDecipheriv, Decipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";
@@ -28,9 +25,9 @@ function parseArgs(): DecryptionArgs {
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--algorithm" && i + 1 < args.length) {
       const algorithm = args[i + 1];
-      if (algorithm !== AES_256_GCM && algorithm !== CHACHA20_POLY1305) {
+      if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
         throw new Error(
-          `Invalid algorithm: ${algorithm}. Must be either '${AES_256_GCM}' or '${CHACHA20_POLY1305}'`,
+          `Unsupported encryption algorithm: ${algorithm}. Supported algorithms: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
         );
       }
       parsed.algorithm = algorithm;
@@ -157,35 +154,6 @@ function showUsage(): void {
 }
 
 /**
- * Validate key file existence and format
- */
-function validateKeyFile(keyPath: string): Buffer {
-  if (!existsSync(keyPath)) {
-    throw new Error(`Encryption key file not found: ${keyPath}`);
-  }
-
-  try {
-    const keyContent = readFileSync(keyPath, "utf8").trim();
-
-    if (!keyContent) {
-      throw new Error("Key file is empty");
-    }
-
-    // Validate base64 format
-    const keyBuffer = Buffer.from(keyContent, "base64");
-    if (keyBuffer.length !== CRYPTO_CONFIG.keySize) {
-      throw new Error(
-        `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${keyBuffer.length} bytes`,
-      );
-    }
-
-    return keyBuffer;
-  } catch (error) {
-    throw new Error(`Failed to read or validate key file: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
  * Validate decryption parameters
  */
 function validateDecryptionParams(
@@ -256,7 +224,7 @@ function validateDecryptionParams(
 /**
  * Generic decryption function with comprehensive validation
  */
-export function decrypt(
+function decrypt(
   algorithm: SupportedAlgorithm,
   ciphertext: Buffer,
   key: Buffer,
@@ -264,20 +232,16 @@ export function decrypt(
   authTag: Buffer,
 ): Buffer {
   try {
+    console.log(chalk.blue(`Decrypting with ${algorithm}...`));
+
     // Validate all parameters
     validateDecryptionParams(algorithm, ciphertext, key, iv, authTag);
 
     // Create decipher
-    const decipher = createDecipheriv(
-      algorithm,
-      key,
-      iv,
-    ) as AuthenticatedDecipher;
-
-    // Set auth tag for authenticated encryption
-    decipher.setAuthTag(authTag);
+    const decipher = createDecipheriv(algorithm, key, iv) as AuthenticatedDecipher;
 
     // Perform decryption
+    decipher.setAuthTag(authTag);
     let plaintext = decipher.update(ciphertext);
     plaintext = Buffer.concat([plaintext, decipher.final()]);
 
@@ -286,9 +250,10 @@ export function decrypt(
       throw new Error("Decryption resulted in empty plaintext");
     }
 
+    console.log(chalk.green(`✅ Decrypted!`));
     return plaintext;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     // Enhanced error messages for common decryption failures
     if (
       errorMessage.includes("Unsupported state") ||
@@ -311,33 +276,6 @@ export function decrypt(
 }
 
 /**
- * Get decryption key with validation
- */
-export function getDecryptionKey(): Buffer {
-  try {
-    const keyBuffer = validateKeyFile(PATHS_CONFIG.crypto.keyFile);
-
-    // Additional security check - ensure key is not obviously weak
-    const isAllZeros = keyBuffer.every((byte) => byte === 0);
-    const isAllOnes = keyBuffer.every((byte) => byte === 255);
-
-    if (isAllZeros || isAllOnes) {
-      console.warn(
-        chalk.yellow("⚠️ Warning: Detected potentially weak encryption key"),
-      );
-    }
-
-    return keyBuffer;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    if (errorMessage.includes("not found")) {
-      throw new Error("NO_ENCRYPTION_KEY");
-    }
-    throw error;
-  }
-}
-
-/**
  * Main function that orchestrates the entire decryption process
  * 1. Parses command line arguments
  * 2. Validates all required parameters
@@ -355,7 +293,7 @@ async function main(): Promise<void> {
     const { algorithm, ciphertext, key, iv, authTag } = parseArgs();
 
     // Perform decryption
-    console.log(chalk.blue("🔓 Performing decryption..."));
+    console.log(chalk.blue("Performing decryption..."));
     const plaintextBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
     const plaintext = plaintextBuffer.toString(CRYPTO_CONFIG.plaintextEncoding);
 
@@ -413,3 +351,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export { decrypt };

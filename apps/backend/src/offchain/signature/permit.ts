@@ -6,12 +6,12 @@ import type { TransferSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
-import { WillFileType, type AddressedWillData, type SignedWillData } from "@shared/types/will.js";
+import { WillFileType, type AddressedWill, type SignedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createSigner } from "@shared/utils/crypto/blockchain.js";
-import { generateSecureNonce } from "@shared/utils/crypto/nonce.js"
+import { createSigner } from "@shared/utils/blockchain.js";
+import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js"
 import { truncate } from "@shared/utils/transform/expression.js";
 import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -185,7 +185,7 @@ async function processWillSigning(): Promise<ProcessResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    const willData: AddressedWillData = readWill(WillFileType.ADDRESSED);
+    const willData: AddressedWill = readWill(WillFileType.ADDRESSED);
 
     // Generate signature parameters
     console.log(chalk.blue("Generating signature parameters..."));
@@ -208,7 +208,7 @@ async function processWillSigning(): Promise<ProcessResult> {
       signer,
     );
 
-    const signedWillData: SignedWillData = {
+    const signedWillData: SignedWill = {
       ...willData,
       signature: {
         nonce,

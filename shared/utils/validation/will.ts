@@ -2,19 +2,19 @@ import { CRYPTO_CONFIG } from "@config";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import type {
-  FormattedWillData,
-  AddressedWillData,
-  SignedWillData,
-  EncryptedWillData,
-  DownloadedWillData,
-  DecryptedWillData,
+  FormattedWill,
+  AddressedWill,
+  SignedWill,
+  EncryptedWill,
+  DownloadedWill,
+  DecryptedWill,
 } from "@shared/types/will.js";
 import type { Permit2Signature } from "@shared/types/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 
 function validateFormattedWill(
-  willData: FormattedWillData,
-): asserts willData is FormattedWillData {
+  willData: FormattedWill,
+): asserts willData is FormattedWill {
   if (!willData.testator) {
     throw new Error("Missing required field: testator");
   }
@@ -68,11 +68,11 @@ function validateFormattedWill(
 }
 
 function validateAddressedWill(
-  willData: AddressedWillData,
-): asserts willData is AddressedWillData {
+  willData: AddressedWill,
+): asserts willData is AddressedWill {
   validateFormattedWill(willData);
 
-  const create2Fields: (keyof Pick<AddressedWillData, "salt" | "will">)[] = [
+  const create2Fields: (keyof Pick<AddressedWill, "salt" | "will">)[] = [
     "salt",
     "will",
   ];
@@ -92,8 +92,8 @@ function validateAddressedWill(
 }
 
 function validateSignedWill(
-  willData: SignedWillData,
-): asserts willData is SignedWillData {
+  willData: SignedWill,
+): asserts willData is SignedWill {
   validateAddressedWill(willData);
 
   if (!willData.signature) {
@@ -126,9 +126,9 @@ function validateSignedWill(
 }
 
 function validateEncryptedWill(
-  willData: EncryptedWillData,
-): asserts willData is EncryptedWillData {
-  const requiredFields: (keyof EncryptedWillData)[] = [
+  willData: EncryptedWill,
+): asserts willData is EncryptedWill {
+  const requiredFields: (keyof EncryptedWill)[] = [
     "algorithm",
     "iv",
     "authTag",
@@ -149,7 +149,7 @@ function validateEncryptedWill(
   }
 
   const base64Fields: (keyof Pick<
-    DownloadedWillData,
+    DownloadedWill,
     "iv" | "authTag" | "ciphertext"
   >)[] = ["iv", "authTag", "ciphertext"];
   for (const field of base64Fields) {
@@ -170,14 +170,14 @@ function validateEncryptedWill(
 }
 
 function validateDownloadedWill(
-  willData: DownloadedWillData,
-): asserts willData is DownloadedWillData {
+  willData: DownloadedWill,
+): asserts willData is DownloadedWill {
   validateEncryptedWill(willData);
 }
 
 function validateDecryptedWill(
-  willData: DecryptedWillData,
-): asserts willData is DecryptedWillData {
+  willData: DecryptedWill,
+): asserts willData is DecryptedWill {
   validateSignedWill(willData);
 }
 

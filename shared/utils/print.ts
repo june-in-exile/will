@@ -24,7 +24,7 @@ function getJsonValueTypeString(valueType: number): string {
 /**
  * Print encrypted will keys and values
  */
-function printEncryptedWillData(
+function printEncryptedWillJson(
     will: JsonCidVerifier.TypedJsonObject | JsonCidVerifier.TypedJsonObjectStruct,
 ): void {
     console.log(chalk.blue("\n📝 Excrypted Will:"));
@@ -63,7 +63,7 @@ function printEstates(estates: Estate[]): void {
 /**
  * Print detailed proof information
  */
-function printProofData(proof: ProofData): void {
+function printProof(proof: ProofData): void {
     console.log(chalk.blue("\n🔐 Proof Data:"));
     console.log(chalk.gray("- pA[0]:"), chalk.white(proof.pA[0].toString()));
     console.log(chalk.gray("- pA[1]:"), chalk.white(proof.pA[1].toString()));
@@ -92,10 +92,8 @@ function printProofData(proof: ProofData): void {
     );
 }
 
-
 export {
-    getJsonValueTypeString,
-    printEncryptedWillData,
+    printEncryptedWillJson,
     printEstates,
-    printProofData
+    printProof
 };

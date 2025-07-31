@@ -3,7 +3,7 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { WillFileType, type DownloadedWillData } from "@shared/types/will.js";
+import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
@@ -11,7 +11,7 @@ import { CID } from "multiformats/cid";
 import chalk from "chalk";
 
 interface ProcessResult {
-  downloaded: DownloadedWillData;
+  downloaded: DownloadedWill;
   success: boolean;
   error?: string;
   stage?: string;
@@ -51,7 +51,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     console.log(chalk.blue("CID:"), cid.toString());
     console.log(chalk.blue("Downloading will from IPFS..."));
 
-    const downloadedWill: DownloadedWillData = await j.get(cid);
+    const downloadedWill: DownloadedWill = await j.get(cid);
 
     // Save downloaded will
     saveWill(WillFileType.DOWNLOADED, downloadedWill);

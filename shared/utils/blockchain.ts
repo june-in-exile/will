@@ -72,7 +72,7 @@ function createWallet(privateKey: string, provider?: JsonRpcProvider): Wallet {
   }
 }
 
-async function createContractInstance<T extends Contract>(
+async function createContract<T extends Contract>(
   contractAddress: string,
   contractFactory: any,
   providerOrWallet: JsonRpcProvider | Wallet,
@@ -109,4 +109,4 @@ async function createContractInstance<T extends Contract>(
   }
 }
 
-export { getTokenInfo, createSigner, createWallet, createContractInstance };
+export { getTokenInfo, createSigner, createWallet, createContract as createContractInstance };

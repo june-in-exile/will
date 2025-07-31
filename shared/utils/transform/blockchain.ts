@@ -1,9 +1,9 @@
-import { EncryptedWillData } from "@shared/types/will.js";
+import { EncryptedWill } from "@shared/types/will.js";
 import { JsonCidVerifier } from "@shared/types/typechain-types/index.js";
 import chalk from "chalk";
 
 function encryptedWillToJsonObject(
-  encryptedWillData: EncryptedWillData,
+  encryptedWillData: EncryptedWill,
 ): JsonCidVerifier.JsonObjectStruct {
   try {
     console.log(
@@ -39,7 +39,7 @@ function encryptedWillToJsonObject(
 }
 
 function encryptedWillToTypedJsonObject(
-  encryptedWillData: EncryptedWillData,
+  encryptedWillData: EncryptedWill,
 ): JsonCidVerifier.TypedJsonObjectStruct {
   try {
     console.log(

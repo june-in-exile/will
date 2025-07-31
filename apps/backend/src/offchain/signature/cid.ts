@@ -4,7 +4,7 @@ import {
 } from "@shared/utils/validation/environment.js";
 import type { CidSigning } from "@shared/types/environment.js";
 import { SIGNATURE_CONFIG } from "@config";
-import { signString, verify } from "@shared/utils/crypto/signature.js";
+import { signString, verify } from "@shared/utils/cryptography/signature.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import chalk from "chalk";
 

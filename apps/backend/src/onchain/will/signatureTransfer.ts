@@ -15,8 +15,8 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   createWallet,
   createContractInstance,
-} from "@shared/utils/crypto/blockchain.js";
-import { printEstates } from "@shared/utils/crypto/printData.js";
+} from "@shared/utils/blockchain.js";
+import { printEstates } from "@shared/utils/print.js";
 import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import chalk from "chalk";

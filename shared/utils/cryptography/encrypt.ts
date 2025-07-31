@@ -2,8 +2,9 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/types/constants.js";
 import type { SupportedAlgorithm, EncryptionArgs } from "@shared/types/crypto.js";
 import { Base64String } from "@shared/types/base64String.js";
-import { randomBytes, createCipheriv, Cipheriv, Decipheriv } from "crypto";
-import { writeFileSync } from "fs";
+import { generateInitializationVector } from "./initializationVector.js";
+import { generateKey } from "./key.js";
+import { createCipheriv, Cipheriv } from "crypto";
 import { config } from "dotenv";
 import chalk from "chalk";
 
@@ -38,17 +39,16 @@ function parseArgs(): EncryptionArgs {
       parsed.algorithm = algorithm as SupportedAlgorithm;
       console.log(chalk.blue("Using algorithm:"), algorithm);
     } else if (args[i] === "--plaintext" && i + 1 < args.length) {
-      const plaintext = args[i + 1];
-      console.log(
-        chalk.blue("Plaintext provided:"),
-        chalk.gray(
-          plaintext.substring(0, 50) + (plaintext.length > 50 ? "..." : ""),
-        ),
-      );
-      parsed.plaintext = Buffer.from(
-        plaintext,
-        CRYPTO_CONFIG.plaintextEncoding,
-      );
+      try {
+        parsed.plaintext = Buffer.from(
+          args[i + 1],
+          CRYPTO_CONFIG.plaintextEncoding,
+        );
+      } catch (error) {
+        throw new Error(
+          `Invalid plainttext: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
     } else if (args[i] === "--key" && i + 1 < args.length) {
       try {
         parsed.key = Buffer.from(args[i + 1], "base64");
@@ -71,26 +71,26 @@ function parseArgs(): EncryptionArgs {
   }
 
   // Validate required parameters
-  if (!parsed.plaintext) {
-    throw new Error(
-      "Missing required parameter: --plaintext must be specified",
-    );
-  }
+  const missingParams: string[] = [];
+  if (!parsed.plaintext) missingParams.push("--plaintext");
+  if (!parsed.algorithm) missingParams.push("--algorithm");
 
-  if (!parsed.algorithm || !parsed.plaintext) {
-    throw new Error("Missing required parameters");
+  if (missingParams.length > 0) {
+    throw new Error(
+      `Missing required parameters: ${missingParams.join(", ")} must be specified`,
+    );
   }
 
   // generate the missing key
   if (!parsed.key) {
-    parsed.key = generateEncryptionKey();
-    console.log(chalk.blue("🔑 Generated new encryption key"));
+    parsed.key = generateKey();
+    console.log(chalk.blue("Generated new encryption key"));
   }
 
   // generate the missing iv
   if (!parsed.iv) {
     parsed.iv = generateInitializationVector();
-    console.log(chalk.blue("🎲 Generated new initialization vector"));
+    console.log(chalk.blue("Generated new initialization vector"));
   }
 
   return parsed as EncryptionArgs;
@@ -213,64 +213,9 @@ function validateEncryptionParams(
 }
 
 /**
- * Generate cryptographically secure random bytes
- */
-function generateSecureRandomBytes(size: number, purpose: string): Buffer {
-  try {
-    if (!Number.isInteger(size) || size <= 0 || size > 1024) {
-      throw new Error(
-        `Invalid size for ${purpose}: must be a positive integer <= 1024`,
-      );
-    }
-
-    const bytes = randomBytes(size);
-
-    // Basic entropy check - ensure not all zeros (extremely unlikely but possible)
-    const isAllZeros = bytes.every((byte) => byte === 0);
-    if (isAllZeros) {
-      console.warn(
-        chalk.yellow(
-          `⚠️ Warning: Generated ${purpose} contains all zeros, regenerating...`,
-        ),
-      );
-      return generateSecureRandomBytes(size, purpose); // Recursive retry
-    }
-
-    return bytes;
-  } catch (error) {
-    throw new Error(
-      `Failed to generate secure random bytes for ${purpose}: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
-  }
-}
-
-/**
- * Validate and create key file securely
- */
-function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
-  try {
-    const keyBase64 = keyBuffer.toString("base64");
-
-    // Validate hex encoding
-    const decodedKey = Buffer.from(keyBase64, "base64");
-    if (!decodedKey.equals(keyBuffer)) {
-      throw new Error("Key encoding/decoding validation failed");
-    }
-
-    // Write with restricted permissions (if supported)
-    writeFileSync(keyPath, keyBase64);
-
-    console.log(chalk.green("✅ New encryption key generated and saved"));
-    console.log(chalk.yellow("⚠️ Keep this key file secure and backed up!"));
-  } catch (error) {
-    throw new Error(`Failed to create key file: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
  * Generic encryption function with comprehensive validation
  */
-export function encrypt(
+function encrypt(
   algorithm: SupportedAlgorithm,
   plaintext: Buffer,
   key: Buffer,
@@ -307,55 +252,6 @@ export function encrypt(
 }
 
 /**
- * Get or generate encryption key with validation
- */
-export function generateEncryptionKey(
-  size: number = CRYPTO_CONFIG.keySize,
-): Buffer {
-  try {
-    console.log(chalk.blue("🔑 Generating new encryption key..."));
-
-    // Validate size parameter
-    if (size !== CRYPTO_CONFIG.keySize) {
-      throw new Error(
-        `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${size} bytes`,
-      );
-    }
-
-    const keyBuffer = generateSecureRandomBytes(size, "encryption key");
-
-    createBase64KeyFile(PATHS_CONFIG.crypto.keyFile, keyBuffer);
-
-    return keyBuffer;
-  } catch (error) {
-    throw new Error(`Failed to get encryption key: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
- * Get or generate initialization vector with validation
- */
-export function generateInitializationVector(
-  size: number = CRYPTO_CONFIG.ivSize,
-): Buffer {
-  try {
-    console.log(chalk.blue("🎲 Generating new initialization vector..."));
-
-    // Validate size parameter
-    if (size !== CRYPTO_CONFIG.ivSize) {
-      throw new Error(
-        `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${size} bytes`,
-      );
-    }
-    const iv = generateSecureRandomBytes(size, "initialization vector")
-    console.log(chalk.green("✅ New IV generated:", iv));
-    return iv;
-  } catch (error) {
-    throw new Error(`Failed to get initialization vector: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
  * Main function that orchestrates the entire encryption process
  * 1. Parses command line arguments
  * 2. Generates missing key/IV if not provided
@@ -373,7 +269,7 @@ async function main(): Promise<void> {
     const { algorithm, plaintext, key, iv } = parseArgs();
 
     // Perform encryption
-    console.log(chalk.blue("🔐 Performing encryption..."));
+    console.log(chalk.blue("Performing encryption..."));
     const result = encrypt(algorithm, plaintext, key, iv);
 
     // Display results
@@ -431,3 +327,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export { encrypt };

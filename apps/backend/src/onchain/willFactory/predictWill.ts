@@ -10,14 +10,14 @@ import {
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WillFileType, type FormattedWillData, type AddressedWillData } from "@shared/types/will.js";
+import { WillFileType, type FormattedWill, type AddressedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
-import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
-import { generateSalt } from "@shared/utils/crypto/salt.js";
-import { printEstates } from "@shared/utils/crypto/printData.js"
+import { createContractInstance } from "@shared/utils/blockchain.js";
+import { generateSalt } from "@shared/utils/cryptography/salt.js";
+import { printEstates } from "@shared/utils/print.js"
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
@@ -116,7 +116,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
     );
 
     // Read and validate will data
-    const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
+    const willData: FormattedWill = readWill(WillFileType.FORMATTED);
 
     // Generate salt
     const salt = generateSalt();
@@ -128,7 +128,7 @@ async function processWillAddressing(): Promise<ProcessResult> {
       salt,
     });
 
-    const addressedWillData: AddressedWillData = {
+    const addressedWillData: AddressedWill = {
       ...willData,
       salt,
       will: predictedAddress,

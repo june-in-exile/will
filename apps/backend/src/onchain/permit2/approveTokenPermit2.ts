@@ -4,10 +4,10 @@ import {
 } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
-import { getTokenInfo, createSigner } from "@shared/utils/crypto/blockchain.js";
+import { getTokenInfo, createSigner } from "@shared/utils/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { WillFileType, type FormattedWillData } from "@shared/types/will.js";
+import { WillFileType, type FormattedWill } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -134,11 +134,10 @@ async function checkCurrentAllowance(
     );
     return allowance;
   } catch (error) {
-
     console.warn(
       chalk.yellow(
         `⚠️ Could not check allowance for ${tokenAddress}:`,
-        errorMessage,
+        error instanceof Error ? error.message : "Unknown error",
       ),
     );
     return 0n;
@@ -227,10 +226,9 @@ async function approveToken(
       throw new Error("Transaction failed");
     }
   } catch (error) {
-
     console.error(
       chalk.red(`❌ Error approving token ${token}:`),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Retry logic
@@ -248,11 +246,10 @@ async function approveToken(
 
       return approveToken(token, spenderAddress, signer, retryCount + 1);
     }
-
     return {
       success: false,
       alreadyApproved: false,
-      error: errorMessage,
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -280,7 +277,7 @@ async function executeTokenApprovals(
   spenderAddress: string,
   signer: Wallet,
 ): Promise<TokenApprovalSummary> {
-  console.log(chalk.blue("\n🔐 Starting token approval process..."));
+  console.log(chalk.blue("\nStarting token approval process..."));
 
   printTokensForApproval(tokens);
 
@@ -353,7 +350,7 @@ async function processTokenApproval(): Promise<ProcessResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
+    const willData: FormattedWill = readWill(WillFileType.FORMATTED);
 
     // Extract unique tokens
     const tokens = extractUniqueTokens(willData.estates);
@@ -398,10 +395,9 @@ async function processTokenApproval(): Promise<ProcessResult> {
       signerAddress: await signer.getAddress(),
     };
   } catch (error) {
-
     console.error(
       chalk.red("Error during token approval process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -423,10 +419,9 @@ async function main(): Promise<void> {
       failed: result.failed,
     });
   } catch (error) {
-
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -441,9 +436,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

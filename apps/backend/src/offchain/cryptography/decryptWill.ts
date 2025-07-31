@@ -4,30 +4,29 @@ import type {
 } from "@shared/types/crypto.js";
 import {
   WillFileType,
-  type DownloadedWillData,
-  type EncryptedWillData,
+  type EncryptedWill,
+  type DownloadedWill,
+  type DecryptedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
-import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
+import { getKey } from "@shared/utils/cryptography/key.js";
+import { decrypt } from "@shared/utils/cryptography/decrypt.js";
 import chalk from "chalk";
 
-// Type definitions
-interface ProcessResult {
+interface ProcessResult extends DecryptedWill {
   decryptedPath: string;
-  algorithm: SupportedAlgorithm;
-  success: boolean;
 }
 
 /**
  * Get decryption arguments
  */
 function getDecryptionArgs(type: WillFileType): DecryptionArgs {
-  const encryptedWill: EncryptedWillData | DownloadedWillData = readWill(type);
+  const encryptedWill: EncryptedWill | DownloadedWill = readWill(type);
 
   const algorithm: SupportedAlgorithm = encryptedWill.algorithm;
   const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
-  const key = getDecryptionKey();
+  const key = getKey();
   const iv = Buffer.from(encryptedWill.iv, "base64");
   const authTag = Buffer.from(encryptedWill.authTag, "base64");
 
@@ -52,16 +51,11 @@ async function processWillDecryption(
     // Get decryption parameters
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
-    console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-    const decryptedWill = dcryptedWillBuffer.toString(
+    const decryptedWill: DecryptedWill = JSON.parse(dcryptedWillBuffer.toString(
       CRYPTO_CONFIG.plaintextEncoding,
-    );
+    ));
 
-    console.log(chalk.gray("Decrypted will structure:"));
-    console.log(decryptedWill);
-
-    // Save decrypted will
     saveWill(WillFileType.DECRYPTED, decryptedWill);
 
     console.log(
@@ -69,9 +63,8 @@ async function processWillDecryption(
     );
 
     return {
+      ...decryptedWill,
       decryptedPath: PATHS_CONFIG.will.decrypted,
-      algorithm: CRYPTO_CONFIG.algorithm,
-      success: true,
     };
   } catch (error) {
     console.error(
@@ -101,7 +94,7 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-      console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);

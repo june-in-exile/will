@@ -53,10 +53,10 @@ interface DecryptedWill extends SignedWill { }
 export {
   WillFileType,
   type Will as WillData,
-  type FormattedWill as FormattedWillData,
-  type AddressedWill as AddressedWillData,
-  type SignedWill as SignedWillData,
-  type EncryptedWill as EncryptedWillData,
-  type DownloadedWill as DownloadedWillData,
-  type DecryptedWill as DecryptedWillData,
+  type FormattedWill,
+  type AddressedWill,
+  type SignedWill,
+  type EncryptedWill,
+  type DownloadedWill,
+  type DecryptedWill,
 };

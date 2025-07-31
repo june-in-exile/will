@@ -446,7 +446,7 @@ export const CRYPTO_CONFIG: CryptoConfig = {
   plaintextEncoding: "utf8",
   cyphertextEncoding: "base64",
 
-  // File paths (relative to utils/crypto/)
+  // File paths (relative to utils/cryptography/)
   paths: {
     keyFile: "./key.txt",
   },
@@ -643,8 +643,8 @@ export const PATHS_CONFIG: PathsConfig = {
 
   // Crypto keys
   crypto: {
-    keyDir: resolve(modulePath, "utils/crypto"),
-    keyFile: resolve(modulePath, "utils/crypto/key.txt"),
+    keyDir: resolve(modulePath, "utils/cryptography"),
+    keyFile: resolve(modulePath, "utils/cryptography/key.txt"),
   },
 };
 

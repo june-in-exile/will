@@ -12,8 +12,8 @@ import {
 import type { ProofData } from "@shared/types/crypto.js";
 import { validateFiles } from "@shared/utils/validation/file.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
-import { printProofData } from "@shared/utils/crypto/printData.js";
+import { createContractInstance } from "@shared/utils/blockchain.js";
+import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
@@ -58,7 +58,7 @@ async function submitProofToContract(
     console.log(chalk.blue("Submitting proof for verification..."));
 
     // Print detailed proof information
-    printProofData(proof);
+    printProof(proof);
 
     const startTime = Date.now();
 

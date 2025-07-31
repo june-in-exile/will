@@ -1,10 +1,11 @@
 import { BaseWorkflow } from "./base.js";
-import { CRYPTO_CONFIG } from "@config";
-import {
-  generateEncryptionKey,
-  generateInitializationVector,
-} from "@shared/utils/crypto/encrypt.js";
+import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
+import { type Base64String } from "@shared/types/base64String.js";
 import { SupportedAlgorithm } from "@shared/types/crypto.js";
+import { generateKey } from "@shared/utils/cryptography/key.js";
+import { generateInitializationVector } from "@shared/utils/cryptography/initializationVector.js";
+import { writeFileSync } from "fs";
+import { randomBytes } from "crypto";
 import chalk from "chalk";
 
 export abstract class CryptoWorkflow<TInput, TResult> extends BaseWorkflow<
@@ -12,42 +13,14 @@ export abstract class CryptoWorkflow<TInput, TResult> extends BaseWorkflow<
   TResult
 > {
   // Common encryption-related methods
-  protected getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
-    try {
-      console.log(chalk.blue("🔑 Generating new encryption key..."));
-
-      if (size !== CRYPTO_CONFIG.keySize) {
-        throw new Error(
-          `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${size} bytes`,
-        );
-      }
-
-      return generateEncryptionKey(size);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Failed to get encryption key: ${errorMessage}`);
-    }
-  }
+  protected generateKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
+    return generateKey();
+  };
 
   protected getInitializationVector(
     size: number = CRYPTO_CONFIG.ivSize,
   ): Buffer {
-    try {
-      console.log(chalk.blue("🎲 Generating new initialization vector..."));
-
-      if (size !== CRYPTO_CONFIG.ivSize) {
-        throw new Error(
-          `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${size} bytes`,
-        );
-      }
-
-      return generateInitializationVector(size);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      throw new Error(`Failed to get initialization vector: ${errorMessage}`);
-    }
+    return generateInitializationVector(size);
   }
 
   protected validateCryptoParams(

@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WillFileType, type EncryptedWillData } from "@shared/types/will.js";
+import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
@@ -47,7 +47,7 @@ async function createHeliaInstance(): Promise<HeliaInstance> {
  */
 async function uploadToIPFS(
   jsonHandler: HeliaJSON,
-  willData: EncryptedWillData,
+  willData: EncryptedWill,
 ): Promise<CID> {
   try {
     console.log(chalk.blue("Uploading encrypted will to IPFS..."));
@@ -170,7 +170,7 @@ async function processIPFSUpload(): Promise<ProcessResult> {
 
   try {
     // Read and validate will data
-    const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
+    const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
 
     // Create Helia instance
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();

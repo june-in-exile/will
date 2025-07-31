@@ -4,7 +4,7 @@ import {
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
-import { WillFileType, type EncryptedWillData } from "@shared/types/will.js";
+import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
 import type { ProofData } from "@shared/types/crypto.js";
 import {
   validateEnvironment,
@@ -19,8 +19,8 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   createWallet,
   createContractInstance,
-} from "@shared/utils/crypto/blockchain.js";
-import { printProofData, printEncryptedWillData } from "@shared/utils/crypto/printData.js";
+} from "@shared/utils/blockchain.js";
+import { printProof, printEncryptedWillJson } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js";
 import chalk from "chalk";
@@ -63,8 +63,8 @@ function printUploadCidData(uploadData: UploadCidData): void {
   console.log(chalk.blue("\n📋 CID Information:"));
   console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
 
-  printProofData(uploadData.proof);
-  printEncryptedWillData(uploadData.will);
+  printProof(uploadData.proof);
+  printEncryptedWillJson(uploadData.will);
 
   console.log(chalk.cyan("\n=== End of UploadCidData Details ===\n"));
 }
@@ -166,7 +166,7 @@ async function processUploadCid(): Promise<ProcessResult> {
 
     // Read required data
     const proof: ProofData = readProof();
-    const willData: EncryptedWillData = readWill(WillFileType.ENCRYPTED);
+    const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObject =
       encryptedWillToTypedJsonObject(willData);
 

@@ -13,7 +13,7 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   createWallet,
   createContractInstance,
-} from "@shared/utils/crypto/blockchain.js";
+} from "@shared/utils/blockchain.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 

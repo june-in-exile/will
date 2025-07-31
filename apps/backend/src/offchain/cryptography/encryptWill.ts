@@ -1,25 +1,19 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import type {
-  EncryptionArgs
-} from "@shared/types/crypto.js";
-import {
-  generateEncryptionKey,
-  generateInitializationVector,
-  encrypt,
-} from "@shared/utils/crypto/encrypt.js";
+import type { EncryptionArgs } from "@shared/types/crypto.js";
+import { encrypt } from "@shared/utils/cryptography/encrypt.js";
+import { generateKey } from "@shared/utils/cryptography/key.js";
+import { generateInitializationVector } from "@shared/utils/cryptography/initializationVector.js";
 import { Base64String } from "@shared/types/base64String.js";
 import {
   WillFileType,
-  type SignedWillData,
-  type EncryptedWillData,
+  type SignedWill,
+  type EncryptedWill,
 } from "@shared/types/will.js";
-import { truncate } from "@shared/utils/transform/expression.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
 
-// Type definitions
-interface ProcessResult extends EncryptedWillData {
+interface ProcessResult extends EncryptedWill {
   encryptedPath: string;
 }
 
@@ -29,16 +23,13 @@ interface ProcessResult extends EncryptedWillData {
 function getEncryptionArgs(): EncryptionArgs {
   const algorithm = CRYPTO_CONFIG.algorithm;
 
-  const signedWill: SignedWillData = readWill(WillFileType.SIGNED);
-  const signedWillString = JSON.stringify(signedWill);
+  const signedWill: SignedWill = readWill(WillFileType.SIGNED);
   const plaintext = Buffer.from(
-    signedWillString,
+    JSON.stringify(signedWill),
     CRYPTO_CONFIG.plaintextEncoding,
   );
-
-  const key = generateEncryptionKey(CRYPTO_CONFIG.keySize);
-
-  const iv = generateInitializationVector(CRYPTO_CONFIG.ivSize);
+  const key = generateKey();
+  const iv = generateInitializationVector();
 
   return { algorithm, plaintext, key, iv };
 }
@@ -55,15 +46,14 @@ async function processWillEncryption(): Promise<ProcessResult> {
     const { ciphertext, authTag } = encrypt(algorithm, will, key, iv);
 
     // Prepare encrypted will structure
-    const encryptedWill: EncryptedWillData = {
+    const encryptedWill: EncryptedWill = {
       algorithm: algorithm,
       iv: Base64String.fromBuffer(iv),
       authTag: Base64String.fromBuffer(authTag),
       ciphertext: Base64String.fromBuffer(ciphertext),
       timestamp: Math.floor(Date.now() / 1000),
     };
-    
-    // Save encrypted will
+
     saveWill(WillFileType.ENCRYPTED, encryptedWill);
 
     console.log(
@@ -93,14 +83,7 @@ async function main(): Promise<void> {
     const result = await processWillEncryption();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), JSON.stringify(
-      {
-        ...result,
-        ciphertext: truncate(result.ciphertext),
-      },
-      null,
-      2,
-    ));
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
 
     console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
