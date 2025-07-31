@@ -39,10 +39,8 @@ interface CreateWillData {
 interface ProcessResult {
   transactionHash: string;
   willAddress: string;
-  cid: string;
   timestamp: number;
   gasUsed: bigint;
-  success: boolean;
 }
 
 /**
@@ -168,22 +166,6 @@ async function executeCreateWill(
       amount: estate.amount,
     }));
 
-    // Estimate gas
-    const gasEstimate = await contract.createWill.estimateGas(
-      createData.proof.pA,
-      createData.proof.pB,
-      createData.proof.pC,
-      createData.proof.pubSignals,
-      createData.will,
-      createData.cid,
-      createData.testator,
-      contractEstates,
-      createData.salt,
-    );
-
-    console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
-
-    // Execute transaction
     const tx = await contract.createWill(
       createData.proof.pA,
       createData.proof.pB,
@@ -194,13 +176,7 @@ async function executeCreateWill(
       createData.testator,
       contractEstates,
       createData.salt,
-      {
-        gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      },
     );
-
-    console.log(chalk.yellow("Transaction sent:"), tx.hash);
-    console.log(chalk.blue("Waiting for confirmation..."));
 
     const receipt = await tx.wait();
 
@@ -238,10 +214,8 @@ async function executeCreateWill(
     return {
       transactionHash: receipt.hash,
       willAddress,
-      cid: createData.cid,
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
-      success: true,
     };
   } catch (error) {
     throw new Error(`Failed to execute createWill: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -333,11 +307,7 @@ async function main(): Promise<void> {
     const result = await processCreateWill();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- Will Address:"), result.willAddress);
-    console.log(chalk.gray("- CID:"), result.cid);
-    console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

@@ -3,17 +3,23 @@ import {
   presetValidations,
 } from "@shared/utils/validation/environment.js";
 import type { CidSigning } from "@shared/types/environment.js";
-import { SIGNATURE_CONFIG } from "@config";
+import { EthereumAddress } from "@shared/types/blockchain.js";
+import { validateCidv1 } from "@shared/utils/validation/cid.js";
+import { validateEthereumAddress, validatePrivateKey } from "@shared/utils/validation/blockchain.js";
 import { signString, verify } from "@shared/utils/cryptography/signature.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import chalk from "chalk";
 
+interface CidSigningData {
+  cid: string;
+  signer: EthereumAddress;
+  privateKey: string;
+}
+
 interface ProcessResult {
   cid: string;
+  signer: string;
   signature: string;
-  executor: string;
-  signatureLength: number;
-  success: boolean;
 }
 
 /**
@@ -34,97 +40,6 @@ function validateEnvironmentVariables(): CidSigning {
 }
 
 /**
- * Sign CID with retry mechanism
- */
-async function signCidWithRetry(
-  cid: string,
-  privateKey: string,
-  retryCount: number = 0,
-): Promise<string> {
-  try {
-    console.log(chalk.blue("Generating signature for CID..."));
-    console.log(chalk.gray("Attempt:"), retryCount + 1);
-
-    const signature = await signString(cid, privateKey);
-
-    if (!signature) {
-      throw new Error("Signature generation returned null or undefined");
-    }
-
-    if (typeof signature !== "string") {
-      throw new Error("Signature must be a string");
-    }
-
-    console.log(chalk.green("✅ Signature generated successfully"));
-    console.log(
-      chalk.gray("Signature:"),
-      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`,
-    );
-
-    return signature;
-  } catch (error) {
-    console.error(
-      chalk.red(`❌ Signature generation failed (attempt ${retryCount + 1}):`),
-      error instanceof Error ? error.message : "Unknown error",
-    );
-
-    // Retry logic
-    if (retryCount < SIGNATURE_CONFIG.maxRetries) {
-      console.log(
-        chalk.yellow(
-          `⚠️ Retrying signature generation (attempt ${retryCount + 2}/${SIGNATURE_CONFIG.maxRetries + 1})...`,
-        ),
-      );
-
-      // Wait before retry
-      await new Promise((resolve) =>
-        setTimeout(resolve, SIGNATURE_CONFIG.retryDelay),
-      );
-
-      return signCidWithRetry(cid, privateKey, retryCount + 1);
-    }
-
-    throw new Error(
-      `Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
-  }
-}
-
-/**
- * Verify signature with detailed validation
- */
-async function verifySignatureWithDetails(
-  cid: string,
-  signature: string,
-  executorAddress: string,
-): Promise<boolean> {
-  try {
-    console.log(chalk.blue("Verifying signature..."));
-    console.log(chalk.gray("Message (CID):"), cid);
-    console.log(
-      chalk.gray("Signature:"),
-      `${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`,
-    );
-    console.log(chalk.gray("Expected signer:"), executorAddress);
-
-    const isValid = await verify(cid, signature, executorAddress);
-
-    if (!isValid) {
-      throw new Error(
-        "Signature verification failed - signature does not match the expected signer",
-      );
-    }
-
-    console.log(chalk.green("✅ Signature verified successfully"));
-    console.log(chalk.gray("Verified signer:"), executorAddress);
-
-    return true;
-  } catch (error) {
-    throw new Error(`Signature verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
  * Update environment variable with signature
  */
 async function updateEnvironmentVariable(signature: string): Promise<void> {
@@ -140,28 +55,66 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
 }
 
 /**
+ * Print detailed CidSigningData information
+ */
+function printCidSigningData(CidSigningData: CidSigningData): void {
+  console.log(chalk.cyan("\n=== CidSigningData Details ===\n"));
+
+  console.log(chalk.gray("CID to sign:"), CidSigningData.cid);
+  console.log(chalk.gray("Signer address:"), CidSigningData.signer);
+
+  console.log(chalk.cyan("\n=== End of CidSigningData Details ===\n"));
+}
+
+/**
+ * Execute CID signing with verification
+ */
+async function executeCidSigning(cidSigningData: CidSigningData): Promise<string> {
+  try {
+    console.log(chalk.blue("\nStarting CID signing process..."));
+    
+    printCidSigningData(cidSigningData);
+    
+    const signature = await signString(cidSigningData.cid, cidSigningData.privateKey);
+    
+    const isValid = await verify(cidSigningData.cid, signature, cidSigningData.signer);
+    if (!isValid) {
+      throw new Error(`Signature verification failed.`);
+    }
+    
+    console.log(chalk.green("✅ CID signed!"));
+    return signature;
+  } catch (error) { 
+    throw new Error(`Failed to sign CID: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+}
+
+/**
  * Process CID signing workflow
  */
 async function processCidSigning(): Promise<ProcessResult> {
   try {
-    // Validate environment variables
     const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } =
       validateEnvironmentVariables();
 
-    console.log(chalk.cyan("\n🔐 Starting CID signing process..."));
-    console.log(chalk.gray("CID to sign:"), CID);
-    console.log(chalk.gray("Executor address:"), EXECUTOR);
+    if (!validateCidv1(CID)) {
+      throw new Error(`Invalid cid v1: ${CID}`);
+    }
 
-    // Generate signature with retry mechanism
-    const cleanPrivateKey = EXECUTOR_PRIVATE_KEY.startsWith("0x")
-      ? EXECUTOR_PRIVATE_KEY.slice(2)
-      : EXECUTOR_PRIVATE_KEY;
-    const signature = await signCidWithRetry(CID, cleanPrivateKey);
+    if (!validateEthereumAddress(EXECUTOR)) {
+      throw new Error(`Invalid executor address: ${EXECUTOR}`);
+    }
 
-    // Verify signature
-    await verifySignatureWithDetails(CID, signature, EXECUTOR);
+    if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
+      throw new Error(`Invalid private key.`);
+    }
 
-    // Update environment variable
+    const signature = await executeCidSigning({
+      cid: CID,
+      signer: EXECUTOR as EthereumAddress,
+      privateKey: EXECUTOR_PRIVATE_KEY,
+    })
+
     await updateEnvironmentVariable(signature);
 
     console.log(
@@ -170,10 +123,8 @@ async function processCidSigning(): Promise<ProcessResult> {
 
     return {
       cid: CID,
+      signer: EXECUTOR,
       signature,
-      executor: EXECUTOR,
-      signatureLength: signature.length,
-      success: true,
     };
   } catch (error) {
     console.error(chalk.red("Error during CID signing process:"), error instanceof Error ? error.message : "Unknown error");
@@ -193,12 +144,7 @@ async function main(): Promise<void> {
     const result = await processCidSigning();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), {
-      cid: result.cid,
-      executor: result.executor,
-      signatureLength: result.signatureLength,
-      success: result.success,
-    });
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
@@ -225,8 +171,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  signCidWithRetry,
-  verifySignatureWithDetails,
   updateEnvironmentVariable,
   processCidSigning,
 };

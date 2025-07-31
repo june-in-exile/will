@@ -156,7 +156,6 @@ async function approveToken(
   try {
     console.log(chalk.blue(`Approving token ${token} for Permit2...`));
 
-    // Check current allowance
     const ownerAddress = await signer.getAddress();
     const currentAllowance = await checkCurrentAllowance(
       token.address,
@@ -174,46 +173,25 @@ async function approveToken(
       return { success: true, alreadyApproved: true };
     }
 
-    // Create contract instance
     const tokenContract = new ethers.Contract(
       token.address,
       APPROVAL_CONFIG.tokenAbi,
       signer,
     );
 
-    // Estimate gas
-    let gasLimit: bigint;
-    try {
-      const estimatedGas = await tokenContract.approve.estimateGas(
-        spenderAddress,
-        ethers.MaxUint256,
-      );
-      gasLimit =
-        (estimatedGas *
-          BigInt(Math.floor(APPROVAL_CONFIG.gasLimitMultiplier * 100))) /
-        100n;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      console.error(
-        chalk.red(`❌ Error estimating gas, using default limit:`),
-        errorMessage,
-      );
-      gasLimit = 100000n; // Default gas limit for approvals
-    }
 
-    // Send approval transaction
-    const tx = await tokenContract.approve(spenderAddress, ethers.MaxUint256, {
-      gasLimit,
-    });
+    const tx = await tokenContract.approve(spenderAddress, ethers.MaxUint256);
 
     console.log(
       chalk.gray(`Approval transaction sent for ${token}:`),
       chalk.white(tx.hash),
     );
 
-    // Wait for confirmation
-    const receipt = await tx.wait(APPROVAL_CONFIG.confirmationBlocks);
+    const receipt = await tx.wait();
+
+    if (!receipt) {
+      throw new Error("Transaction receipt is null");
+    }
 
     if (receipt!.status === 1) {
       console.log(
@@ -339,20 +317,15 @@ async function executeTokenApprovals(
  */
 async function processTokenApproval(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
-    // Initialize provider and validate network
     const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create and validate signer
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    // Read and validate will data
     const willData: FormattedWill = readWill(WillFileType.FORMATTED);
 
-    // Extract unique tokens
     const tokens = extractUniqueTokens(willData.estates);
 
     if (tokens.length === 0) {
@@ -367,10 +340,8 @@ async function processTokenApproval(): Promise<ProcessResult> {
       };
     }
 
-    // Get tokens info
     const tokenInfos = await getTokenInfos(tokens, signer);
 
-    // Process approvals
     const approvalResults = await executeTokenApprovals(
       tokenInfos,
       PERMIT2,
@@ -413,11 +384,7 @@ async function main(): Promise<void> {
     const result = await processTokenApproval();
 
     console.log(chalk.green.bold("\n✅ Process completed!"));
-    console.log(chalk.gray("Results:"), {
-      successful: result.successful,
-      alreadyApproved: result.alreadyApproved,
-      failed: result.failed,
-    });
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

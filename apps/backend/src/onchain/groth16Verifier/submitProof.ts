@@ -19,7 +19,6 @@ import chalk from "chalk";
 
 interface ProofValidationResult {
   proofValid: boolean;
-  gasUsed?: bigint;
   executionTime: number;
 }
 

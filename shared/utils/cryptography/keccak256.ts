@@ -98,15 +98,6 @@ export function keccak256(
       throw new Error(`Keccak256 hashing failed: ${errorMessage}`);
     }
 
-    const inputPreview =
-      message.length > 50 ? `${message.substring(0, 50)}...` : message;
-    console.log(chalk.gray(`Hash generated with ${encoding} encoding:`), {
-      input: inputPreview,
-      inputLength: message.length,
-      encoding: encoding,
-      hash: hash,
-    });
-
     return hash;
   } catch (error) {
     throw new Error(`Keccak256 hash generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);

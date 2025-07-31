@@ -24,10 +24,8 @@ interface NotarizeCidData {
 
 interface ProcessResult {
   transactionHash: string;
-  cid: string;
   timestamp: number;
   gasUsed: bigint;
-  success: boolean;
 }
 
 /**
@@ -72,21 +70,9 @@ async function executeNotarizeCID(
   try {
     console.log(chalk.blue("Executing notarizeCid transaction..."));
 
-    // Print detailed notarization information
     printNotarizationDetails(notarizeData);
 
-    // Estimate gas
-    const gasEstimate = await contract.notarizeCid.estimateGas(notarizeData.cid, notarizeData.signature);
-
-    console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
-
-    // Execute transaction
-    const tx = await contract.notarizeCid(notarizeData.cid, notarizeData.signature, {
-      gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-    });
-
-    console.log(chalk.yellow("Transaction sent:"), tx.hash);
-    console.log(chalk.blue("Waiting for confirmation..."));
+    const tx = await contract.notarizeCid(notarizeData.cid, notarizeData.signature);
 
     const receipt = await tx.wait();
 
@@ -104,10 +90,8 @@ async function executeNotarizeCID(
 
     return {
       transactionHash: receipt.hash,
-      cid: notarizeData.cid,
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
-      success: true,
     };
   } catch (error) {
     throw new Error(`Failed to execute notarizeCid: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -173,10 +157,7 @@ async function main(): Promise<void> {
     const result = await processNotarizeCID();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- CID:"), result.cid);
-    console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

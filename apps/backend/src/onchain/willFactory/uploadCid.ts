@@ -20,7 +20,7 @@ import {
   createWallet,
   createContractInstance,
 } from "@shared/utils/blockchain.js";
-import { printProof, printEncryptedWillJson } from "@shared/utils/print.js";
+import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js";
 import chalk from "chalk";
@@ -33,10 +33,8 @@ interface UploadCidData {
 
 interface ProcessResult {
   transactionHash: string;
-  cid: string;
   timestamp: number;
   gasUsed: bigint;
-  success: boolean;
 }
 
 /**
@@ -64,7 +62,6 @@ function printUploadCidData(uploadData: UploadCidData): void {
   console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
 
   printProof(uploadData.proof);
-  printEncryptedWillJson(uploadData.will);
 
   console.log(chalk.cyan("\n=== End of UploadCidData Details ===\n"));
 }
@@ -79,22 +76,8 @@ async function executeUploadCid(
   try {
     console.log(chalk.blue("Executing uploadCid transaction..."));
 
-    // Print detailed upload data information
     printUploadCidData(uploadData);
 
-    // Estimate gas
-    const gasEstimate = await contract.uploadCid.estimateGas(
-      uploadData.proof.pA,
-      uploadData.proof.pB,
-      uploadData.proof.pC,
-      uploadData.proof.pubSignals,
-      uploadData.will,
-      uploadData.cid,
-    );
-
-    console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
-
-    // Execute transaction
     const tx = await contract.uploadCid(
       uploadData.proof.pA,
       uploadData.proof.pB,
@@ -102,13 +85,7 @@ async function executeUploadCid(
       uploadData.proof.pubSignals,
       uploadData.will,
       uploadData.cid,
-      {
-        gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      },
     );
-
-    console.log(chalk.yellow("Transaction sent:"), tx.hash);
-    console.log(chalk.blue("Waiting for confirmation..."));
 
     const receipt = await tx.wait();
 
@@ -126,10 +103,8 @@ async function executeUploadCid(
 
     return {
       transactionHash: receipt.hash,
-      cid: uploadData.cid,
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
-      success: true,
     };
   } catch (error) {
     throw new Error(`Failed to execute uploadCid: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -141,7 +116,6 @@ async function executeUploadCid(
  */
 async function processUploadCid(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     validateFiles([
       PATHS_CONFIG.zkp.multiplier2.verifier,
       PATHS_CONFIG.zkp.multiplier2.proof,
@@ -150,34 +124,28 @@ async function processUploadCid(): Promise<ProcessResult> {
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
-    // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    // Create contract instance
     const contract = await createContractInstance<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       wallet,
     );
 
-    // Read required data
     const proof: ProofData = readProof();
     const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObject =
       encryptedWillToTypedJsonObject(willData);
 
-    // Execute upload
     const result = await executeUploadCid(contract, {
       proof,
       will,
       cid: CID,
     });
 
-    // Update environment
     await updateEnvironmentVariables([
       ["UPLOAD_TX_HASH", result.transactionHash],
       ["UPLOAD_TIMESTAMP", result.timestamp.toString()],
@@ -204,10 +172,7 @@ async function main(): Promise<void> {
     const result = await processUploadCid();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- CID:"), result.cid);
-    console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
