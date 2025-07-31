@@ -1,42 +1,24 @@
 import { NETWORK_CONFIG } from "@config";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
-import type { SignatureTransfer } from "@shared/types/environment.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import { ethers, JsonRpcProvider, formatUnits } from "ethers";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { getTokenBalance, createWallet, createContractInstance } from "@shared/utils/blockchain.js";
+import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import type {
-  Estate,
   WillInfo,
   TokenBalance,
   BalanceSnapshot,
 } from "@shared/types/blockchain.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import {
-  createWallet,
-  createContractInstance,
-} from "@shared/utils/blockchain.js";
-import { printEstates } from "@shared/utils/print.js";
-import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
-import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
+import type { SignatureTransfer } from "@shared/types/environment.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
+import { getWillInfo } from "@shared/utils/blockchain.js";
 import chalk from "chalk";
 
 interface ProcessResult {
   transactionHash: string;
-  willAddress: string;
   timestamp: number;
   gasUsed: bigint;
-  success: boolean;
-  estateCount: number;
 }
-
-// ERC20 ABI for token operations
-const ERC20_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function symbol() view returns (string)",
-  "function decimals() view returns (uint8)",
-  "function name() view returns (string)",
-];
 
 /**
  * Validate environment variables
@@ -52,101 +34,7 @@ function validateEnvironmentVariables(): SignatureTransfer {
     );
   }
 
-  // Additional deadline validation warning
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  if (Number(result.data.DEADLINE) <= currentTimestamp) {
-    console.warn(
-      chalk.yellow(
-        "⚠️  Warning: Deadline is in the past or very close to current time",
-      ),
-    );
-    console.warn(
-      chalk.yellow(
-        `Current time: ${currentTimestamp}, Deadline: ${result.data.DEADLINE}`,
-      ),
-    );
-  }
-
   return result.data;
-}
-
-/**
- * Fetch will information
- */
-async function getWillInfo(contract: Will): Promise<WillInfo> {
-  try {
-    console.log(chalk.blue("Fetching will information..."));
-
-    const [testator, executor, executed, estates] = await Promise.all([
-      contract.testator(),
-      contract.executor(),
-      contract.executed(),
-      contract.getAllEstates(),
-    ]);
-
-    const formattedEstates: Estate[] = estates.map((estate: Estate) => ({
-      beneficiary: estate.beneficiary,
-      token: estate.token,
-      amount: estate.amount,
-    }));
-
-    console.log(chalk.green("✅ Will information retrieved"));
-
-    return {
-      testator,
-      executor,
-      executed,
-      estates: formattedEstates,
-    };
-  } catch (error) {
-    throw new Error(`Failed to fetch will info: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
- * Get token balance for a specific address and token
- */
-async function getTokenBalance(
-  provider: JsonRpcProvider,
-  tokenAddress: string,
-  holderAddress: string,
-): Promise<TokenBalance> {
-  try {
-    const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
-
-    const [balance, symbol, decimals] = await Promise.all([
-      tokenContract.balanceOf(holderAddress),
-      tokenContract.symbol().catch(() => "UNKNOWN"),
-      tokenContract.decimals().catch(() => 18),
-    ]);
-
-    const formattedBalance = formatUnits(balance, decimals);
-
-    return {
-      address: holderAddress,
-      tokenAddress,
-      balance,
-      formattedBalance,
-      symbol,
-      decimals,
-    };
-  } catch (error) {
-    console.warn(
-      chalk.yellow(
-        `Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`,
-      ),
-      error instanceof Error ? error.message : "Unknown error",
-    );
-
-    return {
-      address: holderAddress,
-      tokenAddress,
-      balance: 0n,
-      formattedBalance: "0",
-      symbol: "ERROR",
-      decimals: 18,
-    };
-  }
 }
 
 /**
@@ -204,7 +92,7 @@ function printBalanceSnapshot(
   console.log(chalk.cyan(`\n=== ${title} ===`));
   console.log(
     chalk.gray("Timestamp:"),
-    new Date(snapshot.timestamp).toISOString(),
+    new Date(snapshot.timestamp * 1000).toISOString(),
   );
 
   // Group balances by token
@@ -304,22 +192,14 @@ function compareBalanceSnapshots(
 }
 
 /**
- * Print signature transfer details
+ * Print signature transfer information
  */
-function printSignatureTransferDetails(
-  willInfo: WillInfo,
+function printSignatureTransferData(
   nonce: string,
   deadline: string,
   signature: string,
 ): void {
   console.log(chalk.cyan("\n=== Signature Transfer Details ==="));
-
-  console.log(chalk.blue("\n🏛️  Will Information:"));
-  console.log(chalk.gray("- Testator:"), chalk.white(willInfo.testator));
-  console.log(chalk.gray("- Executor:"), chalk.white(willInfo.executor));
-  console.log(chalk.gray("- Executed:"), chalk.white(willInfo.executed.toString()));
-
-  printEstates(willInfo.estates);
 
   console.log(chalk.blue("\n📋 Permit2 Parameters:"));
   console.log(chalk.gray("- Nonce:"), chalk.white(nonce));
@@ -348,35 +228,14 @@ async function executeSignatureTransfer(
       chalk.blue("Executing signatureTransferToBeneficiaries transaction..."),
     );
 
-    // Print detailed transfer information
-    printSignatureTransferDetails(willInfo, nonce, deadline, signature);
-
-    // Convert string parameters to appropriate types
-    const nonceBigInt = BigInt(nonce);
-    const deadlineBigInt = BigInt(deadline);
-
-    // Estimate gas
-    const gasEstimate =
-      await contract.signatureTransferToBeneficiaries.estimateGas(
-        nonceBigInt,
-        deadlineBigInt,
-        signature,
-      );
-
-    console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
+    printSignatureTransferData(nonce, deadline, signature);
 
     // Execute transaction
     const tx = await contract.signatureTransferToBeneficiaries(
-      nonceBigInt,
-      deadlineBigInt,
+      BigInt(nonce),
+      BigInt(deadline),
       signature,
-      {
-        gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
-      },
     );
-
-    console.log(chalk.yellow("Transaction sent:"), tx.hash);
-    console.log(chalk.blue("Waiting for confirmation..."));
 
     const receipt = await tx.wait();
 
@@ -412,11 +271,8 @@ async function executeSignatureTransfer(
 
     return {
       transactionHash: receipt.hash,
-      willAddress: await contract.getAddress(),
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
-      success: true,
-      estateCount: willInfo.estates.length,
     };
   } catch (error) {
     throw new Error(
@@ -494,11 +350,6 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     console.log(
       chalk.green.bold("\n🎉 Will execution process completed successfully!"),
     );
-    console.log(
-      chalk.green.bold(
-        `💰 ${result.estateCount} estate(s) transferred to beneficiaries!`,
-      ),
-    );
 
     return result;
   } catch (error) {
@@ -520,11 +371,7 @@ async function main(): Promise<void> {
     const result = await processSignatureTransfer();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(chalk.gray("- Transaction Hash:"), result.transactionHash);
-    console.log(chalk.gray("- Will Address:"), result.willAddress);
-    console.log(chalk.gray("- Estates Transferred:"), result.estateCount);
-    console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
@@ -551,8 +398,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  getWillInfo,
-  getTokenBalance,
   checkTokenBalances,
   printBalanceSnapshot,
   compareBalanceSnapshots,

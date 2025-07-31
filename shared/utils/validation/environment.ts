@@ -15,7 +15,7 @@ import type {
  * @param options Validation options including required fields, validators, and transforms
  * @returns Validation result with validated data or errors
  */
-export function validateEnvironment<T extends Record<string, any>>(
+function validateEnvironment<T extends Record<string, any>>(
   options: EnvironmentValidationOptions,
 ): ValidationResult<T> {
   const errors: string[] = [];
@@ -85,7 +85,7 @@ const validators = {
 };
 
 // Preset validation configurations for common use cases
-export const presetValidations = {
+const presetValidations = {
   tokenApproval: (): EnvironmentValidationOptions => ({
     required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
@@ -197,3 +197,5 @@ export const presetValidations = {
     },
   }),
 };
+
+export { validateEnvironment, presetValidations };

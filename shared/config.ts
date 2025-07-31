@@ -1,4 +1,4 @@
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
+import { UTF8, ASCII, BASE64, HEX, AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -103,20 +103,11 @@ interface SignatureConfig {
 interface HashConfig {
   maxInputSize: number;
   supportedEncodings: string[];
-  expectedHashLength: number;
-  hashPattern: RegExp;
 }
 
 interface ApprovalConfig {
   maxRetries: number;
   retryDelay: number;
-  gasLimitMultiplier: number;
-  confirmationBlocks: number;
-  defaultGasLimit: bigint;
-  batchDelay: number;
-  maxConcurrentApprovals: number;
-  maxTokensPerTransaction: number;
-  tokenAbi: string[];
 }
 
 interface IpfsPinningConfig {
@@ -126,15 +117,9 @@ interface IpfsPinningConfig {
   retryDelay: number;
 }
 
-interface IpfsHeliaConfig {
-  cleanupTimeout: number;
-}
-
 interface IpfsConfig {
   pinning: IpfsPinningConfig;
   gateways: string[];
-  maxFileSize: number;
-  helia: IpfsHeliaConfig;
 }
 
 interface BasePathsConfig {
@@ -190,37 +175,6 @@ interface PathsConfig {
   crypto: CryptoPathsConfig;
 }
 
-interface FileValidationConfig {
-  maxSize: number;
-  allowedExtensions: string[];
-  encoding: string;
-}
-
-interface WillValidationConfig {
-  minEstatesRequired: number;
-  maxEstatesAllowed: number;
-  requiredFields: {
-    will: string[];
-    estate: string[];
-  };
-}
-
-interface EthereumValidationConfig {
-  addressPattern: RegExp;
-  checksumValidation: boolean;
-}
-
-interface AmountValidationConfig {
-  minAmount: string;
-  maxAmount: string;
-}
-
-interface ValidationConfig {
-  files: FileValidationConfig;
-  will: WillValidationConfig;
-  ethereum: EthereumValidationConfig;
-  amounts: AmountValidationConfig;
-}
 
 interface SaltConfig {
   timestampMultiplier: number;
@@ -488,11 +442,7 @@ export const SIGNATURE_CONFIG: SignatureConfig = {
 export const HASH_CONFIG: HashConfig = {
   // Input validation
   maxInputSize: 10 * 1024 * 1024, // 10MB max input size
-  supportedEncodings: ["utf8", "ascii", "base64", "hex"],
-
-  // Output format validation
-  expectedHashLength: 66, // 32 bytes + 0x prefix = 66 characters
-  hashPattern: /^0x[0-9a-fA-F]{64}$/,
+  supportedEncodings: [UTF8, ASCII, BASE64, HEX],
 };
 
 // ================================
@@ -502,27 +452,6 @@ export const APPROVAL_CONFIG: ApprovalConfig = {
   // Retry settings
   maxRetries: 3,
   retryDelay: 2000, // 2 seconds
-
-  // Gas settings
-  gasLimitMultiplier: 1.2,
-  confirmationBlocks: NETWORK_CONFIG.confirmationBlocks,
-  defaultGasLimit: 100000n,
-
-  // Processing settings
-  batchDelay: USE_ANVIL ? 500 : 1000, // Faster for local network
-  maxConcurrentApprovals: 1,
-
-  // Token validation
-  maxTokensPerTransaction: 50,
-
-  // Contract ABIs
-  tokenAbi: [
-    "function approve(address spender, uint256 amount) returns (bool)",
-    "function allowance(address owner, address spender) view returns (uint256)",
-    "function name() view returns (string)",
-    "function symbol() view returns (string)",
-    "function decimals() view returns (uint8)",
-  ],
 };
 
 // ================================
@@ -545,14 +474,6 @@ export const IPFS_CONFIG: IpfsConfig = {
     "https://gateway.ipfs.io/ipfs/",
     "https://cloudflare-ipfs.com/ipfs/",
   ],
-
-  // File size limits
-  maxFileSize: 50 * 1024 * 1024, // 50MB
-
-  // Helia configuration
-  helia: {
-    cleanupTimeout: 5000, // 5 seconds
-  },
 };
 
 // ================================
@@ -645,40 +566,6 @@ export const PATHS_CONFIG: PathsConfig = {
   crypto: {
     keyDir: resolve(modulePath, "utils/cryptography"),
     keyFile: resolve(modulePath, "utils/cryptography/key.txt"),
-  },
-};
-
-// ================================
-// VALIDATION CONFIG
-// ================================
-export const VALIDATION_CONFIG: ValidationConfig = {
-  // File validation
-  files: {
-    maxSize: 100 * 1024 * 1024, // 100MB
-    allowedExtensions: [".json", ".txt"],
-    encoding: "utf8",
-  },
-
-  // Will validation
-  will: {
-    minEstatesRequired: 1,
-    maxEstatesAllowed: 100,
-    requiredFields: {
-      will: ["testator", "estates"],
-      estate: ["beneficiary", "token", "amount"],
-    },
-  },
-
-  // Address validation
-  ethereum: {
-    addressPattern: /^0x[0-9a-fA-F]{40}$/,
-    checksumValidation: true,
-  },
-
-  // Amount validation
-  amounts: {
-    minAmount: "1",
-    maxAmount: "1000000000000000000000000", // 1M tokens with 18 decimals
   },
 };
 
@@ -862,7 +749,6 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       ipfs: IPFS_CONFIG,
       network: NETWORK_CONFIG,
       paths: PATHS_CONFIG,
-      validation: VALIDATION_CONFIG,
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
@@ -927,7 +813,6 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       approval: APPROVAL_CONFIG,
       ipfs: IPFS_CONFIG,
       paths: PATHS_CONFIG,
-      validation: VALIDATION_CONFIG,
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
@@ -1023,7 +908,6 @@ export default {
   APPROVAL_CONFIG,
   IPFS_CONFIG,
   PATHS_CONFIG,
-  VALIDATION_CONFIG,
   SALT_CONFIG,
   ERROR_CONFIG,
   PERMIT2_CONFIG,

@@ -11,6 +11,7 @@ import { WillFileType, type FormattedWill } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
+import { ERC20_ABI } from "@shared/types/constants.js";
 import chalk from "chalk";
 
 const require = createRequire(import.meta.url);
@@ -125,7 +126,7 @@ async function checkCurrentAllowance(
   try {
     const tokenContract = new ethers.Contract(
       tokenAddress,
-      APPROVAL_CONFIG.tokenAbi,
+      ERC20_ABI,
       signer,
     );
     const allowance = await tokenContract.allowance(
@@ -175,7 +176,7 @@ async function approveToken(
 
     const tokenContract = new ethers.Contract(
       token.address,
-      APPROVAL_CONFIG.tokenAbi,
+      ERC20_ABI,
       signer,
     );
 

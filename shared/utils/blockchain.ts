@@ -1,5 +1,7 @@
-import { Wallet, JsonRpcProvider, ethers, Contract } from "ethers";
-import { APPROVAL_CONFIG } from "@config";
+import { ethers, Wallet, JsonRpcProvider, Contract, formatUnits } from "ethers";
+import { ERC20_ABI } from "@shared/types/constants.js";
+import { Will } from "@shared/types/typechain-types/index.js";
+import { Estate, TokenBalance, WillInfo } from "@shared/types/blockchain.js";
 import chalk from "chalk";
 
 async function getTokenInfo(
@@ -9,7 +11,7 @@ async function getTokenInfo(
   try {
     const tokenContract = new ethers.Contract(
       tokenAddress,
-      APPROVAL_CONFIG.tokenAbi,
+      ERC20_ABI,
       signer,
     );
 
@@ -27,6 +29,79 @@ async function getTokenInfo(
       ),
     );
     return { name: "Unknown", symbol: "UNKNOWN" };
+  }
+}
+
+async function getTokenBalance(
+  provider: JsonRpcProvider,
+  tokenAddress: string,
+  holderAddress: string,
+): Promise<TokenBalance> {
+  try {
+    const tokenContract = new Contract(tokenAddress, ERC20_ABI, provider);
+
+    const [balance, symbol, decimals] = await Promise.all([
+      tokenContract.balanceOf(holderAddress),
+      tokenContract.symbol().catch(() => "UNKNOWN"),
+      tokenContract.decimals().catch(() => 18),
+    ]);
+
+    const formattedBalance = formatUnits(balance, decimals);
+
+    return {
+      address: holderAddress,
+      tokenAddress,
+      balance,
+      formattedBalance,
+      symbol,
+      decimals,
+    };
+  } catch (error) {
+    console.warn(
+      chalk.yellow(
+        `Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`,
+      ),
+      error instanceof Error ? error.message : "Unknown error",
+    );
+
+    return {
+      address: holderAddress,
+      tokenAddress,
+      balance: 0n,
+      formattedBalance: "0",
+      symbol: "ERROR",
+      decimals: 18,
+    };
+  }
+}
+
+async function getWillInfo(contract: Will): Promise<WillInfo> {
+  try {
+    console.log(chalk.blue("Fetching will information..."));
+
+    const [testator, executor, executed, estates] = await Promise.all([
+      contract.testator(),
+      contract.executor(),
+      contract.executed(),
+      contract.getAllEstates(),
+    ]);
+
+    const formattedEstates: Estate[] = estates.map((estate: Estate) => ({
+      beneficiary: estate.beneficiary,
+      token: estate.token,
+      amount: estate.amount,
+    }));
+
+    console.log(chalk.green("✅ Will information retrieved"));
+
+    return {
+      testator,
+      executor,
+      executed,
+      estates: formattedEstates,
+    };
+  } catch (error) {
+    throw new Error(`Failed to fetch will info: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -109,4 +184,4 @@ async function createContract<T extends Contract>(
   }
 }
 
-export { getTokenInfo, createSigner, createWallet, createContract as createContractInstance };
+export { getTokenInfo, getTokenBalance, getWillInfo, createSigner, createWallet, createContract as createContractInstance };

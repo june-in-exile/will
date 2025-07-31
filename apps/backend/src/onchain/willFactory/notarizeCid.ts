@@ -40,7 +40,7 @@ function validateEnvironmentVariables(): NotarizeCid {
 }
 
 /**
- * Print notarization details
+ * Print notarization information
  */
 function printNotarizationDetails(notarizeData: NotarizeCidData): void {
   console.log(chalk.cyan("\n=== Notarization Details ==="));
