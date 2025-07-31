@@ -2,8 +2,9 @@ import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { createHelia, Helia } from "helia";
-import { json, JSON as HeliaJSON } from "@helia/json";
+import { createHeliaInstance } from "@shared/utils/ipfs.js";
+import { Helia } from "helia";
+import { JSON } from "@helia/json";
 import { CID } from "multiformats/cid";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -11,14 +12,9 @@ import chalk from "chalk";
 
 const execPromise = promisify(exec);
 
-interface HeliaInstance {
-  helia: Helia;
-  jsonHandler: HeliaJSON;
-}
-
 interface ProcessResult {
-  cid?: string;
   success: boolean;
+  cid?: string;
   uploadPath?: string;
   pinnedInHelia?: boolean;
   pinnedLocally?: boolean;
@@ -27,26 +23,10 @@ interface ProcessResult {
 }
 
 /**
- * Create and configure Helia instance
- */
-async function createHeliaInstance(): Promise<HeliaInstance> {
-  try {
-    console.log(chalk.blue("Initializing Helia IPFS node..."));
-    const helia = await createHelia();
-    const jsonHandler = json(helia);
-
-    console.log(chalk.green("✅ Helia instance created successfully"));
-    return { helia, jsonHandler };
-  } catch (error) {
-    throw new Error(`Failed to create Helia instance: ${error instanceof Error ? error.message : "Unknown error"}`);
-  }
-}
-
-/**
  * Upload data to IPFS
  */
-async function uploadToIPFS(
-  jsonHandler: HeliaJSON,
+async function uploadToIpfs(
+  jsonHandler: JSON,
   willData: EncryptedWill,
 ): Promise<CID> {
   try {
@@ -169,15 +149,12 @@ async function processIPFSUpload(): Promise<ProcessResult> {
   let helia: Helia | undefined;
 
   try {
-    // Read and validate will data
     const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
 
-    // Create Helia instance
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
     helia = heliaInstance;
 
-    // Upload to IPFS
-    const cid = await uploadToIPFS(jsonHandler, willData);
+    const cid = await uploadToIpfs(jsonHandler, willData);
 
     // Pin in local daemon
     try {
@@ -332,8 +309,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  createHeliaInstance,
-  uploadToIPFS,
+  uploadToIpfs as uploadToIPFS,
   pinInLocalDaemon,
   displayAccessInfo,
   processIPFSUpload,

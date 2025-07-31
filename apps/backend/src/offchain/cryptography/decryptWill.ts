@@ -15,7 +15,7 @@ import { decrypt } from "@shared/utils/cryptography/decrypt.js";
 import chalk from "chalk";
 
 interface DecryptWillProcessResult extends DecryptedWill {
-  decryptedPath: string;
+  decryptedWillPath: string;
 }
 
 /**
@@ -59,7 +59,7 @@ async function processWillDecryption(
 
     return {
       ...decryptedWill,
-      decryptedPath: PATHS_CONFIG.will.decrypted,
+      decryptedWillPath: PATHS_CONFIG.will.decrypted,
     };
   } catch (error) {
     console.error(

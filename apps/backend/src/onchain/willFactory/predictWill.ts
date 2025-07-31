@@ -30,7 +30,7 @@ interface predictWillData {
 interface ProcessResult {
   predictedAddress: string;
   salt: number;
-  outputPath: string;
+  addressedWillPath: string;
 }
 
 /**
@@ -162,7 +162,7 @@ async function processPredictWill(): Promise<ProcessResult> {
     return {
       predictedAddress,
       salt,
-      outputPath: PATHS_CONFIG.will.addressed,
+      addressedWillPath: PATHS_CONFIG.will.addressed,
     };
   } catch (error) {
     console.error(

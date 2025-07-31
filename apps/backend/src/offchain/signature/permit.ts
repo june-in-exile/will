@@ -41,7 +41,7 @@ interface ProcessResult {
   signature: string;
   signerAddress: string;
   chainId: string;
-  outputPath: string;
+  signedWillPath: string;
 }
 
 /**
@@ -237,7 +237,7 @@ async function processPermitSigning(): Promise<ProcessResult> {
       signature,
       signerAddress: await signer.getAddress(),
       chainId: network.chainId.toString(),
-      outputPath: PATHS_CONFIG.will.signed,
+      signedWillPath: PATHS_CONFIG.will.signed,
     };
   } catch (error) {
 

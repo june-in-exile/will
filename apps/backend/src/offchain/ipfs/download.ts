@@ -1,20 +1,20 @@
 import type { IpfsDownload } from "@shared/types/environment.js";
+import { PATHS_CONFIG } from "@config";
 import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
 import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
+import { createHeliaInstance } from "@shared/utils/ipfs.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
-import { createHelia, Helia } from "helia";
-import { json, JSON as HeliaJSON } from "@helia/json";
+import { Helia } from "helia";
+import { JSON } from "@helia/json";
 import { CID } from "multiformats/cid";
 import chalk from "chalk";
 
 interface ProcessResult {
   downloaded: DownloadedWill;
-  success: boolean;
-  error?: string;
-  stage?: string;
+  downloadedWillPath: string;
 }
 
 /**
@@ -35,23 +35,32 @@ function validateEnvironmentVariables(): IpfsDownload {
 }
 
 /**
+ * Download data from IPFS
+ */
+async function downloadFromIpfs(
+  jsonHandler: JSON,
+  cid: string
+): Promise<DownloadedWill> {
+  console.log(chalk.blue("CID:"), cid.toString());
+  console.log(chalk.blue("Downloading will from IPFS..."));
+
+  const downloadedWill: DownloadedWill = await jsonHandler.get(CID.parse(cid));
+  return downloadedWill;
+}
+
+/**
  * Download encrypted will from IPFS and save to local file
  */
 async function processIPFSDownload(): Promise<ProcessResult> {
   let helia: Helia | undefined;
 
   try {
-    const { CID: cidString } = validateEnvironmentVariables();
+    const { CID } = validateEnvironmentVariables();
 
-    // Create Helia instance
-    helia = await createHelia();
-    const j: HeliaJSON = json(helia);
+    const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
+    helia = heliaInstance;
 
-    const cid = CID.parse(cidString);
-    console.log(chalk.blue("CID:"), cid.toString());
-    console.log(chalk.blue("Downloading will from IPFS..."));
-
-    const downloadedWill: DownloadedWill = await j.get(cid);
+    const downloadedWill = await downloadFromIpfs(jsonHandler, CID);
 
     // Save downloaded will
     saveWill(WillFileType.DOWNLOADED, downloadedWill);
@@ -62,7 +71,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
 
     return {
       downloaded: downloadedWill,
-      success: true,
+      downloadedWillPath: PATHS_CONFIG.will.downloaded,
     };
   } catch (error) {
     console.error(chalk.red("Failed to download from IPFS:"), error instanceof Error ? error.message : "Unknown error");

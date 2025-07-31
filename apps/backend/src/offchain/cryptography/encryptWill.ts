@@ -14,7 +14,7 @@ import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
 
 interface EncryptWillProcessResult extends EncryptedWill {
-  encryptedPath: string;
+  encryptedWillPath: string;
 }
 
 /**
@@ -59,7 +59,7 @@ async function processWillEncryption(): Promise<EncryptWillProcessResult> {
 
     return {
       ...encryptedWill,
-      encryptedPath: PATHS_CONFIG.will.encrypted,
+      encryptedWillPath: PATHS_CONFIG.will.encrypted,
     };
   } catch (error) {
     console.error(
