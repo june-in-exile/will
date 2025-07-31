@@ -99,7 +99,7 @@ async function executePredictWill(
 /**
  * Process will addressing workflow
  */
-async function processWillAddressing(): Promise<ProcessResult> {
+async function processPredictWill(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { WILL_FACTORY } = validateEnvironmentVariables();
@@ -179,10 +179,10 @@ async function processWillAddressing(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== Will Address Prediction & Environment Setup ===\n"),
+      chalk.bgCyan("\n=== Will Address Prediction ===\n"),
     );
 
-    const result = await processWillAddressing();
+    const result = await processPredictWill();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
@@ -213,5 +213,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 export {
   validateEnvironmentVariables,
   executePredictWill,
-  processWillAddressing,
+  processPredictWill as processWillAddressing,
 };

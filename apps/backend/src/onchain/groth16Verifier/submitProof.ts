@@ -142,7 +142,7 @@ async function processProofSubmission(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Zero-Knowledge Proof Submission ===\n"));
+    console.log(chalk.bgCyan("\n=== Zero-Knowledge Proof Submission ===\n"));
 
     const result = await processProofSubmission();
 

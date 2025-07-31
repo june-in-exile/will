@@ -408,7 +408,7 @@ async function processTokenApproval(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Token Approval for Permit2 ===\n"));
+    console.log(chalk.bgCyan("\n=== Token Approval for Permit2 ===\n"));
 
     const result = await processTokenApproval();
 
@@ -444,9 +444,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 
 export {
   validateEnvironmentVariables,
-  createSigner,
   extractUniqueTokens,
-  getTokenInfo,
   checkCurrentAllowance,
   approveToken,
   executeTokenApprovals,

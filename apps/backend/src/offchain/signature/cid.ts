@@ -187,7 +187,7 @@ async function processCidSigning(): Promise<ProcessResult> {
 async function main(): Promise<void> {
   try {
     console.log(
-      chalk.cyan("\n=== CID Signature Generation & Verification ===\n"),
+      chalk.bgCyan("\n=== CID Signature Generation ===\n"),
     );
 
     const result = await processCidSigning();

@@ -91,7 +91,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Download from IPFS ===\n"));
+    console.log(chalk.bgCyan("\n=== IPFS Will Download ===\n"));
 
     const result = await processIPFSDownload();
 

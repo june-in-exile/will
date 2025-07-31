@@ -13,7 +13,7 @@ import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
 
-interface ProcessResult extends EncryptedWill {
+interface EncryptWillProcessResult extends EncryptedWill {
   encryptedPath: string;
 }
 
@@ -37,15 +37,12 @@ function getEncryptionArgs(): EncryptionArgs {
 /**
  * Process will encryption
  */
-async function processWillEncryption(): Promise<ProcessResult> {
+async function processWillEncryption(): Promise<EncryptWillProcessResult> {
   try {
-    // Get encryption parameters
     const { algorithm, plaintext: will, key, iv } = getEncryptionArgs();
 
-    // Encrypt the will
     const { ciphertext, authTag } = encrypt(algorithm, will, key, iv);
 
-    // Prepare encrypted will structure
     const encryptedWill: EncryptedWill = {
       algorithm: algorithm,
       iv: Base64String.fromBuffer(iv),
@@ -78,7 +75,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Will Encryption ===\n"));
+    console.log(chalk.bgCyan("\n=== Will Encryption ===\n"));
 
     const result = await processWillEncryption();
 
@@ -106,4 +103,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export { getEncryptionArgs, processWillEncryption };
+export { type EncryptWillProcessResult, processWillEncryption };

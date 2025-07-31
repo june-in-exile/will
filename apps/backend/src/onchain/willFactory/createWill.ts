@@ -328,6 +328,8 @@ async function processCreateWill(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
+    console.log(chalk.bgCyan("\n=== Create Will ===\n"));
+
     const result = await processCreateWill();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));

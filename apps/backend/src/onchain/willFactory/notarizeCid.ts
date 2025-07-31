@@ -168,6 +168,8 @@ async function processNotarizeCID(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
+    console.log(chalk.bgCyan("\n=== Notarize CID ===\n"));
+
     const result = await processNotarizeCID();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));

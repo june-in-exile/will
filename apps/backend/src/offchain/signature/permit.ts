@@ -172,7 +172,7 @@ async function signPermit(
 /**
  * Process will signing workflow
  */
-async function processWillSigning(): Promise<ProcessResult> {
+async function processPermitSigning(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
@@ -254,9 +254,9 @@ async function processWillSigning(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== Will EIP-712 Signature Generation ===\n"));
+    console.log(chalk.bgCyan("\n=== Permit2 Signature Generation ===\n"));
 
-    const result = await processWillSigning();
+    const result = await processPermitSigning();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {
@@ -292,5 +292,5 @@ export {
   calculateDeadline,
   createPermitStructure,
   signPermit,
-  processWillSigning,
+  processPermitSigning as processWillSigning,
 };

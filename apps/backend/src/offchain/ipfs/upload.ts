@@ -272,7 +272,7 @@ async function processIPFSUpload(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(chalk.cyan("\n=== IPFS Will Upload & Pinning ===\n"));
+    console.log(chalk.bgCyan("\n=== IPFS Will Upload & Pinning ===\n"));
 
     const result = await processIPFSUpload();
 

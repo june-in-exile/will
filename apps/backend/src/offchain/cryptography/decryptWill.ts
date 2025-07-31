@@ -14,7 +14,7 @@ import { getKey } from "@shared/utils/cryptography/key.js";
 import { decrypt } from "@shared/utils/cryptography/decrypt.js";
 import chalk from "chalk";
 
-interface ProcessResult extends DecryptedWill {
+interface DecryptWillProcessResult extends DecryptedWill {
   decryptedPath: string;
 }
 
@@ -34,21 +34,16 @@ function getDecryptionArgs(type: WillFileType): DecryptionArgs {
 }
 
 /**
- * Save decrypted will to file
- */
-
-/**
  * Process will decryption
  */
 async function processWillDecryption(
   isTestMode: boolean,
-): Promise<ProcessResult> {
+): Promise<DecryptWillProcessResult> {
   try {
     const type: WillFileType = isTestMode
       ? WillFileType.ENCRYPTED
       : WillFileType.DOWNLOADED;
 
-    // Get decryption parameters
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
@@ -82,10 +77,10 @@ async function main(): Promise<void> {
   try {
     const isTestMode = process.argv.includes("--local");
     if (isTestMode) {
-      console.log(chalk.cyan("\n=== Test Mode: Decrypt from Local File ===\n"));
+      console.log(chalk.bgCyan("\n=== Will Decrypt (Local Version) ===\n"));
     } else {
       console.log(
-        chalk.cyan("\n=== Production Mode: Decrypt from IPFS File ===\n"),
+        chalk.bgCyan("\n=== Will Decrypt (IPFS Version) ===\n"),
       );
     }
 
@@ -113,4 +108,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export { getDecryptionArgs, processWillDecryption };
+export { processWillDecryption };

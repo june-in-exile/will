@@ -515,6 +515,8 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
+    console.log(chalk.bgCyan("\n=== Signature Transfer with Permit2 ===\n"));
+
     const result = await processSignatureTransfer();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));

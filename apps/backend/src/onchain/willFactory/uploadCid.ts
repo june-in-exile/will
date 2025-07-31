@@ -199,6 +199,8 @@ async function processUploadCid(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
+    console.log(chalk.bgCyan("\n=== Upload CID ===\n"));
+
     const result = await processUploadCid();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
