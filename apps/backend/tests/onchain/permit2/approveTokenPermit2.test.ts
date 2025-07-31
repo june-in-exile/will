@@ -124,9 +124,9 @@ describe("Token Permit2 Approval Workflow", () => {
 
   beforeAll(() => {
     // Mock console methods to avoid output during tests
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => { });
+    vi.spyOn(console, "error").mockImplementation(() => { });
+    vi.spyOn(console, "warn").mockImplementation(() => { });
   });
 
   beforeEach(() => {
@@ -695,7 +695,7 @@ describe("Token Permit2 Approval Workflow", () => {
     });
   });
 
-  describe("processTokenApprovals", () => {
+  describe("executeTokenApprovals", () => {
     beforeEach(() => {
       vi.resetModules();
       vi.clearAllMocks();
@@ -721,7 +721,7 @@ describe("Token Permit2 Approval Workflow", () => {
       ];
       const spenderAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
-      const result = await approveTokenPermit2Module.processTokenApprovals(
+      const result = await approveTokenPermit2Module.executeTokenApprovals(
         tokens,
         spenderAddress,
         mockSigner,
@@ -761,7 +761,7 @@ describe("Token Permit2 Approval Workflow", () => {
         }
       });
 
-      const result = await approveTokenPermit2Module.processTokenApprovals(
+      const result = await approveTokenPermit2Module.executeTokenApprovals(
         tokens,
         spenderAddress,
         mockSigner,
@@ -776,7 +776,7 @@ describe("Token Permit2 Approval Workflow", () => {
       const tokens: string[] = [];
       const spenderAddress = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
-      const result = await approveTokenPermit2Module.processTokenApprovals(
+      const result = await approveTokenPermit2Module.executeTokenApprovals(
         tokens,
         spenderAddress,
         mockSigner,
@@ -792,7 +792,7 @@ describe("Token Permit2 Approval Workflow", () => {
       });
     });
   });
-  describe("processTokenApprovalWorkflow", () => {
+  describe("processTokenApproval", () => {
     beforeEach(async () => {
       vi.resetModules();
       vi.clearAllMocks();
@@ -842,7 +842,7 @@ describe("Token Permit2 Approval Workflow", () => {
 
     it("should complete workflow successfully", async () => {
       const result =
-        await approveTokenPermit2Module.processTokenApprovalWorkflow();
+        await approveTokenPermit2Module.processTokenApproval();
 
       expect(result).toEqual(
         expect.objectContaining({
@@ -865,7 +865,7 @@ describe("Token Permit2 Approval Workflow", () => {
       );
 
       await expect(
-        approveTokenPermit2Module.processTokenApprovalWorkflow(),
+        approveTokenPermit2Module.processTokenApproval(),
       ).rejects.toThrow("Estates array cannot be empty");
     });
 
@@ -874,7 +874,7 @@ describe("Token Permit2 Approval Workflow", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
       await expect(
-        approveTokenPermit2Module.processTokenApprovalWorkflow(),
+        approveTokenPermit2Module.processTokenApproval(),
       ).rejects.toThrow("Formatted will file does not exist");
     });
 
@@ -882,7 +882,7 @@ describe("Token Permit2 Approval Workflow", () => {
       delete process.env.TESTATOR_PRIVATE_KEY;
 
       await expect(
-        approveTokenPermit2Module.processTokenApprovalWorkflow(),
+        approveTokenPermit2Module.processTokenApproval(),
       ).rejects.toThrow("Environment variable TESTATOR_PRIVATE_KEY is not set");
     });
 
@@ -892,7 +892,7 @@ describe("Token Permit2 Approval Workflow", () => {
       );
 
       await expect(
-        approveTokenPermit2Module.processTokenApprovalWorkflow(),
+        approveTokenPermit2Module.processTokenApproval(),
       ).rejects.toThrow("Failed to connect to network");
     });
 
@@ -902,7 +902,7 @@ describe("Token Permit2 Approval Workflow", () => {
       });
 
       await expect(
-        approveTokenPermit2Module.processTokenApprovalWorkflow(),
+        approveTokenPermit2Module.processTokenApproval(),
       ).rejects.toThrow("Failed to create signer");
     });
 
@@ -923,7 +923,7 @@ describe("Token Permit2 Approval Workflow", () => {
       });
 
       const result =
-        await approveTokenPermit2Module.processTokenApprovalWorkflow();
+        await approveTokenPermit2Module.processTokenApproval();
 
       expect(result.success).toBe(true);
       expect(result.allSuccessful).toBe(false);
@@ -1212,7 +1212,7 @@ describe("Token Permit2 Approval Workflow", () => {
       mockFormatUnits.mockReturnValue("20.0");
 
       const result =
-        await approveTokenPermit2Module.processTokenApprovalWorkflow();
+        await approveTokenPermit2Module.processTokenApproval();
 
       expect(result.success).toBe(true);
       expect(result.total).toBe(3);

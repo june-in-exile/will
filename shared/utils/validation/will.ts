@@ -7,6 +7,7 @@ import type {
   SignedWillData,
   EncryptedWillData,
   DownloadedWillData,
+  DecryptedWillData,
 } from "@shared/types/will.js";
 import type { Permit2Signature } from "@shared/types/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
@@ -174,10 +175,18 @@ function validateDownloadedWill(
   validateEncryptedWill(willData);
 }
 
+function validateDecryptedWill(
+  willData: DecryptedWillData,
+): asserts willData is DecryptedWillData {
+  validateSignedWill(willData);
+}
+
+
 export {
   validateFormattedWill,
   validateAddressedWill,
   validateSignedWill,
   validateEncryptedWill,
   validateDownloadedWill,
+  validateDecryptedWill,
 };

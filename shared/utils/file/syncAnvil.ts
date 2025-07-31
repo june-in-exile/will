@@ -186,11 +186,9 @@ async function main(): Promise<void> {
 
     console.log("✅ Successfully synced anvil status to .env file.");
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error"
     );
 
     showUsage();
@@ -207,9 +205,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

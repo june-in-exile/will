@@ -33,8 +33,6 @@ export function readProof(): ProofData {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in proof file: ${error.message}`);
     }
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to read proof data: ${errorMessage}`);
+    throw new Error(`Failed to read proof data: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }

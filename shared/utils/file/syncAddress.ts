@@ -209,8 +209,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });

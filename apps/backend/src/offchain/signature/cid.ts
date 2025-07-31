@@ -1,12 +1,11 @@
-import type { CidSigning } from "@shared/types/environment.js";
-import { SIGNATURE_CONFIG } from "@config";
-import { signString, verify } from "@shared/utils/crypto/signature.js";
 import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
+import type { CidSigning } from "@shared/types/environment.js";
+import { SIGNATURE_CONFIG } from "@config";
+import { signString, verify } from "@shared/utils/crypto/signature.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
-import assert from "assert";
 import chalk from "chalk";
 
 interface ProcessResult {
@@ -64,11 +63,9 @@ async function signCidWithRetry(
 
     return signature;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red(`❌ Signature generation failed (attempt ${retryCount + 1}):`),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Retry logic
@@ -88,7 +85,7 @@ async function signCidWithRetry(
     }
 
     throw new Error(
-      `Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${errorMessage}`,
+      `Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -123,9 +120,7 @@ async function verifySignatureWithDetails(
 
     return true;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Signature verification failed: ${errorMessage}`);
+    throw new Error(`Signature verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -140,9 +135,7 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
 
     console.log(chalk.green("✅ Environment variable updated successfully"));
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to update environment variable: ${errorMessage}`);
+    throw new Error(`Failed to update environment variable: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -183,9 +176,7 @@ async function processCidSigning(): Promise<ProcessResult> {
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Error during CID signing process:"), errorMessage);
+    console.error(chalk.red("Error during CID signing process:"), error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -209,22 +200,10 @@ async function main(): Promise<void> {
       success: result.success,
     });
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
-
-    // Use assert for critical validation failures
-    if (errorMessage.includes("verification failed")) {
-      assert(
-        false,
-        chalk.red(
-          "Critical: Signature verification failed - this indicates a serious security issue",
-        ),
-      );
-    }
 
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
@@ -238,10 +217,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

@@ -1,27 +1,26 @@
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import chalk from "chalk";
 
 export abstract class BaseWorkflow<TInput, TResult> {
-  // 抽象方法 - 子類必須實現
+  // Abstract methods - must be implemented by subclasses
   abstract validateEnvironment(): any;
   abstract process(input: TInput): Promise<TResult>;
 
-  // 可選方法 - 子類可選擇性實現
+  // Optional methods - subclasses can choose to implement
   validateFiles?(): void;
 
-  // 統一執行流程
+  // Unified execution flow
   async run(input: TInput): Promise<TResult> {
     this.validateEnvironment();
     this.validateFiles?.();
     return this.process(input);
   }
 
-  // 通用輔助方法
+  // Common utility methods
   protected handleError(error: unknown, context: string): never {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red(`Error during ${context}:`), errorMessage);
+    console.error(chalk.red(`Error during ${context}:`), error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 
@@ -70,8 +69,8 @@ export abstract class BaseWorkflow<TInput, TResult> {
   }
 }
 
-// 只需要基本驗證和檔案操作的檔案
-// apps/backend/src/offchain/signature/transfer.ts                 // ✅ BaseWorkflow (只是簽名，不上鏈)
+// Files that only need basic validation and file operations
+// apps/backend/src/offchain/signature/transfer.ts                 // ✅ BaseWorkflow (only signing, no on-chain)
 // apps/backend/src/offchain/signature/cid.ts                      // ✅ BaseWorkflow
 // apps/backend/src/offchain/ipfs/upload.ts                        // ✅ BaseWorkflow
 // apps/backend/src/offchain/ipfs/download.ts                      // ✅ BaseWorkflow

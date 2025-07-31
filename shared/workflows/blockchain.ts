@@ -66,7 +66,7 @@ export abstract class BlockchainWorkflow<TInput, TResult> extends BaseWorkflow<
     }
   }
 
-  // 統一的交易結果更新
+  // Unified transaction result update
   protected async updateTransactionResult(
     prefix: string,
     result: { transactionHash: string; timestamp: number },
@@ -79,7 +79,7 @@ export abstract class BlockchainWorkflow<TInput, TResult> extends BaseWorkflow<
   }
 }
 
-// 需要連接 RPC、創建錢包、執行交易的檔案
+// Files that need RPC connection, wallet creation, and transaction execution
 // apps/backend/src/onchain/permit2/approveTokenPermit2.ts          // ✅ BlockchainWorkflow
 // apps/backend/src/onchain/willFactory/uploadCid.ts               // ✅ BlockchainWorkflow
 // apps/backend/src/onchain/willFactory/createWill.ts              // ✅ BlockchainWorkflow

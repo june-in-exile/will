@@ -4,11 +4,12 @@ import {
 } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
+import { getTokenInfo, createSigner } from "@shared/utils/crypto/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { WillFileType, FormattedWillData } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { ethers, JsonRpcProvider, Wallet } from "ethers";
+import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
 import chalk from "chalk";
 
@@ -17,39 +18,34 @@ const require = createRequire(import.meta.url);
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");
 
-interface TokenInfo {
-  name: string;
-  symbol: string;
-  decimals: number;
-}
-
-interface TokenDetails {
+interface TokenForApproval {
   address: string;
   estates: number[];
   totalAmount: bigint;
 }
 
+interface TokenInfo extends TokenForApproval {
+  name: string;
+  symbol: string;
+}
+
 interface ApprovalResult {
   success: boolean;
-  txHash: string | null;
   alreadyApproved: boolean;
+  txHash?: string;
   error?: string;
 }
 
 interface TokenApprovalSummary {
-  total: number;
   successful: number;
   alreadyApproved: number;
   failed: number;
-  results: Array<{ token: string } & ApprovalResult>;
   allSuccessful: boolean;
 }
 
 interface ProcessResult extends TokenApprovalSummary {
   permit2Address: string;
   signerAddress: string;
-  success: boolean;
-  message?: string;
 }
 
 /**
@@ -75,108 +71,46 @@ function validateEnvironmentVariables(): TokenApproval {
 }
 
 /**
- * Create and validate signer
- */
-async function createSigner(
-  privateKey: string,
-  provider: JsonRpcProvider,
-): Promise<Wallet> {
-  try {
-    console.log(chalk.blue("Initializing signer..."));
-    const signer = new ethers.Wallet(privateKey, provider);
-
-    const address = await signer.getAddress();
-    const balance = await signer.provider!.getBalance(address);
-
-    console.log(chalk.green("✅ Signer initialized:"), chalk.white(address));
-    console.log(chalk.gray("Balance:"), ethers.formatEther(balance), "ETH");
-
-    if (balance === 0n) {
-      console.warn(
-        chalk.yellow("⚠️ Warning: Signer has zero balance for gas fees"),
-      );
-    }
-
-    return signer;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create signer: ${errorMessage}`);
-  }
-}
-
-/**
  * Extract unique tokens from estates
  */
-function extractUniqueTokens(estates: Estate[]): {
-  tokens: string[];
-  tokenDetails: Map<string, TokenDetails>;
-} {
-  const uniqueTokens = new Set<string>();
-  const tokenDetails = new Map<string, TokenDetails>();
+function extractUniqueTokens(estates: Estate[]): TokenForApproval[] {
+  const tokens = new Map<string, TokenForApproval>();
 
   estates.forEach((estate, index) => {
-    const token = estate.token.toLowerCase(); // Normalize to lowercase
-    uniqueTokens.add(estate.token); // Keep original case for contract calls
+    const token = estate.token.toLowerCase();
 
-    if (!tokenDetails.has(token)) {
-      tokenDetails.set(token, {
+    if (!tokens.has(token)) {
+      tokens.set(token, {
         address: estate.token,
         estates: [index],
         totalAmount: estate.amount,
       });
     } else {
-      const details = tokenDetails.get(token)!;
+      const details = tokens.get(token)!;
       details.estates.push(index);
       details.totalAmount += estate.amount;
     }
   });
 
-  const tokens = Array.from(uniqueTokens);
-
-  console.log(chalk.blue(`Found ${tokens.length} unique tokens to approve:`));
-  tokens.forEach((token) => {
-    const details = tokenDetails.get(token.toLowerCase())!;
-    console.log(
-      chalk.gray(`- ${token} (used in estates: ${details.estates.join(", ")})`),
-    );
-  });
-
-  return { tokens, tokenDetails };
+  return Array.from(tokens.values());
 }
 
 /**
- * Get token information
+ * Collect info for tokens to be approved
  */
-async function getTokenInfo(
-  tokenAddress: string,
-  signer: Wallet,
-): Promise<TokenInfo> {
-  try {
-    const tokenContract = new ethers.Contract(
-      tokenAddress,
-      APPROVAL_CONFIG.tokenAbi,
-      signer,
-    );
-
-    const [name, symbol, decimals] = await Promise.all([
-      tokenContract.name().catch(() => "Unknown"),
-      tokenContract.symbol().catch(() => "UNKNOWN"),
-      tokenContract.decimals().catch(() => 18),
-    ]);
-
-    return { name, symbol, decimals };
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.warn(
-      chalk.yellow(
-        `⚠️ Could not fetch token info for ${tokenAddress}:`,
-        errorMessage,
-      ),
-    );
-    return { name: "Unknown", symbol: "UNKNOWN", decimals: 18 };
-  }
+async function getTokenInfos(tokens: TokenForApproval[], signer: Wallet): Promise<TokenInfo[]> {
+  return Promise.all(
+    tokens.map(async (token) => {
+      const { name, symbol } = await getTokenInfo(token.address, signer);
+      return {
+        name,
+        symbol,
+        address: token.address,
+        estates: token.estates,
+        totalAmount: token.totalAmount,
+      };
+    })
+  );
 }
 
 /**
@@ -200,8 +134,7 @@ async function checkCurrentAllowance(
     );
     return allowance;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.warn(
       chalk.yellow(
         `⚠️ Could not check allowance for ${tokenAddress}:`,
@@ -216,22 +149,18 @@ async function checkCurrentAllowance(
  * Approve token with retry mechanism
  */
 async function approveToken(
-  tokenAddress: string,
+  token: TokenInfo,
   spenderAddress: string,
   signer: Wallet,
-  retryCount: number = 0,
+  retryCount: number = 1,
 ): Promise<ApprovalResult> {
   try {
-    console.log(chalk.blue(`Approving token ${tokenAddress} for Permit2...`));
-
-    // Get token info
-    const tokenInfo = await getTokenInfo(tokenAddress, signer);
-    console.log(chalk.gray(`Token: ${tokenInfo.name} (${tokenInfo.symbol})`));
+    console.log(chalk.blue(`Approving token ${token} for Permit2...`));
 
     // Check current allowance
     const ownerAddress = await signer.getAddress();
     const currentAllowance = await checkCurrentAllowance(
-      tokenAddress,
+      token.address,
       ownerAddress,
       spenderAddress,
       signer,
@@ -240,15 +169,15 @@ async function approveToken(
     if (currentAllowance >= ethers.MaxUint256 / 2n) {
       console.log(
         chalk.green(
-          `✅ Token ${tokenAddress} already has sufficient allowance`,
+          `✅ ${token.name} already has sufficient allowance`,
         ),
       );
-      return { success: true, txHash: null, alreadyApproved: true };
+      return { success: true, alreadyApproved: true };
     }
 
     // Create contract instance
     const tokenContract = new ethers.Contract(
-      tokenAddress,
+      token.address,
       APPROVAL_CONFIG.tokenAbi,
       signer,
     );
@@ -280,7 +209,7 @@ async function approveToken(
     });
 
     console.log(
-      chalk.gray(`Approval transaction sent for ${tokenAddress}:`),
+      chalk.gray(`Approval transaction sent for ${token}:`),
       chalk.white(tx.hash),
     );
 
@@ -290,7 +219,7 @@ async function approveToken(
     if (receipt!.status === 1) {
       console.log(
         chalk.green(
-          `✅ Approval confirmed for ${tokenAddress} (${tokenInfo.symbol})`,
+          `✅ Approval confirmed for ${token} (${token.symbol})`,
         ),
       );
       return { success: true, txHash: tx.hash, alreadyApproved: false };
@@ -298,10 +227,9 @@ async function approveToken(
       throw new Error("Transaction failed");
     }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
-      chalk.red(`❌ Error approving token ${tokenAddress}:`),
+      chalk.red(`❌ Error approving token ${token}:`),
       errorMessage,
     );
 
@@ -309,7 +237,7 @@ async function approveToken(
     if (retryCount < APPROVAL_CONFIG.maxRetries) {
       console.log(
         chalk.yellow(
-          `⚠️ Retrying approval for ${tokenAddress} (attempt ${retryCount + 1}/${APPROVAL_CONFIG.maxRetries})...`,
+          `⚠️ Retrying approval for ${token} (attempt ${retryCount + 1}/${APPROVAL_CONFIG.maxRetries})...`,
         ),
       );
 
@@ -318,48 +246,62 @@ async function approveToken(
         setTimeout(resolve, APPROVAL_CONFIG.retryDelay),
       );
 
-      return approveToken(tokenAddress, spenderAddress, signer, retryCount + 1);
+      return approveToken(token, spenderAddress, signer, retryCount + 1);
     }
 
     return {
       success: false,
-      error: errorMessage,
-      txHash: null,
       alreadyApproved: false,
+      error: errorMessage,
     };
   }
 }
 
 /**
+ * Print detailed Token information
+ */
+function printTokensForApproval(tokens: TokenInfo[]): void {
+  console.log(chalk.cyan("\n=== Token Details ===\n"));
+
+  tokens.forEach((token) => {
+    console.log(
+      chalk.gray(`- ${token.name} (${token.symbol}), address: ${token.address}, used in estates: ${token.estates.join(", ")}`),
+    );
+  });
+
+  console.log(chalk.cyan("\n=== End of Token Details ==="));
+}
+
+/**
  * Process all token approvals
  */
-async function processTokenApprovals(
-  tokens: string[],
+async function executeTokenApprovals(
+  tokens: TokenInfo[],
   spenderAddress: string,
   signer: Wallet,
 ): Promise<TokenApprovalSummary> {
   console.log(chalk.blue("\n🔐 Starting token approval process..."));
 
-  const results: Array<{ token: string } & ApprovalResult> = [];
+  printTokensForApproval(tokens);
+
   const successful: string[] = [];
   const failed: Array<{ token: string; error: string }> = [];
   const alreadyApproved: string[] = [];
 
   // Process approvals with controlled concurrency
   for (const token of tokens) {
-    console.log(chalk.cyan(`\n--- Processing ${token} ---`));
+    console.log(chalk.cyan(`\n--- Processing ${token.address} ---`));
 
     const result = await approveToken(token, spenderAddress, signer);
-    results.push({ token, ...result });
 
     if (result.success) {
       if (result.alreadyApproved) {
-        alreadyApproved.push(token);
+        alreadyApproved.push(token.address);
       } else {
-        successful.push(token);
+        successful.push(token.address);
       }
     } else {
-      failed.push({ token, error: result.error || "Unknown error" });
+      failed.push({ token: token.address, error: result.error || "Unknown error" });
     }
 
     // Small delay between approvals to avoid rate limiting
@@ -371,32 +313,26 @@ async function processTokenApprovals(
   // Display summary
   console.log(chalk.cyan("\n📊 Approval Summary:"));
   console.log(chalk.green(`✅ Successful approvals: ${successful.length}`));
-  console.log(chalk.gray(`ℹ️  Already approved: ${alreadyApproved.length}`));
-  console.log(chalk.red(`❌ Failed approvals: ${failed.length}`));
-
   if (successful.length > 0) {
-    console.log(chalk.green("\n✅ Successfully approved:"));
     successful.forEach((token) => console.log(chalk.gray(`- ${token}`)));
   }
 
+  console.log(chalk.gray(`ℹ️  Already approved: ${alreadyApproved.length}`));
   if (alreadyApproved.length > 0) {
-    console.log(chalk.gray("\nℹ️  Already approved:"));
     alreadyApproved.forEach((token) => console.log(chalk.gray(`- ${token}`)));
   }
 
+  console.log(chalk.red(`❌ Failed approvals: ${failed.length}`));
   if (failed.length > 0) {
-    console.log(chalk.red("\n❌ Failed approvals:"));
     failed.forEach(({ token, error }) => {
       console.log(chalk.red(`- ${token}: ${error}`));
     });
   }
 
   return {
-    total: tokens.length,
     successful: successful.length,
     alreadyApproved: alreadyApproved.length,
     failed: failed.length,
-    results,
     allSuccessful: failed.length === 0,
   };
 }
@@ -404,7 +340,7 @@ async function processTokenApprovals(
 /**
  * Process token approval workflow
  */
-async function processTokenApprovalWorkflow(): Promise<ProcessResult> {
+async function processTokenApproval(): Promise<ProcessResult> {
   try {
     // Validate prerequisites
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
@@ -417,31 +353,29 @@ async function processTokenApprovalWorkflow(): Promise<ProcessResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    // const willData = readWillData();
     const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
 
     // Extract unique tokens
-    const { tokens } = extractUniqueTokens(willData.estates);
+    const tokens = extractUniqueTokens(willData.estates);
 
     if (tokens.length === 0) {
       console.log(chalk.yellow("⚠️ No tokens found to approve"));
       return {
-        success: true,
-        message: "No tokens to approve",
-        total: 0,
         successful: 0,
         alreadyApproved: 0,
         failed: 0,
-        results: [],
         allSuccessful: true,
         permit2Address: PERMIT2,
         signerAddress: await signer.getAddress(),
       };
     }
 
+    // Get tokens info
+    const tokenInfos = await getTokenInfos(tokens, signer);
+
     // Process approvals
-    const approvalResults = await processTokenApprovals(
-      tokens,
+    const approvalResults = await executeTokenApprovals(
+      tokenInfos,
       PERMIT2,
       signer,
     );
@@ -462,11 +396,9 @@ async function processTokenApprovalWorkflow(): Promise<ProcessResult> {
       ...approvalResults,
       permit2Address: PERMIT2,
       signerAddress: await signer.getAddress(),
-      success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red("Error during token approval process:"),
       errorMessage,
@@ -482,19 +414,16 @@ async function main(): Promise<void> {
   try {
     console.log(chalk.cyan("\n=== Token Approval for Permit2 ===\n"));
 
-    const result = await processTokenApprovalWorkflow();
+    const result = await processTokenApproval();
 
     console.log(chalk.green.bold("\n✅ Process completed!"));
     console.log(chalk.gray("Results:"), {
-      total: result.total,
       successful: result.successful,
       alreadyApproved: result.alreadyApproved,
       failed: result.failed,
-      allSuccessful: result.allSuccessful,
     });
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
       errorMessage,
@@ -513,8 +442,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });
@@ -527,6 +455,6 @@ export {
   getTokenInfo,
   checkCurrentAllowance,
   approveToken,
-  processTokenApprovals,
-  processTokenApprovalWorkflow,
+  executeTokenApprovals,
+  processTokenApproval,
 };

@@ -16,7 +16,7 @@ import {
   createWallet,
   createContractInstance,
 } from "@shared/utils/crypto/blockchain.js";
-import { printSignatureTransferDetails } from "@shared/utils/crypto/printData.js";
+import { printEstates } from "@shared/utils/crypto/printData.js";
 import { ethers, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import chalk from "chalk";
@@ -99,8 +99,7 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
       estates: formattedEstates,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to fetch will info: ${errorMessage}`);
   }
 }
@@ -191,8 +190,7 @@ async function checkTokenBalances(
       balances,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to check token balances: ${errorMessage}`);
   }
 }
@@ -308,6 +306,36 @@ function compareBalanceSnapshots(
 }
 
 /**
+ * Print signature transfer details
+ */
+function printSignatureTransferDetails(
+  willInfo: WillInfo,
+  nonce: string,
+  deadline: string,
+  signature: string,
+): void {
+  console.log(chalk.cyan("\n=== Signature Transfer Details ==="));
+
+  console.log(chalk.blue("\n🏛️  Will Information:"));
+  console.log(chalk.gray("- Testator:"), chalk.white(willInfo.testator));
+  console.log(chalk.gray("- Executor:"), chalk.white(willInfo.executor));
+  console.log(chalk.gray("- Executed:"), chalk.white(willInfo.executed.toString()));
+
+  printEstates(willInfo.estates);
+
+  console.log(chalk.blue("\n📋 Permit2 Parameters:"));
+  console.log(chalk.gray("- Nonce:"), chalk.white(nonce));
+  console.log(chalk.gray("- Deadline:"), chalk.white(deadline));
+  console.log(
+    chalk.gray("- Deadline (Date):"),
+    chalk.white(new Date(parseInt(deadline) * 1000).toISOString()),
+  );
+  console.log(chalk.gray("- Signature:"), chalk.white(signature));
+
+  console.log(chalk.cyan("\n=== End of Signature Transfer Details ===\n"));
+}
+
+/**
  * Execute signatureTransferToBeneficiaries transaction
  */
 async function executeSignatureTransfer(
@@ -393,8 +421,7 @@ async function executeSignatureTransfer(
       estateCount: willInfo.estates.length,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(
       `Failed to execute signatureTransferToBeneficiaries: ${errorMessage}`,
     );
@@ -478,8 +505,7 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red("Error during will execution process:"),
       errorMessage,
@@ -502,8 +528,7 @@ async function main(): Promise<void> {
     console.log(chalk.gray("- Estates Transferred:"), result.estateCount);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
       errorMessage,
@@ -522,8 +547,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });

@@ -5,12 +5,6 @@ interface Estate {
   amount: bigint;
 }
 
-// interface WillData {
-//   testator: string;
-//   estates: Estate[];
-//   will: EthereumAddress;
-// }
-
 /**
  * Will information interface
  */
@@ -50,7 +44,6 @@ interface Permit2Signature {
 export type {
   EthereumAddress,
   Estate,
-  WillData,
   WillInfo,
   TokenBalance,
   BalanceSnapshot,

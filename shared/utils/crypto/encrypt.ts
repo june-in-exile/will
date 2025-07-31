@@ -129,24 +129,24 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-      chalk.gray(
-        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-      ),
+    chalk.gray(
+      "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+    ),
   );
   console.log(
     chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-      chalk.gray(
-        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
-      ),
+    chalk.gray(
+      "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+    ),
   );
   console.log(
     chalk.cyan("  --iv") +
-      chalk.gray(
-        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
-      ),
+    chalk.gray(
+      "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+    ),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -238,8 +238,7 @@ function generateSecureRandomBytes(size: number, purpose: string): Buffer {
 
     return bytes;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(
       `Failed to generate secure random bytes for ${purpose}: ${errorMessage}`,
     );
@@ -265,8 +264,7 @@ function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
     console.log(chalk.green("✅ New encryption key generated and saved"));
     console.log(chalk.yellow("⚠️ Keep this key file secure and backed up!"));
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to create key file: ${errorMessage}`);
   }
 }
@@ -303,8 +301,7 @@ export function encrypt(
 
     return { ciphertext, authTag };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Encryption failed: ${errorMessage}`);
   }
 }
@@ -331,8 +328,7 @@ export function generateEncryptionKey(
 
     return keyBuffer;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to get encryption key: ${errorMessage}`);
   }
 }
@@ -355,8 +351,7 @@ export function generateInitializationVector(
 
     return generateSecureRandomBytes(size, "initialization vector");
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to get initialization vector: ${errorMessage}`);
   }
 }
@@ -405,8 +400,7 @@ async function main(): Promise<void> {
       chalk.white(Base64String.fromBuffer(result.authTag)),
     );
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("\n❌ Encryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
@@ -434,8 +428,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });

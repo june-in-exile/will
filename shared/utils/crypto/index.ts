@@ -3,5 +3,7 @@ export * from "./cid.js";
 export * from "./decrypt.js";
 export * from "./encrypt.js";
 export * from "./keccak256.js";
+export * from "./nonce.js";
 export * from "./printData.js";
+export * from "./salt.js";
 export * from "./signature.js";

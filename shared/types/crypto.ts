@@ -1,5 +1,4 @@
 import { CRYPTO_CONFIG } from "@config";
-import { Base64String } from "./base64String.js";
 
 // Input types for hashing functions
 export type HashableInput = string | number | boolean | object;

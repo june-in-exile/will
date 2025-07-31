@@ -21,6 +21,7 @@ type WillData =
   | SignedWillData
   | EncryptedWillData
   | DownloadedWillData
+  | DecryptedWillData
   | string;
 
 interface FormattedWillData {
@@ -45,7 +46,9 @@ interface EncryptedWillData {
   timestamp: number;
 }
 
-interface DownloadedWillData extends EncryptedWillData {}
+interface DownloadedWillData extends EncryptedWillData { }
+
+interface DecryptedWillData extends SignedWillData { }
 
 export {
   WillFileType,
@@ -55,4 +58,5 @@ export {
   type SignedWillData,
   type EncryptedWillData,
   type DownloadedWillData,
+  type DecryptedWillData,
 };

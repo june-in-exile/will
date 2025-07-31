@@ -6,11 +6,13 @@ import type { TransferSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
-import { WillFileType, AddressedWillData } from "@shared/types/will.js";
+import { WillFileType, AddressedWillData, SignedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { saveSignedWill } from "@shared/utils/file/saveWill.js";
+import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { ethers, JsonRpcProvider, Wallet } from "ethers";
+import { createSigner } from "@shared/utils/crypto/blockchain.js";
+import { generateSecureNonce } from "@shared/utils/crypto/nonce.js"
+import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
 import chalk from "chalk";
 
@@ -36,11 +38,9 @@ interface ProcessResult {
   nonce: number;
   deadline: number;
   signature: string;
-  estatesCount: number;
-  outputPath: string;
   signerAddress: string;
   chainId: string;
-  success: boolean;
+  outputPath: string;
 }
 
 /**
@@ -66,61 +66,21 @@ function validateEnvironmentVariables(): TransferSigning {
 }
 
 /**
- * Create and validate signer
- */
-async function createSigner(
-  privateKey: string,
-  provider: JsonRpcProvider,
-): Promise<Wallet> {
-  try {
-    console.log(chalk.blue("Initializing signer..."));
-    const signer = new ethers.Wallet(privateKey, provider);
-
-    // Validate signer can connect
-    const address = await signer.getAddress();
-    const balance = await signer.provider!.getBalance(address);
-
-    console.log(chalk.green("✅ Signer initialized:"), chalk.white(address));
-    console.log(chalk.gray("Balance:"), ethers.formatEther(balance), "ETH");
-
-    return signer;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create signer: ${errorMessage}`);
-  }
-}
-
-/**
  * Calculate deadline timestamp
  */
 function calculateDeadline(
   durationMs: number = PERMIT2_CONFIG.defaultDuration,
 ): number {
+  console.log(chalk.blue("Calculating deadline..."));
+
   const endTimeMs = Date.now() + durationMs;
   const endTimeSeconds = Math.floor(endTimeMs / 1000);
 
   console.log(
     chalk.gray("Signature valid until:"),
-    new Date(endTimeMs).toISOString(),
+    new Date(endTimeSeconds * 1000).toISOString(),
   );
   return endTimeSeconds;
-}
-
-/**
- * Generate cryptographically secure nonce
- */
-function generateSecureNonce(): number {
-  // Use crypto.getRandomValues for better randomness than Math.random()
-  const randomArray = new Uint32Array(2);
-  crypto.getRandomValues(randomArray);
-
-  // Combine two 32-bit values to get better distribution
-  const nonce = (BigInt(randomArray[0]) << 32n) | BigInt(randomArray[1]);
-  const nonceNumber = Number(nonce % BigInt(PERMIT2_CONFIG.maxNonceValue));
-
-  console.log(chalk.gray("Generated nonce:"), nonceNumber);
-  return nonceNumber;
 }
 
 /**
@@ -135,13 +95,7 @@ function createPermitStructure(
   try {
     console.log(chalk.blue("Creating permit structure..."));
 
-    const permitted: PermittedToken[] = estates.map((estate, index) => {
-      console.log(chalk.gray(`Estate ${index}:`), {
-        beneficiary: estate.beneficiary,
-        token: estate.token,
-        amount: estate.amount,
-      });
-
+    const permitted: PermittedToken[] = estates.map((estate) => {
       return {
         token: estate.token,
         amount: estate.amount,
@@ -156,15 +110,29 @@ function createPermitStructure(
     };
 
     console.log(chalk.green("✅ Permit structure created"));
-    console.log(chalk.gray("Spender (Will):"), willAddress);
-    console.log(chalk.gray("Permitted tokens:"), permitted.length);
-
     return permit;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create permit structure: ${errorMessage}`);
+    throw new Error(`Failed to create permit structure: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
+}
+
+/**
+ * Print detailed Permit information
+ */
+function printPermit(permit: Permit): void {
+  console.log(chalk.cyan("\n=== Permit Details ===\n"));
+
+  permit.permitted.forEach((estate, index) => {
+    console.log(chalk.gray(`Estate ${index}:`), {
+      token: estate.token,
+      amount: estate.amount,
+    });
+  });
+  console.log(chalk.gray("Spender (Will):"), permit.spender);
+  console.log(chalk.gray("- Nonce:"), permit.nonce);
+  console.log(chalk.gray(`- Deadline: ${permit.deadline} (${new Date(permit.deadline * 1000).toISOString()})`));
+
+  console.log(chalk.cyan("\n=== End of Permit Details ===\n"));
 }
 
 /**
@@ -179,14 +147,13 @@ async function signPermit(
   try {
     console.log(chalk.blue("Generating EIP-712 signature..."));
 
+    printPermit(permit)
+
     const { domain, types, values } = SignatureTransfer.getPermitData(
       permit,
       permit2Address,
       chainId,
     );
-
-    console.log(chalk.gray("Domain:"), domain.name, `(v${domain.version})`);
-    console.log(chalk.gray("Chain ID:"), chainId.toString());
 
     const signature = await signer.signTypedData(domain, types, values);
 
@@ -198,9 +165,7 @@ async function signPermit(
 
     return signature;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to sign permit: ${errorMessage}`);
+    throw new Error(`Failed to sign permit: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -213,7 +178,7 @@ async function processWillSigning(): Promise<ProcessResult> {
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
     // Initialize provider and validate network
-    const provider = new ethers.JsonRpcProvider(NETWORK_CONFIG.rpc.current);
+    const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     const network = await validateNetwork(provider);
 
     // Create and validate signer
@@ -226,14 +191,6 @@ async function processWillSigning(): Promise<ProcessResult> {
     console.log(chalk.blue("Generating signature parameters..."));
     const nonce = generateSecureNonce();
     const deadline = calculateDeadline();
-
-    console.log(chalk.gray("Signature parameters:"));
-    console.log(chalk.gray("- Nonce:"), nonce);
-    console.log(chalk.gray("- Deadline:"), deadline);
-    console.log(
-      chalk.gray("- Valid until:"),
-      new Date(deadline * 1000).toISOString(),
-    );
 
     // Create permit structure
     const permit = createPermitStructure(
@@ -251,8 +208,17 @@ async function processWillSigning(): Promise<ProcessResult> {
       signer,
     );
 
+    const signedWillData: SignedWillData = {
+      ...willData,
+      signature: {
+        nonce,
+        deadline,
+        signature,
+      },
+    }
+
     // Save signed will
-    saveSignedWill(willData, nonce, deadline, signature);
+    saveWill(WillFileType.SIGNED, signedWillData)
 
     // Update environment variables
     await updateEnvironmentVariables([
@@ -269,18 +235,15 @@ async function processWillSigning(): Promise<ProcessResult> {
       nonce,
       deadline,
       signature,
-      estatesCount: willData.estates.length,
-      outputPath: PATHS_CONFIG.will.signed,
       signerAddress: await signer.getAddress(),
       chainId: network.chainId.toString(),
-      success: true,
+      outputPath: PATHS_CONFIG.will.signed,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red("Error during will signing process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -301,11 +264,9 @@ async function main(): Promise<void> {
       signature: `${result.signature.substring(0, 10)}...${result.signature.substring(result.signature.length - 8)}`,
     });
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -320,19 +281,15 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }
 
 export {
   validateEnvironmentVariables,
-  createSigner,
   calculateDeadline,
-  generateSecureNonce,
   createPermitStructure,
   signPermit,
   processWillSigning,

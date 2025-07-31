@@ -87,8 +87,7 @@ async function submitProofToContract(
       executionTime,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red("Error during proof submission:"), errorMessage);
     throw new Error(`Failed to submit proof: ${errorMessage}`);
   }
@@ -136,8 +135,7 @@ async function processProofSubmission(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red("Error during proof submission process:"),
       errorMessage,
@@ -177,8 +175,7 @@ async function main(): Promise<void> {
       console.log(chalk.gray("4. Verifier contract compatibility"));
     }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
       errorMessage,
@@ -197,8 +194,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });

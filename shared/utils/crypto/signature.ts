@@ -46,11 +46,9 @@ async function performSigning(
 
     return signature;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red(`❌ Signing attempt ${retryCount + 1} failed:`),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Retry logic for transient failures
@@ -70,7 +68,7 @@ async function performSigning(
     }
 
     throw new Error(
-      `Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${errorMessage}`,
+      `Signature generation failed after ${SIGNATURE_CONFIG.maxRetries + 1} attempts: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -111,10 +109,7 @@ async function signString(
 
     return signature;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Error in signString:"), errorMessage);
-    throw new Error(`String signing failed: ${errorMessage}`);
+    throw new Error(`String signing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -160,10 +155,7 @@ async function verify(
 
     return isValid;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Error in verify:"), errorMessage);
-    throw new Error(`Signature verification failed: ${errorMessage}`);
+    throw new Error(`Signature verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -193,9 +185,7 @@ async function recoverSigner(
 
     return recoveredAddress;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Signer recovery failed: ${errorMessage}`);
+    throw new Error(`Signer recovery failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 

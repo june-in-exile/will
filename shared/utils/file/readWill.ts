@@ -6,6 +6,7 @@ import {
   type SignedWillData,
   type EncryptedWillData,
   type DownloadedWillData,
+  type DecryptedWillData,
 } from "@shared/types/will.js";
 import {
   validateFormattedWill,
@@ -13,6 +14,7 @@ import {
   validateSignedWill,
   validateEncryptedWill,
   validateDownloadedWill,
+  validateDecryptedWill,
 } from "@shared/utils/validation/will.js";
 import { readFileSync, existsSync } from "fs";
 import chalk from "chalk";
@@ -23,6 +25,7 @@ const FILE_PATHS: Record<WillFileType, string> = {
   [WillFileType.SIGNED]: PATHS_CONFIG.will.signed,
   [WillFileType.ENCRYPTED]: PATHS_CONFIG.will.encrypted,
   [WillFileType.DOWNLOADED]: PATHS_CONFIG.will.downloaded,
+  [WillFileType.DECRYPTED]: PATHS_CONFIG.will.decrypted,
 };
 
 const VALIDATORS: Record<WillFileType, (data: any) => void> = {
@@ -31,6 +34,7 @@ const VALIDATORS: Record<WillFileType, (data: any) => void> = {
   [WillFileType.SIGNED]: validateSignedWill,
   [WillFileType.ENCRYPTED]: validateEncryptedWill,
   [WillFileType.DOWNLOADED]: validateDownloadedWill,
+  [WillFileType.DECRYPTED]: validateDecryptedWill,
 };
 
 /**
@@ -47,62 +51,24 @@ export function readWill<T>(type: WillFileType): T {
   }
 
   try {
-    console.log(chalk.blue(`Reading ${type} will data...`));
+    const typeString: string = type;
+
+    console.log(chalk.blue(`Reading ${typeString} will data...`));
 
     const fileContent = readFileSync(targetPath, "utf8");
     const willData = JSON.parse(fileContent);
 
     VALIDATORS[type](willData);
 
-    console.log(chalk.green(`✅ ${type} will data validated successfully`));
+    const typeCapitalized = typeString[0].toUpperCase() + typeString.slice(1);
+
+    console.log(chalk.green(`✅ ${typeCapitalized} will data validated successfully`));
 
     return willData as T;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in ${type} will file: ${error.message}`);
     }
-
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to read ${type} will: ${errorMessage}`);
+    throw new Error(`Failed to read ${type} will: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
-
-// // Convenience functions for specific will types
-// export function readFormattedWill(): FormattedWillData {
-//   return readWill<FormattedWillData>(WillFileType.FORMATTED);
-// }
-
-// export function readAddressedWill(): AddressedWillData {
-//   return readWill<AddressedWillData>(WillFileType.ADDRESSED);
-// }
-
-// export function readSignedWill(): SignedWillData {
-//   return readWill<SignedWillData>(WillFileType.SIGNED);
-// }
-
-// export function readEncryptedWill(): EncryptedWillData {
-//   return readWill<EncryptedWillData>(WillFileType.ENCRYPTED);
-// }
-
-// export function readDownloadedWill(): DownloadedWillData {
-//   return readWill<DownloadedWillData>(WillFileType.DOWNLOADED);
-// }
-
-// // Legacy compatibility functions (for backward compatibility)
-// export function readWillData(type: WillFileType = WillFileType.FORMATTED): any {
-//   switch (type) {
-//     case WillFileType.FORMATTED:
-//       return readFormattedWill();
-//     case WillFileType.ADDRESSED:
-//       return readAddressedWill();
-//     case WillFileType.SIGNED:
-//       return readSignedWill();
-//     case WillFileType.ENCRYPTED:
-//       return readEncryptedWill();
-//     case WillFileType.DOWNLOADED:
-//       return readDownloadedWill();
-//     default:
-//       throw new Error(`Unsupported will file type: ${type}`);
-//   }
-// }

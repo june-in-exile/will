@@ -15,7 +15,7 @@ import {
   EncryptedWillData,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { saveEncryptedWill } from "@shared/utils/file/saveWill.js";
+import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
 
 // Type definitions
@@ -79,7 +79,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
     );
 
     // Save encrypted will
-    saveEncryptedWill(encryptedWill);
+    saveWill(WillFileType.ENCRYPTED, encryptedWill);
 
     console.log(
       chalk.green.bold("\n🎉 Will encryption process completed successfully!"),
@@ -91,11 +91,9 @@ async function processWillEncryption(): Promise<ProcessResult> {
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will encryption process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -113,9 +111,8 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("❌ Program execution failed:"), errorMessage);
+
+    console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
 
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
@@ -129,10 +126,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

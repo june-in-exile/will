@@ -14,9 +14,13 @@ import {
   createWallet,
   createContractInstance,
 } from "@shared/utils/crypto/blockchain.js";
-import { printNotarizationDetails } from "@shared/utils/crypto/printData.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
+
+interface NotarizeCidData {
+  cid: string;
+  signature: string;
+}
 
 interface ProcessResult {
   transactionHash: string;
@@ -44,26 +48,40 @@ function validateEnvironmentVariables(): NotarizeCid {
 }
 
 /**
+ * Print notarization details
+ */
+function printNotarizationDetails(notarizeData: NotarizeCidData): void {
+  console.log(chalk.cyan("\n=== Notarization Details ==="));
+
+  console.log(chalk.blue("\n📋 CID Information:"));
+  console.log(chalk.gray("- CID:"), chalk.white(notarizeData.cid));
+
+  console.log(chalk.blue("\n✍️  Signature Information:"));
+  console.log(chalk.gray("- Signature:"), chalk.white(notarizeData.signature));
+
+  console.log(chalk.cyan("\n=== End of Notarization Details ===\n"));
+}
+
+/**
  * Execute notarizeCid transaction
  */
 async function executeNotarizeCID(
   contract: WillFactory,
-  cid: string,
-  signature: string,
+  notarizeData: NotarizeCidData
 ): Promise<ProcessResult> {
   try {
     console.log(chalk.blue("Executing notarizeCid transaction..."));
 
     // Print detailed notarization information
-    printNotarizationDetails(cid, signature);
+    printNotarizationDetails(notarizeData);
 
     // Estimate gas
-    const gasEstimate = await contract.notarizeCid.estimateGas(cid, signature);
+    const gasEstimate = await contract.notarizeCid.estimateGas(notarizeData);
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
 
     // Execute transaction
-    const tx = await contract.notarizeCid(cid, signature, {
+    const tx = await contract.notarizeCid(notarizeData.cid, notarizeData.signature, {
       gasLimit: (gasEstimate * 120n) / 100n, // Add 20% buffer
     });
 
@@ -86,15 +104,13 @@ async function executeNotarizeCID(
 
     return {
       transactionHash: receipt.hash,
-      cid: cid,
+      cid: notarizeData.cid,
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute notarizeCid: ${errorMessage}`);
+    throw new Error(`Failed to execute notarizeCid: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -122,7 +138,10 @@ async function processNotarizeCID(): Promise<ProcessResult> {
     );
 
     // Execute notarization
-    const result = await executeNotarizeCID(contract, CID, EXECUTOR_SIGNATURE);
+    const result = await executeNotarizeCID(contract, {
+      cid: CID,
+      signature: EXECUTOR_SIGNATURE,
+    });
 
     // Update environment
     await updateEnvironmentVariables([
@@ -136,11 +155,9 @@ async function processNotarizeCID(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during CID notarization process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -159,11 +176,9 @@ async function main(): Promise<void> {
     console.log(chalk.gray("- CID:"), result.cid);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -178,10 +193,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

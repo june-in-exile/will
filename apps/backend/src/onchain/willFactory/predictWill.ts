@@ -1,5 +1,5 @@
 import type { PredictWill } from "@shared/types/environment.js";
-import { PATHS_CONFIG, NETWORK_CONFIG, SALT_CONFIG } from "@config";
+import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import {
   validateEnvironment,
@@ -10,22 +10,27 @@ import {
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WillFileType, FormattedWillData } from "@shared/types/will.js";
+import { WillFileType, FormattedWillData, AddressedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { saveAddressedWill } from "@shared/utils/file/saveWill.js";
+import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { createContractInstance } from "@shared/utils/crypto/blockchain.js";
+import { generateSalt } from "@shared/utils/crypto/salt.js";
+import { printEstates } from "@shared/utils/crypto/printData.js"
 import { JsonRpcProvider } from "ethers";
-import crypto from "crypto";
 import chalk from "chalk";
+
+interface predictWillData {
+  testator: EthereumAddress,
+  estates: Estate[],
+  salt: number,
+}
 
 interface ProcessResult {
   predictedAddress: string;
   salt: number;
-  estatesCount: number;
   outputPath: string;
-  success: boolean;
 }
 
 /**
@@ -46,47 +51,35 @@ function validateEnvironmentVariables(): PredictWill {
 }
 
 /**
- * Generate cryptographically secure salt
+ * Print detailed PredictWillData information
  */
-function generateSecureSalt(timestamp: number = Date.now()): number {
-  try {
-    const randomArray = new Uint32Array(1);
-    crypto.getRandomValues(randomArray);
+function printPredictWillData(predictData: predictWillData): void {
+  console.log(chalk.cyan("\n=== predictWillData Details ==="));
 
-    const randomPart = randomArray[0] % SALT_CONFIG.timestampMultiplier;
-    const salt =
-      (timestamp * SALT_CONFIG.timestampMultiplier + randomPart) %
-      SALT_CONFIG.maxSafeInteger;
+  console.log(chalk.blue("\nParameters:"));
+  console.log(chalk.gray("- Testator:"), predictData.testator);
+  console.log(chalk.gray("- Salt:"), predictData.salt);
+  printEstates(predictData.estates);
 
-    console.log(chalk.gray("Generated salt:"), salt);
-    return salt;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to generate salt: ${errorMessage}`);
-  }
+  console.log(chalk.cyan("\n=== End of predictWillData Details ===\n"));
 }
 
 /**
  * Predict will address
  */
-async function predictWillAddress(
+async function executePredictWill(
   contract: WillFactory,
-  testator: EthereumAddress,
-  estates: Estate[],
-  salt: number,
+  predictData: predictWillData,
 ): Promise<EthereumAddress> {
   try {
-    console.log(chalk.blue("Predicting will address..."));
-    console.log(chalk.gray("Parameters:"));
-    console.log(chalk.gray("- Testator:"), testator);
-    console.log(chalk.gray("- Estates count:"), estates.length);
-    console.log(chalk.gray("- Salt:"), salt);
+    console.log(chalk.blue("Executing predictWill transaction..."));
+
+    printPredictWillData(predictData);
 
     const predictedAddress: EthereumAddress = await contract.predictWill(
-      testator,
-      estates,
-      salt,
+      predictData.testator,
+      predictData.estates,
+      predictData.salt,
     );
 
     if (!validateEthereumAddress(predictedAddress)) {
@@ -99,9 +92,7 @@ async function predictWillAddress(
     );
     return predictedAddress;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to predict will address: ${errorMessage}`);
+    throw new Error(`Failed to predict will address: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -128,18 +119,23 @@ async function processWillAddressing(): Promise<ProcessResult> {
     const willData: FormattedWillData = readWill(WillFileType.FORMATTED);
 
     // Generate salt
-    const salt = generateSecureSalt();
+    const salt = generateSalt();
 
     // Predict will address
-    const predictedAddress = await predictWillAddress(
-      contract,
-      willData.testator,
-      willData.estates,
+    const predictedAddress = await executePredictWill(contract, {
+      testator: willData.testator,
+      estates: willData.estates,
       salt,
-    );
+    });
+
+    const addressedWillData: AddressedWillData = {
+      ...willData,
+      salt,
+      will: predictedAddress,
+    }
 
     // Save addressed will
-    saveAddressedWill(willData, salt, predictedAddress);
+    saveWill(WillFileType.ADDRESSED, addressedWillData)
 
     // Update environment variables
     const updates: Array<[string, string]> = [
@@ -166,16 +162,12 @@ async function processWillAddressing(): Promise<ProcessResult> {
     return {
       predictedAddress,
       salt,
-      estatesCount: willData.estates.length,
       outputPath: PATHS_CONFIG.will.addressed,
-      success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will addressing process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -195,11 +187,9 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -214,17 +204,14 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }
 
 export {
   validateEnvironmentVariables,
-  generateSecureSalt,
-  predictWillAddress,
+  executePredictWill,
   processWillAddressing,
 };

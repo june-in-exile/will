@@ -25,7 +25,7 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit predict-address sign-transfer encrypt-will upload-will upload-cid submit-proof
+phase1: approve-permit predict-address sign-permit encrypt-will upload-will upload-cid submit-proof
 
 approve-permit:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
@@ -33,11 +33,11 @@ approve-permit:
 predict-address:
 	@pnpm exec tsx src/onchain/willFactory/predictWill.ts
 
-sign-transfer:
-	@pnpm exec tsx src/offchain/signature/transfer.ts
+sign-permit:
+	@pnpm exec tsx src/offchain/signature/permit.ts
 
 encrypt-will:
-	@pnpm exec tsx src/offchain/encryption/encryptWill.ts
+	@pnpm exec tsx src/offchain/cryptography/encryptWill.ts
 
 encrypt-data:
 	@pnpm exec tsx ../../shared/utils/crypto/encrypt.ts	\
@@ -67,10 +67,10 @@ download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
 
 decrypt-will:
-	@pnpm exec tsx src/offchain/encryption/decryptWill.ts
+	@pnpm exec tsx src/offchain/cryptography/decryptWill.ts
 
 decrypt-will-local:
-	@pnpm exec tsx src/offchain/encryption/decryptWill.ts --local
+	@pnpm exec tsx src/offchain/cryptography/decryptWill.ts --local
 
 decrypt-data:
 	@pnpm exec tsx ../../shared/utils/crypto/decrypt.ts \

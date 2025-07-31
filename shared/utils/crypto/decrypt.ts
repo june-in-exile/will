@@ -118,25 +118,25 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-      chalk.gray(
-        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-      ),
+    chalk.gray(
+      "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+    ),
   );
   console.log(
     chalk.cyan("  --ciphertext") +
-      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+    chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-      chalk.gray("          Base64-encoded decryption key [required]"),
+    chalk.gray("          Base64-encoded decryption key [required]"),
   );
   console.log(
     chalk.cyan("  --iv") +
-      chalk.gray("           Base64-encoded initialization vector [required]"),
+    chalk.gray("           Base64-encoded initialization vector [required]"),
   );
   console.log(
     chalk.cyan("  --authTag") +
-      chalk.gray("      Base64-encoded authentication tag [required]"),
+    chalk.gray("      Base64-encoded authentication tag [required]"),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -178,8 +178,7 @@ function validateKeyFile(keyPath: string): Buffer {
 
     return keyBuffer;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     if (errorMessage.includes("Invalid key size")) {
       throw error;
     }
@@ -290,8 +289,7 @@ export function decrypt(
 
     return plaintext;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
 
     // Enhanced error messages for common decryption failures
     if (
@@ -333,8 +331,7 @@ export function getDecryptionKey(): Buffer {
 
     return keyBuffer;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     if (errorMessage.includes("not found")) {
       throw new Error("NO_ENCRYPTION_KEY");
     }
@@ -384,8 +381,7 @@ async function main(): Promise<void> {
     console.log();
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("\n❌ Decryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
@@ -415,8 +411,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     console.error(chalk.red.bold("Uncaught error:"), errorMessage);
     process.exit(1);
   });

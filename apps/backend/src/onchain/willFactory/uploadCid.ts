@@ -20,7 +20,7 @@ import {
   createWallet,
   createContractInstance,
 } from "@shared/utils/crypto/blockchain.js";
-import { printUploadCidData } from "@shared/utils/crypto/printData.js";
+import { printProofData, printEncryptedWillData } from "@shared/utils/crypto/printData.js";
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js";
 import chalk from "chalk";
@@ -52,6 +52,21 @@ function validateEnvironmentVariables(): UploadCid {
   }
 
   return result.data;
+}
+
+/**
+ * Print detailed UploadCIDData information
+ */
+function printUploadCidData(uploadData: UploadCidData): void {
+  console.log(chalk.cyan("\n=== UploadCIDData Details ==="));
+
+  console.log(chalk.blue("\n📋 CID Information:"));
+  console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
+
+  printProofData(uploadData.proof);
+  printEncryptedWillData(uploadData.will);
+
+  console.log(chalk.cyan("\n=== End of UploadCidData Details ===\n"));
 }
 
 /**
@@ -117,9 +132,7 @@ async function executeUploadCid(
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute uploadCid: ${errorMessage}`);
+    throw new Error(`Failed to execute uploadCid: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -176,9 +189,7 @@ async function processUploadCid(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Error during CID upload process:"), errorMessage);
+    console.error(chalk.red("Error during CID upload process:"), error instanceof Error ? error.message : "Unknown error");
     throw error;
   }
 }
@@ -196,11 +207,9 @@ async function main(): Promise<void> {
     console.log(chalk.gray("- CID:"), result.cid);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -215,10 +224,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

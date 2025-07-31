@@ -34,8 +34,7 @@ function encryptedWillToJsonObject(
 
     return { keys, values };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to convert encrypted will data: ${errorMessage}`);
   }
 }
@@ -87,8 +86,7 @@ function encryptedWillToTypedJsonObject(
 
     return { keys, values };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+
     throw new Error(`Failed to convert encrypted will data: ${errorMessage}`);
   }
 }

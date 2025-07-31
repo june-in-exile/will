@@ -2,27 +2,9 @@ import { PATHS_CONFIG } from "@config";
 import {
   WillFileType,
   type WillData,
-  type FormattedWillData,
-  type AddressedWillData,
-  type SignedWillData,
-  type EncryptedWillData,
-  type DownloadedWillData,
 } from "@shared/types/will.js";
-import type { EthereumAddress } from "@shared/types/blockchain.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";
-
-interface SaveWillOptions {
-  willType: WillFileType;
-  data: WillData;
-  salt?: number;
-  willAddress?: EthereumAddress;
-  signature?: {
-    nonce: number;
-    deadline: number;
-    signature: string;
-  };
-}
 
 function getWillFilePath(willType: WillFileType): string {
   switch (willType) {
@@ -62,133 +44,33 @@ function getWillTypeLabel(willType: WillFileType): string {
   }
 }
 
-function saveWill(options: SaveWillOptions): WillData {
+function saveWill(willType: WillFileType, data: WillData): void {
+  const typeLabel = getWillTypeLabel(willType);
   try {
-    const { willType, data } = options;
     const filePath = getWillFilePath(willType);
-    const typeLabel = getWillTypeLabel(willType);
 
-    console.log(chalk.blue(`Preparing ${typeLabel}...`));
-
-    let processedData: WillData;
-
-    // Handle different will types
-    switch (willType) {
-      case WillFileType.ADDRESSED: {
-        if (!options.salt || !options.willAddress) {
-          throw new Error(
-            "Salt and will address are required for addressed will",
-          );
-        }
-        const addressedWill: AddressedWillData = {
-          ...(data as FormattedWillData),
-          salt: options.salt,
-          will: options.willAddress,
-        };
-        processedData = addressedWill;
-        break;
-      }
-
-      case WillFileType.SIGNED: {
-        if (!options.signature) {
-          throw new Error("Signature is required for signed will");
-        }
-        const signedWill: SignedWillData = {
-          ...(data as AddressedWillData),
-          signature: options.signature,
-        };
-        processedData = signedWill;
-        break;
-      }
-
-      default:
-        processedData = data;
-        break;
-    }
+    console.log(chalk.blue(`Saving ${typeLabel}...`));
 
     // Save to file
-    if (typeof processedData === "string") {
+    if (typeof data === "string") {
       // For decrypted will (plain text)
-      writeFileSync(filePath, processedData);
+      writeFileSync(filePath, data);
     } else {
       // For JSON data
-      writeFileSync(filePath, JSON.stringify(processedData, null, 4));
+      writeFileSync(filePath, JSON.stringify(data, null, 4));
     }
 
     console.log(
       chalk.green(
-        ` ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`,
+        `📝 ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`,
       ),
       filePath,
     );
-
-    return processedData;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     throw new Error(
-      `Failed to save ${getWillTypeLabel(options.willType)}: ${errorMessage}`,
+      `Failed to save ${typeLabel}: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
 
-// Convenience functions for specific will types
-function saveAddressedWill(
-  willData: FormattedWillData,
-  salt: number,
-  predictedAddress: EthereumAddress,
-): AddressedWillData {
-  return saveWill({
-    willType: WillFileType.ADDRESSED,
-    data: willData,
-    salt,
-    willAddress: predictedAddress,
-  }) as AddressedWillData;
-}
-
-function saveSignedWill(
-  willData: AddressedWillData,
-  nonce: number,
-  deadline: number,
-  signature: string,
-): SignedWillData {
-  return saveWill({
-    willType: WillFileType.SIGNED,
-    data: willData,
-    signature: {
-      nonce,
-      deadline,
-      signature,
-    },
-  }) as SignedWillData;
-}
-
-function saveEncryptedWill(encryptedWill: EncryptedWillData): void {
-  saveWill({
-    willType: WillFileType.ENCRYPTED,
-    data: encryptedWill,
-  });
-}
-
-function saveDownloadedWill(downloadedWill: DownloadedWillData): void {
-  saveWill({
-    willType: WillFileType.DOWNLOADED,
-    data: downloadedWill,
-  });
-}
-
-function saveDecryptedWill(decryptedWill: string): void {
-  saveWill({
-    willType: WillFileType.DECRYPTED, // Use decrypted for decrypted plain text
-    data: decryptedWill,
-  });
-}
-
-export {
-  saveWill,
-  saveAddressedWill,
-  saveSignedWill,
-  saveEncryptedWill,
-  saveDownloadedWill,
-  saveDecryptedWill,
-};
+export { saveWill };

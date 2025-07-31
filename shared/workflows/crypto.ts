@@ -11,7 +11,7 @@ export abstract class CryptoWorkflow<TInput, TResult> extends BaseWorkflow<
   TInput,
   TResult
 > {
-  // 加密相關的共用方法
+  // Common encryption-related methods
   protected getEncryptionKey(size: number = CRYPTO_CONFIG.keySize): Buffer {
     try {
       console.log(chalk.blue("🔑 Generating new encryption key..."));
@@ -55,19 +55,19 @@ export abstract class CryptoWorkflow<TInput, TResult> extends BaseWorkflow<
     key: Buffer,
     iv: Buffer,
   ): void {
-    // 驗證演算法
+    // Validate algorithm
     if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
       throw new Error(`Unsupported algorithm: ${algorithm}`);
     }
 
-    // 驗證金鑰長度
+    // Validate key length
     if (key.length !== CRYPTO_CONFIG.keySize) {
       throw new Error(
         `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${key.length} bytes`,
       );
     }
 
-    // 驗證 IV 長度
+    // Validate IV length
     if (iv.length !== CRYPTO_CONFIG.ivSize) {
       throw new Error(
         `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${iv.length} bytes`,
@@ -76,6 +76,6 @@ export abstract class CryptoWorkflow<TInput, TResult> extends BaseWorkflow<
   }
 }
 
-// // 需要加密/解密功能的檔案
-// apps/backend/src/offchain/encryption/encryptWill.ts             // ✅ CryptoWorkflow
-// apps/backend/src/offchain/encryption/decryptWill.ts             // ✅ CryptoWorkflow
+// Files that need encryption/decryption functionality
+// apps/backend/src/offchain/cryptography/encryptWill.ts             // ✅ CryptoWorkflow
+// apps/backend/src/offchain/cryptography/decryptWill.ts             // ✅ CryptoWorkflow

@@ -3,8 +3,8 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { DownloadedWillData } from "@shared/types/will.js";
-import { saveDownloadedWill } from "@shared/utils/file/saveWill.js";
+import { WillFileType, DownloadedWillData } from "@shared/types/will.js";
+import { saveWill } from "@shared/utils/file/saveWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";
 import { CID } from "multiformats/cid";
@@ -54,7 +54,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     const downloadedWill: DownloadedWillData = await j.get(cid);
 
     // Save downloaded will
-    saveDownloadedWill(downloadedWill);
+    saveWill(WillFileType.DOWNLOADED, downloadedWill);
 
     console.log(
       chalk.green.bold("\n🎉 IPFS download process completed successfully!"),
@@ -65,9 +65,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red("Failed to download from IPFS:"), errorMessage);
+    console.error(chalk.red("Failed to download from IPFS:"), error instanceof Error ? error.message : "Unknown error");
     throw error;
   } finally {
     // Clean up Helia instance
@@ -100,11 +98,9 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -119,10 +115,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

@@ -67,9 +67,7 @@ function validateEncoding(message: string, encoding: string = "utf8"): Buffer {
 
     return buffer;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Encoding validation failed: ${errorMessage}`);
+    throw new Error(`Encoding validation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -111,8 +109,6 @@ export function keccak256(
 
     return hash;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Keccak256 hash generation failed: ${errorMessage}`);
+    throw new Error(`Keccak256 hash generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }

@@ -38,9 +38,7 @@ async function createHeliaInstance(): Promise<HeliaInstance> {
     console.log(chalk.green("✅ Helia instance created successfully"));
     return { helia, jsonHandler };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create Helia instance: ${errorMessage}`);
+    throw new Error(`Failed to create Helia instance: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -60,9 +58,7 @@ async function uploadToIPFS(
 
     return cid;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to upload to IPFS: ${errorMessage}`);
+    throw new Error(`Failed to upload to IPFS: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -222,8 +218,7 @@ async function processIPFSUpload(): Promise<ProcessResult> {
       pinnedLocally: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error(chalk.red("Error during IPFS upload process:"), errorMessage);
 
     // Determine failure type for better error reporting
@@ -313,11 +308,9 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -332,10 +325,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

@@ -21,7 +21,7 @@ import {
   createWallet,
   createContractInstance,
 } from "@shared/utils/crypto/blockchain.js";
-import { printCreateWillData } from "@shared/utils/crypto/printData.js";
+import { printEstates, printProofData, printEncryptedWillData } from "@shared/utils/crypto/printData.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { JsonRpcProvider } from "ethers";
 import { validateFiles } from "@shared/utils/validation/file.js";
@@ -125,6 +125,30 @@ function parseEstatesFromEnvironment(): Estate[] {
 }
 
 /**
+ * Print detailed CreateWillData information
+ */
+function printCreateWillData(createData: CreateWillData): void {
+  console.log(chalk.cyan("\n=== CreateWillData Details ==="));
+
+  console.log(chalk.blue("\n📋 CID Information:"));
+  console.log(chalk.gray("- CID:"), chalk.white(createData.cid));
+
+  console.log(chalk.blue("\n👤 Testator Information:"));
+  console.log(chalk.gray("- Testator:"), chalk.white(createData.testator));
+
+  console.log(chalk.blue("\n🧂 Salt Information:"));
+  console.log(chalk.gray("- Salt:"), chalk.white(createData.salt.toString()));
+
+  printEstates(createData.estates);
+
+  printProofData(createData.proof);
+
+  printEncryptedWillData(createData.will);
+
+  console.log(chalk.cyan("\n=== End of CreateWillData Details ===\n"));
+}
+
+/**
  * Execute createWill transaction
  */
 async function executeCreateWill(
@@ -220,9 +244,7 @@ async function executeCreateWill(
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to execute createWill: ${errorMessage}`);
+    throw new Error(`Failed to execute createWill: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -293,11 +315,9 @@ async function processCreateWill(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will creation process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -317,11 +337,9 @@ async function main(): Promise<void> {
     console.log(chalk.gray("- CID:"), result.cid);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -336,10 +354,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

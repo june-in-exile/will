@@ -23,10 +23,8 @@ function updateEnvVariable(key: string, value: string): void {
     writeFileSync(envPath, envContent);
     console.log(chalk.yellow(`Set ${key} to ${value} in .env file.`));
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
-      chalk.red(`Failed to update ${key} in ${envPath}: ${errorMessage}`),
+      chalk.red(`Failed to update ${key} in ${envPath}: ${error instanceof Error ? error.message : "Unknown error"}`),
     );
     throw error;
   }
@@ -59,9 +57,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }
@@ -81,11 +77,9 @@ async function updateEnvironmentVariables(
 
     console.log(chalk.green("✅ Environment variables updated successfully"));
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.warn(
       chalk.yellow("Warning: Failed to update environment variables:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }

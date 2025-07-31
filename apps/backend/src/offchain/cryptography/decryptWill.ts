@@ -4,12 +4,12 @@ import type {
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
 import {
-  DownloadedWillData,
   WillFileType,
+  type DownloadedWillData,
   type EncryptedWillData,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { saveDecryptedWill } from "@shared/utils/file/saveWill.js";
+import { saveWill } from "@shared/utils/file/saveWill.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
 import chalk from "chalk";
 
@@ -54,15 +54,15 @@ async function processWillDecryption(
 
     console.log(chalk.blue(`Decrypting with ${algorithm} algorithm...`));
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-    const dcryptedWill = dcryptedWillBuffer.toString(
+    const decryptedWill = dcryptedWillBuffer.toString(
       CRYPTO_CONFIG.plaintextEncoding,
     );
 
     console.log(chalk.gray("Decrypted will structure:"));
-    console.log(dcryptedWill);
+    console.log(decryptedWill);
 
     // Save decrypted will
-    saveDecryptedWill(dcryptedWill);
+    saveWill(WillFileType.DECRYPTED, decryptedWill);
 
     console.log(
       chalk.green.bold("\n🎉 Will decryption process completed successfully!"),
@@ -74,11 +74,9 @@ async function processWillDecryption(
       success: true,
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
     console.error(
       chalk.red("Error during will decryption process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -103,10 +101,7 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("❌ Program execution failed:"), errorMessage);
-
+      console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);
@@ -120,9 +115,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }
