@@ -57,8 +57,13 @@ function printPredictWillData(predictData: predictWillData): void {
   console.log(chalk.cyan("\n=== predictWillData Details ==="));
 
   console.log(chalk.blue("\nParameters:"));
-  console.log(chalk.gray("- Testator:"), predictData.testator);
-  console.log(chalk.gray("- Salt:"), predictData.salt);
+
+  console.log(chalk.blue("\n👤 Testator Information:"));
+  console.log(chalk.gray("- Testator:"), chalk.white(predictData.testator));
+
+  console.log(chalk.blue("\n🧂 Salt Information:"));
+  console.log(chalk.gray("- Salt:"), chalk.white(predictData.salt));
+  
   printEstates(predictData.estates);
 
   console.log(chalk.cyan("\n=== End of predictWillData Details ===\n"));

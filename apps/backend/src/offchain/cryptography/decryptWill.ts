@@ -9,6 +9,7 @@ import {
   type DecryptedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
+import { validateWill } from "@shared/utils/validation/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { getKey } from "@shared/utils/cryptography/key.js";
 import { decrypt } from "@shared/utils/cryptography/decrypt.js";
@@ -50,6 +51,8 @@ async function processWillDecryption(
     const decryptedWill: DecryptedWill = JSON.parse(dcryptedWillBuffer.toString(
       CRYPTO_CONFIG.plaintextEncoding,
     ));
+
+    validateWill(WillFileType.DECRYPTED, decryptedWill);
 
     saveWill(WillFileType.DECRYPTED, decryptedWill);
 

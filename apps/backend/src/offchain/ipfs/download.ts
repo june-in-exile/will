@@ -6,6 +6,7 @@ import {
 } from "@shared/utils/validation/environment.js";
 import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
 import { createHeliaInstance, downloadFromIpfs, stopHelia } from "@shared/utils/ipfs.js";
+import { validateWill } from "@shared/utils/validation/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { Helia } from "helia";
 import chalk from "chalk";
@@ -45,6 +46,8 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     helia = heliaInstance;
 
     const downloadedWill = await downloadFromIpfs(jsonHandler, CID) as DownloadedWill;
+
+    validateWill(WillFileType.DOWNLOADED, downloadedWill);
 
     saveWill(WillFileType.DOWNLOADED, downloadedWill);
 

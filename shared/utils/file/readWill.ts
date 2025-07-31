@@ -1,8 +1,7 @@
 import { PATHS_CONFIG } from "@config";
+import { WillFileType } from "@shared/types/will.js";
 import {
-  WillFileType,
-} from "@shared/types/will.js";
-import {
+  validateWill,
   validateFormattedWill,
   validateAddressedWill,
   validateSignedWill,
@@ -22,22 +21,13 @@ const FILE_PATHS: Record<WillFileType, string> = {
   [WillFileType.DECRYPTED]: PATHS_CONFIG.will.decrypted,
 };
 
-const VALIDATORS: Record<WillFileType, (data: any) => void> = {
-  [WillFileType.FORMATTED]: validateFormattedWill,
-  [WillFileType.ADDRESSED]: validateAddressedWill,
-  [WillFileType.SIGNED]: validateSignedWill,
-  [WillFileType.ENCRYPTED]: validateEncryptedWill,
-  [WillFileType.DOWNLOADED]: validateDownloadedWill,
-  [WillFileType.DECRYPTED]: validateDecryptedWill,
-};
-
 /**
  * Generic will data reading function
  * @param type The type of will file to read
  * @param filePath Optional custom file path (uses default if not provided)
  * @returns Parsed and validated will data
  */
-export function readWill<T>(type: WillFileType): T {
+function readWill<T>(type: WillFileType): T {
   const targetPath = FILE_PATHS[type];
 
   if (!existsSync(targetPath)) {
@@ -50,15 +40,15 @@ export function readWill<T>(type: WillFileType): T {
     console.log(chalk.blue(`Reading ${typeString} will data...`));
 
     const fileContent = readFileSync(targetPath, "utf8");
-    const willData = JSON.parse(fileContent);
+    const will = JSON.parse(fileContent);
 
-    VALIDATORS[type](willData);
+    validateWill(type, will);
 
     const typeCapitalized = typeString[0].toUpperCase() + typeString.slice(1);
 
     console.log(chalk.green(`✅ ${typeCapitalized} will data validated successfully`));
 
-    return willData as T;
+    return will as T;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in ${type} will file: ${error.message}`);
@@ -66,3 +56,5 @@ export function readWill<T>(type: WillFileType): T {
     throw new Error(`Failed to read ${type} will: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
+
+export { readWill };

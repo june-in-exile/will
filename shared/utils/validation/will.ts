@@ -1,4 +1,5 @@
 import { CRYPTO_CONFIG } from "@config";
+import { WillFileType, type Will } from "@shared/types/will.js";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import type {
@@ -11,6 +12,31 @@ import type {
 } from "@shared/types/will.js";
 import type { Permit2Signature } from "@shared/types/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
+
+function validateWill(type: WillFileType, will: Will) { 
+  switch (type) {
+    case WillFileType.FORMATTED:
+      validateFormattedWill(will as FormattedWill);
+      break;
+    case WillFileType.ADDRESSED:
+      validateAddressedWill(will as AddressedWill);
+      break;
+    case WillFileType.SIGNED:
+      validateSignedWill(will as SignedWill);
+      break;
+    case WillFileType.ENCRYPTED:
+      validateEncryptedWill(will as EncryptedWill);
+      break;
+    case WillFileType.DOWNLOADED:
+      validateDownloadedWill(will as DownloadedWill);
+      break;
+    case WillFileType.DECRYPTED:
+      validateDecryptedWill(will as DecryptedWill);
+      break;
+    default:
+      throw new Error(`Invalid will file type: ${type}`);
+  }
+}
 
 function validateFormattedWill(
   willData: FormattedWill,
@@ -183,6 +209,7 @@ function validateDecryptedWill(
 
 
 export {
+  validateWill,
   validateFormattedWill,
   validateAddressedWill,
   validateSignedWill,

@@ -1,30 +1,24 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
+import { validateFiles } from "@shared/utils/validation/file.js";
+import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
+import { JsonRpcProvider } from "ethers";
+import { validateNetwork } from "@shared/utils/validation/network.js";
+import { createWallet, createContractInstance } from "@shared/utils/blockchain.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
-import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
-import { ProofData } from "@shared/types/crypto.js";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
-import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
-import { readWill } from "@shared/utils/file/readWill.js";
+import type { ProofData } from "@shared/types/crypto.js";
 import { readProof } from "@shared/utils/file/readProof.js";
+import { readWill } from "@shared/utils/file/readWill.js";
+import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
+import { printEstates, printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import type { CreateWill } from "@shared/types/environment.js";
+import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
 import type { Estate } from "@shared/types/blockchain.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import {
-  createWallet,
-  createContractInstance,
-} from "@shared/utils/blockchain.js";
-import { printEstates, printProof, printEncryptedWillJson } from "@shared/utils/print.js";
-import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
-import { JsonRpcProvider } from "ethers";
-import { validateFiles } from "@shared/utils/validation/file.js";
+import type { CreateWill } from "@shared/types/environment.js";
 import chalk from "chalk";
 
 interface CreateWillData {
@@ -38,7 +32,6 @@ interface CreateWillData {
 
 interface ProcessResult {
   transactionHash: string;
-  willAddress: string;
   timestamp: number;
   gasUsed: bigint;
 }
@@ -141,8 +134,6 @@ function printCreateWillData(createData: CreateWillData): void {
 
   printProof(createData.proof);
 
-  printEncryptedWillJson(createData.will);
-
   console.log(chalk.cyan("\n=== End of CreateWillData Details ===\n"));
 }
 
@@ -192,28 +183,8 @@ async function executeCreateWill(
     console.log(chalk.gray("Block number:"), receipt.blockNumber);
     console.log(chalk.gray("Gas used:"), receipt.gasUsed.toString());
 
-    // Find the WillCreated event to get the actual will address
-    const willCreatedEvent = receipt.logs.find((log: string) => {
-      try {
-        const parsed = contract.interface.parseLog(log);
-        return parsed?.name === "WillCreated";
-      } catch {
-        return false;
-      }
-    });
-
-    let willAddress;
-    if (willCreatedEvent) {
-      const parsed = contract.interface.parseLog(willCreatedEvent);
-      if (parsed) {
-        willAddress = parsed.args.will;
-        console.log(chalk.green("✅ Will created at:"), willAddress);
-      }
-    }
-
     return {
       transactionHash: receipt.hash,
-      willAddress,
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
     };
@@ -227,7 +198,6 @@ async function executeCreateWill(
  */
 async function processCreateWill(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     validateFiles([
       PATHS_CONFIG.zkp.multiplier2.proof,
       PATHS_CONFIG.zkp.multiplier2.public,
@@ -235,10 +205,8 @@ async function processCreateWill(): Promise<ProcessResult> {
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
       validateEnvironmentVariables();
 
-    // Parse estates from environment
     const estates = parseEstatesFromEnvironment();
 
-    // Parse salt
     let saltBigInt: bigint;
     try {
       saltBigInt = BigInt(SALT);
@@ -246,27 +214,22 @@ async function processCreateWill(): Promise<ProcessResult> {
       throw new Error(`Invalid salt format: ${SALT}`);
     }
 
-    // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    // Create contract instance
     const contract = await createContractInstance<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       wallet,
     );
 
-    // Read required data
     const proof: ProofData = readProof();
     const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObjectStruct =
       encryptedWillToTypedJsonObject(willData);
 
-    // Execute will creation
     const result = await executeCreateWill(contract, {
       proof,
       will,
@@ -276,10 +239,8 @@ async function processCreateWill(): Promise<ProcessResult> {
       salt: saltBigInt,
     });
 
-    // Update environment
     await updateEnvironmentVariables([
       ["CREATE_WILL_TX_HASH", result.transactionHash],
-      ["WILL", result.willAddress],
       ["CREATE_WILL_TIMESTAMP", result.timestamp.toString()],
     ]);
 

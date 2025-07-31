@@ -1,7 +1,7 @@
 import { PATHS_CONFIG } from "@config";
 import {
   WillFileType,
-  type WillData,
+  type Will,
 } from "@shared/types/will.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";
@@ -44,7 +44,7 @@ function getWillTypeLabel(willType: WillFileType): string {
   }
 }
 
-function saveWill(willType: WillFileType, data: WillData): void {
+function saveWill(willType: WillFileType, data: Will): void {
   const typeLabel = getWillTypeLabel(willType);
   try {
     const filePath = getWillFilePath(willType);

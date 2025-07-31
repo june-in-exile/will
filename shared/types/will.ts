@@ -52,7 +52,7 @@ interface DecryptedWill extends SignedWill { }
 
 export {
   WillFileType,
-  type Will as WillData,
+  type Will,
   type FormattedWill,
   type AddressedWill,
   type SignedWill,
