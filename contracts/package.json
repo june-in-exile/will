@@ -12,7 +12,7 @@
     "typechain": "make typechain",
     "fork": "make fork",
     "fork:background": "make fork-background",
-    "fork:clean": "pkill anvil",
+    "fork:clean": "make fork-clean",
     "build": "make build",
     "deploy": "make deploy",
     "test": "export $(cat ../.env | sed 's/#.*//g' | xargs) && forge test -vv",
