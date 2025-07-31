@@ -2,12 +2,15 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
 import type {
   DecryptionArgs,
-  AuthenticatedDecipher,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
-import { createDecipheriv } from "crypto";
+import { createDecipheriv, Decipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";
+
+interface AuthenticatedDecipher extends Decipheriv {
+  setAuthTag(tag: Buffer): this;
+}
 
 /**
  * Parse command line arguments to extract decryption parameters
@@ -178,11 +181,7 @@ function validateKeyFile(keyPath: string): Buffer {
 
     return keyBuffer;
   } catch (error) {
-
-    if (errorMessage.includes("Invalid key size")) {
-      throw error;
-    }
-    throw new Error(`Failed to read or validate key file: ${errorMessage}`);
+    throw new Error(`Failed to read or validate key file: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -289,8 +288,7 @@ export function decrypt(
 
     return plaintext;
   } catch (error) {
-
-
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     // Enhanced error messages for common decryption failures
     if (
       errorMessage.includes("Unsupported state") ||
@@ -331,7 +329,7 @@ export function getDecryptionKey(): Buffer {
 
     return keyBuffer;
   } catch (error) {
-
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
     if (errorMessage.includes("not found")) {
       throw new Error("NO_ENCRYPTION_KEY");
     }
@@ -381,7 +379,7 @@ async function main(): Promise<void> {
     console.log();
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
   } catch (error) {
-
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error(chalk.red.bold("\n❌ Decryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
@@ -411,8 +409,7 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

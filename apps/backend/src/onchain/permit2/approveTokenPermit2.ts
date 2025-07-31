@@ -7,7 +7,7 @@ import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { getTokenInfo, createSigner } from "@shared/utils/crypto/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { WillFileType, FormattedWillData } from "@shared/types/will.js";
+import { WillFileType, type FormattedWillData } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";

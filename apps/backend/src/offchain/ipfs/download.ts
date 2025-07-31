@@ -3,7 +3,7 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { WillFileType, DownloadedWillData } from "@shared/types/will.js";
+import { WillFileType, type DownloadedWillData } from "@shared/types/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";

@@ -62,7 +62,7 @@ function saveWill(willType: WillFileType, data: WillData): void {
 
     console.log(
       chalk.green(
-        `📝 ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`,
+        `✅ ${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} saved to:`,
       ),
       filePath,
     );

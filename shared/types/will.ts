@@ -15,30 +15,30 @@ enum WillFileType {
   DECRYPTED = "decrypted",
 }
 
-type WillData =
-  | FormattedWillData
-  | AddressedWillData
-  | SignedWillData
-  | EncryptedWillData
-  | DownloadedWillData
-  | DecryptedWillData
+type Will =
+  | FormattedWill
+  | AddressedWill
+  | SignedWill
+  | EncryptedWill
+  | DownloadedWill
+  | DecryptedWill
   | string;
 
-interface FormattedWillData {
+interface FormattedWill {
   testator: EthereumAddress;
   estates: Estate[];
 }
 
-interface AddressedWillData extends FormattedWillData {
+interface AddressedWill extends FormattedWill {
   salt: number;
   will: EthereumAddress;
 }
 
-interface SignedWillData extends AddressedWillData {
+interface SignedWill extends AddressedWill {
   signature: Permit2Signature;
 }
 
-interface EncryptedWillData {
+interface EncryptedWill {
   algorithm: SupportedAlgorithm;
   iv: Base64String;
   authTag: Base64String;
@@ -46,17 +46,17 @@ interface EncryptedWillData {
   timestamp: number;
 }
 
-interface DownloadedWillData extends EncryptedWillData { }
+interface DownloadedWill extends EncryptedWill { }
 
-interface DecryptedWillData extends SignedWillData { }
+interface DecryptedWill extends SignedWill { }
 
 export {
   WillFileType,
-  type WillData,
-  type FormattedWillData,
-  type AddressedWillData,
-  type SignedWillData,
-  type EncryptedWillData,
-  type DownloadedWillData,
-  type DecryptedWillData,
+  type Will as WillData,
+  type FormattedWill as FormattedWillData,
+  type AddressedWill as AddressedWillData,
+  type SignedWill as SignedWillData,
+  type EncryptedWill as EncryptedWillData,
+  type DownloadedWill as DownloadedWillData,
+  type DecryptedWill as DecryptedWillData,
 };

@@ -1,18 +1,18 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/types/constants.js";
-import type {
-  EncryptionArgs,
-  AuthenticatedCipher,
-  SupportedAlgorithm,
-} from "@shared/types/crypto.js";
+import type { SupportedAlgorithm, EncryptionArgs } from "@shared/types/crypto.js";
 import { Base64String } from "@shared/types/base64String.js";
-import { randomBytes, createCipheriv } from "crypto";
+import { randomBytes, createCipheriv, Cipheriv, Decipheriv } from "crypto";
 import { writeFileSync } from "fs";
 import { config } from "dotenv";
 import chalk from "chalk";
 
 // Load environment configuration
 config({ path: PATHS_CONFIG.env });
+
+interface AuthenticatedCipher extends Cipheriv {
+  getAuthTag(): Buffer;
+}
 
 /**
  * Parse command line arguments to extract encryption parameters
@@ -238,9 +238,8 @@ function generateSecureRandomBytes(size: number, purpose: string): Buffer {
 
     return bytes;
   } catch (error) {
-
     throw new Error(
-      `Failed to generate secure random bytes for ${purpose}: ${errorMessage}`,
+      `Failed to generate secure random bytes for ${purpose}: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -264,8 +263,7 @@ function createBase64KeyFile(keyPath: string, keyBuffer: Buffer) {
     console.log(chalk.green("✅ New encryption key generated and saved"));
     console.log(chalk.yellow("⚠️ Keep this key file secure and backed up!"));
   } catch (error) {
-
-    throw new Error(`Failed to create key file: ${errorMessage}`);
+    throw new Error(`Failed to create key file: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -279,6 +277,8 @@ export function encrypt(
   iv: Buffer,
 ): { ciphertext: Buffer; authTag: Buffer } {
   try {
+    console.log(chalk.blue(`Encrypting with ${algorithm}...`));
+
     // Validate inputs
     validateEncryptionParams(algorithm, plaintext, key, iv);
 
@@ -299,10 +299,10 @@ export function encrypt(
       throw new Error("Encryption failed to generate auth tag");
     }
 
+    console.log(chalk.green(`✅ Encrypted!`));
     return { ciphertext, authTag };
   } catch (error) {
-
-    throw new Error(`Encryption failed: ${errorMessage}`);
+    throw new Error(`Encryption failed: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -328,8 +328,7 @@ export function generateEncryptionKey(
 
     return keyBuffer;
   } catch (error) {
-
-    throw new Error(`Failed to get encryption key: ${errorMessage}`);
+    throw new Error(`Failed to get encryption key: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -348,11 +347,11 @@ export function generateInitializationVector(
         `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${size} bytes`,
       );
     }
-
-    return generateSecureRandomBytes(size, "initialization vector");
+    const iv = generateSecureRandomBytes(size, "initialization vector")
+    console.log(chalk.green("✅ New IV generated:", iv));
+    return iv;
   } catch (error) {
-
-    throw new Error(`Failed to get initialization vector: ${errorMessage}`);
+    throw new Error(`Failed to get initialization vector: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -400,8 +399,8 @@ async function main(): Promise<void> {
       chalk.white(Base64String.fromBuffer(result.authTag)),
     );
   } catch (error) {
-
-    console.error(chalk.red.bold("\n❌ Encryption failed:"), errorMessage);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    console.error(chalk.red.bold("\n❌ Encryption failed:"), error instanceof Error ? error.message : "Unknown error");
 
     // Show usage information for argument-related errors
     if (
@@ -427,9 +426,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

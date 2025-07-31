@@ -1,7 +1,6 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import type {
-  DecryptionArgs,
-  SupportedAlgorithm,
+  SupportedAlgorithm, DecryptionArgs
 } from "@shared/types/crypto.js";
 import {
   WillFileType,
@@ -13,6 +12,7 @@ import { saveWill } from "@shared/utils/file/saveWill.js";
 import { getDecryptionKey, decrypt } from "@shared/utils/crypto/decrypt.js";
 import chalk from "chalk";
 
+// Type definitions
 interface ProcessResult {
   decryptedPath: string;
   algorithm: SupportedAlgorithm;

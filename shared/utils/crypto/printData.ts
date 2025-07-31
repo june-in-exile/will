@@ -1,6 +1,5 @@
 import type { ProofData } from "@shared/types/crypto.js";
 import type { Estate } from "@shared/types/blockchain.js";
-import type { WillInfo } from "@shared/types/blockchain.js";
 import type { JsonCidVerifier } from "@shared/types/typechain-types/index.js";
 import chalk from "chalk";
 

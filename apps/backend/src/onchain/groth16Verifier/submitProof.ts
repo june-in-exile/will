@@ -87,9 +87,7 @@ async function submitProofToContract(
       executionTime,
     };
   } catch (error) {
-
-    console.error(chalk.red("Error during proof submission:"), errorMessage);
-    throw new Error(`Failed to submit proof: ${errorMessage}`);
+    throw new Error(`Failed to submit proof: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -135,12 +133,7 @@ async function processProofSubmission(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-
-    console.error(
-      chalk.red("Error during proof submission process:"),
-      errorMessage,
-    );
-    throw error;
+    throw new Error(`Failed to submit proof: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -175,12 +168,10 @@ async function main(): Promise<void> {
       console.log(chalk.gray("4. Verifier contract compatibility"));
     }
   } catch (error) {
-
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
-
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);
@@ -193,9 +184,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
     process.exit(1);
   });
 }

@@ -1,6 +1,6 @@
 import { PATHS_CONFIG, IPFS_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
+import { WillFileType, type EncryptedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { createHelia, Helia } from "helia";
 import { json, JSON as HeliaJSON } from "@helia/json";

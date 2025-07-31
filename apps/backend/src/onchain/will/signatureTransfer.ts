@@ -99,8 +99,7 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
       estates: formattedEstates,
     };
   } catch (error) {
-
-    throw new Error(`Failed to fetch will info: ${errorMessage}`);
+    throw new Error(`Failed to fetch will info: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -190,8 +189,7 @@ async function checkTokenBalances(
       balances,
     };
   } catch (error) {
-
-    throw new Error(`Failed to check token balances: ${errorMessage}`);
+    throw new Error(`Failed to check token balances: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 
@@ -421,9 +419,8 @@ async function executeSignatureTransfer(
       estateCount: willInfo.estates.length,
     };
   } catch (error) {
-
     throw new Error(
-      `Failed to execute signatureTransferToBeneficiaries: ${errorMessage}`,
+      `Failed to execute signatureTransferToBeneficiaries: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -505,10 +502,9 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-
     console.error(
       chalk.red("Error during will execution process:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
   }
@@ -528,10 +524,9 @@ async function main(): Promise<void> {
     console.log(chalk.gray("- Estates Transferred:"), result.estateCount);
     console.log(chalk.gray("- Gas Used:"), result.gasUsed.toString());
   } catch (error) {
-
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
-      errorMessage,
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     // Log stack trace in development mode
@@ -546,9 +541,8 @@ async function main(): Promise<void> {
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
-  main().catch((error: Error) => {
-
-    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+  main().catch((error) => {
+    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error",);
     process.exit(1);
   });
 }

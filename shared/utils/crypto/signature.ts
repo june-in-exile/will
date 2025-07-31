@@ -1,5 +1,4 @@
 import { SIGNATURE_CONFIG } from "@config";
-import type { SignatureValidationResult } from "@shared/types/crypto.js";
 import {
   validateEthereumAddress,
   validateSignature,

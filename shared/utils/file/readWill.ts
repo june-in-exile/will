@@ -1,12 +1,6 @@
 import { PATHS_CONFIG } from "@config";
 import {
   WillFileType,
-  type FormattedWillData,
-  type AddressedWillData,
-  type SignedWillData,
-  type EncryptedWillData,
-  type DownloadedWillData,
-  type DecryptedWillData,
 } from "@shared/types/will.js";
 import {
   validateFormattedWill,

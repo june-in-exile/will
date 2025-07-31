@@ -4,7 +4,7 @@ import {
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
-import { WillFileType, EncryptedWillData } from "@shared/types/will.js";
+import { WillFileType, type EncryptedWillData } from "@shared/types/will.js";
 import { ProofData } from "@shared/types/crypto.js";
 import {
   validateEnvironment,

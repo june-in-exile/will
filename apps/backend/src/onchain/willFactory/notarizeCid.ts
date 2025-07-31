@@ -76,7 +76,7 @@ async function executeNotarizeCID(
     printNotarizationDetails(notarizeData);
 
     // Estimate gas
-    const gasEstimate = await contract.notarizeCid.estimateGas(notarizeData);
+    const gasEstimate = await contract.notarizeCid.estimateGas(notarizeData.cid, notarizeData.signature);
 
     console.log(chalk.gray("Estimated gas:"), gasEstimate.toString());
 

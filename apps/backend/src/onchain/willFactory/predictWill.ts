@@ -6,11 +6,11 @@ import {
   presetValidations,
 } from "@shared/utils/validation/environment.js";
 import {
-  type WillFactory,
+  WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WillFileType, FormattedWillData, AddressedWillData } from "@shared/types/will.js";
+import { WillFileType, type FormattedWillData, type AddressedWillData } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";

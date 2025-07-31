@@ -1,7 +1,6 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import type {
-  EncryptionArgs,
-  SupportedAlgorithm,
+  EncryptionArgs
 } from "@shared/types/crypto.js";
 import {
   generateEncryptionKey,
@@ -11,18 +10,17 @@ import {
 import { Base64String } from "@shared/types/base64String.js";
 import {
   WillFileType,
-  SignedWillData,
-  EncryptedWillData,
+  type SignedWillData,
+  type EncryptedWillData,
 } from "@shared/types/will.js";
+import { truncate } from "@shared/utils/transform/expression.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";
 
 // Type definitions
-interface ProcessResult {
+interface ProcessResult extends EncryptedWillData {
   encryptedPath: string;
-  algorithm: SupportedAlgorithm;
-  success: boolean;
 }
 
 /**
@@ -54,7 +52,6 @@ async function processWillEncryption(): Promise<ProcessResult> {
     const { algorithm, plaintext: will, key, iv } = getEncryptionArgs();
 
     // Encrypt the will
-    console.log(chalk.blue(`Encrypting with ${algorithm}...`));
     const { ciphertext, authTag } = encrypt(algorithm, will, key, iv);
 
     // Prepare encrypted will structure
@@ -65,19 +62,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
       ciphertext: Base64String.fromBuffer(ciphertext),
       timestamp: Math.floor(Date.now() / 1000),
     };
-
-    console.log(chalk.gray("Encrypted will structure:"));
-    console.log(
-      JSON.stringify(
-        {
-          ...encryptedWill,
-          ciphertext: encryptedWill.ciphertext.substring(0, 50) + "...",
-        },
-        null,
-        2,
-      ),
-    );
-
+    
     // Save encrypted will
     saveWill(WillFileType.ENCRYPTED, encryptedWill);
 
@@ -86,9 +71,8 @@ async function processWillEncryption(): Promise<ProcessResult> {
     );
 
     return {
+      ...encryptedWill,
       encryptedPath: PATHS_CONFIG.will.encrypted,
-      algorithm: CRYPTO_CONFIG.algorithm,
-      success: true,
     };
   } catch (error) {
     console.error(
@@ -109,7 +93,14 @@ async function main(): Promise<void> {
     const result = await processWillEncryption();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), JSON.stringify(
+      {
+        ...result,
+        ciphertext: truncate(result.ciphertext),
+      },
+      null,
+      2,
+    ));
   } catch (error) {
 
     console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
