@@ -5,11 +5,9 @@ import {
   presetValidations,
 } from "@shared/utils/validation/environment.js";
 import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
-import { createHeliaInstance } from "@shared/utils/ipfs.js";
+import { createHeliaInstance, downloadFromIpfs, stopHelia } from "@shared/utils/ipfs.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { Helia } from "helia";
-import { JSON } from "@helia/json";
-import { CID } from "multiformats/cid";
 import chalk from "chalk";
 
 interface ProcessResult {
@@ -35,20 +33,6 @@ function validateEnvironmentVariables(): IpfsDownload {
 }
 
 /**
- * Download data from IPFS
- */
-async function downloadFromIpfs(
-  jsonHandler: JSON,
-  cid: string
-): Promise<DownloadedWill> {
-  console.log(chalk.blue("CID:"), cid.toString());
-  console.log(chalk.blue("Downloading will from IPFS..."));
-
-  const downloadedWill: DownloadedWill = await jsonHandler.get(CID.parse(cid));
-  return downloadedWill;
-}
-
-/**
  * Download encrypted will from IPFS and save to local file
  */
 async function processIPFSDownload(): Promise<ProcessResult> {
@@ -60,9 +44,8 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
     helia = heliaInstance;
 
-    const downloadedWill = await downloadFromIpfs(jsonHandler, CID);
+    const downloadedWill = await downloadFromIpfs(jsonHandler, CID) as DownloadedWill;
 
-    // Save downloaded will
     saveWill(WillFileType.DOWNLOADED, downloadedWill);
 
     console.log(
@@ -77,21 +60,8 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     console.error(chalk.red("Failed to download from IPFS:"), error instanceof Error ? error.message : "Unknown error");
     throw error;
   } finally {
-    // Clean up Helia instance
-    if (helia) {
-      try {
-        console.log(chalk.blue("Cleaning up Helia instance..."));
-        await helia.stop();
-        console.log(chalk.gray("✅ Helia instance stopped successfully"));
-      } catch (stopError) {
-        const stopErrorMessage =
-          stopError instanceof Error ? stopError.message : "Unknown stop error";
-        console.warn(
-          chalk.yellow("⚠️ Warning while stopping Helia:"),
-          stopErrorMessage,
-        );
-      }
-    }
+    if (helia)
+      stopHelia(helia);
   }
 }
 

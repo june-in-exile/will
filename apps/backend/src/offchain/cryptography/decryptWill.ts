@@ -14,7 +14,7 @@ import { getKey } from "@shared/utils/cryptography/key.js";
 import { decrypt } from "@shared/utils/cryptography/decrypt.js";
 import chalk from "chalk";
 
-interface DecryptWillProcessResult extends DecryptedWill {
+interface ProcessResult extends DecryptedWill {
   decryptedWillPath: string;
 }
 
@@ -38,7 +38,7 @@ function getDecryptionArgs(type: WillFileType): DecryptionArgs {
  */
 async function processWillDecryption(
   isTestMode: boolean,
-): Promise<DecryptWillProcessResult> {
+): Promise<ProcessResult> {
   try {
     const type: WillFileType = isTestMode
       ? WillFileType.ENCRYPTED

@@ -132,9 +132,9 @@ describe("PredictWill Module", () => {
 
   beforeAll(() => {
     // Mock console methods to avoid output during tests
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => { });
+    vi.spyOn(console, "error").mockImplementation(() => { });
+    vi.spyOn(console, "warn").mockImplementation(() => { });
   });
 
   beforeEach(() => {
@@ -492,7 +492,7 @@ describe("PredictWill Module", () => {
 
     it("should save addressed will successfully", async () => {
       const fs = await import("fs");
-      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+      vi.mocked(fs.writeFileSync).mockImplementation(() => { });
 
       const result = predictWillModule.saveAddressedWill(
         validWillData,
@@ -621,7 +621,7 @@ describe("PredictWill Module", () => {
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(validWillData));
-      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+      vi.mocked(fs.writeFileSync).mockImplementation(() => { });
 
       process.env.WILL_FACTORY = MOCK_WILL_FACTORY;
       vi.mocked(ethers.isAddress).mockReturnValue(true);
@@ -661,7 +661,7 @@ describe("PredictWill Module", () => {
     });
 
     it("should complete workflow successfully", async () => {
-      const result = await predictWillModule.processWillAddressing();
+      const result = await predictWillModule.processPredictWill();
 
       expect(result).toMatchObject({
         predictedAddress: MOCK_PREDICTED_ADDRESS,
@@ -676,7 +676,7 @@ describe("PredictWill Module", () => {
       const fs = await import("fs");
       vi.mocked(fs.existsSync).mockReturnValue(false);
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Formatted will file does not exist",
       );
     });
@@ -684,7 +684,7 @@ describe("PredictWill Module", () => {
     it("should handle environment validation failure", async () => {
       delete process.env.WILL_FACTORY;
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Environment variable WILL_FACTORY is not set",
       );
     });
@@ -694,7 +694,7 @@ describe("PredictWill Module", () => {
         new Error("Network unreachable"),
       );
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Failed to connect to RPC endpoint: Network unreachable",
       );
     });
@@ -702,7 +702,7 @@ describe("PredictWill Module", () => {
     it("should handle contract creation failure", async () => {
       mockProvider.getCode.mockResolvedValue("0x"); // No contract
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "No contract found at address",
       );
     });
@@ -711,7 +711,7 @@ describe("PredictWill Module", () => {
       const fs = await import("fs");
       vi.mocked(fs.readFileSync).mockReturnValue("invalid json");
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Invalid JSON in will file",
       );
     });
@@ -721,7 +721,7 @@ describe("PredictWill Module", () => {
         new Error("Prediction failed"),
       );
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Failed to predict will address: Prediction failed",
       );
     });
@@ -732,7 +732,7 @@ describe("PredictWill Module", () => {
         throw new Error("Write failed");
       });
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Failed to save addressed will: Write failed",
       );
     });
@@ -745,7 +745,7 @@ describe("PredictWill Module", () => {
         new Error("Update failed"),
       );
 
-      await expect(predictWillModule.processWillAddressing()).rejects.toThrow(
+      await expect(predictWillModule.processPredictWill()).rejects.toThrow(
         "Failed to update environment variables: Update failed",
       );
     });
