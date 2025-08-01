@@ -15,6 +15,7 @@ import { validateWill } from "@shared/utils/validation/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { getKey } from "@shared/utils/cryptography/key.js";
 import { decrypt } from "@shared/utils/cryptography/decrypt.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface ProcessResult extends DecryptedWill {
@@ -90,7 +91,14 @@ async function main(): Promise<void> {
     const result = await processWillDecryption(isTestMode);
 
     console.log(chalk.green.bold("✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      permit2: {
+        nonce: result.permit2.nonce,
+        deadline: `${preview.timestamp(result.permit2.deadline * 1000)}`,
+        signature: `${preview.longString(result.permit2.signature)}`,
+      },
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("❌ Program execution failed:"),

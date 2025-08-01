@@ -15,6 +15,7 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createContract } from "@shared/utils/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface ProcessResult {
@@ -129,7 +130,10 @@ async function main(): Promise<void> {
     const result = await processProofSubmission();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      submittedTime: `${preview.timestamp(result.submittedTime)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

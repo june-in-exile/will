@@ -14,10 +14,10 @@ import {
 import { validateWill } from "@shared/utils/validation/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { Helia } from "helia";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
-interface ProcessResult {
-  downloaded: DownloadedWill;
+interface ProcessResult extends DownloadedWill {
   downloadedWillPath: string;
 }
 
@@ -64,7 +64,7 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     );
 
     return {
-      downloaded: downloadedWill,
+      ...downloadedWill,
       downloadedWillPath: PATHS_CONFIG.will.downloaded,
     };
   } catch (error) {
@@ -88,7 +88,11 @@ async function main(): Promise<void> {
     const result = await processIPFSDownload();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ciphertext: `${preview.longString(result.ciphertext)}`,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+      downloadedWillPath: result.downloadedWillPath,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

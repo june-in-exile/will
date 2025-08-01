@@ -11,6 +11,7 @@ import {
 } from "@shared/utils/validation/blockchain.js";
 import { signString, verify } from "@shared/utils/cryptography/signature.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface CidSigningData {
@@ -161,7 +162,10 @@ async function main(): Promise<void> {
     const result = await processCidSigning();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      signature: `${preview.longString(result.signature)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

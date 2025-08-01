@@ -21,6 +21,7 @@ import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable
 import { WILL_TYPE } from "@shared/constants/willType.js";
 import { readWillFields } from "@shared/utils/file/readWill.js";
 import { getWillInfo } from "@shared/utils/blockchain.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface ProcessResult {
@@ -103,7 +104,7 @@ function printBalanceSnapshot(
   console.log(chalk.cyan(`\n=== ${title} ===`));
   console.log(
     chalk.gray("Timestamp:"),
-    new Date(snapshot.timestamp * 1000).toISOString(),
+    preview.timestamp(snapshot.timestamp * 1000),
   );
 
   // Group balances by token
@@ -173,7 +174,7 @@ function compareBalanceSnapshots(
         afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
           ? "Testator"
           : afterBalance.address.toLowerCase() ===
-              willInfo.executor.toLowerCase()
+            willInfo.executor.toLowerCase()
             ? "Executor"
             : "Beneficiary";
 
@@ -373,7 +374,10 @@ async function main(): Promise<void> {
     const result = await processSignatureTransfer();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

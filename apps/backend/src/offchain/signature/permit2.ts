@@ -13,7 +13,7 @@ import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createSigner } from "@shared/utils/blockchain.js";
 import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js";
-import { preview } from "@shared/utils/transform/expression.js";
+import preview from "@shared/utils/transform/preview.js";
 import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
 import chalk from "chalk";
@@ -41,7 +41,6 @@ interface ProcessResult {
   deadline: number;
   signature: string;
   signerAddress: string;
-  chainId: string;
   signedWillPath: string;
 }
 
@@ -166,7 +165,6 @@ async function signPermit(
     const signature = await signer.signTypedData(domain, types, values);
 
     console.log(chalk.green("✅ Signature generated successfully"));
-    console.log(chalk.gray("Signature:"), preview(signature));
 
     return signature;
   } catch (error) {
@@ -235,7 +233,6 @@ async function processPermitSigning(): Promise<ProcessResult> {
       deadline,
       signature,
       signerAddress: await signer.getAddress(),
-      chainId: network.chainId.toString(),
       signedWillPath: PATHS_CONFIG.will.signed,
     };
   } catch (error) {
@@ -259,7 +256,8 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {
       ...result,
-      signature: `${result.signature.substring(0, 10)}...${result.signature.substring(result.signature.length - 8)}`,
+      deadline: `${preview.timestamp(result.deadline * 1000)}`,
+      signature: `${preview.longString(result.signature)}`,
     });
   } catch (error) {
     console.error(

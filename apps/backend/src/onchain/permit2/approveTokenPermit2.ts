@@ -282,7 +282,6 @@ async function executeTokenApprovals(
     }
   }
 
-  // Display summary
   console.log(chalk.cyan("\n📊 Approval Summary:"));
   console.log(chalk.green(`✅ Successful approvals: ${successful.length}`));
   if (successful.length > 0) {

@@ -7,7 +7,8 @@ import { Base64String } from "@shared/types/base64String.js";
 import { WILL_TYPE } from "@shared/constants/willType.js";
 import type { SignedWill, EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { saveWill } from "@shared/utils/file/saveWill.js";
+import { saveWill } from "@shared/utils/file/saveWill.js"
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface ProcessResult extends EncryptedWill {
@@ -77,7 +78,11 @@ async function main(): Promise<void> {
     const result = await processWillEncryption();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      ciphertext: `${preview.longString(result.ciphertext)}`,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("❌ Program execution failed:"),

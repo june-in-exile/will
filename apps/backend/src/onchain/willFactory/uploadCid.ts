@@ -21,6 +21,7 @@ import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable
 import { WILL_TYPE } from "@shared/constants/willType.js";
 import type { EncryptedWill } from "@shared/types/will.js";
 import type { UploadCid } from "@shared/types/environment.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface UploadCidData {
@@ -175,7 +176,10 @@ async function main(): Promise<void> {
     const result = await processUploadCid();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

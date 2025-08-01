@@ -22,6 +22,7 @@ import { WILL_TYPE } from "@shared/constants/willType.js";
 import type { EncryptedWill } from "@shared/types/will.js";
 import type { Estate } from "@shared/types/blockchain.js";
 import type { CreateWill } from "@shared/types/environment.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface CreateWillData {
@@ -206,7 +207,10 @@ async function main(): Promise<void> {
     const result = await processCreateWill();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),

@@ -49,7 +49,7 @@ _Note: This step is currently under development._
 One-time initialization to approve the Permit2 contract for the testator's tokens:
 
 ```sh
-make approve-permit
+make approve-permit2
 ```
 
 - **Note**: If you've completed this approval before, you can skip to the next step.
@@ -72,7 +72,7 @@ make predict-address
 Create the signature for [Permit2 SignatureTransfer function](https://docs.uniswap.org/contracts/permit2/reference/signature-transfer):
 
 ```sh
-make generate-signature
+make sign-permit2
 ```
 
 - **Output**: [`will/4_signed.json`](will/4_signed.json)

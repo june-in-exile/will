@@ -25,15 +25,15 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit predict-address sign-permit encrypt-will upload-will upload-cid
+phase1: approve-permit2 predict-address sign-permit2 encrypt-will upload-will upload-cid
 
-approve-permit:
+approve-permit2:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
 
 predict-address:
 	@pnpm exec tsx src/onchain/willFactory/predictWill.ts
 
-sign-permit:
+sign-permit2:
 	@pnpm exec tsx src/offchain/signature/permit2.ts
 
 encrypt-will:

@@ -12,6 +12,7 @@ import {
 } from "@shared/types/typechain-types/index.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import type { NotarizeCid } from "@shared/types/environment.js";
+import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
 interface NotarizeCidData {
@@ -153,7 +154,10 @@ async function main(): Promise<void> {
     const result = await processNotarizeCID();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"), result);
+    console.log(chalk.gray("Results:"), {
+      ...result,
+      timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
+    });
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
