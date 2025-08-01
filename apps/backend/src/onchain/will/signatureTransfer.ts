@@ -8,7 +8,7 @@ import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   getTokenBalance,
   createWallet,
-  createContractInstance,
+  createContract,
 } from "@shared/utils/blockchain.js";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import type {
@@ -18,6 +18,8 @@ import type {
 } from "@shared/types/blockchain.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import { readWillFields } from "@shared/utils/file/readWill.js";
 import { getWillInfo } from "@shared/utils/blockchain.js";
 import chalk from "chalk";
 
@@ -295,28 +297,24 @@ async function executeSignatureTransfer(
  */
 async function processSignatureTransfer(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
-    const { WILL, EXECUTOR_PRIVATE_KEY, NONCE, DEADLINE, PERMIT2_SIGNATURE } =
+    const { EXECUTOR_PRIVATE_KEY } =
       validateEnvironmentVariables();
 
-    // Initialize provider and validate connection
+    const fields = readWillFields(WILL_TYPE.DECRYPTED, ['will', 'signature']);
+
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    // Create will contract instance
-    const contract = await createContractInstance<Will>(
-      WILL,
+    const contract = await createContract<Will>(
+      fields.will,
       Will__factory,
       wallet,
     );
 
-    // Get will information
     const willInfo = await getWillInfo(contract);
 
-    // Check balances before execution
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances before execution..."),
     );
@@ -327,16 +325,14 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
       willInfo,
     );
 
-    // Execute signature transfer
     const result = await executeSignatureTransfer(
       contract,
       willInfo,
-      NONCE,
-      DEADLINE,
-      PERMIT2_SIGNATURE,
+      fields.signature.nonce.toString(),
+      fields.signature.deadline.toString(),
+      fields.signature.signature.toString(),
     );
 
-    // Check balances after execution
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances after execution..."),
     );
@@ -347,10 +343,8 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
       willInfo,
     );
 
-    // Compare and show differences
     compareBalanceSnapshots(beforeSnapshot, afterSnapshot, willInfo);
 
-    // Update environment
     await updateEnvironmentVariables([
       ["EXECUTE_WILL_TX_HASH", result.transactionHash],
       ["EXECUTE_WILL_TIMESTAMP", result.timestamp.toString()],

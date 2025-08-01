@@ -4,12 +4,11 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { JsonRpcProvider } from "ethers";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   createWallet,
-  createContractInstance,
+  createContract,
 } from "@shared/utils/blockchain.js";
 import {
   WillFactory,
@@ -18,7 +17,7 @@ import {
 } from "@shared/types/typechain-types/index.js";
 import type { ProofData } from "@shared/types/crypto.js";
 import { readProof } from "@shared/utils/file/readProof.js";
-import { readWill } from "@shared/utils/file/readWill.js";
+import { readWill, readWillFields } from "@shared/utils/file/readWill.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printEstates, printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
@@ -58,69 +57,6 @@ function validateEnvironmentVariables(): CreateWill {
   }
 
   return result.data;
-}
-
-// collectEstateFromDecryptedWill
-/**
- * Parse estates from environment variables
- */
-function parseEstatesFromEnvironment(): Estate[] {
-  const estates: Estate[] = [];
-  let index = 0;
-
-  while (true) {
-    const beneficiary = process.env[`BENEFICIARY${index}`];
-    const token = process.env[`TOKEN${index}`];
-    const amount = process.env[`AMOUNT${index}`];
-
-    if (!beneficiary || !token || !amount) {
-      break;
-    }
-
-    // Validate addresses
-    if (!validateEthereumAddress(beneficiary)) {
-      throw new Error(
-        `Invalid beneficiary address at index ${index}: ${beneficiary}`,
-      );
-    }
-
-    if (!validateEthereumAddress(token)) {
-      throw new Error(`Invalid token address at index ${index}: ${token}`);
-    }
-
-    // Validate amount
-    let parsedAmount: bigint;
-    try {
-      parsedAmount = BigInt(amount);
-    } catch {
-      throw new Error(`Invalid amount at index ${index}: ${amount}`);
-    }
-
-    if (parsedAmount <= 0n) {
-      throw new Error(
-        `Amount must be greater than zero at index ${index}: ${amount}`,
-      );
-    }
-
-    estates.push({
-      beneficiary,
-      token,
-      amount: parsedAmount,
-    });
-
-    index++;
-  }
-
-  if (estates.length === 0) {
-    throw new Error(
-      "No estates found in environment variables. Please set BENEFICIARY0, TOKEN0, AMOUNT0, etc.",
-    );
-  }
-
-  console.log(
-    chalk.green(`✅ Found ${estates.length} estate(s) in environment`),
-  );
-  return estates;
 }
 
 /**
@@ -210,41 +146,34 @@ async function processCreateWill(): Promise<ProcessResult> {
       PATHS_CONFIG.zkp.multiplier2.proof,
       PATHS_CONFIG.zkp.multiplier2.public,
     ]);
-    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, TESTATOR, SALT } =
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
-    const estates = parseEstatesFromEnvironment();
-
-    let saltBigInt: bigint;
-    try {
-      saltBigInt = BigInt(SALT);
-    } catch {
-      throw new Error(`Invalid salt format: ${SALT}`);
-    }
+    const fields = readWillFields(WILL_TYPE.DECRYPTED, ['testator', 'estates', 'salt']);
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    const contract = await createContractInstance<WillFactory>(
+    const contract = await createContract<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       wallet,
     );
 
     const proof: ProofData = readProof();
-    const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
-    const will: JsonCidVerifier.TypedJsonObjectStruct =
-      encryptedWillToTypedJsonObject(willData);
+    const encryptedWill: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
+    const encryptedWillKeyValues: JsonCidVerifier.TypedJsonObjectStruct =
+      encryptedWillToTypedJsonObject(encryptedWill);
 
     const result = await executeCreateWill(contract, {
       proof,
-      will,
+      will: encryptedWillKeyValues,
       cid: CID,
-      testator: TESTATOR,
-      estates,
-      salt: saltBigInt,
+      testator: fields.testator,
+      estates: fields.estates,
+      salt: BigInt(fields.salt),
     });
 
     await updateEnvironmentVariables([
@@ -305,7 +234,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  parseEstatesFromEnvironment,
   executeCreateWill,
   processCreateWill,
 };

@@ -12,7 +12,7 @@ import {
 import type { ProofData } from "@shared/types/crypto.js";
 import { validateFiles } from "@shared/utils/validation/file.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createContractInstance } from "@shared/utils/blockchain.js";
+import { createContract } from "@shared/utils/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
@@ -97,7 +97,7 @@ async function processProofSubmission(): Promise<ProcessResult> {
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    const contract = await createContractInstance<Groth16Verifier>(
+    const contract = await createContract<Groth16Verifier>(
       UPLOAD_CID_VERIFIER,
       Groth16Verifier__factory,
       provider,

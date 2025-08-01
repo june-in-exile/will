@@ -4,7 +4,6 @@ import {
   validateSignature,
 } from "@shared/utils/validation/blockchain.js";
 import { validateCidv1 } from "@shared/utils/validation/cid.js";
-import { stringToBigInt } from "@shared/utils/transform/encoding.js";
 import type {
   EnvironmentValidationOptions,
   ValidationResult,
@@ -21,7 +20,6 @@ function validateEnvironment<T extends Record<string, any>>(
   const errors: string[] = [];
   const data: Record<string, any> = {};
 
-  // Check required fields
   if (options.required) {
     for (const field of options.required) {
       const value = process.env[field];
@@ -33,7 +31,6 @@ function validateEnvironment<T extends Record<string, any>>(
     }
   }
 
-  // Check optional fields
   if (options.optional) {
     for (const field of options.optional) {
       const value = process.env[field];
@@ -43,7 +40,6 @@ function validateEnvironment<T extends Record<string, any>>(
     }
   }
 
-  // Apply validators
   if (options.validators) {
     for (const [field, validator] of Object.entries(options.validators)) {
       const value = data[field];
@@ -53,7 +49,6 @@ function validateEnvironment<T extends Record<string, any>>(
     }
   }
 
-  // Apply transforms
   if (options.transforms) {
     for (const [field, transform] of Object.entries(options.transforms)) {
       const value = data[field];
@@ -81,7 +76,6 @@ const validators = {
   privateKey: (value: string): boolean => validatePrivateKey(value),
   cidv1: (value: string): boolean => validateCidv1(value),
   signature: (value: string): boolean => validateSignature(value),
-  numericString: (value: string): boolean => /^\d+$/.test(value),
 };
 
 // Preset validation configurations for common use cases
@@ -101,7 +95,7 @@ const presetValidations = {
     },
   }),
 
-  transferSigning: (): EnvironmentValidationOptions => ({
+  permitSigning: (): EnvironmentValidationOptions => ({
     required: ["TESTATOR_PRIVATE_KEY", "PERMIT2"],
     validators: {
       TESTATOR_PRIVATE_KEY: validators.privateKey,
@@ -161,39 +155,20 @@ const presetValidations = {
       "WILL_FACTORY",
       "EXECUTOR_PRIVATE_KEY",
       "CID",
-      "TESTATOR",
-      "SALT",
     ],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
-      TESTATOR: validators.ethereumAddress,
-      SALT: validators.numericString,
-    },
-    transforms: {
-      SALT: stringToBigInt,
     },
   }),
 
   signatureTransfer: (): EnvironmentValidationOptions => ({
     required: [
-      "WILL",
       "EXECUTOR_PRIVATE_KEY",
-      "NONCE",
-      "DEADLINE",
-      "PERMIT2_SIGNATURE",
     ],
     validators: {
-      WILL: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
-      NONCE: validators.numericString,
-      DEADLINE: validators.numericString,
-      PERMIT2_SIGNATURE: (value: string) => validators.signature(value),
-    },
-    transforms: {
-      NONCE: stringToBigInt,
-      DEADLINE: stringToBigInt,
     },
   }),
 };

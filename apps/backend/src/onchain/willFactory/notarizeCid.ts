@@ -7,7 +7,7 @@ import { JsonRpcProvider } from "ethers";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import {
   createWallet,
-  createContractInstance,
+  createContract,
 } from "@shared/utils/blockchain.js";
 import {
   WillFactory,
@@ -116,7 +116,7 @@ async function processNotarizeCID(): Promise<ProcessResult> {
 
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    const contract = await createContractInstance<WillFactory>(
+    const contract = await createContract<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       wallet,

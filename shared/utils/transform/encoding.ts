@@ -15,8 +15,4 @@ function uint8ArrayToHex(
   return addPrefix ? "0x" + finalHex : finalHex;
 }
 
-function stringToBigInt(value: string): bigint {
-  return BigInt(value);
-}
-
-export { uint8ArrayToHex, stringToBigInt };
+export { uint8ArrayToHex };

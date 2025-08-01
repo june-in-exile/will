@@ -2,7 +2,7 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import type { TransferSigning } from "@shared/types/environment.js";
+import type { PermitSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
@@ -51,9 +51,9 @@ interface ProcessResult {
 /**
  * Validate environment variables
  */
-function validateEnvironmentVariables(): TransferSigning {
-  const result = validateEnvironment<TransferSigning>(
-    presetValidations.transferSigning(),
+function validateEnvironmentVariables(): PermitSigning {
+  const result = validateEnvironment<PermitSigning>(
+    presetValidations.permitSigning(),
   );
 
   if (!result.isValid) {

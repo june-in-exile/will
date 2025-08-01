@@ -12,14 +12,14 @@ import {
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
 import { WILL_TYPE } from "@shared/constants/willType.js";
 import type {
-   FormattedWill,
-   AddressedWill,
+  FormattedWill,
+  AddressedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
-import { createContractInstance } from "@shared/utils/blockchain.js";
+import { createContract } from "@shared/utils/blockchain.js";
 import { generateSalt } from "@shared/utils/cryptography/salt.js";
 import { printEstates } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
@@ -117,7 +117,7 @@ async function processPredictWill(): Promise<ProcessResult> {
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    const contract = await createContractInstance<WillFactory>(
+    const contract = await createContract<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       provider,

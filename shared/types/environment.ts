@@ -1,56 +1,63 @@
-export interface TokenApproval {
+interface TokenApproval {
   TESTATOR_PRIVATE_KEY: string;
   PERMIT2: string;
 }
 
-export interface PredictWill {
+interface PredictWill {
   WILL_FACTORY: string;
 }
 
-export interface TransferSigning {
+interface PermitSigning {
   TESTATOR_PRIVATE_KEY: string;
   PERMIT2: string;
 }
 
-export interface UploadCid {
+interface UploadCid {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
 }
 
-export interface SubmitProof {
+interface SubmitProof {
   UPLOAD_CID_VERIFIER: string;
 }
 
-export interface IpfsDownload {
+interface IpfsDownload {
   CID: string;
 }
 
-export interface CidSigning {
+interface CidSigning {
   CID: string;
   EXECUTOR_PRIVATE_KEY: string;
   EXECUTOR: string;
 }
 
-export interface NotarizeCid {
+interface NotarizeCid {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
   EXECUTOR_SIGNATURE: string;
 }
 
-export interface CreateWill {
+interface CreateWill {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
-  TESTATOR: string;
-  SALT: string;
 }
 
-export interface SignatureTransfer {
-  WILL: string;
+interface SignatureTransfer {
   EXECUTOR_PRIVATE_KEY: string;
-  NONCE: string;
-  DEADLINE: string;
-  PERMIT2_SIGNATURE: string;
+}
+
+export type {
+  TokenApproval,
+  PredictWill,
+  PermitSigning,
+  UploadCid,
+  SubmitProof,
+  IpfsDownload,
+  CidSigning,
+  NotarizeCid,
+  CreateWill,
+  SignatureTransfer,
 }

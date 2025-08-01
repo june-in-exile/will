@@ -133,7 +133,7 @@ async function createSigner(
 
 function createWallet(privateKey: string, provider?: JsonRpcProvider): Wallet {
   try {
-    console.log(chalk.blue("Creating wallet instance..."));
+    console.log(chalk.blue("Creating wallet..."));
     const formattedKey = privateKey.startsWith("0x")
       ? privateKey
       : `0x${privateKey}`;
@@ -180,7 +180,7 @@ async function createContract<T extends Contract>(
     return contract;
   } catch (error) {
     throw new Error(
-      `Failed to create contract instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to create contract: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -191,5 +191,5 @@ export {
   getWillInfo,
   createSigner,
   createWallet,
-  createContract as createContractInstance,
+  createContract,
 };
