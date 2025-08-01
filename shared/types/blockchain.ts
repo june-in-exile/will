@@ -11,9 +11,6 @@ interface EstateToken {
   totalAmount: bigint;
 }
 
-/**
- * Will information interface
- */
 interface WillContractInfo {
   testator: string;
   executor: string;
@@ -21,9 +18,6 @@ interface WillContractInfo {
   estates: Estate[];
 }
 
-/**
- * Token balance information
- */
 interface TokenBalance {
   address: string;
   tokenAddress: string;
@@ -33,9 +27,6 @@ interface TokenBalance {
   decimals: number;
 }
 
-/**
- * Balance snapshot for tracking changes
- */
 interface BalanceSnapshot {
   timestamp: number;
   balances: TokenBalance[];

@@ -1,5 +1,5 @@
 import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
-import type { TokenApproval } from "@shared/types/index.js";
+import type { TokenApproval, EstateToken } from "@shared/types/index.js";
 import { WILL_TYPE, ERC20_ABI } from "@shared/constants/index.js";
 import {
   validateEnvironment,
@@ -21,12 +21,6 @@ const require = createRequire(import.meta.url);
 
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");
-
-interface EstateToken {
-  address: string;
-  estates: number[];
-  totalAmount: bigint;
-}
 
 interface TokenInfo extends EstateToken {
   name: string;
