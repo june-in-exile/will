@@ -1,7 +1,7 @@
 import { ethers, Wallet, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { ERC20_ABI } from "@shared/constants/blockchain.js";
 import { Will } from "@shared/types/typechain-types/index.js";
-import { Estate, TokenBalance, WillInfo } from "@shared/types/blockchain.js";
+import { Estate, TokenBalance, WillContractInfo } from "@shared/types/blockchain.js";
 import chalk from "chalk";
 
 async function getTokenInfo(
@@ -53,25 +53,33 @@ async function getTokenBalance(
       decimals,
     };
   } catch (error) {
-    console.warn(
-      chalk.yellow(
-        `Warning: Failed to fetch token balance for ${tokenAddress} at ${holderAddress}:`,
-      ),
-      error instanceof Error ? error.message : "Unknown error",
+    throw new Error(
+      `Failed to fetch token balance for ${tokenAddress}: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
-
-    return {
-      address: holderAddress,
-      tokenAddress,
-      balance: 0n,
-      formattedBalance: "0",
-      symbol: "ERROR",
-      decimals: 18,
-    };
   }
 }
 
-async function getWillInfo(contract: Will): Promise<WillInfo> {
+async function getTokenAllowance(
+  tokenAddress: string,
+  ownerAddress: string,
+  spenderAddress: string,
+  signer: Wallet,
+): Promise<bigint> {
+  try {
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    const allowance = await tokenContract.allowance(
+      ownerAddress,
+      spenderAddress,
+    );
+    return allowance;
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch token allowance for ${tokenAddress}: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+}
+
+async function getWillInfo(contract: Will): Promise<WillContractInfo> {
   try {
     console.log(chalk.blue("Fetching will information..."));
 
@@ -188,6 +196,7 @@ async function createContract<T extends Contract>(
 export {
   getTokenInfo,
   getTokenBalance,
+  getTokenAllowance,
   getWillInfo,
   createSigner,
   createWallet,

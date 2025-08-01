@@ -12,7 +12,7 @@ import {
 } from "@shared/utils/blockchain.js";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import type {
-  WillInfo,
+  WillContractInfo,
   TokenBalance,
   BalanceSnapshot,
 } from "@shared/types/blockchain.js";
@@ -50,9 +50,9 @@ function validateEnvironmentVariables(): SignatureTransfer {
 /**
  * Check balances for all relevant addresses and tokens
  */
-async function checkTokenBalances(
+async function checkTokenBalancesOfAllRoles(
   provider: JsonRpcProvider,
-  willInfo: WillInfo,
+  willInfo: WillContractInfo,
 ): Promise<BalanceSnapshot> {
   try {
     console.log(chalk.blue("Checking token balances..."));
@@ -68,7 +68,6 @@ async function checkTokenBalances(
     ];
     const uniqueAddresses = [...new Set(allAddresses)];
 
-    // Check balances for all combinations of addresses and tokens
     for (const tokenAddress of uniqueTokens) {
       for (const address of uniqueAddresses) {
         const balance = await getTokenBalance(provider, tokenAddress, address);
@@ -99,7 +98,7 @@ async function checkTokenBalances(
 function printBalanceSnapshot(
   snapshot: BalanceSnapshot,
   title: string,
-  willInfo: WillInfo,
+  willInfo: WillContractInfo,
 ): void {
   console.log(chalk.cyan(`\n=== ${title} ===`));
   console.log(
@@ -149,7 +148,7 @@ function printBalanceSnapshot(
 function compareBalanceSnapshots(
   beforeSnapshot: BalanceSnapshot,
   afterSnapshot: BalanceSnapshot,
-  willInfo: WillInfo,
+  willInfo: WillContractInfo,
 ): void {
   console.log(chalk.cyan("\n=== Balance Changes Summary ==="));
 
@@ -230,7 +229,7 @@ function printSignatureTransferData(
  */
 async function executeSignatureTransfer(
   contract: Will,
-  willInfo: WillInfo,
+  willInfo: WillContractInfo,
   nonce: string,
   deadline: string,
   signature: string,
@@ -318,7 +317,7 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances before execution..."),
     );
-    const beforeSnapshot = await checkTokenBalances(provider, willInfo);
+    const beforeSnapshot = await checkTokenBalancesOfAllRoles(provider, willInfo);
     printBalanceSnapshot(
       beforeSnapshot,
       "Token Balances Before Execution",
@@ -336,7 +335,7 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances after execution..."),
     );
-    const afterSnapshot = await checkTokenBalances(provider, willInfo);
+    const afterSnapshot = await checkTokenBalancesOfAllRoles(provider, willInfo);
     printBalanceSnapshot(
       afterSnapshot,
       "Token Balances After Execution",
@@ -406,8 +405,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  checkTokenBalances,
-  compareBalanceSnapshots,
   executeSignatureTransfer,
   processSignatureTransfer,
 };

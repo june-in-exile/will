@@ -7,15 +7,6 @@ import type {
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import type { Base64String } from "@shared/types/base64String.js";
 
-// enum WillFileType {
-//   FORMATTED = "formatted",
-//   ADDRESSED = "addressed",
-//   SIGNED = "signed",
-//   ENCRYPTED = "encrypted",
-//   DOWNLOADED = "downloaded",
-//   DECRYPTED = "decrypted",
-// }
-
 type Will =
   | FormattedWill
   | AddressedWill

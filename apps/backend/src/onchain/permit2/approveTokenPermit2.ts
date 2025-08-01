@@ -4,11 +4,10 @@ import {
 } from "@shared/utils/validation/environment.js";
 import type { TokenApproval } from "@shared/types/environment.js";
 import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
-import { getTokenInfo, createSigner } from "@shared/utils/blockchain.js";
-import { Estate } from "@shared/types/blockchain.js";
-import { readWill } from "@shared/utils/file/readWill.js";
+import { getTokenInfo, getTokenAllowance, createSigner } from "@shared/utils/blockchain.js";
+import { extractUniqueTokens } from "@shared/utils/transform/blockchain.js"
+import { readWillFields } from "@shared/utils/file/readWill.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
-import type { FormattedWill } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -20,13 +19,13 @@ const require = createRequire(import.meta.url);
 // Load Permit2 SDK
 const permit2SDK = require("@uniswap/permit2-sdk");
 
-interface TokenForApproval {
+interface EstateToken {
   address: string;
   estates: number[];
   totalAmount: bigint;
 }
 
-interface TokenInfo extends TokenForApproval {
+interface TokenInfo extends EstateToken {
   name: string;
   symbol: string;
 }
@@ -73,35 +72,10 @@ function validateEnvironmentVariables(): TokenApproval {
 }
 
 /**
- * Extract unique tokens from estates
- */
-function extractUniqueTokens(estates: Estate[]): TokenForApproval[] {
-  const tokens = new Map<string, TokenForApproval>();
-
-  estates.forEach((estate, index) => {
-    const token = estate.token.toLowerCase();
-
-    if (!tokens.has(token)) {
-      tokens.set(token, {
-        address: estate.token,
-        estates: [index],
-        totalAmount: estate.amount,
-      });
-    } else {
-      const details = tokens.get(token)!;
-      details.estates.push(index);
-      details.totalAmount += estate.amount;
-    }
-  });
-
-  return Array.from(tokens.values());
-}
-
-/**
  * Collect info for tokens to be approved
  */
 async function getTokenInfos(
-  tokens: TokenForApproval[],
+  tokens: EstateToken[],
   signer: Wallet,
 ): Promise<TokenInfo[]> {
   return Promise.all(
@@ -119,33 +93,6 @@ async function getTokenInfos(
 }
 
 /**
- * Check current allowance
- */
-async function checkCurrentAllowance(
-  tokenAddress: string,
-  ownerAddress: string,
-  spenderAddress: string,
-  signer: Wallet,
-): Promise<bigint> {
-  try {
-    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-    const allowance = await tokenContract.allowance(
-      ownerAddress,
-      spenderAddress,
-    );
-    return allowance;
-  } catch (error) {
-    console.warn(
-      chalk.yellow(
-        `⚠️ Could not check allowance for ${tokenAddress}:`,
-        error instanceof Error ? error.message : "Unknown error",
-      ),
-    );
-    return 0n;
-  }
-}
-
-/**
  * Approve token with retry mechanism
  */
 async function approveToken(
@@ -158,14 +105,14 @@ async function approveToken(
     console.log(chalk.blue(`Approving token ${token} for Permit2...`));
 
     const ownerAddress = await signer.getAddress();
-    const currentAllowance = await checkCurrentAllowance(
+    const allowance = await getTokenAllowance(
       token.address,
       ownerAddress,
       spenderAddress,
       signer,
     );
 
-    if (currentAllowance >= ethers.MaxUint256 / 2n) {
+    if (allowance >= ethers.MaxUint256 / 2n) {
       console.log(
         chalk.green(`✅ ${token.name} already has sufficient allowance`),
       );
@@ -320,9 +267,9 @@ async function processTokenApproval(): Promise<ProcessResult> {
 
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    const willData: FormattedWill = readWill(WILL_TYPE.FORMATTED);
+    const fields = readWillFields(WILL_TYPE.FORMATTED, ["estates"]);
 
-    const tokens = extractUniqueTokens(willData.estates);
+    const tokens = extractUniqueTokens(fields.estates);
 
     if (tokens.length === 0) {
       console.log(chalk.yellow("⚠️ No tokens found to approve"));
@@ -409,8 +356,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  extractUniqueTokens,
-  checkCurrentAllowance,
   approveToken,
   executeTokenApprovals,
   processTokenApproval,

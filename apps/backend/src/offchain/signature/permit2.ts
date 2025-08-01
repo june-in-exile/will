@@ -69,7 +69,7 @@ function validateEnvironmentVariables(): PermitSigning {
 /**
  * Calculate deadline timestamp
  */
-function calculateDeadline(
+function calculatePermitDeadline(
   durationMs: number = PERMIT2_CONFIG.defaultDuration,
 ): number {
   console.log(chalk.blue("Calculating deadline..."));
@@ -190,7 +190,7 @@ async function processPermitSigning(): Promise<ProcessResult> {
 
     console.log(chalk.blue("Generating signature parameters..."));
     const nonce = generateSecureNonce();
-    const deadline = calculateDeadline();
+    const deadline = calculatePermitDeadline();
 
     const permit = createPermitStructure(
       willData.estates,
@@ -287,8 +287,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  calculateDeadline,
-  createPermitStructure,
   signPermit,
   processPermitSigning,
 };

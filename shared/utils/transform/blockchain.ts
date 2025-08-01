@@ -1,6 +1,29 @@
 import { EncryptedWill } from "@shared/types/will.js";
 import { JsonCidVerifier } from "@shared/types/typechain-types/index.js";
+import { Estate, EstateToken } from "@shared/types/blockchain.js";
 import chalk from "chalk";
+
+function extractUniqueTokens(estates: Estate[]): EstateToken[] {
+  const tokens = new Map<string, EstateToken>();
+
+  estates.forEach((estate, index) => {
+    const token = estate.token.toLowerCase();
+
+    if (!tokens.has(token)) {
+      tokens.set(token, {
+        address: estate.token,
+        estates: [index],
+        totalAmount: estate.amount,
+      });
+    } else {
+      const details = tokens.get(token)!;
+      details.estates.push(index);
+      details.totalAmount += estate.amount;
+    }
+  });
+
+  return Array.from(tokens.values());
+}
 
 function encryptedWillToJsonObject(
   encryptedWillData: EncryptedWill,
@@ -93,4 +116,4 @@ function encryptedWillToTypedJsonObject(
   }
 }
 
-export { encryptedWillToJsonObject, encryptedWillToTypedJsonObject };
+export { extractUniqueTokens, encryptedWillToJsonObject, encryptedWillToTypedJsonObject };
