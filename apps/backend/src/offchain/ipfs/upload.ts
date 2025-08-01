@@ -1,5 +1,5 @@
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import {

@@ -1,5 +1,5 @@
 import { JsonRpcProvider, Network } from "ethers";
-import { ANVIL_CHAIN_ID } from "@shared/types/constants.js";
+import { ANVIL_CHAIN_ID } from "@shared/constants/blockchain.js";
 import chalk from "chalk";
 
 async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {

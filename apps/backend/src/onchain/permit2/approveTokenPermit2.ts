@@ -7,12 +7,12 @@ import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { getTokenInfo, createSigner } from "@shared/utils/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { FormattedWill } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
-import { ERC20_ABI } from "@shared/types/constants.js";
+import { ERC20_ABI } from "@shared/constants/blockchain.js";
 import chalk from "chalk";
 
 const require = createRequire(import.meta.url);

@@ -18,7 +18,7 @@ import { readWill, readWillFields } from "@shared/utils/file/readWill.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printEstates, printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { EncryptedWill } from "@shared/types/will.js";
 import type { Estate } from "@shared/types/blockchain.js";
 import type { CreateWill } from "@shared/types/environment.js";

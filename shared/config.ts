@@ -3,9 +3,11 @@ import {
   ASCII,
   BASE64,
   HEX,
+} from "@shared/constants/encoding.js";
+import {
   AES_256_GCM,
   CHACHA20_POLY1305,
-} from "@shared/types/constants.js";
+} from "@shared/constants/cryptography.js";
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";

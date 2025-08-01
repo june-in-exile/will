@@ -1,4 +1,4 @@
-import { WILL_FILE_PATH } from "@shared/constants/willFilePath.js";
+import { WILL_FILE_PATH } from "@shared/constants/will.js";
 import type { Will, WillType } from "@shared/types/will.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";

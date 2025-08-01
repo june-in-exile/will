@@ -18,7 +18,7 @@ import { readWill } from "@shared/utils/file/readWill.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { EncryptedWill } from "@shared/types/will.js";
 import type { UploadCid } from "@shared/types/environment.js";
 import preview from "@shared/utils/transform/preview.js";

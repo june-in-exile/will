@@ -18,7 +18,7 @@ import type {
 } from "@shared/types/blockchain.js";
 import type { SignatureTransfer } from "@shared/types/environment.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import { readWillFields } from "@shared/utils/file/readWill.js";
 import { getWillInfo } from "@shared/utils/blockchain.js";
 import preview from "@shared/utils/transform/preview.js";

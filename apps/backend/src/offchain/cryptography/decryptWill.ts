@@ -3,7 +3,7 @@ import type {
   SupportedAlgorithm,
   DecryptionArgs,
 } from "@shared/types/crypto.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type {
   WillType,
   EncryptedWill,

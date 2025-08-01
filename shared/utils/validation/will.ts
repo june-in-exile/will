@@ -1,5 +1,5 @@
 import { CRYPTO_CONFIG } from "@config";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { Will, WillType } from "@shared/types/will.js";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";

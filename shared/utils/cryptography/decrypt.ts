@@ -1,5 +1,5 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM } from "@shared/types/constants.js";
+import { AES_256_GCM } from "@shared/constants/cryptography.js";
 import type {
   DecryptionArgs,
   SupportedAlgorithm,

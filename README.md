@@ -236,7 +236,6 @@ pnpm build
 
 1. **TODO**
    - [ ] @shared: files = read + env + partial encrypt.ts + partial decrypt.ts
-   - [ ] type/constants -> constants
    - [ ] notarize simplification: requires only WILL_FACTORY and EXECUTOR_PRIVATE_KEY: shared/utils/validation/environment.ts
 2. **Complete ZKP circuits**
    - [ ] **decryption_zkp**: prove that `signed_will == decrypt(ciphertext, key, iv, authTag)` without exposing `key`.

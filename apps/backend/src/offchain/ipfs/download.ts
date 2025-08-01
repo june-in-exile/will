@@ -4,7 +4,7 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { WILL_TYPE } from "@shared/constants/willType.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
 import type { DownloadedWill } from "@shared/types/will.js";
 import {
   createHeliaInstance,

@@ -1,5 +1,5 @@
 import { ethers, Wallet, JsonRpcProvider, Contract, formatUnits } from "ethers";
-import { ERC20_ABI } from "@shared/types/constants.js";
+import { ERC20_ABI } from "@shared/constants/blockchain.js";
 import { Will } from "@shared/types/typechain-types/index.js";
 import { Estate, TokenBalance, WillInfo } from "@shared/types/blockchain.js";
 import chalk from "chalk";
