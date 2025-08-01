@@ -1,8 +1,5 @@
 import { PATHS_CONFIG } from "@config";
-import {
-  WillFileType,
-  type Will,
-} from "@shared/types/will.js";
+import { WillFileType, type Will } from "@shared/types/will.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";
 

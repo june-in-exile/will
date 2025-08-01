@@ -1,6 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/types/constants.js";
-import type { DecryptionArgs, SupportedAlgorithm } from "@shared/types/crypto.js";
+import type {
+  DecryptionArgs,
+  SupportedAlgorithm,
+} from "@shared/types/crypto.js";
 import { createDecipheriv, Decipheriv } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";
@@ -118,25 +121,25 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --ciphertext") +
-    chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray("          Base64-encoded decryption key [required]"),
+      chalk.gray("          Base64-encoded decryption key [required]"),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray("           Base64-encoded initialization vector [required]"),
+      chalk.gray("           Base64-encoded initialization vector [required]"),
   );
   console.log(
     chalk.cyan("  --authTag") +
-    chalk.gray("      Base64-encoded authentication tag [required]"),
+      chalk.gray("      Base64-encoded authentication tag [required]"),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -238,7 +241,11 @@ function decrypt(
     validateDecryptionParams(algorithm, ciphertext, key, iv, authTag);
 
     // Create decipher
-    const decipher = createDecipheriv(algorithm, key, iv) as AuthenticatedDecipher;
+    const decipher = createDecipheriv(
+      algorithm,
+      key,
+      iv,
+    ) as AuthenticatedDecipher;
 
     // Perform decryption
     decipher.setAuthTag(authTag);
@@ -253,7 +260,8 @@ function decrypt(
     console.log(chalk.green(`✅ Decrypted!`));
     return plaintext;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     // Enhanced error messages for common decryption failures
     if (
       errorMessage.includes("Unsupported state") ||
@@ -317,7 +325,8 @@ async function main(): Promise<void> {
     console.log();
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     console.error(chalk.red.bold("\n❌ Decryption failed:"), errorMessage);
 
     // Show usage information for argument-related errors
@@ -347,7 +356,10 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }

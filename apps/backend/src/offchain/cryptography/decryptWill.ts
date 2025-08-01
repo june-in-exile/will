@@ -1,6 +1,7 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import type {
-  SupportedAlgorithm, DecryptionArgs
+  SupportedAlgorithm,
+  DecryptionArgs,
 } from "@shared/types/crypto.js";
 import {
   WillFileType,
@@ -48,9 +49,9 @@ async function processWillDecryption(
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-    const decryptedWill: DecryptedWill = JSON.parse(dcryptedWillBuffer.toString(
-      CRYPTO_CONFIG.plaintextEncoding,
-    ));
+    const decryptedWill: DecryptedWill = JSON.parse(
+      dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
+    );
 
     validateWill(WillFileType.DECRYPTED, decryptedWill);
 
@@ -82,9 +83,7 @@ async function main(): Promise<void> {
     if (isTestMode) {
       console.log(chalk.bgCyan("\n=== Will Decrypt (Local Version) ===\n"));
     } else {
-      console.log(
-        chalk.bgCyan("\n=== Will Decrypt (IPFS Version) ===\n"),
-      );
+      console.log(chalk.bgCyan("\n=== Will Decrypt (IPFS Version) ===\n"));
     }
 
     const result = await processWillDecryption(isTestMode);
@@ -92,7 +91,10 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-    console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("❌ Program execution failed:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);
@@ -106,7 +108,10 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error: Error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }

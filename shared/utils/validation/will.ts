@@ -13,7 +13,7 @@ import type {
 import type { Permit2Signature } from "@shared/types/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 
-function validateWill(type: WillFileType, will: Will) { 
+function validateWill(type: WillFileType, will: Will) {
   switch (type) {
     case WillFileType.FORMATTED:
       validateFormattedWill(will as FormattedWill);
@@ -206,7 +206,6 @@ function validateDecryptedWill(
 ): asserts willData is DecryptedWill {
   validateSignedWill(willData);
 }
-
 
 export {
   validateWill,

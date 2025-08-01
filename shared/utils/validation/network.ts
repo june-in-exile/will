@@ -16,7 +16,9 @@ async function validateNetwork(provider: JsonRpcProvider): Promise<Network> {
     );
     return network;
   } catch (error) {
-    throw new Error(`Failed to connect to RPC endpoint: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to connect to RPC endpoint: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 

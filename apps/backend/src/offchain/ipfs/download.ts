@@ -5,7 +5,11 @@ import {
   presetValidations,
 } from "@shared/utils/validation/environment.js";
 import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
-import { createHeliaInstance, downloadFromIpfs, stopHelia } from "@shared/utils/ipfs.js";
+import {
+  createHeliaInstance,
+  downloadFromIpfs,
+  stopHelia,
+} from "@shared/utils/ipfs.js";
 import { validateWill } from "@shared/utils/validation/will.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { Helia } from "helia";
@@ -45,7 +49,10 @@ async function processIPFSDownload(): Promise<ProcessResult> {
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
     helia = heliaInstance;
 
-    const downloadedWill = await downloadFromIpfs(jsonHandler, CID) as DownloadedWill;
+    const downloadedWill = (await downloadFromIpfs(
+      jsonHandler,
+      CID,
+    )) as DownloadedWill;
 
     validateWill(WillFileType.DOWNLOADED, downloadedWill);
 
@@ -60,11 +67,13 @@ async function processIPFSDownload(): Promise<ProcessResult> {
       downloadedWillPath: PATHS_CONFIG.will.downloaded,
     };
   } catch (error) {
-    console.error(chalk.red("Failed to download from IPFS:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red("Failed to download from IPFS:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     throw error;
   } finally {
-    if (helia)
-      stopHelia(helia);
+    if (helia) stopHelia(helia);
   }
 }
 
@@ -98,9 +107,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export { validateEnvironmentVariables, processIPFSDownload };
+export { processIPFSDownload };

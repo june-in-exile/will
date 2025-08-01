@@ -46,9 +46,9 @@ interface EncryptedWill {
   timestamp: number;
 }
 
-interface DownloadedWill extends EncryptedWill { }
+interface DownloadedWill extends EncryptedWill {}
 
-interface DecryptedWill extends SignedWill { }
+interface DecryptedWill extends SignedWill {}
 
 export {
   WillFileType,

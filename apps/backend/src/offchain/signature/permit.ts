@@ -6,12 +6,16 @@ import type { TransferSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
-import { WillFileType, type AddressedWill, type SignedWill } from "@shared/types/will.js";
+import {
+  WillFileType,
+  type AddressedWill,
+  type SignedWill,
+} from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createSigner } from "@shared/utils/blockchain.js";
-import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js"
+import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js";
 import { truncate } from "@shared/utils/transform/expression.js";
 import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -113,7 +117,9 @@ function createPermitStructure(
     console.log(chalk.green("✅ Permit structure created"));
     return permit;
   } catch (error) {
-    throw new Error(`Failed to create permit structure: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to create permit structure: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -131,7 +137,11 @@ function printPermit(permit: Permit): void {
   });
   console.log(chalk.gray("Spender (Will):"), permit.spender);
   console.log(chalk.gray("- Nonce:"), permit.nonce);
-  console.log(chalk.gray(`- Deadline: ${permit.deadline} (${new Date(permit.deadline * 1000).toISOString()})`));
+  console.log(
+    chalk.gray(
+      `- Deadline: ${permit.deadline} (${new Date(permit.deadline * 1000).toISOString()})`,
+    ),
+  );
 
   console.log(chalk.cyan("\n=== End of Permit Details ===\n"));
 }
@@ -148,7 +158,7 @@ async function signPermit(
   try {
     console.log(chalk.blue("Generating EIP-712 signature..."));
 
-    printPermit(permit)
+    printPermit(permit);
 
     const { domain, types, values } = SignatureTransfer.getPermitData(
       permit,
@@ -159,13 +169,13 @@ async function signPermit(
     const signature = await signer.signTypedData(domain, types, values);
 
     console.log(chalk.green("✅ Signature generated successfully"));
-    console.log(
-      chalk.gray("Signature:"), truncate(signature)
-    );
+    console.log(chalk.gray("Signature:"), truncate(signature));
 
     return signature;
   } catch (error) {
-    throw new Error(`Failed to sign permit: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to sign permit: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -215,10 +225,10 @@ async function processPermitSigning(): Promise<ProcessResult> {
         deadline,
         signature,
       },
-    }
+    };
 
     // Save signed will
-    saveWill(WillFileType.SIGNED, signedWillData)
+    saveWill(WillFileType.SIGNED, signedWillData);
 
     // Update environment variables
     await updateEnvironmentVariables([
@@ -240,7 +250,6 @@ async function processPermitSigning(): Promise<ProcessResult> {
       signedWillPath: PATHS_CONFIG.will.signed,
     };
   } catch (error) {
-
     console.error(
       chalk.red("Error during will signing process:"),
       error instanceof Error ? error.message : "Unknown error",
@@ -282,15 +291,17 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
 export {
-  validateEnvironmentVariables,
   calculateDeadline,
   createPermitStructure,
   signPermit,
-  processPermitSigning as processWillSigning,
+  processPermitSigning,
 };

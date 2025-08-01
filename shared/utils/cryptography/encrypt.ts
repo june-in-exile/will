@@ -1,6 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/types/constants.js";
-import type { SupportedAlgorithm, EncryptionArgs } from "@shared/types/crypto.js";
+import type {
+  SupportedAlgorithm,
+  EncryptionArgs,
+} from "@shared/types/crypto.js";
 import { Base64String } from "@shared/types/base64String.js";
 import { generateInitializationVector } from "./initializationVector.js";
 import { generateKey } from "./key.js";
@@ -129,24 +132,24 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray(
-      "         Base64-encoded encryption key [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+      ),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray(
-      "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+      ),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -247,7 +250,9 @@ function encrypt(
     console.log(chalk.green(`✅ Encrypted!`));
     return { ciphertext, authTag };
   } catch (error) {
-    throw new Error(`Encryption failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Encryption failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -295,8 +300,12 @@ async function main(): Promise<void> {
       chalk.white(Base64String.fromBuffer(result.authTag)),
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error"
-    console.error(chalk.red.bold("\n❌ Encryption failed:"), error instanceof Error ? error.message : "Unknown error");
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error(
+      chalk.red.bold("\n❌ Encryption failed:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
 
     // Show usage information for argument-related errors
     if (
@@ -323,7 +332,10 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }

@@ -5,7 +5,10 @@ import {
 import type { CidSigning } from "@shared/types/environment.js";
 import { EthereumAddress } from "@shared/types/blockchain.js";
 import { validateCidv1 } from "@shared/utils/validation/cid.js";
-import { validateEthereumAddress, validatePrivateKey } from "@shared/utils/validation/blockchain.js";
+import {
+  validateEthereumAddress,
+  validatePrivateKey,
+} from "@shared/utils/validation/blockchain.js";
 import { signString, verify } from "@shared/utils/cryptography/signature.js";
 import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
 import chalk from "chalk";
@@ -50,7 +53,9 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
 
     console.log(chalk.green("✅ Environment variable updated successfully"));
   } catch (error) {
-    throw new Error(`Failed to update environment variable: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to update environment variable: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -69,23 +74,34 @@ function printCidSigningData(CidSigningData: CidSigningData): void {
 /**
  * Execute CID signing with verification
  */
-async function executeCidSigning(cidSigningData: CidSigningData): Promise<string> {
+async function executeCidSigning(
+  cidSigningData: CidSigningData,
+): Promise<string> {
   try {
     console.log(chalk.blue("\nStarting CID signing process..."));
-    
+
     printCidSigningData(cidSigningData);
-    
-    const signature = await signString(cidSigningData.cid, cidSigningData.privateKey);
-    
-    const isValid = await verify(cidSigningData.cid, signature, cidSigningData.signer);
+
+    const signature = await signString(
+      cidSigningData.cid,
+      cidSigningData.privateKey,
+    );
+
+    const isValid = await verify(
+      cidSigningData.cid,
+      signature,
+      cidSigningData.signer,
+    );
     if (!isValid) {
       throw new Error(`Signature verification failed.`);
     }
-    
+
     console.log(chalk.green("✅ CID signed!"));
     return signature;
-  } catch (error) { 
-    throw new Error(`Failed to sign CID: ${error instanceof Error ? error.message : "Unknown error"}`);
+  } catch (error) {
+    throw new Error(
+      `Failed to sign CID: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -113,7 +129,7 @@ async function processCidSigning(): Promise<ProcessResult> {
       cid: CID,
       signer: EXECUTOR as EthereumAddress,
       privateKey: EXECUTOR_PRIVATE_KEY,
-    })
+    });
 
     await updateEnvironmentVariable(signature);
 
@@ -127,7 +143,10 @@ async function processCidSigning(): Promise<ProcessResult> {
       signature,
     };
   } catch (error) {
-    console.error(chalk.red("Error during CID signing process:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red("Error during CID signing process:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     throw error;
   }
 }
@@ -137,9 +156,7 @@ async function processCidSigning(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(
-      chalk.bgCyan("\n=== CID Signature Generation ===\n"),
-    );
+    console.log(chalk.bgCyan("\n=== CID Signature Generation ===\n"));
 
     const result = await processCidSigning();
 
@@ -164,13 +181,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export {
-  validateEnvironmentVariables,
-  updateEnvironmentVariable,
-  processCidSigning,
-};
+export { processCidSigning };

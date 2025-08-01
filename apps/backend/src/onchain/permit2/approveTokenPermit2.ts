@@ -99,7 +99,10 @@ function extractUniqueTokens(estates: Estate[]): TokenForApproval[] {
 /**
  * Collect info for tokens to be approved
  */
-async function getTokenInfos(tokens: TokenForApproval[], signer: Wallet): Promise<TokenInfo[]> {
+async function getTokenInfos(
+  tokens: TokenForApproval[],
+  signer: Wallet,
+): Promise<TokenInfo[]> {
   return Promise.all(
     tokens.map(async (token) => {
       const { name, symbol } = await getTokenInfo(token.address, signer);
@@ -110,7 +113,7 @@ async function getTokenInfos(tokens: TokenForApproval[], signer: Wallet): Promis
         estates: token.estates,
         totalAmount: token.totalAmount,
       };
-    })
+    }),
   );
 }
 
@@ -124,11 +127,7 @@ async function checkCurrentAllowance(
   signer: Wallet,
 ): Promise<bigint> {
   try {
-    const tokenContract = new ethers.Contract(
-      tokenAddress,
-      ERC20_ABI,
-      signer,
-    );
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
     const allowance = await tokenContract.allowance(
       ownerAddress,
       spenderAddress,
@@ -167,19 +166,12 @@ async function approveToken(
 
     if (currentAllowance >= ethers.MaxUint256 / 2n) {
       console.log(
-        chalk.green(
-          `✅ ${token.name} already has sufficient allowance`,
-        ),
+        chalk.green(`✅ ${token.name} already has sufficient allowance`),
       );
       return { success: true, alreadyApproved: true };
     }
 
-    const tokenContract = new ethers.Contract(
-      token.address,
-      ERC20_ABI,
-      signer,
-    );
-
+    const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
 
     const tx = await tokenContract.approve(spenderAddress, ethers.MaxUint256);
 
@@ -196,9 +188,7 @@ async function approveToken(
 
     if (receipt!.status === 1) {
       console.log(
-        chalk.green(
-          `✅ Approval confirmed for ${token} (${token.symbol})`,
-        ),
+        chalk.green(`✅ Approval confirmed for ${token} (${token.symbol})`),
       );
       return { success: true, txHash: tx.hash, alreadyApproved: false };
     } else {
@@ -241,7 +231,9 @@ function printTokensForApproval(tokens: TokenInfo[]): void {
 
   tokens.forEach((token) => {
     console.log(
-      chalk.gray(`- ${token.name} (${token.symbol}), address: ${token.address}, used in estates: ${token.estates.join(", ")}`),
+      chalk.gray(
+        `- ${token.name} (${token.symbol}), address: ${token.address}, used in estates: ${token.estates.join(", ")}`,
+      ),
     );
   });
 
@@ -277,7 +269,10 @@ async function executeTokenApprovals(
         successful.push(token.address);
       }
     } else {
-      failed.push({ token: token.address, error: result.error || "Unknown error" });
+      failed.push({
+        token: token.address,
+        error: result.error || "Unknown error",
+      });
     }
 
     // Small delay between approvals to avoid rate limiting
@@ -405,13 +400,15 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
 export {
-  validateEnvironmentVariables,
   extractUniqueTokens,
   checkCurrentAllowance,
   approveToken,

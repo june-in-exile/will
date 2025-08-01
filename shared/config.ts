@@ -1,4 +1,11 @@
-import { UTF8, ASCII, BASE64, HEX, AES_256_GCM, CHACHA20_POLY1305 } from "@shared/types/constants.js";
+import {
+  UTF8,
+  ASCII,
+  BASE64,
+  HEX,
+  AES_256_GCM,
+  CHACHA20_POLY1305,
+} from "@shared/types/constants.js";
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
@@ -174,7 +181,6 @@ interface PathsConfig {
   contracts: ContractPathsConfig;
   crypto: CryptoPathsConfig;
 }
-
 
 interface SaltConfig {
   timestampMultiplier: number;

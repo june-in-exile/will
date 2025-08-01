@@ -46,14 +46,18 @@ function readWill<T>(type: WillFileType): T {
 
     const typeCapitalized = typeString[0].toUpperCase() + typeString.slice(1);
 
-    console.log(chalk.green(`✅ ${typeCapitalized} will data validated successfully`));
+    console.log(
+      chalk.green(`✅ ${typeCapitalized} will data validated successfully`),
+    );
 
     return will as T;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(`Invalid JSON in ${type} will file: ${error.message}`);
     }
-    throw new Error(`Failed to read ${type} will: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to read ${type} will: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 

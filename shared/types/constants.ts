@@ -22,13 +22,28 @@ const ANVIL_RPC_URL = "http://127.0.0.1:8545";
 const ANVIL_CHAIN_ID = BigInt(31337);
 
 const ERC20_ABI = [
-    "function name() view returns (string)",
-    "function symbol() view returns (string)",
-    "function decimals() view returns (uint8)",
-    "function balanceOf(address owner) view returns (uint256)",
-    "function approve(address spender, uint256 amount) returns (bool)",
-    "function allowance(address owner, address spender) view returns (uint256)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
 ];
 
-
-export { UTF8, ASCII, BASE64, HEX, AES_256_GCM, CHACHA20_POLY1305, ETHEREUM_CHAIN_ID, ETHEREUM_USDC, ETHEREUM_LINK, ARB_SEPOLIA_CHAIN_ID, ARB_SEPOLIA_USDC, ARB_SEPOLIA_LINK, ANVIL_RPC_URL, ANVIL_CHAIN_ID, ERC20_ABI };
+export {
+  UTF8,
+  ASCII,
+  BASE64,
+  HEX,
+  AES_256_GCM,
+  CHACHA20_POLY1305,
+  ETHEREUM_CHAIN_ID,
+  ETHEREUM_USDC,
+  ETHEREUM_LINK,
+  ARB_SEPOLIA_CHAIN_ID,
+  ARB_SEPOLIA_USDC,
+  ARB_SEPOLIA_LINK,
+  ANVIL_RPC_URL,
+  ANVIL_CHAIN_ID,
+  ERC20_ABI,
+};

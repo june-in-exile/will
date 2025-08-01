@@ -132,9 +132,9 @@ describe("PredictWill Module", () => {
 
   beforeAll(() => {
     // Mock console methods to avoid output during tests
-    vi.spyOn(console, "log").mockImplementation(() => { });
-    vi.spyOn(console, "error").mockImplementation(() => { });
-    vi.spyOn(console, "warn").mockImplementation(() => { });
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   beforeEach(() => {
@@ -492,7 +492,7 @@ describe("PredictWill Module", () => {
 
     it("should save addressed will successfully", async () => {
       const fs = await import("fs");
-      vi.mocked(fs.writeFileSync).mockImplementation(() => { });
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
 
       const result = predictWillModule.saveAddressedWill(
         validWillData,
@@ -621,7 +621,7 @@ describe("PredictWill Module", () => {
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(validWillData));
-      vi.mocked(fs.writeFileSync).mockImplementation(() => { });
+      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
 
       process.env.WILL_FACTORY = MOCK_WILL_FACTORY;
       vi.mocked(ethers.isAddress).mockReturnValue(true);

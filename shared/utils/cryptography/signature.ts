@@ -108,7 +108,9 @@ async function signString(
 
     return signature;
   } catch (error) {
-    throw new Error(`String signing failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `String signing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -154,7 +156,9 @@ async function verify(
 
     return isValid;
   } catch (error) {
-    throw new Error(`Signature verification failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Signature verification failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -184,7 +188,9 @@ async function recoverSigner(
 
     return recoveredAddress;
   } catch (error) {
-    throw new Error(`Signer recovery failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Signer recovery failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 

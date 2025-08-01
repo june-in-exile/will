@@ -1,7 +1,13 @@
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { createHeliaInstance, uploadToIpfs, pinInLocalDaemon, stopHelia, displayAccessInfo } from "@shared/utils/ipfs.js";
+import {
+  createHeliaInstance,
+  uploadToIpfs,
+  pinInLocalDaemon,
+  stopHelia,
+  displayAccessInfo,
+} from "@shared/utils/ipfs.js";
 import { Helia } from "helia";
 import chalk from "chalk";
 
@@ -37,7 +43,9 @@ async function processIPFSUpload(): Promise<ProcessResult> {
       cid: cid.toString(),
     };
   } catch (error) {
-    throw new Error(`Failed to upload will to IPFS: ${error instanceof Error ? error.message : "Unknown error"}`)
+    throw new Error(
+      `Failed to upload will to IPFS: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   } finally {
     if (helia) {
       stopHelia(helia);
@@ -75,11 +83,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export {
-  processIPFSUpload,
-};
+export { processIPFSUpload };

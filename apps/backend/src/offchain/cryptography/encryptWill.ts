@@ -82,8 +82,10 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), result);
   } catch (error) {
-
-    console.error(chalk.red.bold("❌ Program execution failed:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("❌ Program execution failed:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
 
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
@@ -98,9 +100,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export { type ProcessResult as EncryptWillProcessResult, processWillEncryption };
+export { processWillEncryption };

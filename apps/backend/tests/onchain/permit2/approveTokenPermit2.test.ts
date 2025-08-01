@@ -124,9 +124,9 @@ describe("Token Permit2 Approval Workflow", () => {
 
   beforeAll(() => {
     // Mock console methods to avoid output during tests
-    vi.spyOn(console, "log").mockImplementation(() => { });
-    vi.spyOn(console, "error").mockImplementation(() => { });
-    vi.spyOn(console, "warn").mockImplementation(() => { });
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   beforeEach(() => {
@@ -841,8 +841,7 @@ describe("Token Permit2 Approval Workflow", () => {
     });
 
     it("should complete workflow successfully", async () => {
-      const result =
-        await approveTokenPermit2Module.processTokenApproval();
+      const result = await approveTokenPermit2Module.processTokenApproval();
 
       expect(result).toEqual(
         expect.objectContaining({
@@ -922,8 +921,7 @@ describe("Token Permit2 Approval Workflow", () => {
         }
       });
 
-      const result =
-        await approveTokenPermit2Module.processTokenApproval();
+      const result = await approveTokenPermit2Module.processTokenApproval();
 
       expect(result.success).toBe(true);
       expect(result.allSuccessful).toBe(false);
@@ -1211,8 +1209,7 @@ describe("Token Permit2 Approval Workflow", () => {
       mockFormatEther.mockReturnValue("1.0");
       mockFormatUnits.mockReturnValue("20.0");
 
-      const result =
-        await approveTokenPermit2Module.processTokenApproval();
+      const result = await approveTokenPermit2Module.processTokenApproval();
 
       expect(result.success).toBe(true);
       expect(result.total).toBe(3);

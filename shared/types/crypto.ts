@@ -25,4 +25,11 @@ type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
 type HashableInput = string | number | boolean | object;
 type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
 
-export type { EncryptionArgs, DecryptionArgs, ProofData, HashableInput, ByteInput, SupportedAlgorithm };
+export type {
+  EncryptionArgs,
+  DecryptionArgs,
+  ProofData,
+  HashableInput,
+  ByteInput,
+  SupportedAlgorithm,
+};

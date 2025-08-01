@@ -10,21 +10,25 @@ import {
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WillFileType, type FormattedWill, type AddressedWill } from "@shared/types/will.js";
+import {
+  WillFileType,
+  type FormattedWill,
+  type AddressedWill,
+} from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
 import { createContractInstance } from "@shared/utils/blockchain.js";
 import { generateSalt } from "@shared/utils/cryptography/salt.js";
-import { printEstates } from "@shared/utils/print.js"
+import { printEstates } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 interface predictWillData {
-  testator: EthereumAddress,
-  estates: Estate[],
-  salt: number,
+  testator: EthereumAddress;
+  estates: Estate[];
+  salt: number;
 }
 
 interface ProcessResult {
@@ -63,7 +67,7 @@ function printPredictWillData(predictData: predictWillData): void {
 
   console.log(chalk.blue("\n🧂 Salt Information:"));
   console.log(chalk.gray("- Salt:"), chalk.white(predictData.salt));
-  
+
   printEstates(predictData.estates);
 
   console.log(chalk.cyan("\n=== End of predictWillData Details ===\n"));
@@ -97,7 +101,9 @@ async function executePredictWill(
     );
     return predictedAddress;
   } catch (error) {
-    throw new Error(`Failed to predict will address: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to predict will address: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -137,10 +143,10 @@ async function processPredictWill(): Promise<ProcessResult> {
       ...willData,
       salt,
       will: predictedAddress,
-    }
+    };
 
     // Save addressed will
-    saveWill(WillFileType.ADDRESSED, addressedWillData)
+    saveWill(WillFileType.ADDRESSED, addressedWillData);
 
     // Update environment variables
     const updates: Array<[string, string]> = [
@@ -183,9 +189,7 @@ async function processPredictWill(): Promise<ProcessResult> {
  */
 async function main(): Promise<void> {
   try {
-    console.log(
-      chalk.bgCyan("\n=== Will Address Prediction ===\n"),
-    );
+    console.log(chalk.bgCyan("\n=== Will Address Prediction ===\n"));
 
     const result = await processPredictWill();
 
@@ -210,13 +214,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export {
-  validateEnvironmentVariables,
-  executePredictWill,
-  processPredictWill,
-};
+export { executePredictWill, processPredictWill };

@@ -7,13 +7,9 @@ import chalk from "chalk";
 async function getTokenInfo(
   tokenAddress: string,
   signer: Wallet,
-): Promise<{ name: string, symbol: string }> {
+): Promise<{ name: string; symbol: string }> {
   try {
-    const tokenContract = new ethers.Contract(
-      tokenAddress,
-      ERC20_ABI,
-      signer,
-    );
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
 
     const [name, symbol] = await Promise.all([
       tokenContract.name(),
@@ -101,7 +97,9 @@ async function getWillInfo(contract: Will): Promise<WillInfo> {
       estates: formattedEstates,
     };
   } catch (error) {
-    throw new Error(`Failed to fetch will info: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to fetch will info: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -127,8 +125,9 @@ async function createSigner(
 
     return signer;
   } catch (error) {
-
-    throw new Error(`Failed to create signer: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to create signer: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -142,8 +141,9 @@ function createWallet(privateKey: string, provider?: JsonRpcProvider): Wallet {
     console.log(chalk.green("✅ Wallet created:"), wallet.address);
     return wallet;
   } catch (error) {
-
-    throw new Error(`Failed to create wallet: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to create wallet: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -179,9 +179,17 @@ async function createContract<T extends Contract>(
 
     return contract;
   } catch (error) {
-
-    throw new Error(`Failed to create contract instance: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to create contract instance: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
-export { getTokenInfo, getTokenBalance, getWillInfo, createSigner, createWallet, createContract as createContractInstance };
+export {
+  getTokenInfo,
+  getTokenBalance,
+  getWillInfo,
+  createSigner,
+  createWallet,
+  createContract as createContractInstance,
+};

@@ -1,9 +1,15 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import { validateFiles } from "@shared/utils/validation/file.js";
-import { validateEnvironment, presetValidations } from "@shared/utils/validation/environment.js";
+import {
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/environment.js";
 import { JsonRpcProvider } from "ethers";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContractInstance } from "@shared/utils/blockchain.js";
+import {
+  createWallet,
+  createContractInstance,
+} from "@shared/utils/blockchain.js";
 import {
   WillFactory,
   WillFactory__factory,
@@ -101,7 +107,9 @@ async function executeUploadCid(
       gasUsed: receipt.gasUsed,
     };
   } catch (error) {
-    throw new Error(`Failed to execute uploadCid: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Failed to execute uploadCid: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -151,7 +159,10 @@ async function processUploadCid(): Promise<ProcessResult> {
 
     return result;
   } catch (error) {
-    console.error(chalk.red("Error during CID upload process:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red("Error during CID upload process:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     throw error;
   }
 }
@@ -186,9 +197,12 @@ async function main(): Promise<void> {
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
   // Only run when executed directly
   main().catch((error) => {
-    console.error(chalk.red.bold("Uncaught error:"), error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      chalk.red.bold("Uncaught error:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
     process.exit(1);
   });
 }
 
-export { validateEnvironmentVariables, executeUploadCid, processUploadCid };
+export { executeUploadCid, processUploadCid };
