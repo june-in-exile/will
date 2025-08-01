@@ -173,7 +173,7 @@ function compareBalanceSnapshots(
         afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
           ? "Testator"
           : afterBalance.address.toLowerCase() ===
-            willInfo.executor.toLowerCase()
+              willInfo.executor.toLowerCase()
             ? "Executor"
             : "Beneficiary";
 
@@ -297,10 +297,9 @@ async function executeSignatureTransfer(
  */
 async function processSignatureTransfer(): Promise<ProcessResult> {
   try {
-    const { EXECUTOR_PRIVATE_KEY } =
-      validateEnvironmentVariables();
+    const { EXECUTOR_PRIVATE_KEY } = validateEnvironmentVariables();
 
-    const fields = readWillFields(WILL_TYPE.DECRYPTED, ['will', 'signature']);
+    const fields = readWillFields(WILL_TYPE.DECRYPTED, ["will", "permit2"]);
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
@@ -328,9 +327,9 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     const result = await executeSignatureTransfer(
       contract,
       willInfo,
-      fields.signature.nonce.toString(),
-      fields.signature.deadline.toString(),
-      fields.signature.signature.toString(),
+      fields.permit2.nonce.toString(),
+      fields.permit2.deadline.toString(),
+      fields.permit2.signature.toString(),
     );
 
     console.log(

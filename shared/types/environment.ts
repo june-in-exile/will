@@ -60,4 +60,4 @@ export type {
   NotarizeCid,
   CreateWill,
   SignatureTransfer,
-}
+};

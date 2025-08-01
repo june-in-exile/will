@@ -6,10 +6,7 @@ import {
 } from "@shared/utils/validation/environment.js";
 import { JsonRpcProvider } from "ethers";
 import { validateNetwork } from "@shared/utils/validation/network.js";
-import {
-  createWallet,
-  createContract,
-} from "@shared/utils/blockchain.js";
+import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import {
   WillFactory,
   WillFactory__factory,
@@ -149,7 +146,11 @@ async function processCreateWill(): Promise<ProcessResult> {
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
-    const fields = readWillFields(WILL_TYPE.DECRYPTED, ['testator', 'estates', 'salt']);
+    const fields = readWillFields(WILL_TYPE.DECRYPTED, [
+      "testator",
+      "estates",
+      "salt",
+    ]);
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
@@ -233,7 +234,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  executeCreateWill,
-  processCreateWill,
-};
+export { executeCreateWill, processCreateWill };

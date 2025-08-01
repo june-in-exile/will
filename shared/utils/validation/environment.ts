@@ -151,11 +151,7 @@ const presetValidations = {
   }),
 
   createWill: (): EnvironmentValidationOptions => ({
-    required: [
-      "WILL_FACTORY",
-      "EXECUTOR_PRIVATE_KEY",
-      "CID",
-    ],
+    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID"],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
@@ -164,9 +160,7 @@ const presetValidations = {
   }),
 
   signatureTransfer: (): EnvironmentValidationOptions => ({
-    required: [
-      "EXECUTOR_PRIVATE_KEY",
-    ],
+    required: ["EXECUTOR_PRIVATE_KEY"],
     validators: {
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
     },

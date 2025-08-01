@@ -7,10 +7,7 @@ import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { WILL_TYPE } from "@shared/constants/willType.js";
-import type {
-  AddressedWill,
-  SignedWill,
-} from "@shared/types/will.js";
+import type { AddressedWill, SignedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
@@ -184,25 +181,19 @@ async function signPermit(
  */
 async function processPermitSigning(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     const { TESTATOR_PRIVATE_KEY, PERMIT2 } = validateEnvironmentVariables();
 
-    // Initialize provider and validate network
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     const network = await validateNetwork(provider);
 
-    // Create and validate signer
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    // Read and validate will data
     const willData: AddressedWill = readWill(WILL_TYPE.ADDRESSED);
 
-    // Generate signature parameters
     console.log(chalk.blue("Generating signature parameters..."));
     const nonce = generateSecureNonce();
     const deadline = calculateDeadline();
 
-    // Create permit structure
     const permit = createPermitStructure(
       willData.estates,
       willData.will,
@@ -220,17 +211,15 @@ async function processPermitSigning(): Promise<ProcessResult> {
 
     const signedWillData: SignedWill = {
       ...willData,
-      signature: {
+      permit2: {
         nonce,
         deadline,
         signature,
       },
     };
 
-    // Save signed will
     saveWill(WILL_TYPE.SIGNED, signedWillData);
 
-    // Update environment variables
     await updateEnvironmentVariables([
       ["NONCE", nonce.toString()],
       ["DEADLINE", deadline.toString()],

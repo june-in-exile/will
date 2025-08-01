@@ -123,11 +123,11 @@ function validateSignedWill(
 ): asserts willData is SignedWill {
   validateAddressedWill(willData);
 
-  if (!willData.signature) {
+  if (!willData.permit2) {
     throw new Error("Missing required field: signature");
   }
 
-  const { signature } = willData;
+  const { permit2: signature } = willData;
   const requiredSigFields: (keyof Permit2Signature)[] = [
     "nonce",
     "deadline",

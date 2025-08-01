@@ -34,7 +34,7 @@ predict-address:
 	@pnpm exec tsx src/onchain/willFactory/predictWill.ts
 
 sign-permit:
-	@pnpm exec tsx src/offchain/signature/permit.ts
+	@pnpm exec tsx src/offchain/signature/permit2.ts
 
 encrypt-will:
 	@pnpm exec tsx src/offchain/cryptography/encryptWill.ts

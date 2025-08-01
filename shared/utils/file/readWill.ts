@@ -1,5 +1,9 @@
 import { WILL_FILE_PATH } from "@shared/constants/willFilePath.js";
-import type { WillType, WillTypeToWillMap, WillFields } from "@shared/types/will.js";
+import type {
+  WillType,
+  WillTypeToWillMap,
+  WillFields,
+} from "@shared/types/will.js";
 import { validateWill } from "@shared/utils/validation/will.js";
 import { readFileSync, existsSync } from "fs";
 import chalk from "chalk";
@@ -46,11 +50,8 @@ function readWill<T>(type: WillType): T {
 
 function readWillFields<
   T extends WillType,
-  K extends readonly (keyof WillTypeToWillMap[T])[]
->(
-  type: T,
-  keys: K
-): WillFields<T, K> {
+  K extends readonly (keyof WillTypeToWillMap[T])[],
+>(type: T, keys: K): WillFields<T, K> {
   const willData = readWill(type) as WillTypeToWillMap[T];
 
   const willKeys = Object.keys(willData) as (keyof WillTypeToWillMap[T])[];
@@ -59,7 +60,7 @@ function readWillFields<
     if (!willKeys.includes(key)) {
       throw new Error(
         `Key "${String(key)}" is not valid for will type "${type}". ` +
-        `Available keys are: ${willKeys.map(k => String(k)).join(', ')}`
+          `Available keys are: ${willKeys.map((k) => String(k)).join(", ")}`,
       );
     }
   }
@@ -74,7 +75,4 @@ function readWillFields<
   return result;
 }
 
-export {
-  readWill,
-  readWillFields,
-};
+export { readWill, readWillFields };

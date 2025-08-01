@@ -5,10 +5,7 @@ import { generateKey } from "@shared/utils/cryptography/key.js";
 import { generateInitializationVector } from "@shared/utils/cryptography/initializationVector.js";
 import { Base64String } from "@shared/types/base64String.js";
 import { WILL_TYPE } from "@shared/constants/willType.js";
-import type {
-  SignedWill,
-  EncryptedWill,
-} from "@shared/types/will.js";
+import type { SignedWill, EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import chalk from "chalk";

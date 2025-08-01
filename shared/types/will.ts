@@ -1,4 +1,4 @@
-import { WILL_TYPE } from "@shared/constants/willType.js"
+import { WILL_TYPE } from "@shared/constants/willType.js";
 import type {
   EthereumAddress,
   Estate,
@@ -35,7 +35,7 @@ interface AddressedWill extends FormattedWill {
 }
 
 interface SignedWill extends AddressedWill {
-  signature: Permit2Signature;
+  permit2: Permit2Signature;
 }
 
 interface EncryptedWill {
@@ -46,11 +46,11 @@ interface EncryptedWill {
   timestamp: number;
 }
 
-interface DownloadedWill extends EncryptedWill { }
+interface DownloadedWill extends EncryptedWill {}
 
-interface DecryptedWill extends SignedWill { }
+interface DecryptedWill extends SignedWill {}
 
-type WillType = typeof WILL_TYPE[keyof typeof WILL_TYPE];
+type WillType = (typeof WILL_TYPE)[keyof typeof WILL_TYPE];
 
 type WillTypeToWillMap = {
   [WILL_TYPE.FORMATTED]: FormattedWill;
@@ -61,7 +61,10 @@ type WillTypeToWillMap = {
   [WILL_TYPE.DECRYPTED]: DecryptedWill;
 };
 
-type WillFields<T extends WillType, K extends readonly (keyof WillTypeToWillMap[T])[]> = {
+type WillFields<
+  T extends WillType,
+  K extends readonly (keyof WillTypeToWillMap[T])[],
+> = {
   [P in K[number]]: WillTypeToWillMap[T][P];
 };
 
