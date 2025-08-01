@@ -1,18 +1,18 @@
 import { NETWORK_CONFIG } from "@config";
 import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
-import { JsonRpcProvider } from "ethers";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContract } from "@shared/utils/blockchain.js";
-import {
   WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import type { NotarizeCid } from "@shared/types/environment.js";
+import type { NotarizeCid } from "@shared/types/index.js";
+import {
+  validateEnvironment,
+  presetValidations,
+  validateNetwork,
+} from "@shared/utils/validation/index.js";
+import { updateEnvironmentVariables } from "@shared/utils/file/index.js";
+import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import preview from "@shared/utils/transform/preview.js";
+import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 interface NotarizeCidData {

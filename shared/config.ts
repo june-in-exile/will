@@ -1,9 +1,4 @@
-import {
-  UTF8,
-  ASCII,
-  BASE64,
-  HEX,
-} from "@shared/constants/encoding.js";
+import { UTF8, ASCII, BASE64, HEX } from "@shared/constants/encoding.js";
 import {
   AES_256_GCM,
   CHACHA20_POLY1305,

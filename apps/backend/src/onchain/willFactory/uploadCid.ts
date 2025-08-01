@@ -1,27 +1,31 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { validateFiles } from "@shared/utils/validation/file.js";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
-import { JsonRpcProvider } from "ethers";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import {
   WillFactory,
   WillFactory__factory,
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
-import type { ProofData } from "@shared/types/crypto.js";
-import { readProof } from "@shared/utils/file/readProof.js";
-import { readWill } from "@shared/utils/file/readWill.js";
+import type {
+  ProofData,
+  EncryptedWill,
+  UploadCid,
+} from "@shared/types/index.js";
+import { WILL_TYPE } from "@shared/constants/index.js";
+import {
+  validateFiles,
+  validateEnvironment,
+  presetValidations,
+  validateNetwork,
+} from "@shared/utils/validation/index.js";
+import {
+  updateEnvironmentVariables,
+  readProof,
+  readWill,
+} from "@shared/utils/file/index.js";
+import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import type { EncryptedWill } from "@shared/types/will.js";
-import type { UploadCid } from "@shared/types/environment.js";
 import preview from "@shared/utils/transform/preview.js";
+import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 interface UploadCidData {

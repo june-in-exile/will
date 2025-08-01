@@ -1,23 +1,29 @@
-import type { PredictWill } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
 import {
   WillFactory,
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
-import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import type { FormattedWill, AddressedWill } from "@shared/types/will.js";
-import { readWill } from "@shared/utils/file/readWill.js";
-import { saveWill } from "@shared/utils/file/saveWill.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import { validateEthereumAddress } from "@shared/utils/validation/blockchain.js";
+import type {
+  Estate,
+  EthereumAddress,
+  PredictWill,
+  FormattedWill,
+  AddressedWill,
+} from "@shared/types/index.js";
+import { WILL_TYPE } from "@shared/constants/index.js";
+import {
+  validateEnvironment,
+  presetValidations,
+  validateNetwork,
+} from "@shared/utils/validation/index.js";
+import {
+  updateEnvironmentVariables,
+  readWill,
+  saveWill,
+} from "@shared/utils/file/index.js";
+import { validateEthereumAddress } from "@shared/utils/validation/index.js";
+import { generateSalt } from "@shared/utils/cryptography/index.js";
 import { createContract } from "@shared/utils/blockchain.js";
-import { generateSalt } from "@shared/utils/cryptography/salt.js";
 import { printEstates } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";

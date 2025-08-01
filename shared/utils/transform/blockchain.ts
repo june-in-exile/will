@@ -1,6 +1,5 @@
-import { EncryptedWill } from "@shared/types/will.js";
 import { JsonCidVerifier } from "@shared/types/typechain-types/index.js";
-import { Estate, EstateToken } from "@shared/types/blockchain.js";
+import { Estate, EstateToken, EncryptedWill } from "@shared/types/index.js";
 import chalk from "chalk";
 
 function extractUniqueTokens(estates: Estate[]): EstateToken[] {
@@ -116,4 +115,8 @@ function encryptedWillToTypedJsonObject(
   }
 }
 
-export { extractUniqueTokens, encryptedWillToJsonObject, encryptedWillToTypedJsonObject };
+export {
+  extractUniqueTokens,
+  encryptedWillToJsonObject,
+  encryptedWillToTypedJsonObject,
+};

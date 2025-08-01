@@ -1,10 +1,10 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/constants/cryptography.js";
-import type {
-  SupportedAlgorithm,
-  EncryptionArgs,
-} from "@shared/types/crypto.js";
-import { Base64String } from "@shared/types/base64String.js";
+import {
+  Base64String,
+  type SupportedAlgorithm,
+  type EncryptionArgs,
+} from "@shared/types/index.js";
 import { generateInitializationVector } from "./initializationVector.js";
 import { generateKey } from "./key.js";
 import { createCipheriv, Cipheriv } from "crypto";
@@ -132,24 +132,24 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray(
-      "         Base64-encoded encryption key [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+      ),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray(
-      "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+      ),
   );
 
   console.log(chalk.red("\nImportant:"));

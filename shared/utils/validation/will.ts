@@ -1,18 +1,19 @@
 import { CRYPTO_CONFIG } from "@config";
 import { WILL_TYPE } from "@shared/constants/will.js";
-import type { Will, WillType } from "@shared/types/will.js";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import type {
+  Estate,
+  Permit2Signature,
+  Will,
+  WillType,
   FormattedWill,
   AddressedWill,
   SignedWill,
   EncryptedWill,
   DownloadedWill,
   DecryptedWill,
-} from "@shared/types/will.js";
-import type { Permit2Signature } from "@shared/types/blockchain.js";
-import { Estate } from "@shared/types/blockchain.js";
+} from "@shared/types/index.js";
 
 function validateWill(type: WillType, will: Will) {
   switch (type) {

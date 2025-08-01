@@ -1,18 +1,23 @@
+import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
+import type {
+  Estate,
+  PermitSigning,
+  AddressedWill,
+  SignedWill,
+} from "@shared/types/index.js";
+import { WILL_TYPE } from "@shared/constants/index.js";
 import {
   validateEnvironment,
   presetValidations,
-} from "@shared/utils/validation/environment.js";
-import type { PermitSigning } from "@shared/types/environment.js";
-import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { Estate } from "@shared/types/blockchain.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import type { AddressedWill, SignedWill } from "@shared/types/will.js";
-import { readWill } from "@shared/utils/file/readWill.js";
-import { saveWill } from "@shared/utils/file/saveWill.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
+  validateNetwork,
+} from "@shared/utils/validation/index.js";
+import {
+  updateEnvironmentVariables,
+  readWill,
+  saveWill,
+} from "@shared/utils/file/index.js";
+import { generateSecureNonce } from "@shared/utils/cryptography/index.js";
 import { createSigner } from "@shared/utils/blockchain.js";
-import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js";
 import preview from "@shared/utils/transform/preview.js";
 import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -286,7 +291,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  signPermit,
-  processPermitSigning,
-};
+export { signPermit, processPermitSigning };

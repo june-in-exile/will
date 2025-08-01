@@ -2,19 +2,15 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import type {
   SupportedAlgorithm,
   DecryptionArgs,
-} from "@shared/types/crypto.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import type {
   WillType,
   EncryptedWill,
   DownloadedWill,
   DecryptedWill,
-} from "@shared/types/will.js";
-import { readWill } from "@shared/utils/file/readWill.js";
+} from "@shared/types/index.js";
+import { WILL_TYPE } from "@shared/constants/will.js";
+import { getKey, decrypt } from "@shared/utils/cryptography/index.js";
+import { readWill, saveWill } from "@shared/utils/file/index.js";
 import { validateWill } from "@shared/utils/validation/will.js";
-import { saveWill } from "@shared/utils/file/saveWill.js";
-import { getKey } from "@shared/utils/cryptography/key.js";
-import { decrypt } from "@shared/utils/cryptography/decrypt.js";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 

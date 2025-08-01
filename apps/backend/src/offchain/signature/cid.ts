@@ -1,16 +1,13 @@
+import type { EthereumAddress, CidSigning } from "@shared/types/index.js";
 import {
   validateEnvironment,
   presetValidations,
-} from "@shared/utils/validation/environment.js";
-import type { CidSigning } from "@shared/types/environment.js";
-import { EthereumAddress } from "@shared/types/blockchain.js";
-import { validateCidv1 } from "@shared/utils/validation/cid.js";
-import {
   validateEthereumAddress,
   validatePrivateKey,
-} from "@shared/utils/validation/blockchain.js";
-import { signString, verify } from "@shared/utils/cryptography/signature.js";
-import { updateEnvVariable } from "@shared/utils/file/updateEnvVariable.js";
+  validateCidv1,
+} from "@shared/utils/validation/index.js";
+import { signString, verify } from "@shared/utils/cryptography/index.js";
+import { updateEnvVariable } from "@shared/utils/file/index.js";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 

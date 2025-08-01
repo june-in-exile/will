@@ -1,7 +1,11 @@
 import { ethers, Wallet, JsonRpcProvider, Contract, formatUnits } from "ethers";
 import { ERC20_ABI } from "@shared/constants/blockchain.js";
 import { Will } from "@shared/types/typechain-types/index.js";
-import { Estate, TokenBalance, WillContractInfo } from "@shared/types/blockchain.js";
+import {
+  Estate,
+  TokenBalance,
+  WillContractInfo,
+} from "@shared/types/blockchain.js";
 import chalk from "chalk";
 
 async function getTokenInfo(

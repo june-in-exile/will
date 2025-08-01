@@ -1,26 +1,28 @@
 import { NETWORK_CONFIG } from "@config";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
-import { ethers, JsonRpcProvider, formatUnits } from "ethers";
-import { validateNetwork } from "@shared/utils/validation/network.js";
-import {
-  getTokenBalance,
-  createWallet,
-  createContract,
-} from "@shared/utils/blockchain.js";
+import { WILL_TYPE } from "@shared/constants/index.js";
 import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
 import type {
   WillContractInfo,
   TokenBalance,
   BalanceSnapshot,
-} from "@shared/types/blockchain.js";
-import type { SignatureTransfer } from "@shared/types/environment.js";
-import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import { readWillFields } from "@shared/utils/file/readWill.js";
-import { getWillInfo } from "@shared/utils/blockchain.js";
+  SignatureTransfer,
+} from "@shared/types/index.js";
+import {
+  updateEnvironmentVariables,
+  readWillFields,
+} from "@shared/utils/file/index.js";
+import {
+  validateNetwork,
+  validateEnvironment,
+  presetValidations,
+} from "@shared/utils/validation/index.js";
+import {
+  getTokenBalance,
+  getWillInfo,
+  createWallet,
+  createContract,
+} from "@shared/utils/blockchain.js";
+import { ethers, JsonRpcProvider, formatUnits } from "ethers";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
@@ -317,7 +319,10 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances before execution..."),
     );
-    const beforeSnapshot = await checkTokenBalancesOfAllRoles(provider, willInfo);
+    const beforeSnapshot = await checkTokenBalancesOfAllRoles(
+      provider,
+      willInfo,
+    );
     printBalanceSnapshot(
       beforeSnapshot,
       "Token Balances Before Execution",
@@ -335,7 +340,10 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
     console.log(
       chalk.magenta.bold("\n🔍 Checking balances after execution..."),
     );
-    const afterSnapshot = await checkTokenBalancesOfAllRoles(provider, willInfo);
+    const afterSnapshot = await checkTokenBalancesOfAllRoles(
+      provider,
+      willInfo,
+    );
     printBalanceSnapshot(
       afterSnapshot,
       "Token Balances After Execution",
@@ -404,7 +412,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  executeSignatureTransfer,
-  processSignatureTransfer,
-};
+export { executeSignatureTransfer, processSignatureTransfer };

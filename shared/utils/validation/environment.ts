@@ -1,13 +1,13 @@
-import {
-  validateEthereumAddress,
-  validatePrivateKey,
-  validateSignature,
-} from "@shared/utils/validation/blockchain.js";
-import { validateCidv1 } from "@shared/utils/validation/cid.js";
 import type {
   EnvironmentValidationOptions,
   ValidationResult,
 } from "@shared/types/validation.js";
+import {
+  validateEthereumAddress,
+  validatePrivateKey,
+  validateSignature,
+  validateCidv1,
+} from "@shared/utils/validation/index.js";
 
 /**
  * Generic environment variable validation function

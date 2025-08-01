@@ -1,20 +1,19 @@
-import type { IpfsDownload } from "@shared/types/environment.js";
 import { PATHS_CONFIG } from "@config";
+import type { IpfsDownload, DownloadedWill } from "@shared/types/index.js";
 import {
   validateEnvironment,
   presetValidations,
-} from "@shared/utils/validation/environment.js";
+  validateWill,
+} from "@shared/utils/validation/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
-import type { DownloadedWill } from "@shared/types/will.js";
+import { saveWill } from "@shared/utils/file/index.js";
 import {
   createHeliaInstance,
   downloadFromIpfs,
   stopHelia,
 } from "@shared/utils/ipfs.js";
-import { validateWill } from "@shared/utils/validation/will.js";
-import { saveWill } from "@shared/utils/file/saveWill.js";
-import { Helia } from "helia";
 import preview from "@shared/utils/transform/preview.js";
+import { Helia } from "helia";
 import chalk from "chalk";
 
 interface ProcessResult extends DownloadedWill {

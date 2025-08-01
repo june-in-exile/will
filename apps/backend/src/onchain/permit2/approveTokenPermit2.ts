@@ -1,17 +1,20 @@
+import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
+import type { TokenApproval } from "@shared/types/index.js";
+import { WILL_TYPE, ERC20_ABI } from "@shared/constants/index.js";
 import {
   validateEnvironment,
   presetValidations,
-} from "@shared/utils/validation/environment.js";
-import type { TokenApproval } from "@shared/types/environment.js";
-import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
-import { getTokenInfo, getTokenAllowance, createSigner } from "@shared/utils/blockchain.js";
-import { extractUniqueTokens } from "@shared/utils/transform/blockchain.js"
-import { readWillFields } from "@shared/utils/file/readWill.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
+  validateNetwork
+} from "@shared/utils/validation/index.js";
+import { extractUniqueTokens } from "@shared/utils/transform/blockchain.js";
+import { readWillFields } from "@shared/utils/file/index.js";
+import {
+  getTokenInfo,
+  getTokenAllowance,
+  createSigner,
+} from "@shared/utils/blockchain.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
-import { ERC20_ABI } from "@shared/constants/blockchain.js";
 import chalk from "chalk";
 
 const require = createRequire(import.meta.url);
@@ -355,8 +358,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export {
-  approveToken,
-  executeTokenApprovals,
-  processTokenApproval,
-};
+export { approveToken, executeTokenApprovals, processTokenApproval };

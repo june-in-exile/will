@@ -4,8 +4,7 @@ import type {
   Estate,
   Permit2Signature,
 } from "./blockchain.js";
-import type { SupportedAlgorithm } from "@shared/types/crypto.js";
-import type { Base64String } from "@shared/types/base64String.js";
+import type { SupportedAlgorithm, Base64String } from "@shared/types/index.js";
 
 type Will =
   | FormattedWill
@@ -37,9 +36,9 @@ interface EncryptedWill {
   timestamp: number;
 }
 
-interface DownloadedWill extends EncryptedWill { }
+interface DownloadedWill extends EncryptedWill {}
 
-interface DecryptedWill extends SignedWill { }
+interface DecryptedWill extends SignedWill {}
 
 type WillType = (typeof WILL_TYPE)[keyof typeof WILL_TYPE];
 
@@ -56,8 +55,8 @@ type WillFields<
   T extends WillType,
   K extends readonly (keyof WillTypeToWillMap[T])[],
 > = {
-    [P in K[number]]: WillTypeToWillMap[T][P];
-  };
+  [P in K[number]]: WillTypeToWillMap[T][P];
+};
 
 export type {
   Will,

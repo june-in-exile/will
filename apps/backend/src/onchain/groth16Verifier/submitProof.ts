@@ -1,17 +1,16 @@
-import type { SubmitProof } from "@shared/types/environment.js";
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
-import { readProof } from "@shared/utils/file/readProof.js";
-import {
-  validateEnvironment,
-  presetValidations,
-} from "@shared/utils/validation/environment.js";
 import {
   Groth16Verifier,
   Groth16Verifier__factory,
 } from "@shared/types/typechain-types/index.js";
-import type { ProofData } from "@shared/types/crypto.js";
-import { validateFiles } from "@shared/utils/validation/file.js";
-import { validateNetwork } from "@shared/utils/validation/network.js";
+import type { ProofData, SubmitProof } from "@shared/types/index.js";
+import { readProof } from "@shared/utils/file/readProof.js";
+import {
+  validateFiles,
+  validateEnvironment,
+  presetValidations,
+  validateNetwork,
+} from "@shared/utils/validation/index.js";
 import { createContract } from "@shared/utils/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
