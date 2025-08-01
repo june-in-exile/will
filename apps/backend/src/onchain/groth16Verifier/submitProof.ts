@@ -17,16 +17,10 @@ import { printProof } from "@shared/utils/print.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
-interface ProofValidationResult {
-  proofValid: boolean;
-  executionTime: number;
-}
-
 interface ProcessResult {
-  isValid: boolean;
-  contractAddress: string;
-  submittedAt: number;
-  success: boolean;
+  proofValid: boolean;
+  submittedTime: number;
+  executionTime: number;
 }
 
 /**
@@ -49,29 +43,27 @@ function validateEnvironmentVariables(): SubmitProof {
 /**
  * Submit proof to verifier contract
  */
-async function submitProofToContract(
+async function executeProofSubmission(
   contract: Groth16Verifier,
   proof: ProofData,
-): Promise<ProofValidationResult> {
+): Promise<ProcessResult> {
   try {
     console.log(chalk.blue("Submitting proof for verification..."));
 
-    // Print detailed proof information
     printProof(proof);
 
-    const startTime = Date.now();
+    const submittedTime = Date.now();
 
-    // Call the verifyProof function (this is a view function, so no gas cost)
-    const isValid = await contract.verifyProof(
+    const proofValid = await contract.verifyProof(
       proof.pA,
       proof.pB,
       proof.pC,
       proof.pubSignals,
     );
 
-    const executionTime = Date.now() - startTime;
+    const executionTime = Date.now() - submittedTime;
 
-    if (isValid) {
+    if (proofValid) {
       console.log(chalk.green("✅ Proof verification successful!"));
       console.log(chalk.green("🎉 Zero-knowledge proof is VALID"));
     } else {
@@ -79,10 +71,9 @@ async function submitProofToContract(
       console.log(chalk.red("💥 Zero-knowledge proof is INVALID"));
     }
 
-    console.log(chalk.gray("Verification time:"), `${executionTime}ms`);
-
     return {
-      proofValid: isValid,
+      proofValid,
+      submittedTime,
       executionTime,
     };
   } catch (error) {
@@ -97,36 +88,24 @@ async function submitProofToContract(
  */
 async function processProofSubmission(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     validateFiles([
       PATHS_CONFIG.zkp.multiplier2.proof,
       PATHS_CONFIG.zkp.multiplier2.public,
     ]);
     const { UPLOAD_CID_VERIFIER } = validateEnvironmentVariables();
 
-    // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create contract instance
     const contract = await createContractInstance<Groth16Verifier>(
       UPLOAD_CID_VERIFIER,
       Groth16Verifier__factory,
       provider,
     );
 
-    // Read and validate proof data
     const proof = readProof();
 
-    // Submit proof for verification
-    const verificationResult = await submitProofToContract(contract, proof);
-
-    const result: ProcessResult = {
-      isValid: verificationResult.proofValid,
-      contractAddress: UPLOAD_CID_VERIFIER,
-      submittedAt: Date.now(),
-      success: true,
-    };
+    const result = await executeProofSubmission(contract, proof);
 
     console.log(
       chalk.green.bold("\n🎉 Proof submission process completed successfully!"),
@@ -150,31 +129,13 @@ async function main(): Promise<void> {
     const result = await processProofSubmission();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
-    console.log(chalk.gray("Results:"));
-    console.log(
-      chalk.gray("- Proof Valid:"),
-      result.isValid ? chalk.green("✅ YES") : chalk.red("❌ NO"),
-    );
-    console.log(chalk.gray("- Contract Address:"), result.contractAddress);
-    console.log(
-      chalk.gray("- Submitted At:"),
-      new Date(result.submittedAt).toISOString(),
-    );
-
-    if (!result.isValid) {
-      console.log(
-        chalk.yellow("\n⚠️  Proof verification failed. Please check:"),
-      );
-      console.log(chalk.gray("1. Proof generation process"));
-      console.log(chalk.gray("2. Public signal consistency"));
-      console.log(chalk.gray("3. Circuit parameters"));
-      console.log(chalk.gray("4. Verifier contract compatibility"));
-    }
+    console.log(chalk.gray("Results:"), result);
   } catch (error) {
     console.error(
       chalk.red.bold("\n❌ Program execution failed:"),
       error instanceof Error ? error.message : "Unknown error",
     );
+
     // Log stack trace in development mode
     if (process.env.NODE_ENV === "development" && error instanceof Error) {
       console.error(chalk.gray("Stack trace:"), error.stack);
@@ -197,6 +158,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
 }
 
 export {
-  submitProofToContract,
+  executeProofSubmission,
   processProofSubmission,
 };
