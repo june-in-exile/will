@@ -1,4 +1,4 @@
-function truncate(
+function preview(
   str: string,
   startLength: number = 20,
   endLength: number = 5,
@@ -10,4 +10,4 @@ function truncate(
   return `${str.slice(0, startLength)}...${str.slice(-endLength)}`;
 }
 
-export { truncate };
+export { preview };

@@ -6,17 +6,17 @@ import type { TransferSigning } from "@shared/types/environment.js";
 import { PATHS_CONFIG, PERMIT2_CONFIG, NETWORK_CONFIG } from "@config";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
 import { Estate } from "@shared/types/blockchain.js";
-import {
-  WillFileType,
-  type AddressedWill,
-  type SignedWill,
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type {
+  AddressedWill,
+  SignedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { createSigner } from "@shared/utils/blockchain.js";
 import { generateSecureNonce } from "@shared/utils/cryptography/nonce.js";
-import { truncate } from "@shared/utils/transform/expression.js";
+import { preview } from "@shared/utils/transform/expression.js";
 import { JsonRpcProvider, Wallet } from "ethers";
 import { createRequire } from "module";
 import chalk from "chalk";
@@ -169,7 +169,7 @@ async function signPermit(
     const signature = await signer.signTypedData(domain, types, values);
 
     console.log(chalk.green("✅ Signature generated successfully"));
-    console.log(chalk.gray("Signature:"), truncate(signature));
+    console.log(chalk.gray("Signature:"), preview(signature));
 
     return signature;
   } catch (error) {
@@ -195,7 +195,7 @@ async function processPermitSigning(): Promise<ProcessResult> {
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
     // Read and validate will data
-    const willData: AddressedWill = readWill(WillFileType.ADDRESSED);
+    const willData: AddressedWill = readWill(WILL_TYPE.ADDRESSED);
 
     // Generate signature parameters
     console.log(chalk.blue("Generating signature parameters..."));
@@ -228,7 +228,7 @@ async function processPermitSigning(): Promise<ProcessResult> {
     };
 
     // Save signed will
-    saveWill(WillFileType.SIGNED, signedWillData);
+    saveWill(WILL_TYPE.SIGNED, signedWillData);
 
     // Update environment variables
     await updateEnvironmentVariables([

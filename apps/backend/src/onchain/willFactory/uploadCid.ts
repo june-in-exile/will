@@ -21,7 +21,8 @@ import { readWill } from "@shared/utils/file/readWill.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { EncryptedWill } from "@shared/types/will.js";
 import type { UploadCid } from "@shared/types/environment.js";
 import chalk from "chalk";
 
@@ -138,7 +139,7 @@ async function processUploadCid(): Promise<ProcessResult> {
     );
 
     const proof: ProofData = readProof();
-    const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
+    const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObject =
       encryptedWillToTypedJsonObject(willData);
 

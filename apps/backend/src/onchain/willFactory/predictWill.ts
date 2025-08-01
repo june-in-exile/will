@@ -10,10 +10,10 @@ import {
   WillFactory__factory,
 } from "@shared/types/typechain-types/index.js";
 import { Estate, EthereumAddress } from "@shared/types/blockchain.js";
-import {
-  WillFileType,
-  type FormattedWill,
-  type AddressedWill,
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type {
+   FormattedWill,
+   AddressedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
@@ -112,27 +112,21 @@ async function executePredictWill(
  */
 async function processPredictWill(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     const { WILL_FACTORY } = validateEnvironmentVariables();
 
-    // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create contract instance
     const contract = await createContractInstance<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       provider,
     );
 
-    // Read and validate will data
-    const willData: FormattedWill = readWill(WillFileType.FORMATTED);
+    const willData: FormattedWill = readWill(WILL_TYPE.FORMATTED);
 
-    // Generate salt
     const salt = generateSalt();
 
-    // Predict will address
     const predictedAddress = await executePredictWill(contract, {
       testator: willData.testator,
       estates: willData.estates,
@@ -145,17 +139,13 @@ async function processPredictWill(): Promise<ProcessResult> {
       will: predictedAddress,
     };
 
-    // Save addressed will
-    saveWill(WillFileType.ADDRESSED, addressedWillData);
+    saveWill(WILL_TYPE.ADDRESSED, addressedWillData);
 
-    // Update environment variables
     const updates: Array<[string, string]> = [
-      // Will contract info
       ["SALT", salt.toString()],
       ["WILL", predictedAddress],
     ];
 
-    // Add estate-specific variables
     willData.estates.forEach((estate, index) => {
       updates.push(
         [`BENEFICIARY${index}`, estate.beneficiary.toString()],

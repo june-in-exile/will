@@ -4,10 +4,10 @@ import { encrypt } from "@shared/utils/cryptography/encrypt.js";
 import { generateKey } from "@shared/utils/cryptography/key.js";
 import { generateInitializationVector } from "@shared/utils/cryptography/initializationVector.js";
 import { Base64String } from "@shared/types/base64String.js";
-import {
-  WillFileType,
-  type SignedWill,
-  type EncryptedWill,
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type {
+  SignedWill,
+  EncryptedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { saveWill } from "@shared/utils/file/saveWill.js";
@@ -23,7 +23,7 @@ interface ProcessResult extends EncryptedWill {
 function getEncryptionArgs(): EncryptionArgs {
   const algorithm = CRYPTO_CONFIG.algorithm;
 
-  const signedWill: SignedWill = readWill(WillFileType.SIGNED);
+  const signedWill: SignedWill = readWill(WILL_TYPE.SIGNED);
   const plaintext = Buffer.from(
     JSON.stringify(signedWill),
     CRYPTO_CONFIG.plaintextEncoding,
@@ -51,7 +51,7 @@ async function processWillEncryption(): Promise<ProcessResult> {
       timestamp: Math.floor(Date.now() / 1000),
     };
 
-    saveWill(WillFileType.ENCRYPTED, encryptedWill);
+    saveWill(WILL_TYPE.ENCRYPTED, encryptedWill);
 
     console.log(
       chalk.green.bold("\n🎉 Will encryption process completed successfully!"),

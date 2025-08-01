@@ -1,5 +1,6 @@
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { EncryptedWill } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import {
   createHeliaInstance,
@@ -22,7 +23,7 @@ async function processIPFSUpload(): Promise<ProcessResult> {
   let helia: Helia | undefined;
 
   try {
-    const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
+    const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
 
     const { helia: heliaInstance, jsonHandler } = await createHeliaInstance();
     helia = heliaInstance;

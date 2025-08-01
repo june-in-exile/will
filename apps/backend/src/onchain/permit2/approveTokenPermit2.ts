@@ -7,7 +7,8 @@ import { APPROVAL_CONFIG, NETWORK_CONFIG } from "@config";
 import { getTokenInfo, createSigner } from "@shared/utils/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 import { readWill } from "@shared/utils/file/readWill.js";
-import { WillFileType, type FormattedWill } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { FormattedWill } from "@shared/types/will.js";
 import { validateNetwork } from "@shared/utils/validation/network.js";
 import { ethers, Wallet } from "ethers";
 import { createRequire } from "module";
@@ -320,7 +321,7 @@ async function processTokenApproval(): Promise<ProcessResult> {
 
     const signer = await createSigner(TESTATOR_PRIVATE_KEY, provider);
 
-    const willData: FormattedWill = readWill(WillFileType.FORMATTED);
+    const willData: FormattedWill = readWill(WILL_TYPE.FORMATTED);
 
     const tokens = extractUniqueTokens(willData.estates);
 

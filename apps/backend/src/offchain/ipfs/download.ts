@@ -4,7 +4,8 @@ import {
   validateEnvironment,
   presetValidations,
 } from "@shared/utils/validation/environment.js";
-import { WillFileType, type DownloadedWill } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { DownloadedWill } from "@shared/types/will.js";
 import {
   createHeliaInstance,
   downloadFromIpfs,
@@ -54,9 +55,9 @@ async function processIPFSDownload(): Promise<ProcessResult> {
       CID,
     )) as DownloadedWill;
 
-    validateWill(WillFileType.DOWNLOADED, downloadedWill);
+    validateWill(WILL_TYPE.DOWNLOADED, downloadedWill);
 
-    saveWill(WillFileType.DOWNLOADED, downloadedWill);
+    saveWill(WILL_TYPE.DOWNLOADED, downloadedWill);
 
     console.log(
       chalk.green.bold("\n🎉 IPFS download process completed successfully!"),

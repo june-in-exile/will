@@ -108,31 +108,25 @@ async function executeNotarizeCID(
  */
 async function processNotarizeCID(): Promise<ProcessResult> {
   try {
-    // Validate prerequisites
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
       validateEnvironmentVariables();
 
-    // Initialize provider and validate connection
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    // Create wallet instance
     const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
 
-    // Create contract instance
     const contract = await createContractInstance<WillFactory>(
       WILL_FACTORY,
       WillFactory__factory,
       wallet,
     );
 
-    // Execute notarization
     const result = await executeNotarizeCID(contract, {
       cid: CID,
       signature: EXECUTOR_SIGNATURE,
     });
 
-    // Update environment
     await updateEnvironmentVariables([
       ["NOTARIZE_TX_HASH", result.transactionHash],
       ["NOTARIZE_TIMESTAMP", result.timestamp.toString()],

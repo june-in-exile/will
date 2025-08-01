@@ -1,5 +1,6 @@
 import { CRYPTO_CONFIG } from "@config";
-import { WillFileType, type Will } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { Will, WillType } from "@shared/types/will.js";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import type {
@@ -13,24 +14,24 @@ import type {
 import type { Permit2Signature } from "@shared/types/blockchain.js";
 import { Estate } from "@shared/types/blockchain.js";
 
-function validateWill(type: WillFileType, will: Will) {
+function validateWill(type: WillType, will: Will) {
   switch (type) {
-    case WillFileType.FORMATTED:
+    case WILL_TYPE.FORMATTED:
       validateFormattedWill(will as FormattedWill);
       break;
-    case WillFileType.ADDRESSED:
+    case WILL_TYPE.ADDRESSED:
       validateAddressedWill(will as AddressedWill);
       break;
-    case WillFileType.SIGNED:
+    case WILL_TYPE.SIGNED:
       validateSignedWill(will as SignedWill);
       break;
-    case WillFileType.ENCRYPTED:
+    case WILL_TYPE.ENCRYPTED:
       validateEncryptedWill(will as EncryptedWill);
       break;
-    case WillFileType.DOWNLOADED:
+    case WILL_TYPE.DOWNLOADED:
       validateDownloadedWill(will as DownloadedWill);
       break;
-    case WillFileType.DECRYPTED:
+    case WILL_TYPE.DECRYPTED:
       validateDecryptedWill(will as DecryptedWill);
       break;
     default:

@@ -3,11 +3,12 @@ import type {
   SupportedAlgorithm,
   DecryptionArgs,
 } from "@shared/types/crypto.js";
-import {
-  WillFileType,
-  type EncryptedWill,
-  type DownloadedWill,
-  type DecryptedWill,
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type {
+  WillType,
+  EncryptedWill,
+  DownloadedWill,
+  DecryptedWill,
 } from "@shared/types/will.js";
 import { readWill } from "@shared/utils/file/readWill.js";
 import { validateWill } from "@shared/utils/validation/will.js";
@@ -23,7 +24,7 @@ interface ProcessResult extends DecryptedWill {
 /**
  * Get decryption arguments
  */
-function getDecryptionArgs(type: WillFileType): DecryptionArgs {
+function getDecryptionArgs(type: WillType): DecryptionArgs {
   const encryptedWill: EncryptedWill | DownloadedWill = readWill(type);
 
   const algorithm: SupportedAlgorithm = encryptedWill.algorithm;
@@ -42,9 +43,9 @@ async function processWillDecryption(
   isTestMode: boolean,
 ): Promise<ProcessResult> {
   try {
-    const type: WillFileType = isTestMode
-      ? WillFileType.ENCRYPTED
-      : WillFileType.DOWNLOADED;
+    const type: WillType = isTestMode
+      ? WILL_TYPE.ENCRYPTED
+      : WILL_TYPE.DOWNLOADED;
 
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
@@ -53,9 +54,9 @@ async function processWillDecryption(
       dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
     );
 
-    validateWill(WillFileType.DECRYPTED, decryptedWill);
+    validateWill(WILL_TYPE.DECRYPTED, decryptedWill);
 
-    saveWill(WillFileType.DECRYPTED, decryptedWill);
+    saveWill(WILL_TYPE.DECRYPTED, decryptedWill);
 
     console.log(
       chalk.green.bold("\n🎉 Will decryption process completed successfully!"),

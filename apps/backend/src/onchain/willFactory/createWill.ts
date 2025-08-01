@@ -22,7 +22,8 @@ import { readWill } from "@shared/utils/file/readWill.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
 import { printEstates, printProof } from "@shared/utils/print.js";
 import { updateEnvironmentVariables } from "@shared/utils/file/updateEnvVariable.js";
-import { WillFileType, type EncryptedWill } from "@shared/types/will.js";
+import { WILL_TYPE } from "@shared/constants/willType.js";
+import type { EncryptedWill } from "@shared/types/will.js";
 import type { Estate } from "@shared/types/blockchain.js";
 import type { CreateWill } from "@shared/types/environment.js";
 import chalk from "chalk";
@@ -59,6 +60,7 @@ function validateEnvironmentVariables(): CreateWill {
   return result.data;
 }
 
+// collectEstateFromDecryptedWill
 /**
  * Parse estates from environment variables
  */
@@ -153,10 +155,8 @@ async function executeCreateWill(
   try {
     console.log(chalk.blue("Executing createWill transaction..."));
 
-    // Print detailed create will data information
     printCreateWillData(createData);
 
-    // Convert estates to the format expected by the contract
     const contractEstates = createData.estates.map((estate) => ({
       beneficiary: estate.beneficiary,
       token: estate.token,
@@ -234,7 +234,7 @@ async function processCreateWill(): Promise<ProcessResult> {
     );
 
     const proof: ProofData = readProof();
-    const willData: EncryptedWill = readWill(WillFileType.ENCRYPTED);
+    const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObjectStruct =
       encryptedWillToTypedJsonObject(willData);
 

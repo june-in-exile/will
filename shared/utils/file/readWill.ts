@@ -1,25 +1,8 @@
-import { PATHS_CONFIG } from "@config";
-import { WillFileType } from "@shared/types/will.js";
-import {
-  validateWill,
-  validateFormattedWill,
-  validateAddressedWill,
-  validateSignedWill,
-  validateEncryptedWill,
-  validateDownloadedWill,
-  validateDecryptedWill,
-} from "@shared/utils/validation/will.js";
+import { WILL_FILE_PATH } from "@shared/constants/willFilePath.js";
+import type { WillType, WillTypeToWillMap, WillFields } from "@shared/types/will.js";
+import { validateWill } from "@shared/utils/validation/will.js";
 import { readFileSync, existsSync } from "fs";
 import chalk from "chalk";
-
-const FILE_PATHS: Record<WillFileType, string> = {
-  [WillFileType.FORMATTED]: PATHS_CONFIG.will.formatted,
-  [WillFileType.ADDRESSED]: PATHS_CONFIG.will.addressed,
-  [WillFileType.SIGNED]: PATHS_CONFIG.will.signed,
-  [WillFileType.ENCRYPTED]: PATHS_CONFIG.will.encrypted,
-  [WillFileType.DOWNLOADED]: PATHS_CONFIG.will.downloaded,
-  [WillFileType.DECRYPTED]: PATHS_CONFIG.will.decrypted,
-};
 
 /**
  * Generic will data reading function
@@ -27,8 +10,8 @@ const FILE_PATHS: Record<WillFileType, string> = {
  * @param filePath Optional custom file path (uses default if not provided)
  * @returns Parsed and validated will data
  */
-function readWill<T>(type: WillFileType): T {
-  const targetPath = FILE_PATHS[type];
+function readWill<T>(type: WillType): T {
+  const targetPath = WILL_FILE_PATH[type];
 
   if (!existsSync(targetPath)) {
     throw new Error(`Will file does not exist: ${targetPath}`);
@@ -61,4 +44,37 @@ function readWill<T>(type: WillFileType): T {
   }
 }
 
-export { readWill };
+function readWillFields<
+  T extends WillType,
+  K extends readonly (keyof WillTypeToWillMap[T])[]
+>(
+  type: T,
+  keys: K
+): WillFields<T, K> {
+  const willData = readWill(type) as WillTypeToWillMap[T];
+
+  const willKeys = Object.keys(willData) as (keyof WillTypeToWillMap[T])[];
+
+  for (const key of keys) {
+    if (!willKeys.includes(key)) {
+      throw new Error(
+        `Key "${String(key)}" is not valid for will type "${type}". ` +
+        `Available keys are: ${willKeys.map(k => String(k)).join(', ')}`
+      );
+    }
+  }
+
+  const result = {} as WillFields<T, K>;
+  for (const key of keys) {
+    if (key in willData) {
+      (result as any)[key] = willData[key];
+    }
+  }
+
+  return result;
+}
+
+export {
+  readWill,
+  readWillFields,
+};

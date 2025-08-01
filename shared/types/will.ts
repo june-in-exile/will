@@ -1,3 +1,4 @@
+import { WILL_TYPE } from "@shared/constants/willType.js"
 import type {
   EthereumAddress,
   Estate,
@@ -6,14 +7,14 @@ import type {
 import type { SupportedAlgorithm } from "@shared/types/crypto.js";
 import type { Base64String } from "@shared/types/base64String.js";
 
-enum WillFileType {
-  FORMATTED = "formatted",
-  ADDRESSED = "addressed",
-  SIGNED = "signed",
-  ENCRYPTED = "encrypted",
-  DOWNLOADED = "downloaded",
-  DECRYPTED = "decrypted",
-}
+// enum WillFileType {
+//   FORMATTED = "formatted",
+//   ADDRESSED = "addressed",
+//   SIGNED = "signed",
+//   ENCRYPTED = "encrypted",
+//   DOWNLOADED = "downloaded",
+//   DECRYPTED = "decrypted",
+// }
 
 type Will =
   | FormattedWill
@@ -21,8 +22,7 @@ type Will =
   | SignedWill
   | EncryptedWill
   | DownloadedWill
-  | DecryptedWill
-  | string;
+  | DecryptedWill;
 
 interface FormattedWill {
   testator: EthereumAddress;
@@ -46,17 +46,34 @@ interface EncryptedWill {
   timestamp: number;
 }
 
-interface DownloadedWill extends EncryptedWill {}
+interface DownloadedWill extends EncryptedWill { }
 
-interface DecryptedWill extends SignedWill {}
+interface DecryptedWill extends SignedWill { }
 
-export {
-  WillFileType,
-  type Will,
-  type FormattedWill,
-  type AddressedWill,
-  type SignedWill,
-  type EncryptedWill,
-  type DownloadedWill,
-  type DecryptedWill,
+type WillType = typeof WILL_TYPE[keyof typeof WILL_TYPE];
+
+type WillTypeToWillMap = {
+  [WILL_TYPE.FORMATTED]: FormattedWill;
+  [WILL_TYPE.ADDRESSED]: AddressedWill;
+  [WILL_TYPE.SIGNED]: SignedWill;
+  [WILL_TYPE.ENCRYPTED]: EncryptedWill;
+  [WILL_TYPE.DOWNLOADED]: DownloadedWill;
+  [WILL_TYPE.DECRYPTED]: DecryptedWill;
+};
+
+type WillFields<T extends WillType, K extends readonly (keyof WillTypeToWillMap[T])[]> = {
+  [P in K[number]]: WillTypeToWillMap[T][P];
+};
+
+export type {
+  Will,
+  FormattedWill,
+  AddressedWill,
+  SignedWill,
+  EncryptedWill,
+  DownloadedWill,
+  DecryptedWill,
+  WillType,
+  WillTypeToWillMap,
+  WillFields,
 };
