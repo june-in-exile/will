@@ -1,9 +1,13 @@
 
 Backend Optimization: @critical
-    Refactor cryptographic operation:
+    Refactor Cryptographic Operation:
         ☐ Move the file r/w function in @shared/utils/cryptography/encrypt.ts(decrypt.ts) into @shared/utils/file/ @30m
-    Notarization simplification:
+    Notarization Simplification:
         ☐ @apps/backend/src/onchain/willFactory/notarizeCid.ts actually requires only `WILL_FACTORY` and `EXECUTOR_PRIVATE_KEY` fileds from @.env (update @shared/utils/validation/environment.ts) @1h
+    Cofing Simplification:
+        ☐ Remove unnecessary config options. @30m
+    Logging API: @low
+        ☐ Add an API for logging with National ID.
 
 Flatten the Will: @high
     ☐ Transform the backend will file from JSON format into flatten text so that the proof size can be reduced. @1d
@@ -40,7 +44,10 @@ Frontend: @low
     Implement frontend.
 
 Local Database: @low
-    Implement Database.
+    ☐ Setup MySQL.
+    ☐ CRUD interface.
+    ☐ Move `key.txt` and variables in `.env` to DB.
+
 
 Deployment: @low
     Testnet:
