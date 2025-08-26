@@ -10,6 +10,7 @@ import {
   validateEnvironment,
   presetValidations,
   validateNetwork,
+  validateWill,
 } from "@shared/utils/validation/index.js";
 import {
   updateEnvironmentVariables,
@@ -220,6 +221,8 @@ async function processPermitSigning(): Promise<ProcessResult> {
         signature,
       },
     };
+
+    validateWill(WILL_TYPE.SIGNED, signedWillData);
 
     saveWill(WILL_TYPE.SIGNED, signedWillData);
 

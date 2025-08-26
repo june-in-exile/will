@@ -17,15 +17,18 @@ clean:
 	@echo "Removing generated files..."
 	@-rm -f will/3_addressed*.json
 	@-rm -f will/4_signed*.json
-	@-rm -f will/5_encrypted*.json
-	@-rm -f will/6_decrypted*.json
+	@-rm -f will/5_serialized*.json
+	@-rm -f will/6_encrypted*.json
+	@-rm -f will/7_downloaded*.json
+	@-rm -f will/8_decrypted*.json
+	@-rm -f will/9_deserialized*.json
 	@echo "Removing secret key..."
 	@-rm -f ../../shared/utils/cryptography/key.txt
 
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit2 predict-address sign-permit2 encrypt-will upload-will upload-cid
+phase1: approve-permit2 predict-address sign-permit2 serialize-will encrypt-will upload-will upload-cid
 
 approve-permit2:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
@@ -35,6 +38,9 @@ predict-address:
 
 sign-permit2:
 	@pnpm exec tsx src/offchain/signature/permit2.ts
+
+serialize-will:
+	@pnpm exec tsx src/offchain/serialization/serialize.ts
 
 encrypt-will:
 	@pnpm exec tsx src/offchain/cryptography/encryptWill.ts
@@ -61,7 +67,7 @@ submit-proof:
 	@pnpm exec tsx src/onchain/groth16Verifier/submitProof.ts
 
 
-phase2: download-will decrypt-will sign-cid notarize-cid
+phase2: download-will decrypt-will deserialize-will sign-cid notarize-cid
 
 download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
@@ -93,9 +99,12 @@ decrypt-data:
 		--authTag "u1NxL5uXKyM/8qbZiBtUvQ=="
 # Text
 
+deserialize-will:
+	@pnpm exec tsx src/offchain/serialization/deserialize.ts
+
 hash-will:
 	@pnpm exec tsx ../../shared/utils/cryptography/cid.ts \
-		--path './will/5_encrypted.json'
+		--path './will/6_encrypted.json'
 
 hash-data:
 	@pnpm exec tsx ../../shared/utils/cryptography/cid.ts \

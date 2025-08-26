@@ -79,17 +79,27 @@ make sign-permit2
 - **Updates**: The following `.env` variables are automatically updated:
   - `NONCE`, `DEADLINE`, `PERMIT2_SIGNATURE`
 
-### Step 6: Encrypt Will
+### Step 6: Serialize Will
 
-Encrypt the signed will with a randomly generated secret key:
+Serialize the signed will:
+
+```sh
+make serialize-will
+```
+
+- **Output**: [`will/5_serialized.json`](will/5_serialized.json)
+
+### Step 7: Encrypt Will
+
+Encrypt the serialized will with a randomly generated secret key:
 
 ```sh
 make encrypt-will
 ```
 
-- **Output**: [`will/5_encrypted.json`](will/5_encrypted.json) (base64 encoded)
+- **Output**: [`will/6_encrypted.json`](will/6_encrypted.json) (base64 encoded)
 
-### Step 7: Upload to IPFS
+### Step 8: Upload to IPFS
 
 Upload the encrypted will to IPFS:
 
@@ -100,7 +110,7 @@ make upload-will
 - **Updates**: The following `.env` variables are automatically updated:
   - `CID` (IPFS Content Identifier)
 
-### Step 8: Upload CID
+### Step 9: Upload CID
 
 Upload the CID to `willFactory.sol`:
 
@@ -121,7 +131,7 @@ Download the will from IPFS
 make download-will
 ```
 
-- **Output**: [`will/6_downloaded.json`](will/6_downloaded.json)
+- **Output**: [`will/7_downloaded.json`](will/7_downloaded.json)
 
 ### Step 2: Decrypt
 
@@ -131,9 +141,19 @@ Decrypt the will
 make decrypt-will
 ```
 
-- **Output**: [`will/7_decrypted.json`](will/7_decrypted.json)
+- **Output**: [`will/8_decrypted.json`](will/8_decrypted.json)
 
-### Step 3: Executor Signature
+### Step 3: Deserialize
+
+Deserialize the will
+
+```sh
+make deserialize-will
+```
+
+- **Output**: [`will/9_deserialized.json`](will/9_deserialized.json)
+
+### Step 4: Executor Signature
 
 The executor signs the CID to authorize will execution:
 
@@ -144,7 +164,7 @@ make sign-cid
 - **Updates**: The following `.env` variables are automatically updated:
   - `EXECUTOR_SIGNATURE`
 
-### Step 3: Notarize CID
+### Step 5: Notarize CID
 
 The exeutor notarize the CID on `willFactory.sol`:
 

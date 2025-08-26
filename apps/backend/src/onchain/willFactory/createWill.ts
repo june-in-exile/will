@@ -152,7 +152,7 @@ async function processCreateWill(): Promise<ProcessResult> {
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
-    const fields = readWillFields(WILL_TYPE.DECRYPTED, [
+    const fields = readWillFields(WILL_TYPE.DESERIALIZED, [
       "testator",
       "estates",
       "salt",

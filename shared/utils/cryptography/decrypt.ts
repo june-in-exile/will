@@ -1,11 +1,10 @@
-import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
+import { CRYPTO_CONFIG } from "@config";
 import { AES_256_GCM } from "@shared/constants/cryptography.js";
 import type {
   DecryptionArgs,
   SupportedAlgorithm,
 } from "@shared/types/crypto.js";
 import { createDecipheriv, Decipheriv } from "crypto";
-import { existsSync, readFileSync } from "fs";
 import chalk from "chalk";
 
 interface AuthenticatedDecipher extends Decipheriv {

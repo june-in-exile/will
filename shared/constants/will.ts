@@ -5,18 +5,22 @@ const WILL_TYPE = {
   FORMATTED: "formatted",
   ADDRESSED: "addressed",
   SIGNED: "signed",
+  SERIALIZED: "serialized",
   ENCRYPTED: "encrypted",
   DOWNLOADED: "downloaded",
   DECRYPTED: "decrypted",
+  DESERIALIZED: "deserialized"
 } as const;
 
 const WILL_FILE_PATH: Record<WillType, string> = {
   [WILL_TYPE.FORMATTED]: PATHS_CONFIG.will.formatted,
   [WILL_TYPE.ADDRESSED]: PATHS_CONFIG.will.addressed,
   [WILL_TYPE.SIGNED]: PATHS_CONFIG.will.signed,
+  [WILL_TYPE.SERIALIZED]: PATHS_CONFIG.will.serialized,
   [WILL_TYPE.ENCRYPTED]: PATHS_CONFIG.will.encrypted,
   [WILL_TYPE.DOWNLOADED]: PATHS_CONFIG.will.downloaded,
   [WILL_TYPE.DECRYPTED]: PATHS_CONFIG.will.decrypted,
+  [WILL_TYPE.DESERIALIZED]: PATHS_CONFIG.will.deserialized,
 };
 
 export { WILL_TYPE, WILL_FILE_PATH };

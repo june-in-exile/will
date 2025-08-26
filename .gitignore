@@ -81,9 +81,11 @@ Thumbs.db
 # =============================================================================
 apps/backend/will/3_addressed.json
 apps/backend/will/4_signed.json
-apps/backend/will/5_encrypted.json
-apps/backend/will/6_downloaded.json
-apps/backend/will/7_decrypted.json
+apps/backend/will/5_serialized.json
+apps/backend/will/6_encrypted.json
+apps/backend/will/7_downloaded.json
+apps/backend/will/8_decrypted.json
+apps/backend/will/9_deserialized.json
 
 # =============================================================================
 # BLOCKCHAIN & SMART CONTRACTS
@@ -177,3 +179,6 @@ contracts/lib/
 
 # ESLint cache
 .eslintcache
+
+# TODO
+*.todo

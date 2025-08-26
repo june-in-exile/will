@@ -16,7 +16,10 @@ function saveWill(willType: WillType, data: Will): void {
       writeFileSync(filePath, data);
     } else {
       // For JSON data
-      writeFileSync(filePath, JSON.stringify(data, null, 4));
+      const replacer = (_key: string, value: any) => {
+        return typeof value === 'bigint' ? value.toString() : value;
+      };
+      writeFileSync(filePath, JSON.stringify(data, replacer, 4));
     }
 
     console.log(

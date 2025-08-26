@@ -301,7 +301,7 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
   try {
     const { EXECUTOR_PRIVATE_KEY } = validateEnvironmentVariables();
 
-    const fields = readWillFields(WILL_TYPE.DECRYPTED, ["will", "permit2"]);
+    const fields = readWillFields(WILL_TYPE.DESERIALIZED, ["will", "permit2"]);
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);

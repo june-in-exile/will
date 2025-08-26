@@ -10,9 +10,11 @@ import type {
   FormattedWill,
   AddressedWill,
   SignedWill,
+  SerializedWill,
   EncryptedWill,
   DownloadedWill,
   DecryptedWill,
+  DeserializedWill,
 } from "@shared/types/index.js";
 
 function validateWill(type: WillType, will: Will) {
@@ -26,6 +28,9 @@ function validateWill(type: WillType, will: Will) {
     case WILL_TYPE.SIGNED:
       validateSignedWill(will as SignedWill);
       break;
+    case WILL_TYPE.SERIALIZED:
+      validateSerializedWill(will as SerializedWill);
+      break;
     case WILL_TYPE.ENCRYPTED:
       validateEncryptedWill(will as EncryptedWill);
       break;
@@ -34,6 +39,9 @@ function validateWill(type: WillType, will: Will) {
       break;
     case WILL_TYPE.DECRYPTED:
       validateDecryptedWill(will as DecryptedWill);
+      break;
+    case WILL_TYPE.DESERIALIZED:
+      validateDeserializedWill(will as DeserializedWill);
       break;
     default:
       throw new Error(`Invalid will file type: ${type}`);
@@ -153,6 +161,22 @@ function validateSignedWill(
   }
 }
 
+function validateSerializedWill(
+  willData: SerializedWill,
+): asserts willData is SerializedWill {
+  if (!willData.hex) {
+    throw new Error("Missing required field: value");
+  }
+
+  if (typeof willData.hex !== "string") {
+    throw new Error("Invalid value: must be a string");
+  }
+
+  if (willData.hex.trim().length === 0) {
+    throw new Error("Value cannot be empty");
+  }
+}
+
 function validateEncryptedWill(
   willData: EncryptedWill,
 ): asserts willData is EncryptedWill {
@@ -206,6 +230,12 @@ function validateDownloadedWill(
 function validateDecryptedWill(
   willData: DecryptedWill,
 ): asserts willData is DecryptedWill {
+  validateSerializedWill(willData);
+}
+
+function validateDeserializedWill(
+  willData: DeserializedWill,
+): asserts willData is DeserializedWill {
   validateSignedWill(willData);
 }
 
@@ -214,7 +244,9 @@ export {
   validateFormattedWill,
   validateAddressedWill,
   validateSignedWill,
+  validateSerializedWill,
   validateEncryptedWill,
   validateDownloadedWill,
   validateDecryptedWill,
+  validateDeserializedWill,
 };

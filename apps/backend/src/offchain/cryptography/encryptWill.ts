@@ -21,7 +21,7 @@ interface ProcessResult extends EncryptedWill {
 function getEncryptionArgs(): EncryptionArgs {
   const algorithm = CRYPTO_CONFIG.algorithm;
 
-  const signedWill: SignedWill = readWill(WILL_TYPE.SIGNED);
+  const signedWill: SignedWill = readWill(WILL_TYPE.SERIALIZED);
   const plaintext = Buffer.from(
     JSON.stringify(signedWill),
     CRYPTO_CONFIG.plaintextEncoding,

@@ -139,9 +139,11 @@ interface WillPathsConfig {
   formatted: string;
   addressed: string;
   signed: string;
+  serialized: string;
   encrypted: string;
   downloaded: string;
   decrypted: string;
+  deserialized: string;
 }
 
 interface ZkpCircuitsPathsConfig {
@@ -498,9 +500,11 @@ export const PATHS_CONFIG: PathsConfig = {
     formatted: resolve(modulePath, "../apps/backend/will/2_formatted.json"),
     addressed: resolve(modulePath, "../apps/backend/will/3_addressed.json"),
     signed: resolve(modulePath, "../apps/backend/will/4_signed.json"),
-    encrypted: resolve(modulePath, "../apps/backend/will/5_encrypted.json"),
-    downloaded: resolve(modulePath, "../apps/backend/will/6_downloaded.json"),
-    decrypted: resolve(modulePath, "../apps/backend/will/7_decrypted.json"),
+    serialized: resolve(modulePath, "../apps/backend/will/5_serialized.json"),
+    encrypted: resolve(modulePath, "../apps/backend/will/6_encrypted.json"),
+    downloaded: resolve(modulePath, "../apps/backend/will/7_downloaded.json"),
+    decrypted: resolve(modulePath, "../apps/backend/will/8_decrypted.json"),
+    deserialized: resolve(modulePath, "../apps/backend/will/9_deserialized.json"),
   },
 
   // ZKP files
