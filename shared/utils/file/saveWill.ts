@@ -1,11 +1,13 @@
 import { WILL_FILE_PATH } from "@shared/constants/will.js";
 import type { Will, WillType } from "@shared/types/will.js";
+import { validateWill } from "@shared/utils/validation/will.js";
 import { writeFileSync } from "fs";
 import chalk from "chalk";
 
 function saveWill(willType: WillType, data: Will): void {
-  // const typeLabel = getWillTypeLabel(willType);
   try {
+    validateWill(willType, data);
+
     const filePath = WILL_FILE_PATH[willType];
 
     console.log(chalk.blue(`Saving ${willType} will...`));

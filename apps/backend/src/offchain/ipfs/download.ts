@@ -3,7 +3,6 @@ import type { IpfsDownload, DownloadedWill } from "@shared/types/index.js";
 import {
   validateEnvironment,
   presetValidations,
-  validateWill,
 } from "@shared/utils/validation/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
 import { saveWill } from "@shared/utils/file/index.js";
@@ -53,8 +52,6 @@ async function processIPFSDownload(): Promise<ProcessResult> {
       jsonHandler,
       CID,
     )) as DownloadedWill;
-
-    validateWill(WILL_TYPE.DOWNLOADED, downloadedWill);
 
     saveWill(WILL_TYPE.DOWNLOADED, downloadedWill);
 

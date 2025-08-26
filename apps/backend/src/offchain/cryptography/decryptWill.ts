@@ -10,7 +10,6 @@ import type {
 import { WILL_TYPE } from "@shared/constants/will.js";
 import { getKey, decrypt } from "@shared/utils/cryptography/index.js";
 import { readWill, saveWill } from "@shared/utils/file/index.js";
-import { validateWill } from "@shared/utils/validation/will.js";
 import chalk from "chalk";
 
 interface ProcessResult extends DecryptedWill {
@@ -49,8 +48,6 @@ async function processWillDecryption(
     const decryptedWill: DecryptedWill = JSON.parse(
       dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
     );
-
-    validateWill(WILL_TYPE.DECRYPTED, decryptedWill);
 
     saveWill(WILL_TYPE.DECRYPTED, decryptedWill);
 

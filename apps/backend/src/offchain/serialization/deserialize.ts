@@ -8,7 +8,6 @@ import type {
 } from "@shared/types/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
 import { readWill, saveWill } from "@shared/utils/file/index.js";
-import { validateWill } from "@shared/utils/validation/will.js";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
 
@@ -114,8 +113,6 @@ async function processWillDeserialization(): Promise<ProcessResult> {
         console.log(chalk.blue("Deserializing decrypted will..."));
 
         const deserializedWill: DeserializedWill = deserializeWill(decryptedWill)
-
-        validateWill(WILL_TYPE.DESERIALIZED, deserializedWill)
 
         saveWill(WILL_TYPE.DESERIALIZED, deserializedWill)
 

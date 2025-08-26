@@ -8,7 +8,6 @@ import {
     readWill,
     saveWill,
 } from "@shared/utils/file/index.js";
-import { validateWill } from "@shared/utils/validation/will.js";
 import chalk from "chalk";
 
 interface ProcessResult extends SerializedWill {
@@ -70,8 +69,6 @@ async function processWillSerialization(): Promise<ProcessResult> {
         console.log(chalk.blue("Serializing signed will..."));
 
         const serializedWill: SerializedWill = serializeWill(signedWill);
-
-        validateWill(WILL_TYPE.SERIALIZED, serializedWill);
 
         saveWill(WILL_TYPE.SERIALIZED, serializedWill);
 
