@@ -1,9 +1,9 @@
 # Default circuit for circuit-specific operations
-# CIRCUIT = ctrEncrypt
-CIRCUIT ?= multiplier2
+CIRCUIT = ctrEncrypt
+# CIRCUIT ?= multiplier2
 
-# TEMPLATE = CtrEncrypt
-TEMPLATE ?= Multiplier2
+TEMPLATE = CtrEncrypt
+# TEMPLATE ?= Multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys

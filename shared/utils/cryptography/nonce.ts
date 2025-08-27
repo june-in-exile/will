@@ -1,7 +1,7 @@
 import { PERMIT2_CONFIG } from "@config";
 import chalk from "chalk";
 
-function generateSecureNonce(): number {
+function generateNonce(): number {
   try {
     console.log(chalk.blue(`Generating nonce...`));
 
@@ -21,4 +21,4 @@ function generateSecureNonce(): number {
   }
 }
 
-export { generateSecureNonce };
+export { generateNonce };

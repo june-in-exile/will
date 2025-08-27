@@ -57,6 +57,12 @@ encrypt-data:
 		--iv "YjgZJzfIXjAYvwt/"
 # PgG52g==
 
+cid-data:
+	@pnpm exec tsx src/offchain/ipfs/cid.ts --data '{"id":1,"name":"test"}'
+
+cid-path:
+	@pnpm exec tsx src/offchain/ipfs/cid.ts --path ./will/6_encrypted.json
+
 upload-will:
 	@pnpm exec tsx src/offchain/ipfs/upload.ts
 

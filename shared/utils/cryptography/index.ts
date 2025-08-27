@@ -1,4 +1,4 @@
-export * from "./cid.js";
+export * from "../../../apps/backend/src/offchain/ipfs/cid.js";
 export * from "./decrypt.js";
 export * from "./encrypt.js";
 export * from "./initializationVector.js";

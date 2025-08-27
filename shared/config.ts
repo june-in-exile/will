@@ -95,13 +95,13 @@ interface CidValidationConfig {
 }
 
 interface SignatureConfig {
-  maxMessageLength: number;
-  privateKeyLength: number;
+  // maxMessageLength: number;
+  // privateKeyLength: number;
   signatureLength: number;
-  maxRetries: number;
-  retryDelay: number;
-  cid: CidValidationConfig;
-  addressFormat: RegExp;
+  // maxRetries: number;
+  // retryDelay: number;
+  // cid: CidValidationConfig;
+  // addressFormat: RegExp;
 }
 
 interface HashConfig {
@@ -420,25 +420,25 @@ export const CRYPTO_CONFIG: CryptoConfig = {
 // ================================
 export const SIGNATURE_CONFIG: SignatureConfig = {
   // Message constraints
-  maxMessageLength: 1024 * 1024, // 1MB
+  // maxMessageLength: 1024 * 1024, // 1MB
 
   // Key and signature formats
-  privateKeyLength: 64, // 32 bytes in hex
+  // privateKeyLength: 64, // 32 bytes in hex
   signatureLength: 132, // 65 bytes in hex with 0x prefix
 
   // Retry settings
-  maxRetries: 3,
-  retryDelay: 1000, // 1 second
+  // maxRetries: 3,
+  // retryDelay: 1000, // 1 second
 
-  // CID validation
-  cid: {
-    minLength: 46,
-    maxLength: 100,
-    validPrefixes: ["Qm", "b", "z", "f", "u"],
-  },
+  // // CID validation
+  // cid: {
+  //   minLength: 46,
+  //   maxLength: 100,
+  //   validPrefixes: ["Qm", "b", "z", "f", "u"],
+  // },
 
-  // Address validation
-  addressFormat: /^0x[0-9a-fA-F]{40}$/,
+  // // Address validation
+  // addressFormat: /^0x[0-9a-fA-F]{40}$/,
 };
 
 // ================================
@@ -870,10 +870,10 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
         attempts: APPROVAL_CONFIG.maxRetries,
         delay: APPROVAL_CONFIG.retryDelay,
       },
-      signature: {
-        attempts: SIGNATURE_CONFIG.maxRetries,
-        delay: SIGNATURE_CONFIG.retryDelay,
-      },
+      // signature: {
+      //   attempts: SIGNATURE_CONFIG.maxRetries,
+      //   delay: SIGNATURE_CONFIG.retryDelay,
+      // },
       ipfs: {
         attempts: IPFS_CONFIG.pinning.retryAttempts,
         delay: IPFS_CONFIG.pinning.retryDelay,

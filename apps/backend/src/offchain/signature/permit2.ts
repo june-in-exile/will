@@ -16,7 +16,7 @@ import {
   readWill,
   saveWill,
 } from "@shared/utils/file/index.js";
-import { generateSecureNonce } from "@shared/utils/cryptography/index.js";
+import { generateNonce } from "@shared/utils/cryptography/index.js";
 import { createSigner } from "@shared/utils/blockchain.js";
 import preview from "@shared/utils/transform/preview.js";
 import { JsonRpcProvider, Wallet } from "ethers";
@@ -159,8 +159,6 @@ async function signPermit(
   try {
     console.log(chalk.blue("Generating EIP-712 signature..."));
 
-    printPermit(permit);
-
     const { domain, types, values } = SignatureTransfer.getPermitData(
       permit,
       permit2Address,
@@ -194,7 +192,7 @@ async function processPermitSigning(): Promise<ProcessResult> {
     const willData: AddressedWill = readWill(WILL_TYPE.ADDRESSED);
 
     console.log(chalk.blue("Generating signature parameters..."));
-    const nonce = generateSecureNonce();
+    const nonce = generateNonce();
     const deadline = calculatePermitDeadline();
 
     const permit = createPermitStructure(
@@ -203,6 +201,8 @@ async function processPermitSigning(): Promise<ProcessResult> {
       nonce,
       deadline,
     );
+
+    printPermit(permit);
 
     // Sign the permit
     const signature = await signPermit(

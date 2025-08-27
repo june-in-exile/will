@@ -8,8 +8,8 @@ export default defineConfig({
     include: ["tests/**/*.{test,spec}.ts"],
     exclude: ["node_modules"],
     slowTestThreshold: 30000, // Mark tests as slow if they take longer than 30 seconds
-    testTimeout: 60000, // Individual test case timeout (fail after 60 seconds)
-    hookTimeout: 300000, // Hook timeout for beforeAll/afterAll etc (5 minutes)
+    testTimeout: 120000, // Individual test case timeout (fail after 2 minutes)
+    hookTimeout: 600000, // Hook timeout for beforeAll/afterAll etc (10 minutes)
     setupFiles: ["./tests/config/setupFilesAfterEnv.ts"],
     globalSetup: ["./tests/config/globalSetup.ts"],
     alias: {

@@ -13,7 +13,7 @@ interface Args {
 
 /**
  * Parse command line arguments to extract JSON data or file path
- * Supports --json flag for JSON string and --path flag for file path
+ * Supports --data flag for JSON string and --path flag for file path
  * Validates that only one option is provided
  * @returns Object containing either json or path
  * @throws Error if JSON parsing fails, file operations fail, or invalid argument combinations
@@ -25,10 +25,10 @@ function parseArgs(): Args {
   let hasPath = false;
 
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--json" && i + 1 < args.length) {
+    if (args[i] === "--data" && i + 1 < args.length) {
       if (hasPath) {
         throw new Error(
-          "Cannot use both --json and --path options. Please specify only one.",
+          "Cannot use both --data and --path options. Please specify only one.",
         );
       }
       try {
@@ -42,7 +42,7 @@ function parseArgs(): Args {
     } else if (args[i] === "--path" && i + 1 < args.length) {
       if (hasJson) {
         throw new Error(
-          "Cannot use both --json and --path options. Please specify only one.",
+          "Cannot use both --data and --path options. Please specify only one.",
         );
       }
       result.path = args[i + 1];
@@ -54,7 +54,7 @@ function parseArgs(): Args {
   // Check if neither option was provided
   if (!hasJson && !hasPath) {
     throw new Error(
-      "Must specify either --json with JSON string or --path with file path.",
+      "Must specify either --data with JSON string or --path with file path.",
     );
   }
 
@@ -128,15 +128,15 @@ function showUsage(): void {
 
   console.log(chalk.yellow("1. Using JSON data directly:"));
   console.log(
-    chalk.gray('   pnpm exec tsx hash.ts --json \'{"id":1,"name":"test"}\''),
+    chalk.gray('   pnpm exec tsx cid.ts --data \'{"id":1,"name":"test"}\''),
   );
 
   console.log(chalk.yellow("\n2. Using JSON file:"));
-  console.log(chalk.gray("   pnpm exec tsx hash.ts --path ./data.json"));
+  console.log(chalk.gray("   pnpm exec tsx cid.ts --path ./data.json"));
 
   console.log(chalk.red("\nImportant:"));
   console.log(
-    chalk.red("• You must specify either --json OR --path (not both)"),
+    chalk.red("• You must specify either --data OR --path (not both)"),
   );
   console.log(chalk.red("• You cannot run the script without any arguments"));
 }
@@ -178,7 +178,7 @@ async function main(): Promise<void> {
 
     // Show usage information for argument-related errors
     if (
-      errorMessage.includes("--json") ||
+      errorMessage.includes("--data") ||
       errorMessage.includes("--path") ||
       errorMessage.includes("Must specify")
     ) {
