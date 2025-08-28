@@ -1,5 +1,11 @@
 import { CRYPTO_CONFIG } from "@config";
 
+type HashableInput = string | number | boolean | object;
+interface HashArgs {
+  input: HashableInput;
+  encoding?: string;
+}
+
 interface EncryptionArgs {
   algorithm: SupportedAlgorithm;
   plaintext: Buffer;
@@ -22,14 +28,12 @@ interface ProofData {
 }
 
 type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
-type HashableInput = string | number | boolean | object;
-type ByteInput = Uint8Array | ArrayBuffer | Buffer | number[];
 
 export type {
+  HashArgs,
   EncryptionArgs,
   DecryptionArgs,
   ProofData,
   HashableInput,
-  ByteInput,
   SupportedAlgorithm,
 };
