@@ -1,13 +1,10 @@
-/**
- * AES-128/192/256-GCM TypeScript Implementation (Supports Arbitrary Length IV)
- */
-
 import {
   CipherGCM,
   createCipheriv,
   createDecipheriv,
   DecipherGCM,
 } from "crypto";
+import chalk from "chalk";
 
 // Define supported AES key sizes
 export type AESKeySize = 128 | 192 | 256;
@@ -785,7 +782,9 @@ class AESVerification {
    */
   static testECBEncrypt(): boolean {
     console.log(
-      "\n=== Node.js crypto module AES ECB encryption verification ===",
+      chalk.cyan(
+        "\n=== Node.js crypto module AES ECB encryption verification ==="
+      ),
     );
 
     let allPassed = true;
@@ -835,7 +834,9 @@ class AESVerification {
    */
   static testCTREncrypt(): boolean {
     console.log(
-      "\n=== Node.js crypto module AES CTR encryption verification ===",
+      chalk.cyan(
+        "\n=== Node.js crypto module AES CTR encryption verification ===",
+      )
     );
 
     let allPassed = true;
@@ -920,7 +921,11 @@ class AESVerification {
    * Verifies that CTR decryption produces original plaintext
    */
   static testCTRDecrypt(): boolean {
-    console.log("\n=== AES CTR decryption verification ===");
+    console.log(
+      chalk.cyan(
+        "\n=== AES CTR decryption verification ==="
+      )
+    );
 
     let allPassed = true;
     const originalMessage =
@@ -991,7 +996,7 @@ class AESVerification {
    * Verifies handling of partial blocks and various message lengths
    */
   static testCTREdgeCases(): boolean {
-    console.log("\n=== AES CTR edge cases and block size testing ===");
+    console.log(chalk.cyan("\n=== AES CTR edge cases and block size testing ==="));
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32); // Use AES-256 for testing
@@ -1051,7 +1056,7 @@ class AESVerification {
    * Verifies that counter increments correctly for sequential blocks
    */
   static testCTRCounterIncrement(): boolean {
-    console.log("\n=== AES CTR counter increment testing ===");
+    console.log(chalk.cyan("\n=== AES CTR counter increment testing ==="));
 
     let allPassed = true;
 
@@ -1118,7 +1123,7 @@ class AESVerification {
    * Tests encryption of larger data sets to verify performance
    */
   static testCTRPerformance(): boolean {
-    console.log("\n=== AES CTR performance testing ===");
+    console.log(chalk.cyan("\n=== AES CTR performance testing ==="));
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32); // AES-256
@@ -1176,7 +1181,7 @@ class AESVerification {
    * Verifies that CTR mode works correctly with GCM-style counter initialization
    */
   static testCTRGCMCompatibility(): boolean {
-    console.log("\n=== AES CTR compatibility with GCM J0 computation ===");
+    console.log(chalk.cyan("\n=== AES CTR compatibility with GCM J0 computation ==="));
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32);
@@ -1232,49 +1237,13 @@ class AESVerification {
   }
 
   /**
-   * Run all CTR mode tests
-   * Comprehensive testing suite for CTR mode functionality
-   */
-  static runAllCTRTests(): boolean {
-    console.log("🧪 Starting AES CTR mode verification...\n");
-
-    const ctrEncryptPassed = this.testCTREncrypt();
-    const ctrDecryptPassed = this.testCTRDecrypt();
-    const ctrEdgeCasesPassed = this.testCTREdgeCases();
-    const ctrCounterPassed = this.testCTRCounterIncrement();
-    const ctrPerformancePassed = this.testCTRPerformance();
-    const ctrGCMCompatPassed = this.testCTRGCMCompatibility();
-
-    console.log("\n📊 CTR Mode Test Summary:");
-    console.log("CTR encryption:", ctrEncryptPassed ? "✅" : "❌");
-    console.log("CTR decryption:", ctrDecryptPassed ? "✅" : "❌");
-    console.log("CTR edge cases:", ctrEdgeCasesPassed ? "✅" : "❌");
-    console.log("Counter increment:", ctrCounterPassed ? "✅" : "❌");
-    console.log("Performance tests:", ctrPerformancePassed ? "✅" : "❌");
-    console.log("GCM compatibility:", ctrGCMCompatPassed ? "✅" : "❌");
-
-    const allPassed =
-      ctrEncryptPassed &&
-      ctrDecryptPassed &&
-      ctrEdgeCasesPassed &&
-      ctrCounterPassed &&
-      ctrPerformancePassed &&
-      ctrGCMCompatPassed;
-
-    console.log(
-      "CTR Mode Overall:",
-      allPassed ? "🎉 All CTR tests passed!" : "⚠️  CTR issues need debugging",
-    );
-
-    return allPassed;
-  }
-
-  /**
    * Test GCM encryption for all AES variants
    */
   static testGCMEncrypt(): boolean {
     console.log(
-      "\n=== Node.js crypto module AES GCM encryption verification ===",
+      chalk.cyan(
+        "\n=== Node.js crypto module AES GCM encryption verification ==="
+      )
     );
 
     let allPassed = true;
@@ -1332,7 +1301,9 @@ class AESVerification {
    */
   static testGCMDecrypt(): boolean {
     console.log(
-      "\n=== Node.js crypto module AES GCM decryption verification ===",
+      chalk.cyan(
+        "\n=== Node.js crypto module AES GCM decryption verification ==="
+      )
     );
 
     let allPassed = true;
@@ -1402,7 +1373,7 @@ class AESVerification {
    * Test round trip for all AES variants
    */
   static testGCMRoundTrip(): boolean {
-    console.log("\n=== AES GCM encryption-decryption round trip test ===");
+    console.log(chalk.cyan("\n=== AES GCM encryption-decryption round trip test ==="));
 
     let allPassed = true;
     const originalText = "Hello, AES-GCM World! 🔒";
@@ -1465,7 +1436,7 @@ class AESVerification {
    * Test authentication failure detection for all variants
    */
   static testAuthenticationFailure(): boolean {
-    console.log("\n=== Authentication failure test ===");
+    console.log(chalk.cyan("\n=== Authentication failure test ==="));
 
     let allPassed = true;
     const originalText = "Secret message";
@@ -1516,34 +1487,46 @@ class AESVerification {
    */
   static runAllTests(): boolean {
     console.log(
-      "🧪 Starting comprehensive AES verification with CTR mode...\n",
+      "🧪 Starting comprehensive AES verification...\n",
     );
 
-    // Original tests
-    const ecbPassed = AESVerification.testECBEncrypt();
-    const gcmEncryptPassed = AESVerification.testGCMEncrypt();
-    const gcmDecryptPassed = AESVerification.testGCMDecrypt();
-    const roundTripPassed = AESVerification.testGCMRoundTrip();
-    const authFailPassed = AESVerification.testAuthenticationFailure();
-
-    // New CTR mode tests
-    const ctrPassed = this.runAllCTRTests();
+    const ecbPassed = this.testECBEncrypt();
+    const ctrEncryptPassed = this.testCTREncrypt();
+    const ctrDecryptPassed = this.testCTRDecrypt();
+    const ctrEdgeCasesPassed = this.testCTREdgeCases();
+    const ctrCounterPassed = this.testCTRCounterIncrement();
+    const ctrPerformancePassed = this.testCTRPerformance();
+    const ctrGCMCompatPassed = this.testCTRGCMCompatibility();
+    const gcmEncryptPassed = this.testGCMEncrypt();
+    const gcmDecryptPassed = this.testGCMDecrypt();
+    const roundTripPassed = this.testGCMRoundTrip();
+    const authFailPassed = this.testAuthenticationFailure();
 
     console.log("\n📊 Complete Test Summary:");
     console.log("ECB mode encryption:", ecbPassed ? "✅" : "❌");
+    console.log("CTR encryption:", ctrEncryptPassed ? "✅" : "❌");
+    console.log("CTR decryption:", ctrDecryptPassed ? "✅" : "❌");
+    console.log("CTR edge cases:", ctrEdgeCasesPassed ? "✅" : "❌");
+    console.log("Counter increment:", ctrCounterPassed ? "✅" : "❌");
+    console.log("Performance tests:", ctrPerformancePassed ? "✅" : "❌");
+    console.log("GCM compatibility:", ctrGCMCompatPassed ? "✅" : "❌");
     console.log("GCM mode encryption:", gcmEncryptPassed ? "✅" : "❌");
     console.log("GCM mode decryption:", gcmDecryptPassed ? "✅" : "❌");
     console.log("Round trip tests:", roundTripPassed ? "✅" : "❌");
     console.log("Authentication tests:", authFailPassed ? "✅" : "❌");
-    console.log("CTR mode tests:", ctrPassed ? "✅" : "❌");
 
     const allPassed =
       ecbPassed &&
+      ctrEncryptPassed &&
+      ctrDecryptPassed &&
+      ctrEdgeCasesPassed &&
+      ctrCounterPassed &&
+      ctrPerformancePassed &&
+      ctrGCMCompatPassed &&
       gcmEncryptPassed &&
       gcmDecryptPassed &&
       roundTripPassed &&
-      authFailPassed &&
-      ctrPassed;
+      authFailPassed;
 
     console.log(
       "Overall status:",

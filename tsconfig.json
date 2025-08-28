@@ -10,7 +10,11 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@config": ["./shared/config.js"]
+    }
   },
   "exclude": ["node_modules"]
 }

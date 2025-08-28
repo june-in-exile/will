@@ -74,7 +74,7 @@ function validateEncoding(message: string, encoding: string = "utf8"): Buffer {
 }
 
 /**
- * Main Keccak256 hash function with comprehensive validation and encoding support
+ * Keccak256 hash function
  */
 function keccak256(
   input: HashableInput,
