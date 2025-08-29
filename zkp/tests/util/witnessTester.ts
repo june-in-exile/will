@@ -635,7 +635,6 @@ class WitnessTester<
           // Look for .test.ts files in the stack trace
           const match = line.match(/\/([^/]+\.test\.ts):/);
           if (match) {
-            console.log("Hello!");
             return match[1].replace(/\.test\.ts$/, "");
           }
         }

@@ -59,14 +59,17 @@
       "5x16-bit xor operation": 144,
       "10x4-bit xor operation": 76,
       "2x32-bit xor operation": 96,
-      "3x32-bit xor operation": 160
+      "3x32-bit xor operation": 160,
+      "5x64-bit xor operation": 576,
+      "2x64-bit xor operation": 192
     },
     "BitwiseXorOptimized": {
       "optimized 3x8-bit xor operation": 64,
       "optimized 5x8-bit xor operation": 48,
       "optimized 5x16-bit xor operation": 96,
       "optimized 10x4-bit xor operation": 44,
-      "optimized 3x32-bit xor operation": 128
+      "optimized 3x32-bit xor operation": 128,
+      "optimized 5x64-bit xor operation": 384
     },
     "ByteAdder": {
       "byte adder": 34
@@ -196,6 +199,19 @@
       "j0 computation for 63-byte IV": 85776,
       "j0 computation for 64-byte IV": 85776
     }
+  },
+  "keccakF": {
+    "Keccakf": {},
+    "Theta": {
+      "theta": 7680
+    },
+    "ThetaOptimized": {
+      "thetaOptimized": 3200
+    },
+    "Rho": {},
+    "Pi": {},
+    "Chi": {},
+    "Iota": {}
   },
   "keyExpansion": {
     "ExpandKey": {

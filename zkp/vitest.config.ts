@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   define: {
-    LOG_LEVEL: '"error"',
+    LOG_LEVEL: '"log"',
     CIRCOM_DEFAULTS: JSON.stringify({
       O: 2,
       verbose: false,

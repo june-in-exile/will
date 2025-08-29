@@ -752,6 +752,35 @@ describe("BitwiseXor Circuit", function () {
     });
   });
 
+  describe("2 inputs, 64-bit Xor Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXor",
+        {
+          templateParams: ["2", "64"],
+        },
+      );
+      circuit.setConstraint("2x64-bit xor operation");
+    });
+
+    it("should perform correct multi-Xor operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [BigInt(0), BigInt(0)], _out: BigInt(0) }, // 0x0000000000000000 ^ 0x0000000000000000 = 0x0000000000000000
+        { _in: [BigInt("0x8000000000000000"), BigInt("0x4000000000000000")], _out: BigInt("0xC000000000000000") }, // High bits
+        { _in: [BigInt("0x0000000000000001"), BigInt("0x0000000000000002")], _out: BigInt("0x0000000000000003") }, // Low bits
+        { _in: [BigInt("0x1111111111111111"), BigInt("0x2222222222222222")], _out: BigInt("0x3333333333333333") }, // Nibble patterns
+        { _in: [BigInt("0xCCCCCCCCCCCCCCCC"), BigInt("0x3333333333333333")], _out: BigInt("0xFFFFFFFFFFFFFFFF") }, // Complementary patterns
+        { _in: [BigInt("0x5A5A5A5A5A5A5A5A"), BigInt("0xA5A5A5A5A5A5A5A5")], _out: BigInt("0xFFFFFFFFFFFFFFFF") }, // Alternating bit patterns
+        { _in: [BigInt("0x123456789ABCDEF0"), BigInt("0x123456789ABCDEF0")], _out: BigInt(0) }, // Identity: x ^ x = 0
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+
   describe("3 inputs, 16-bit Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -821,6 +850,47 @@ describe("BitwiseXor Circuit", function () {
         { _in: [4369, 4369, 4369, 4369, 4369], _out: 4369 }, // Odd number of same values
         { _in: [21845, 21845, 21845, 21845, 0], _out: 0 }, // Even number of same values
         { _in: [61680, 3855, 240, 15, 61695], _out: 4095 }, // 0xF0F0 ^ 0x0F0F ^ 0x00F0 ^ 0x000F ^ 0xF0FF = 0x0FFF
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+        await circuitOptimized.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+
+  describe("5 inputs, 64-bit Xor Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXor",
+        {
+          templateParams: ["5", "64"],
+        },
+      );
+      circuitOptimized = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitwiseXorOptimized",
+        {
+          templateParams: ["5", "64"],
+        },
+      );
+      circuit.setConstraint("5x64-bit xor operation");
+      circuitOptimized.setConstraint("optimized 5x64-bit xor operation");
+    });
+
+    it("should perform correct multi-Xor operations", async function (): Promise<void> {
+      const testCases = [
+        { _in: [BigInt(0), BigInt(0), BigInt(0), BigInt(0), BigInt(0)], _out: BigInt(0) }, // All zeros
+        { _in: [BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0xFFFFFFFFFFFFFFFF")], _out: BigInt("0xFFFFFFFFFFFFFFFF") }, // Odd number of all 1s
+        { _in: [BigInt("0xAAAAAAAAAAAAAAAA"), BigInt("0x5555555555555555"), BigInt("0x1111111111111111"), BigInt("0x4444444444444444"), BigInt("0x2222222222222222")], _out: BigInt("0x8888888888888888") }, // Mixed bit patterns
+        { _in: [BigInt(1), BigInt(2), BigInt(4), BigInt(8), BigInt(16)], _out: BigInt(31) }, // Powers of 2: 2^0 ^ 2^1 ^ 2^2 ^ 2^3 ^ 2^4 = 0x1F
+        { _in: [BigInt(32), BigInt(64), BigInt(128), BigInt(256), BigInt(512)], _out: BigInt(992) }, // Higher powers of 2: 2^5 ^ 2^6 ^ 2^7 ^ 2^8 ^ 2^9 = 0x3E0
+        { _in: [BigInt("0x8000000000000000"), BigInt("0x4000000000000000"), BigInt("0x2000000000000000"), BigInt("0x1000000000000000"), BigInt("0x0800000000000000")], _out: BigInt("0xF800000000000000") }, // High bits
+        { _in: [BigInt("0x0000000000000001"), BigInt("0x0000000000000002"), BigInt("0x0000000000000004"), BigInt("0x0000000000000008"), BigInt("0x0000000000000010")], _out: BigInt("0x000000000000001F") }, // Low bits
+        { _in: [BigInt("0x5A5A5A5A5A5A5A5A"), BigInt("0x5A5A5A5A5A5A5A5A"), BigInt("0x5A5A5A5A5A5A5A5A"), BigInt("0x5A5A5A5A5A5A5A5A"), BigInt("0x5A5A5A5A5A5A5A5A")], _out: BigInt("0x5A5A5A5A5A5A5A5A") }, // Odd number of same values
+        { _in: [BigInt("0xA5A5A5A5A5A5A5A5"), BigInt("0xA5A5A5A5A5A5A5A5"), BigInt("0xA5A5A5A5A5A5A5A5"), BigInt("0xA5A5A5A5A5A5A5A5"), BigInt(0)], _out: BigInt(0) }, // Even number of same values
+        { _in: [BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0x0000000000000000"), BigInt("0xFFFFFFFFFFFFFFFF"), BigInt("0x0000000000000000"), BigInt("0xFFFFFFFFFFFFFFFF")], _out: BigInt("0xFFFFFFFFFFFFFFFF") }, // Alternating all 1s and 0s (odd count of 1s)
       ];
 
       for (const { _in, _out } of testCases) {

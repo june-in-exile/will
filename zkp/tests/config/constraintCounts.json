@@ -34,6 +34,15 @@
   },
   "gcmEncrypt": { "GcmEncrypt": {} },
   "j0Computation": { "ComputeJ0Standard": {}, "ComputeJ0NonStandard": {} },
+  "keccakF": {
+    "Keccakf": {},
+    "Theta": {},
+    "ThetaOptimized": {},
+    "Rho": {},
+    "Pi": {},
+    "Chi": {},
+    "Iota": {}
+  },
   "keyExpansion": { "ExpandKey": {} },
   "multiplier2": { "Multiplier2": {} },
   "range": { "InRange": {} },
