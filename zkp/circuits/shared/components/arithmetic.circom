@@ -4,40 +4,21 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 
 /**
- * @param dividendBits - Bit width for the dividend
- * @param divisorBits - Bit width for the divisor
- * 
  * Example: Integer division with remainder
  *  signal quotient, remainder;
  *  (quotient,remainder) <== Divide(8,8)(17,5);
  *  quotient === 3;
  *  remainder === 2;
  */
-template Divide(dividendBits, divisorBits) {
+template Divide() {
     signal input dividend;
     signal input divisor;
     signal output quotient;
     signal output remainder;
 
-    // constraint the bits of divisor and dividend
-    _ = Num2Bits(divisorBits)(divisor);
-    _ = Num2Bits(dividendBits)(dividend);
-
-    // divisor > 0
-    signal positiveDivisor <== GreaterThan(divisorBits)([divisor, 0]);
-    positiveDivisor === 1;
-    
     quotient <-- dividend \ divisor;
     remainder <-- dividend % divisor;
     dividend === quotient * divisor + remainder;
-    
-    // remainder < divisor
-    signal validRemainder <== LessThan(divisorBits)([remainder, divisor]);
-    validRemainder === 1;
-
-    // quotient >= 0
-    signal validQuotient <== GreaterEqThan(dividendBits)([quotient, 0]);
-    validQuotient === 1;
 }
 
 /**

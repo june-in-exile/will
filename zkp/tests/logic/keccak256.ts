@@ -9,10 +9,10 @@ import chalk from "chalk";
 
 class Keccak256 {
     private static readonly ROUNDS = 24;
-    private static readonly STATE_SIZE = 25; // 25 * 64 bits = 1600 bits
-    private static readonly RATE_BYTES = 136; // 1088 bits / 8 = 136 bytes (for Keccak256)
-    private static readonly CAPACITY_BYTES = 64; // 512 bits / 8 = 64 bytes
+    private static readonly STATE_BITS = 1600; // 1600 bits
     private static readonly OUTPUT_BYTES = 32; // 256 bits / 8 = 32 bytes
+    private static readonly CAPACITY_BYTES = 64; // output length * 2 = 64 bytes = 512 bits
+    private static readonly RATE_BYTES = 136; // 1600 bits - 512 bits = 1088 bits / 8 = 136 bytes
 
     // Round constants for ι (iota) step
     private static readonly ROUND_CONSTANTS = [
@@ -39,7 +39,7 @@ class Keccak256 {
      */
     static hash(input: string | Uint8Array): string {
         const inputBytes = this.prepareInput(input);
-        const paddedInput = this.addPadding(inputBytes);
+        const paddedInput = this.pad(inputBytes);
         const state = this.absorb(paddedInput);
         const output = this.squeeze(state);
         return '0x' + this.bytesToHex(output);
@@ -72,7 +72,7 @@ class Keccak256 {
     /**
      * Add Keccak padding (10*1 pattern)
      */
-    private static addPadding(input: Uint8Array): Uint8Array {
+    static pad(input: Uint8Array): Uint8Array {
         const inputLength = input.length;
         const paddingLength = this.RATE_BYTES - (inputLength % this.RATE_BYTES);
 
@@ -91,8 +91,8 @@ class Keccak256 {
     /**
      * Absorb phase - process input blocks
      */
-    private static absorb(input: Uint8Array): BigUint64Array {
-        const state = new BigUint64Array(this.STATE_SIZE);
+    static absorb(input: Uint8Array): BigUint64Array {
+        const state = new BigUint64Array(this.STATE_BITS / 64);
 
         // Process each rate-sized block
         for (let offset = 0; offset < input.length; offset += this.RATE_BYTES) {
@@ -117,7 +117,7 @@ class Keccak256 {
     /**
      * Squeeze phase - extract output
      */
-    private static squeeze(state: BigUint64Array): Uint8Array {
+    static squeeze(state: BigUint64Array): Uint8Array {
         const output = new Uint8Array(this.OUTPUT_BYTES);
         let outputOffset = 0;
 
@@ -142,7 +142,7 @@ class Keccak256 {
     /**
      * Keccak-f[1600] permutation
      */
-    private static keccakF(state: BigUint64Array): void {
+    static keccakF(state: BigUint64Array): void {
         for (let round = 0; round < this.ROUNDS; round++) {
             // θ (theta) step
             this.theta(state);
@@ -164,7 +164,7 @@ class Keccak256 {
     /**
      * θ (theta) step: Column parity computation
      */
-    private static theta(state: BigUint64Array): void {
+    static theta(state: BigUint64Array): void {
         const C = new BigUint64Array(5);
         const D = new BigUint64Array(5);
 
@@ -189,7 +189,7 @@ class Keccak256 {
     /**
      * ρ (rho) step: Bit rotation
      */
-    private static rho(state: BigUint64Array): void {
+    static rho(state: BigUint64Array): void {
         const newState = new BigUint64Array(25);
 
         for (let i = 0; i < 25; i++) {
@@ -202,7 +202,7 @@ class Keccak256 {
     /**
      * π (pi) step: Lane permutation
      */
-    private static pi(state: BigUint64Array): void {
+    static pi(state: BigUint64Array): void {
         const newState = new BigUint64Array(25);
 
         for (let i = 0; i < 25; i++) {
@@ -215,7 +215,7 @@ class Keccak256 {
     /**
      * χ (chi) step: Non-linear transformation
      */
-    private static chi(state: BigUint64Array): void {
+    static chi(state: BigUint64Array): void {
         const newState = new BigUint64Array(25);
 
         for (let y = 0; y < 5; y++) {
@@ -233,14 +233,14 @@ class Keccak256 {
     /**
      * ι (iota) step: Add round constant
      */
-    private static iota(state: BigUint64Array, round: number): void {
+    static iota(state: BigUint64Array, round: number): void {
         state[0] ^= this.ROUND_CONSTANTS[round];
     }
 
     /**
      * 64-bit left rotation
      */
-    private static rotateLeft64(value: bigint, positions: number): bigint {
+    static rotateLeft64(value: bigint, positions: number): bigint {
         const n = BigInt(positions % 64);
         return ((value << n) | (value >> (64n - n))) & 0xFFFFFFFFFFFFFFFFn;
     }
@@ -248,7 +248,7 @@ class Keccak256 {
     /**
      * Convert 8 bytes to a 64-bit lane (little-endian)
      */
-    private static bytesToLane(bytes: Uint8Array, offset: number): bigint {
+    static bytesToLane(bytes: Uint8Array, offset: number): bigint {
         let result = 0n;
         for (let i = 0; i < 8 && offset + i < bytes.length; i++) {
             result |= BigInt(bytes[offset + i]) << BigInt(i * 8);
@@ -259,7 +259,7 @@ class Keccak256 {
     /**
      * Convert a 64-bit lane to 8 bytes (little-endian)
      */
-    private static laneToBytes(lane: bigint): Uint8Array {
+    static laneToBytes(lane: bigint): Uint8Array {
         const bytes = new Uint8Array(8);
         for (let i = 0; i < 8; i++) {
             bytes[i] = Number((lane >> BigInt(i * 8)) & 0xFFn);
@@ -270,7 +270,7 @@ class Keccak256 {
     /**
      * Convert bytes to hex string
      */
-    private static bytesToHex(bytes: Uint8Array): string {
+    static bytesToHex(bytes: Uint8Array): string {
         return Array.from(bytes)
             .map(byte => byte.toString(16).padStart(2, '0'))
             .join('');
@@ -280,7 +280,7 @@ class Keccak256 {
 class Keccak256Verification {
     static testKeccak256(): boolean {
         let allPassed = true;
-        
+
         console.log(
             chalk.cyan(
                 "\n=== Ether module Keccak256 hash verification ===",

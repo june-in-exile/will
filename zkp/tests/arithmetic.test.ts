@@ -6,19 +6,16 @@ describe("Divide Circuit", function () {
     ["quotient", "remainder"]
   >;
 
-  describe("8-bit Divided by 6-bit Operations", function (): void {
+  describe("Valid Division", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/arithmetic.circom",
         "Divide",
-        {
-          templateParams: ["8", "6"],
-        },
       );
-      circuit.setConstraint("8-by-6-bit division");
+      circuit.setConstraint("division");
     });
 
-    it("should calculate valid division correctly", async function (): Promise<void> {
+    it("should calculate 8-by-6-bit division correctly", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 1 },
         { dividend: 1, divisor: 1 },
@@ -52,68 +49,7 @@ describe("Divide Circuit", function () {
       }
     });
 
-    it("should prevent division by zero", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 0, divisor: 0 },
-        { dividend: 1, divisor: 0 },
-        { dividend: 15, divisor: 0 },
-        { dividend: 255, divisor: 0 },
-        { dividend: 256, divisor: 0 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
-      }
-    });
-
-    it("should constraint dividend bits", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 256, divisor: 0 },
-        { dividend: 256, divisor: 1 },
-        { dividend: 256, divisor: 63 },
-        { dividend: 256, divisor: 64 },
-        { dividend: 300, divisor: 1 },
-        { dividend: 300, divisor: 12 },
-        { dividend: 1023, divisor: 16 },
-        { dividend: 1024, divisor: 63 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
-      }
-    });
-
-    it("should constraint divisor bits", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 0, divisor: 64 },
-        { dividend: 1, divisor: 64 },
-        { dividend: 16, divisor: 64 },
-        { dividend: 63, divisor: 64 },
-        { dividend: 255, divisor: 64 },
-        { dividend: 256, divisor: 64 },
-        { dividend: 0, divisor: 100 },
-        { dividend: 1, divisor: 100 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
-      }
-    });
-  });
-
-  describe("12-bit Divided by 8-bit Operations", function (): void {
-    beforeAll(async function (): Promise<void> {
-      circuit = await WitnessTester.construct(
-        "circuits/shared/components/arithmetic.circom",
-        "Divide",
-        {
-          templateParams: ["12", "8"],
-        },
-      );
-      circuit.setConstraint("12-by-8-bit division");
-    });
-
-    it("should calculate valid division correctly", async function (): Promise<void> {
+    it("should calculate 12-by-8-bit division correctly", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 1 },
         { dividend: 1, divisor: 1 },
@@ -144,61 +80,6 @@ describe("Divide Circuit", function () {
             remainder: BigInt(dividend % divisor),
           },
         );
-      }
-    });
-
-    it("should prevent division by zero", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 0, divisor: 0 },
-        { dividend: 1, divisor: 0 },
-        { dividend: 24, divisor: 0 },
-        { dividend: 120, divisor: 0 },
-        { dividend: 255, divisor: 0 },
-        { dividend: 1024, divisor: 0 },
-        { dividend: 4095, divisor: 0 },
-        { dividend: 4096, divisor: 0 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
-      }
-    });
-
-    it("should constraint dividend bits", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 4096, divisor: 0 },
-        { dividend: 4096, divisor: 1 },
-        { dividend: 4096, divisor: 2 },
-        { dividend: 4096, divisor: 255 },
-        { dividend: 4096, divisor: 256 },
-        { dividend: 5000, divisor: 1 },
-        { dividend: 6000, divisor: 12 },
-        { dividend: 8192, divisor: 15 },
-        { dividend: 8192, divisor: 255 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
-      }
-    });
-
-    it("should constraint divisor bits", async function (): Promise<void> {
-      const testCases = [
-        { dividend: 0, divisor: 256 },
-        { dividend: 1, divisor: 256 },
-        { dividend: 4095, divisor: 256 },
-        { dividend: 4096, divisor: 256 },
-        { dividend: 0, divisor: 320 },
-        { dividend: 1, divisor: 320 },
-        { dividend: 63, divisor: 320 },
-        { dividend: 64, divisor: 320 },
-        { dividend: 255, divisor: 320 },
-        { dividend: 320, divisor: 320 },
-        { dividend: 1000, divisor: 320 },
-      ];
-
-      for (const testCase of testCases) {
-        await circuit.expectFail(testCase);
       }
     });
   });

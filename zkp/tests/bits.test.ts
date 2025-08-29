@@ -1,4 +1,5 @@
 import { WitnessTester } from "./util/index.js";
+import { Keccak256 } from "./logic/index.js";
 
 describe("Mod2 Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
@@ -1254,6 +1255,94 @@ describe("NumToByte16 Circuit", function () {
 
       for (const { _in, _out } of testCases) {
         await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+});
+
+describe("RotateLeft Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("64-bit Left Rotation by 0-bit Position", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "RotateLeft",
+        {
+          templateParams: ["64", "0"],
+        },
+      );
+      circuit.setConstraint("0-bit rotation in 64-bit");
+    });
+
+    it("should rotate correctly", async function (): Promise<void> {
+      const testCases = [BigInt(0), BigInt(2 ** 0), BigInt(2 ** 31), BigInt(2 ** 63)];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass({ in: testCase }, { out: Keccak256.rotateLeft64(testCase, 0) });
+      }
+    });
+  });
+
+  describe("64-bit Left Rotation by 1-bit Position", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "RotateLeft",
+        {
+          templateParams: ["64", "1"],
+        },
+      );
+      circuit.setConstraint("1-bit rotation in 64-bit");
+    });
+
+    it("should rotate correctly", async function (): Promise<void> {
+      const testCases = [BigInt(0), BigInt(2 ** 0), BigInt(2 ** 31), BigInt(2 ** 63)];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass({ in: testCase }, { out: Keccak256.rotateLeft64(testCase, 1) });
+      }
+    });
+  });
+
+  describe("64-bit Left Rotation by 31-bit Position", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "RotateLeft",
+        {
+          templateParams: ["64", "31"],
+        },
+      );
+      circuit.setConstraint("31-bit rotation in 64-bit");
+    });
+
+    it("should rotate correctly", async function (): Promise<void> {
+      const testCases = [BigInt(0), BigInt(2 ** 0), BigInt(2 ** 31), BigInt(2 ** 63)];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass({ in: testCase }, { out: Keccak256.rotateLeft64(testCase, 31) });
+      }
+    });
+  });
+
+  describe("64-bit Left Rotation by 63-bit Position", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "RotateLeft",
+        {
+          templateParams: ["64", "63"],
+        },
+      );
+      circuit.setConstraint("63-bit rotation in 64-bit");
+    });
+
+    it("should rotate correctly", async function (): Promise<void> {
+      const testCases = [BigInt(0), BigInt(2 ** 0), BigInt(2 ** 31), BigInt(2 ** 63)];
+
+      for (const testCase of testCases) {
+        await circuit.expectPass({ in: testCase }, { out: Keccak256.rotateLeft64(testCase, 63) });
       }
     });
   });

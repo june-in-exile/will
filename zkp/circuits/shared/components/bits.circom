@@ -3,6 +3,7 @@ pragma circom 2.2.2;
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/gates.circom";
+include "arithmetic.circom";
 
 /**
 * @param in - The input number to check parity for
@@ -18,10 +19,7 @@ template Mod2() {
     
     signal quotient;
     
-    quotient <-- in \ 2;
-    out <-- in % 2;
-    
-    in === quotient * 2 + out;
+    (quotient, out) <== Divide()(in, 2);
     
     out * (out - 1) === 0;
 }
@@ -270,4 +268,18 @@ template NumToByte16() {
         }
         out[byte] <== Bits2Num(8)(byteBits[byte]);
     }
+}
+
+/**
+ * N-bit left rotation
+ * @param bits - Number of bits (64 for Keccak lanes)
+ * @param positions - Number of positions to rotate left
+ */
+template RotateLeft(bits, positions) {
+    signal input in;
+    signal output out;
+
+    signal (rightPart, leftPart) <== Divide()(in * 2 ** positions, 2 ** bits);
+
+    out <== leftPart + rightPart;
 }

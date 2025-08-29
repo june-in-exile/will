@@ -6,6 +6,7 @@ export * from "./encryptBlock.js";
 export * from "./ctrEncrypt.js";
 export * from "./gcmEncrypt.js";
 export * from "./j0Computation.js";
+export * from "./keccak256.js";
 export * from "./keyExpansion.js";
 export * from "./roundKeyAddition.js";
 export * from "./rowShifting.js";
