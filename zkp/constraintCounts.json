@@ -212,13 +212,7 @@
   "keccakF": {
     "Keccakf": {},
     "Theta": {
-      "theta": 7680
-    },
-    "ThetaOptimized": {
-      "thetaOptimized": 3200
-    },
-    "ThetaStateArray": {
-      "theta state array": 1600
+      "theta": 1600
     },
     "Rho": {},
     "Pi": {},

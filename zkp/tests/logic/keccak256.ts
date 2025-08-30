@@ -282,7 +282,7 @@ class Keccak256 {
    * Absorb phase - process input blocks
    */
   static absorb(input: Uint8Array): BigUint64Array {
-    const state = new BigUint64Array(this.STATE_BITS / 64);
+    let state: BigUint64Array = new BigUint64Array(this.STATE_BITS / 64);
 
     // Process each rate-sized block
     for (let offset = 0; offset < input.length; offset += this.RATE_BYTES) {
@@ -299,7 +299,7 @@ class Keccak256 {
       }
 
       // Apply Keccak-f permutation
-      this.keccakF(state);
+      state = this.keccakF(state);
     }
 
     return state;
@@ -323,7 +323,7 @@ class Keccak256 {
 
       // If we need more output, apply permutation again
       if (outputOffset < this.OUTPUT_BYTES) {
-        this.keccakF(state);
+        state = this.keccakF(state);
       }
     }
 
@@ -332,30 +332,40 @@ class Keccak256 {
 
   /**
    * Keccak-f[1600] permutation
+   * Returns a new state without modifying the original
    */
-  static keccakF(state: BigUint64Array): void {
+  static keccakF(state: BigUint64Array): BigUint64Array {
+    let currentState: BigUint64Array = new BigUint64Array(25);
+    currentState.set(state);
+
     for (let round = 0; round < this.ROUNDS; round++) {
       // θ (theta) step
-      this.theta(state);
+      currentState = this.theta(currentState);
 
       // ρ (rho) step
-      this.rho(state);
+      currentState = this.rho(currentState);
 
       // π (pi) step
-      this.pi(state);
+      currentState = this.pi(currentState);
 
       // χ (chi) step
-      this.chi(state);
+      currentState = this.chi(currentState);
 
       // ι (iota) step
-      this.iota(state, round);
+      currentState = this.iota(currentState, round);
     }
+
+    return currentState;
   }
 
   /**
    * θ (theta) step: Column parity computation
+   * Returns a new state without modifying the original
    */
-  static theta(state: BigUint64Array): void {
+  static theta(state: BigUint64Array): BigUint64Array {
+    const newState = new BigUint64Array(25);
+    newState.set(state);
+
     const C = new BigUint64Array(5);
     const D = new BigUint64Array(5);
 
@@ -373,41 +383,46 @@ class Keccak256 {
     // Apply theta transformation
     for (let y = 0; y < 5; y++) {
       for (let x = 0; x < 5; x++) {
-        state[y * 5 + x] ^= D[x];
+        newState[y * 5 + x] ^= D[x];
       }
     }
+
+    return newState;
   }
 
   /**
    * ρ (rho) step: Bit rotation
+   * Returns a new state without modifying the original
    */
-  static rho(state: BigUint64Array): void {
+  static rho(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
 
     for (let i = 0; i < 25; i++) {
       newState[i] = this.rotateLeft64(state[i], this.RHO_OFFSETS[i]);
     }
 
-    state.set(newState);
+    return newState;
   }
 
   /**
    * π (pi) step: Lane permutation
+   * Returns a new state without modifying the original
    */
-  static pi(state: BigUint64Array): void {
+  static pi(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
 
     for (let i = 0; i < 25; i++) {
       newState[i] = state[this.PI_POSITIONS[i]];
     }
 
-    state.set(newState);
+    return newState;
   }
 
   /**
    * χ (chi) step: Non-linear transformation
+   * Returns a new state without modifying the original
    */
-  static chi(state: BigUint64Array): void {
+  static chi(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
 
     for (let y = 0; y < 5; y++) {
@@ -419,14 +434,20 @@ class Keccak256 {
       }
     }
 
-    state.set(newState);
+    return newState;
   }
 
   /**
    * ι (iota) step: Add round constant
+   * Returns a new state without modifying the original
    */
-  static iota(state: BigUint64Array, round: number): void {
-    state[0] ^= this.ROUND_CONSTANTS[round];
+  static iota(state: BigUint64Array, round: number): BigUint64Array {
+    const newState = new BigUint64Array(25);
+    for (let i = 0; i < 25; i++) {
+      newState[i] = state[i];
+    }
+    newState[0] ^= this.ROUND_CONSTANTS[round];
+    return newState;
   }
 
   /**
