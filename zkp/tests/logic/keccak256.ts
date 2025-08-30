@@ -540,8 +540,7 @@ class Keccak256Verification {
 
 if (
   typeof process !== "undefined" &&
-  process.argv?.[1] &&
-  process.argv[1].endsWith("keccak256.ts")
+  import.meta.url.endsWith("keccak256.ts")
 ) {
   Keccak256Verification.runAllTests();
 }

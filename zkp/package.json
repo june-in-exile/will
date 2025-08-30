@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:all": "pnpm exec tsx ./tests/logic/aes-gcm.ts && pnpm exec tsx ./tests/logic/keccak256.ts && vitest run --reporter=basic",
+    "test:all": "pnpm exec tsx ./tests/logic/runAll.ts && vitest run --reporter=basic",
     "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
