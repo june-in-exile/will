@@ -25,7 +25,7 @@ template Theta() {
         }
     }
     
-    // D computation: D[x,z] = C[(x-1) mod 5, z] + C[(x+1) mod 5, (z-1) mod 64]
+    // D computation: D[x,z] = C[(x-1) % 5, z] + C[(x+1) % 5, (z-1) % 64]
     signal D[5][64];
     for (var x = 0; x < 5; x++) {
         for (var z = 0; z < 64; z++) {
@@ -33,7 +33,7 @@ template Theta() {
         }
     }
     
-    // A'[x,y,z] = (A[x,y,z] + D[x,z]) mod 2
+    // A'[x,y,z] = (A[x,y,z] + D[x,z]) % 2
     signal sums[5][5][64];
     for (var x = 0; x < 5; x++) {
         for (var y = 0; y < 5; y++) {
@@ -54,8 +54,7 @@ template Rho() {
     signal input {bit} stateArray[5][5][64];
     signal output {bit} newStateArray[5][5][64];
 
-    // ρ (rho) rotation offsets for each position [x][y]
-    // Based on the official Keccak specification
+    // ρ (rho) rotation offsets based on the official specification
     var RHO_OFFSETS[5][5] = [
         [  0,  36,   3, 105, 210],
         [  1, 300,  10,  45,  66],
@@ -64,7 +63,6 @@ template Rho() {
         [ 91, 276, 231, 136,  78]
     ];
 
-    // Apply rotation to each lane
     for (var x = 0; x < 5; x++) {
         for (var y = 0; y < 5; y++) {
             var offset = RHO_OFFSETS[x][y] % 64;
@@ -81,16 +79,43 @@ template Rho() {
 * Rearranges the 25 lanes according to the formula: (x,y) → ((x + 3*y) % 5, x).
 */
 template Pi() {
-   signal input {bit} stateArray[5][5][64];
-   signal output {bit} newStateArray[5][5][64];
+    signal input {bit} stateArray[5][5][64];
+    signal output {bit} newStateArray[5][5][64];
 
-   for (var x = 0; x < 5; x++) {
-       for (var y = 0; y < 5; y++) {
-           var temp_x = (x + 3 * y) % 5;
-           var temp_y = x;
-           for (var z = 0; z < 64; z++) {
-               newStateArray[x][y][z] <== stateArray[temp_x][temp_y][z];
-           }
-       }
-   }
+    for (var x = 0; x < 5; x++) {
+        for (var y = 0; y < 5; y++) {
+            var temp_x = (x + 3 * y) % 5;
+            var temp_y = x;
+            for (var z = 0; z < 64; z++) {
+                newStateArray[x][y][z] <== stateArray[temp_x][temp_y][z];
+            }
+        }
+    }
+}
+
+/**
+* Keccak256 χ (chi) step: Non-linear transformation
+* 
+* Applies the formula: A'[x,y,z] = A[x,y,z] ⊕ ((¬A[(x+1)%5,y,z]) ∧ A[(x+2)%5,y,z]).
+* This is the only non-linear step in Keccak, providing confusion by mixing bits within each row.
+*/
+template Chi() {
+    signal input {bit} stateArray[5][5][64];
+    signal output {bit} newStateArray[5][5][64];
+
+    signal notNext[5][5][64];
+    signal andTerm[5][5][64];
+    signal sum[5][5][64];
+    for (var x = 0; x < 5; x++) {
+        for (var y = 0; y < 5; y++) {
+            for (var z = 0; z < 64; z++) {
+               // Chi formula: A[x,y,z] ⊕ ((¬A[(x+1)%5,y,z]) ∧ A[(x+2)%5,y,z])
+               // In binary arithmetic: a ⊕ ((1-b) ∧ c) = a + (1-b)*c - 2*a*(1-b)*c
+               notNext[x][y][z] <== 1 - stateArray[(x + 1) % 5][y][z];
+               andTerm[x][y][z] <== notNext[x][y][z] * stateArray[(x + 2) % 5][y][z];
+               sum[x][y][z] <== stateArray[x][y][z] + andTerm[x][y][z];
+               newStateArray[x][y][z] <== Mod2()(sum[x][y][z]);
+            }
+        }
+    }
 }
