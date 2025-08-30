@@ -1,5 +1,5 @@
 {
-  "arithmetic": { "Divide": {}, "MultiplyArray": {} },
+  "arithmetic": { "Divide": {}, "MultiplyTwoArray": {}, "Sum": {} },
   "base64": {
     "Base64Char": {},
     "Base64CharExcludingPadding": {},
@@ -48,5 +48,9 @@
   "range": { "InRange": {} },
   "roundKeyAddition": { "AddRoundKey": {} },
   "rowShifting": { "ShiftRows": {} },
+  "sponge": {
+    "BytesToStateArray": {},
+    "StateArrayToBytes": {}
+  },
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
 }

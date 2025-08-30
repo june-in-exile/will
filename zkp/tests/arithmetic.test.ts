@@ -85,19 +85,19 @@ describe("Divide Circuit", function () {
   });
 });
 
-describe("MultiplyArray Circuit", function () {
+describe("MultiplyTwoArray Circuit", function () {
   let circuit: WitnessTester<["a", "b"], ["c"]>;
 
-  describe("1-bit Array Multiplication Operations", function (): void {
+  describe("1-Element Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/arithmetic.circom",
-        "MultiplyArray",
+        "MultiplyTwoArray",
         {
           templateParams: ["1"],
         },
       );
-      circuit.setConstraint("1-bit array multiplication");
+      circuit.setConstraint("1-element array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -141,16 +141,16 @@ describe("MultiplyArray Circuit", function () {
     });
   });
 
-  describe("3-bit Array Multiplication Operations", function (): void {
+  describe("3-Element Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/arithmetic.circom",
-        "MultiplyArray",
+        "MultiplyTwoArray",
         {
           templateParams: ["3"],
         },
       );
-      circuit.setConstraint("3-bit array multiplication");
+      circuit.setConstraint("3-element array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -193,16 +193,16 @@ describe("MultiplyArray Circuit", function () {
     });
   });
 
-  describe("5-bit Array Multiplication Operations", function (): void {
+  describe("5-Element Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/arithmetic.circom",
-        "MultiplyArray",
+        "MultiplyTwoArray",
         {
           templateParams: ["5"],
         },
       );
-      circuit.setConstraint("5-bit array multiplication");
+      circuit.setConstraint("5-element array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -235,16 +235,16 @@ describe("MultiplyArray Circuit", function () {
     });
   });
 
-  describe("10-bit Array Multiplication Operations", function (): void {
+  describe("10-Element Array Multiplication Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/arithmetic.circom",
-        "MultiplyArray",
+        "MultiplyTwoArray",
         {
           templateParams: ["10"],
         },
       );
-      circuit.setConstraint("10-bit array multiplication");
+      circuit.setConstraint("10-element array multiplication");
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -268,6 +268,91 @@ describe("MultiplyArray Circuit", function () {
 
       for (const { a, b, c } of testCases) {
         await circuit.expectPass({ a, b }, { c });
+      }
+    });
+  });
+});
+
+describe("Sum Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("3-Element Sum Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/arithmetic.circom",
+        "Sum",
+        {
+          templateParams: ["3"],
+        },
+      );
+      circuit.setConstraint("sum 3 elements");
+    });
+
+    it("should perform 3-element summation correctly", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0, 0], _out: 0 },
+        { _in: [1, 2, 3], _out: 6 },
+        { _in: [10, 10, 10], _out: 30 },
+        { _in: [1, 10, 100], _out: 111 },
+        { _in: [123, 456, 789], _out: 1368 },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+
+  describe("5-Element Sum Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/arithmetic.circom",
+        "Sum",
+        {
+          templateParams: ["5"],
+        },
+      );
+      circuit.setConstraint("sum 5 elements");
+    });
+
+    it("should perform 5-element summation correctly", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0, 0, 0, 0], _out: 0 },
+        { _in: [1, 2, 3, 4, 5], _out: 15 },
+        { _in: [10, 10, 10, 10, 10], _out: 50 },
+        { _in: [1, 10, 100, 1000, 10000], _out: 11111 },
+        { _in: [123, 456, 789, 1011, 1213], _out: 3592 },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
+      }
+    });
+  });
+
+  describe("10-Element Sum Operations", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/arithmetic.circom",
+        "Sum",
+        {
+          templateParams: ["10"],
+        },
+      );
+      circuit.setConstraint("sum 10 elements");
+    });
+
+    it("should perform 10-element summation correctly", async function (): Promise<void> {
+      const testCases = [
+        { _in: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], _out: 0 },
+        { _in: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], _out: 55 },
+        { _in: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], _out: 100 },
+        { _in: [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000], _out: 1111111111 },
+        { _in: [123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021, 2223], _out: 12687 },
+      ];
+
+      for (const { _in, _out } of testCases) {
+        await circuit.expectPass({ in: _in }, { out: _out });
       }
     });
   });

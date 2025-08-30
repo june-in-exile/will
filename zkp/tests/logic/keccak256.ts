@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import chalk from "chalk";
 
-
 /**
  * Complete Keccak256 Implementation
  * Based on FIPS 202 standard
@@ -274,6 +273,91 @@ class Keccak256 {
         return Array.from(bytes)
             .map(byte => byte.toString(16).padStart(2, '0'))
             .join('');
+    }
+
+    /**
+     * Convert 200 bytes to Keccak state array (5x5x64 bits)
+     */
+    static bytesToStateArray(bytes: Uint8Array): number[][][] {
+        if (bytes.length !== 200) {
+            throw new Error(`Expected 200 bytes, got ${bytes.length}`);
+        }
+
+        const stateArray: number[][][] = [];
+
+        // Initialize 5x5x64 array
+        for (let y = 0; y < 5; y++) {
+            stateArray[y] = [];
+            for (let x = 0; x < 5; x++) {
+                stateArray[y][x] = new Array(64);
+            }
+        }
+
+        // Convert each 8-byte sequence to a 64-bit lane
+        for (let y = 0; y < 5; y++) {
+            for (let x = 0; x < 5; x++) {
+                const laneIndex = y * 5 + x; // Lane index (0-24)
+                const byteOffset = laneIndex * 8; // Each lane is 8 bytes
+
+                // Convert 8 bytes to 64 bits (little-endian)
+                for (let byteIdx = 0; byteIdx < 8; byteIdx++) {
+                    const byte = bytes[byteOffset + byteIdx];
+
+                    // Extract each bit from the byte (LSB first)
+                    for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+                        const bit = (byte >> bitIdx) & 1;
+                        stateArray[x][y][byteIdx * 8 + bitIdx] = bit;
+                    }
+                }
+            }
+        }
+
+        return stateArray;
+    }
+
+    /**
+     * Convert Keccak state array (5x5x64 bits) to 200 bytes
+     */
+    static stateArrayToBytes(stateArray: number[][][]): Uint8Array {
+        if (stateArray.length !== 5) {
+            throw new Error(`Expected 5 rows, got ${stateArray.length}`);
+        }
+
+        const bytes = new Uint8Array(200);
+
+        // Convert each 64-bit lane to 8 bytes
+        for (let y = 0; y < 5; y++) {
+            if (stateArray[y].length !== 5) {
+                throw new Error(`Expected 5 columns in row ${y}, got ${stateArray[y].length}`);
+            }
+
+            for (let x = 0; x < 5; x++) {
+                if (stateArray[x][y].length !== 64) {
+                    throw new Error(`Expected 64 bits in lane [${x}][${y}], got ${stateArray[x][y].length}`);
+                }
+
+                const laneIndex = y * 5 + x; // Lane index (0-24)
+                const byteOffset = laneIndex * 8; // Each lane is 8 bytes
+
+                // Group 64 bits into 8 bytes (little-endian)
+                for (let byteIdx = 0; byteIdx < 8; byteIdx++) {
+                    let byteValue = 0;
+
+                    // Combine 8 bits into a byte (LSB first)
+                    for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+                        const bit = stateArray[x][y][byteIdx * 8 + bitIdx];
+                        if (bit !== 0 && bit !== 1) {
+                            throw new Error(`Invalid bit value ${bit} at [${x}][${y}][${byteIdx * 8 + bitIdx}]`);
+                        }
+                        byteValue |= bit << bitIdx;
+                    }
+
+                    bytes[byteOffset + byteIdx] = byteValue;
+                }
+            }
+        }
+
+        return bytes;
     }
 }
 
