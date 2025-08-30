@@ -74,3 +74,23 @@ template Rho() {
         }
     }
 }
+
+/**
+* Keccak256 π (pi) step: Lane permutation
+* 
+* Rearranges the 25 lanes according to the formula: (x,y) → ((x + 3*y) % 5, x).
+*/
+template Pi() {
+   signal input {bit} stateArray[5][5][64];
+   signal output {bit} newStateArray[5][5][64];
+
+   for (var x = 0; x < 5; x++) {
+       for (var y = 0; y < 5; y++) {
+           var temp_x = (x + 3 * y) % 5;
+           var temp_y = x;
+           for (var z = 0; z < 64; z++) {
+               newStateArray[x][y][z] <== stateArray[temp_x][temp_y][z];
+           }
+       }
+   }
+}

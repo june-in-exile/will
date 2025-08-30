@@ -5,7 +5,6 @@ import chalk from "chalk";
  * Complete Keccak256 Implementation
  * Based on FIPS 202 standard
  */
-
 class Keccak256Utils {
   /**
    * Convert 200 bytes to Keccak state array (5x5x64 bits)
@@ -129,6 +128,28 @@ class Keccak256Utils {
   }
 
   /**
+   * Convert 25 lanes to hex string (200 bytes)
+   * Keep this for debug purpose
+   */
+  static lanesToHex(lanes: BigUint64Array): string {
+    if (lanes.length !== 25) {
+      throw new Error(`Expected 25 lanes, got ${lanes.length}`);
+    }
+
+    const bytes = this.stateArrayToBytes(this.lanesToStateArray(lanes));
+    const hexBytes = Array.from(bytes)
+      .map((byte) => byte.toString(16).toUpperCase().padStart(2, "0"));
+
+    // Group by 16 bytes per line
+    const lines: string[] = [];
+    for (let i = 0; i < hexBytes.length; i += 16) {
+      lines.push(hexBytes.slice(i, i + 16).join(" "));
+    }
+
+    return lines.join("\n");
+  }
+
+  /**
    * Create empty state array (5x5x64 bits, all zeros)
    */
   private static createEmptyStateArray(): number[][][] {
@@ -219,15 +240,11 @@ class Keccak256 {
     0, 1, 62, 28, 27, 36, 44, 6, 55, 20, 3, 10, 43, 25, 39, 41, 45, 15, 21, 8,
     18, 2, 61, 56, 14,
   ];
-
-  // π (pi) lane permutation
-  private static readonly PI_POSITIONS = [
-    0, 6, 12, 18, 24, 3, 9, 10, 16, 22, 1, 7, 13, 19, 20, 4, 5, 11, 17, 23, 2,
-    8, 14, 15, 21,
-  ];
-
+  
   /**
    * Main Keccak256 hash function
+   * 
+   * @NOTE the hash value might differ from the official document since Solidity Keccak256 doesn't apply 01 suffix after message
    */
   static hash(input: string | Uint8Array): string {
     const inputBytes = this.prepareInput(input);
@@ -413,8 +430,12 @@ class Keccak256 {
   static pi(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
 
-    for (let i = 0; i < 25; i++) {
-      newState[i] = state[this.PI_POSITIONS[i]];
+    for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < 5; y++) {
+        const temp_x = (x + 3 * y) % 5;
+        const temp_y = x;
+        newState[5 * y + x] = state[5 * temp_y + temp_x];
+      }
     }
 
     return newState;
