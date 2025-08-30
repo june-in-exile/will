@@ -783,7 +783,7 @@ class AESVerification {
   static testECBEncrypt(): boolean {
     console.log(
       chalk.cyan(
-        "\n=== Node.js crypto module AES ECB encryption verification ==="
+        "\n=== Node.js crypto module AES ECB encryption verification ===",
       ),
     );
 
@@ -836,7 +836,7 @@ class AESVerification {
     console.log(
       chalk.cyan(
         "\n=== Node.js crypto module AES CTR encryption verification ===",
-      )
+      ),
     );
 
     let allPassed = true;
@@ -921,11 +921,7 @@ class AESVerification {
    * Verifies that CTR decryption produces original plaintext
    */
   static testCTRDecrypt(): boolean {
-    console.log(
-      chalk.cyan(
-        "\n=== AES CTR decryption verification ==="
-      )
-    );
+    console.log(chalk.cyan("\n=== AES CTR decryption verification ==="));
 
     let allPassed = true;
     const originalMessage =
@@ -996,7 +992,9 @@ class AESVerification {
    * Verifies handling of partial blocks and various message lengths
    */
   static testCTREdgeCases(): boolean {
-    console.log(chalk.cyan("\n=== AES CTR edge cases and block size testing ==="));
+    console.log(
+      chalk.cyan("\n=== AES CTR edge cases and block size testing ==="),
+    );
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32); // Use AES-256 for testing
@@ -1181,7 +1179,9 @@ class AESVerification {
    * Verifies that CTR mode works correctly with GCM-style counter initialization
    */
   static testCTRGCMCompatibility(): boolean {
-    console.log(chalk.cyan("\n=== AES CTR compatibility with GCM J0 computation ==="));
+    console.log(
+      chalk.cyan("\n=== AES CTR compatibility with GCM J0 computation ==="),
+    );
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32);
@@ -1242,8 +1242,8 @@ class AESVerification {
   static testGCMEncrypt(): boolean {
     console.log(
       chalk.cyan(
-        "\n=== Node.js crypto module AES GCM encryption verification ==="
-      )
+        "\n=== Node.js crypto module AES GCM encryption verification ===",
+      ),
     );
 
     let allPassed = true;
@@ -1302,8 +1302,8 @@ class AESVerification {
   static testGCMDecrypt(): boolean {
     console.log(
       chalk.cyan(
-        "\n=== Node.js crypto module AES GCM decryption verification ==="
-      )
+        "\n=== Node.js crypto module AES GCM decryption verification ===",
+      ),
     );
 
     let allPassed = true;
@@ -1373,7 +1373,9 @@ class AESVerification {
    * Test round trip for all AES variants
    */
   static testGCMRoundTrip(): boolean {
-    console.log(chalk.cyan("\n=== AES GCM encryption-decryption round trip test ==="));
+    console.log(
+      chalk.cyan("\n=== AES GCM encryption-decryption round trip test ==="),
+    );
 
     let allPassed = true;
     const originalText = "Hello, AES-GCM World! 🔒";
@@ -1486,9 +1488,7 @@ class AESVerification {
    * Run all verification tests
    */
   static runAllTests(): boolean {
-    console.log(
-      "🧪 Starting comprehensive AES verification...\n",
-    );
+    console.log("🧪 Starting comprehensive AES verification...\n");
 
     const ecbPassed = this.testECBEncrypt();
     const ctrEncryptPassed = this.testCTREncrypt();

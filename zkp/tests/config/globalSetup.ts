@@ -9,7 +9,7 @@ declare global {
 
 function getDefaultConstraintCounts() {
   const defaultConstraintCountsPath = "./constraintCounts.json";
-  
+
   if (fs.existsSync(defaultConstraintCountsPath)) {
     try {
       return JSON.parse(fs.readFileSync(defaultConstraintCountsPath, "utf-8"));

@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = ctrEncrypt
+CIRCUIT = thetaStateArray
 # CIRCUIT ?= multiplier2
 
-TEMPLATE = CtrEncrypt
+TEMPLATE = ThetaStateArray
 # TEMPLATE ?= Multiplier2
 
 # Directory structure

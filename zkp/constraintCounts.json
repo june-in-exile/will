@@ -217,6 +217,9 @@
     "ThetaOptimized": {
       "thetaOptimized": 3200
     },
+    "ThetaStateArray": {
+      "theta state array": 1600
+    },
     "Rho": {},
     "Pi": {},
     "Chi": {},
