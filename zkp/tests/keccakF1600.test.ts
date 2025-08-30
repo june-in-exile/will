@@ -13,13 +13,16 @@ const lanesAfterPi = Keccak256.pi(lanesAfterRho);
 const lanesAfterChi = Keccak256.chi(lanesAfterPi);
 const lanesAfterIota = Keccak256.iota(lanesAfterChi, 0);
 
+const lanesAfterKeccakF = Keccak256.keccakF(Keccak256Utils.stateArrayToLanes(stateArrayOriginal));
+console.log(Keccak256Utils.lanesToHex(lanesAfterKeccakF));
+
 describe("Theta Circuit", function () {
   let circuit: WitnessTester<["stateArray"], ["newStateArray"]>;
 
   describe("Theta Algorithm in KeccakF", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/keccakF.circom",
+        "circuits/shared/components/keccak256/keccakF1600.circom",
         "Theta",
       );
       circuit.setConstraint("theta");
@@ -40,7 +43,7 @@ describe("Rho Circuit", function () {
   describe("Rho Algorithm in KeccakF", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/keccakF.circom",
+        "circuits/shared/components/keccak256/keccakF1600.circom",
         "Rho",
       );
       circuit.setConstraint("rho");
@@ -61,7 +64,7 @@ describe("Pi Circuit", function () {
   describe("Pi Algorithm in KeccakF", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/keccakF.circom",
+        "circuits/shared/components/keccak256/keccakF1600.circom",
         "Pi",
       );
       circuit.setConstraint("pi");
@@ -82,7 +85,7 @@ describe("Chi Circuit", function () {
   describe("Chi Algorithm in KeccakF", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/keccakF.circom",
+        "circuits/shared/components/keccak256/keccakF1600.circom",
         "Chi",
       );
       circuit.setConstraint("chi");
@@ -103,7 +106,7 @@ describe("Iota Circuit", function () {
   describe("Iota Algorithm in KeccakF", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/keccakF.circom",
+        "circuits/shared/components/keccak256/keccakF1600.circom",
         "Iota",
         {
           templateParams: ["0"],
@@ -116,6 +119,27 @@ describe("Iota Circuit", function () {
       await circuit.expectPass(
         { stateArray: Keccak256Utils.lanesToStateArray(lanesAfterChi) },
         { newStateArray: Keccak256Utils.lanesToStateArray(lanesAfterIota) },
+      );
+    });
+  });
+});
+
+describe("KeccakF1600 Circuit", function () {
+  let circuit: WitnessTester<["stateArray"], ["newStateArray"]>;
+
+  describe("Keccak-F[1600] Permutation Function", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/keccakF1600.circom",
+        "KeccakF1600",
+      );
+      circuit.setConstraint("keccak-f[1600]");
+    });
+    
+    it("should calculate ι(χ(π(ρ(θ(A)))) for 24 rounds", async function (): Promise<void> {
+      await circuit.expectPass(
+        { stateArray: stateArrayOriginal },
+        { newStateArray: Keccak256Utils.lanesToStateArray(lanesAfterKeccakF) },
       );
     });
   });

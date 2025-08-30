@@ -168,7 +168,7 @@
       "16-byte substitution": 4096
     }
   },
-  "keccakF": {
+  "keccakF1600": {
     "Theta": {
       "theta": 1600
     },
@@ -182,7 +182,10 @@
       "chi": 3200
     },
     "Iota": {
-      "iota": 128
+      "iota": 0
+    },
+    "KeccakF1600": {
+      "keccak-f[1600]": 115200
     }
   }
 }

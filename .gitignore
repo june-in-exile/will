@@ -111,7 +111,6 @@ zkp/circuits/shared/keys/*
 zkp/circuits/*/keys/*.zkey
 zkp/circuits/*/proofs
 zkp/circuits/test
-zkp/constraintCounts.json
 
 # =============================================================================
 # IPFS & STORAGE
