@@ -158,7 +158,10 @@ class Keccak256Utils {
       }
 
       for (let y = 0; y < 5; y++) {
-        if (!Array.isArray(stateArray[x][y]) || stateArray[x][y].length !== 64) {
+        if (
+          !Array.isArray(stateArray[x][y]) ||
+          stateArray[x][y].length !== 64
+        ) {
           return false;
         }
 
@@ -175,7 +178,6 @@ class Keccak256Utils {
     return true;
   }
 }
-
 
 class Keccak256 {
   private static readonly ROUNDS = 24;
@@ -540,7 +542,8 @@ class Keccak256Verification {
 
 if (
   typeof process !== "undefined" &&
-  import.meta.url.endsWith("keccak256.ts")
+  process.argv?.[1] &&
+  process.argv[1].endsWith("keccak256.ts")
 ) {
   Keccak256Verification.runAllTests();
 }

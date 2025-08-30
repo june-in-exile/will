@@ -1539,7 +1539,8 @@ class AESVerification {
 
 if (
   typeof process !== "undefined" &&
-  import.meta.url.endsWith("aes-gcm.ts")
+  process.argv?.[1] &&
+  process.argv[1].endsWith("aes-gcm.ts")
 ) {
   AESVerification.runAllTests();
 }

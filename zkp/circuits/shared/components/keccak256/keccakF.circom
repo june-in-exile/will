@@ -5,11 +5,9 @@ include "../bits.circom";
 
 /**
  * Keccak256 θ (theta) step: Column parity computation
- * 
- * Input: 5x5x64-bit state array
- * Output: state array after theta transformation
  *
- * Optimized by using modulo arithmetic instead of chained XOR gates for better efficiency
+ * XOR each bit in the state with the parities of two neighboring columns
+ * Optimized by using modulo arithmetic instead of chained XOR gates
  */
 template Theta() {
     signal input {bit} stateArray[5][5][64];
@@ -42,6 +40,36 @@ template Theta() {
             for (var z = 0; z < 64; z++) {
                 sums[x][y][z] <== stateArray[x][y][z] + D[x][z];
                 newStateArray[x][y][z] <== Mod2()(sums[x][y][z]);
+            }
+        }
+    }
+}
+
+/**
+ * Keccak256 ρ (rho) step: Bit rotation
+ * 
+ * Rotate each lane by a predefined offset amount.
+ */
+template Rho() {
+    signal input {bit} stateArray[5][5][64];
+    signal output {bit} newStateArray[5][5][64];
+
+    // ρ (rho) rotation offsets for each position [x][y]
+    // Based on the official Keccak specification
+    var RHO_OFFSETS[5][5] = [
+        [  0,  36,   3, 105, 210],
+        [  1, 300,  10,  45,  66],
+        [190,   6, 171,  15, 253],
+        [ 28,  55, 153,  21, 120],
+        [ 91, 276, 231, 136,  78]
+    ];
+
+    // Apply rotation to each lane
+    for (var x = 0; x < 5; x++) {
+        for (var y = 0; y < 5; y++) {
+            var offset = RHO_OFFSETS[x][y] % 64;
+            for (var z = 0; z < 64; z++) {
+                newStateArray[x][y][z] <== stateArray[x][y][(z + 64 - offset) % 64];
             }
         }
     }

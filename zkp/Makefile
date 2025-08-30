@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = ctrEncrypt
+CIRCUIT = keccakF
 # CIRCUIT ?= multiplier2
 
-TEMPLATE = CtrEncrypt
+TEMPLATE = Rho
 # TEMPLATE ?= Multiplier2
 
 # Directory structure

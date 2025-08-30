@@ -21,7 +21,9 @@ describe("BytesToStateArray Circuit", function () {
         ...Array(64).fill(0x00),
       ] as Byte200;
 
-      const stateArray = Keccak256Utils.bytesToStateArray(Uint8Array.from(bytes));
+      const stateArray = Keccak256Utils.bytesToStateArray(
+        Uint8Array.from(bytes),
+      );
       await circuit.expectPass({ bytes }, { stateArray });
     });
   });
