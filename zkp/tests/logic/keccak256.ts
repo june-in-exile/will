@@ -128,8 +128,70 @@ class Keccak256Utils {
   }
 
   /**
+   * Convert bytes to bits array (each byte becomes 8 bits)
+   */
+  static bytesToBits(bytes: Uint8Array): number[] {
+    const bits: number[] = [];
+
+    for (let byteIdx = 0; byteIdx < bytes.length; byteIdx++) {
+      const byte = bytes[byteIdx];
+
+      // Extract each bit from the byte (LSB first)
+      for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+        const bit = (byte >> bitIdx) & 1;
+        bits.push(bit);
+      }
+    }
+
+    return bits;
+  }
+
+  /**
+   * Convert bits array to bytes (every 8 bits becomes 1 byte)
+   */
+  static bitsToBytes(bits: number[]): Uint8Array {
+    if (bits.length % 8 !== 0) {
+      throw new Error(`Bits array length must be multiple of 8, got ${bits.length}`);
+    }
+
+    // Validate that all values are 0 or 1
+    for (let i = 0; i < bits.length; i++) {
+      if (bits[i] !== 0 && bits[i] !== 1) {
+        throw new Error(`All bits must be 0 or 1, found ${bits[i]} at index ${i}`);
+      }
+    }
+
+    const bytes = new Uint8Array(bits.length / 8);
+
+    for (let byteIdx = 0; byteIdx < bytes.length; byteIdx++) {
+      let byteValue = 0;
+
+      // Combine 8 bits into a byte (LSB first)
+      for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+        const bit = bits[byteIdx * 8 + bitIdx];
+        byteValue |= bit << bitIdx;
+      }
+
+      bytes[byteIdx] = byteValue;
+    }
+
+    return bytes;
+  }
+
+  /**
+   * Generate random Uint8Array of specified length
+   * @note Keep this for debug purpose
+   */
+  static randomBytes(length: number): Uint8Array {
+    const bytes = new Uint8Array(length);
+    const randomBytes = crypto.getRandomValues(new Uint8Array(length));
+    bytes.set(randomBytes);
+    return bytes;
+  }
+
+  /**
    * Convert 25 lanes to hex string (200 bytes)
-   * Keep this for debug purpose
+   * @note Keep this for debug purpose
    */
   static lanesToHex(lanes: BigUint64Array): string {
     if (lanes.length !== 25) {
@@ -244,11 +306,11 @@ class Keccak256 {
   /**
    * Main Keccak256 hash function
    * 
-   * @NOTE the hash value might differ from the official document since Solidity Keccak256 doesn't apply 01 suffix after message
+   * @note the hash value might differ from the official document since Solidity Keccak256 doesn't apply 01 suffix after message
    */
   static hash(input: string | Uint8Array): string {
     const inputBytes = this.prepareInput(input);
-    const paddedInput = this.pad(inputBytes);
+    const paddedInput = this.addPadding(inputBytes);
     const state = this.absorb(paddedInput);
     const output = this.squeeze(state);
     return "0x" + this.bytesToHex(output);
@@ -279,22 +341,40 @@ class Keccak256 {
   }
 
   /**
-   * Add Keccak padding (10*1 pattern)
+   * Add Keccak padding (10*1 pattern) - bit-level implementation
    */
-  static pad(input: Uint8Array): Uint8Array {
-    const inputLength = input.length;
-    const paddingLength = this.RATE_BYTES - (inputLength % this.RATE_BYTES);
+  static addPadding(input: Uint8Array): Uint8Array {
+    const inputBits = Keccak256Utils.bytesToBits(input);
+    const paddedBits = this.addPaddingBits(inputBits);
+    
+    return Keccak256Utils.bitsToBytes(paddedBits);
+  }
 
-    const padded = new Uint8Array(inputLength + paddingLength);
-    padded.set(input, 0);
-
+  /**
+   * Add Keccak padding (10*1 pattern) for bit arrays
+   */
+  static addPaddingBits(inputBits: number[]): number[] {
+    const inputBitLength = inputBits.length;
+    const rateBits = this.RATE_BYTES * 8; // 136 * 8 = 1088 bits
+    
+    // Calculate padding length
+    const paddingBitLength = rateBits - (inputBitLength % rateBits);
+    
+    // Create padded bits array
+    const paddedBits = new Array(inputBitLength + paddingBitLength).fill(0);
+    
+    // Copy input bits
+    for (let i = 0; i < inputBitLength; i++) {
+      paddedBits[i] = inputBits[i];
+    }
+    
     // Add padding: first bit is 1
-    padded[inputLength] = 0x01;
-
-    // Last bit is 1 (XOR with 0x80)
-    padded[padded.length - 1] |= 0x80;
-
-    return padded;
+    paddedBits[inputBitLength] = 1;
+    
+    // Last bit is 1
+    paddedBits[paddedBits.length - 1] = 1;
+    
+    return paddedBits;
   }
 
   /**

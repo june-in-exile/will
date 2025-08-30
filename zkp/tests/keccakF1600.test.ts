@@ -14,7 +14,6 @@ const lanesAfterChi = Keccak256.chi(lanesAfterPi);
 const lanesAfterIota = Keccak256.iota(lanesAfterChi, 0);
 
 const lanesAfterKeccakF = Keccak256.keccakF(Keccak256Utils.stateArrayToLanes(stateArrayOriginal));
-console.log(Keccak256Utils.lanesToHex(lanesAfterKeccakF));
 
 describe("Theta Circuit", function () {
   let circuit: WitnessTester<["stateArray"], ["newStateArray"]>;

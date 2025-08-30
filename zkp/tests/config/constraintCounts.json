@@ -49,7 +49,10 @@
   "rowShifting": { "ShiftRows": {} },
   "sponge": {
     "BytesToStateArray": {},
-    "StateArrayToBytes": {}
+    "StateArrayToBytes": {},
+    "Padding": {},
+    "Absorb": {},
+    "Squeeze": {}
   },
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
 }

@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = keccakF
+CIRCUIT = padding
 # CIRCUIT ?= multiplier2
 
-TEMPLATE = Rho
+TEMPLATE = Padding
 # TEMPLATE ?= Multiplier2
 
 # Directory structure

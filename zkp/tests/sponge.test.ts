@@ -1,5 +1,5 @@
 import { WitnessTester } from "./util/index.js";
-import { Keccak256Utils } from "./logic/index.js";
+import { Keccak256, Keccak256Utils } from "./logic/index.js";
 import { Byte200 } from "./type/byte.js";
 
 describe("BytesToStateArray Circuit", function () {
@@ -62,6 +62,116 @@ describe("StateArrayToBytes Circuit", function () {
         Keccak256Utils.stateArrayToBytes(stateArray),
       ) as Byte200;
       await circuit.expectPass({ stateArray }, { bytes });
+    });
+  });
+});
+
+describe.only("Padding Circuit", function () {
+  let circuit: WitnessTester<["msg"], ["paddedMsg"]>;
+
+  describe("Padding for Empty Message", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Padding",
+        {
+          templateParams: ["0", "1088"],
+        }
+      );
+      circuit.setConstraint("0-bit message, 1088-bit rate (1088-bit padding)");
+    });
+
+    it("should add 1 whole block of padding", async function (): Promise<void> {
+      const msg: number[] = [];
+      const paddedMsg = Keccak256.addPaddingBits(msg);
+
+      await circuit.expectPass({ msg }, { paddedMsg });
+    });
+  });
+
+  describe("Padding for 1-Block Message", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Padding",
+        {
+          templateParams: ["1088", "1088"],
+        }
+      );
+      circuit.setConstraint("1088-bit message, 1088-bit rate (1088-bit padding)");
+    });
+
+    it("should add 1 whole block of padding", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(136);
+      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const paddedMsg = Keccak256.addPaddingBits(msg);
+
+      await circuit.expectPass({ msg }, { paddedMsg });
+    });
+  });
+
+  describe("Padding for 1-Block Minus 1-Bit Message", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Padding",
+        {
+          templateParams: ["1087", "1088"],
+        }
+      );
+      circuit.setConstraint("1087-bit message, 1088-bit rate (1089-bit padding)");
+    });
+
+    it("should add 1 block plus 1 bit of padding", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(136);
+      const randomBits = Keccak256Utils.bytesToBits(randomBytes);
+      const msg = randomBits.slice(0, 1087);
+      const paddedMsg = Keccak256.addPaddingBits(msg);
+
+      await circuit.expectPass({ msg }, { paddedMsg });
+    });
+  });
+
+  describe("Padding for 1-Block Minus 2-Bit Message", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Padding",
+        {
+          templateParams: ["1086", "1088"],
+        }
+      );
+      circuit.setConstraint("1086-bit message, 1088-bit rate (2-bit padding)");
+    });
+
+    it("should add 2 bits of padding", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(136);
+      const randomBits = Keccak256Utils.bytesToBits(randomBytes);
+      const msg = randomBits.slice(0, 1086);
+      const paddedMsg = Keccak256.addPaddingBits(msg);
+
+      await circuit.expectPass({ msg }, { paddedMsg });
+    });
+  });
+
+  describe("Padding for Message of Half Block", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Padding",
+        {
+          templateParams: ["544", "1088"],
+        }
+      );
+      circuit.setConstraint("544-bit message, 1088-bit rate (544-bit padding)");
+    });
+
+    it("should pad to 1 block", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(68);
+      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const paddedMsg = Keccak256.addPaddingBits(msg);
+
+      await circuit.expectPass({ msg }, { paddedMsg });
     });
   });
 });

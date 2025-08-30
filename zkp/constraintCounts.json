@@ -187,5 +187,20 @@
     "KeccakF1600": {
       "keccak-f[1600]": 115200
     }
+  },
+  "sponge": {
+    "BytesToStateArray": {
+      "bytes to state array": 1600
+    },
+    "StateArrayToBytes": {
+      "state array to bytes": 0
+    },
+    "Padding": {
+      "0-bit message, 1088-bit rate (1088-bit padding)": 1088,
+      "1088-bit message, 1088-bit rate (1088-bit padding)": 1088,
+      "1087-bit message, 1088-bit rate (1089-bit padding)": 1089,
+      "1086-bit message, 1088-bit rate (2-bit padding)": 2,
+      "544-bit message, 1088-bit rate (544-bit padding)": 544
+    }
   }
 }
