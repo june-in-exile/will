@@ -466,9 +466,7 @@ class Keccak256 {
    */
   static iota(state: BigUint64Array, round: number): BigUint64Array {
     const newState = new BigUint64Array(25);
-    for (let i = 0; i < 25; i++) {
-      newState[i] = state[i];
-    }
+    newState.set(state);
     newState[0] ^= this.ROUND_CONSTANTS[round];
     return newState;
   }

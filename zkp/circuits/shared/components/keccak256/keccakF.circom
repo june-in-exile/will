@@ -1,5 +1,6 @@
 pragma circom 2.2.2;
 
+include "circomlib/circuits/gates.circom";
 include "../arithmetic.circom";
 include "../bits.circom";
 
@@ -118,4 +119,41 @@ template Chi() {
             }
         }
     }
+}
+
+/**
+* Keccak256 ι (iota) step: Round constant addition
+* 
+* XORs the round constant with the first lane A[0,0] to break symmetry.
+* Only affects lane (0,0), all other lanes remain unchanged.
+*/
+template Iota(round) {
+   signal input {bit} stateArray[5][5][64];
+   signal output {bit} newStateArray[5][5][64];
+
+   // Keccak round constants (64-bit values)
+   var roundConstants[24] = [
+       0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000,
+       0x000000000000808b, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
+       0x000000000000008a, 0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
+       0x000000008000808b, 0x800000000000008b, 0x8000000000008089, 0x8000000000008003,
+       0x8000000000008002, 0x8000000000000080, 0x000000000000800a, 0x800000008000000a,
+       0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008
+   ];
+
+   // Convert round constant to bit array
+   signal constantBits[64] <== Num2Bits(64)(roundConstants[round]);
+
+   // Copy all lanes unchanged except (0,0)
+   for (var x = 0; x < 5; x++) {
+       for (var y = 0; y < 5; y++) {
+           for (var z = 0; z < 64; z++) {
+               if (x == 0 && y == 0) {
+                   newStateArray[x][y][z] <== XOR()(stateArray[x][y][z], constantBits[z]);
+               } else {
+                   newStateArray[x][y][z] <== stateArray[x][y][z];
+               }
+           }
+       }
+   }
 }

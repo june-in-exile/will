@@ -97,8 +97,7 @@ describe("Chi Circuit", function () {
   });
 });
 
-
-describe.skip("Iota Circuit", function () {
+describe("Iota Circuit", function () {
   let circuit: WitnessTester<["stateArray"], ["newStateArray"]>;
 
   describe("Iota Algorithm in KeccakF", function (): void {
@@ -106,6 +105,9 @@ describe.skip("Iota Circuit", function () {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/keccak256/keccakF.circom",
         "Iota",
+        {
+          templateParams: ["0"],
+        }
       );
       circuit.setConstraint("iota");
     });
