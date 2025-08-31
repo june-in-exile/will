@@ -201,6 +201,9 @@
       "1087-bit message, 1088-bit rate (1089-bit padding)": 1089,
       "1086-bit message, 1088-bit rate (2-bit padding)": 2,
       "544-bit message, 1088-bit rate (544-bit padding)": 544
+    },
+    "Absorb": {
+      "1088-bit message, 1088-bit rate": 231488
     }
   }
 }

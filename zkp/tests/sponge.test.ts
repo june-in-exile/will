@@ -66,7 +66,7 @@ describe("StateArrayToBytes Circuit", function () {
   });
 });
 
-describe.only("Padding Circuit", function () {
+describe("Padding Circuit", function () {
   let circuit: WitnessTester<["msg"], ["paddedMsg"]>;
 
   describe("Padding for Empty Message", function (): void {
@@ -172,6 +172,69 @@ describe.only("Padding Circuit", function () {
       const paddedMsg = Keccak256.addPaddingBits(msg);
 
       await circuit.expectPass({ msg }, { paddedMsg });
+    });
+  });
+});
+
+describe("Absorb Circuit", function () {
+  let circuit: WitnessTester<["msg"], ["finalStateArray"]>;
+
+  it("should reject unpadded message", async function (): Promise<void> {
+    const invalidMsgBits = ["0", "1", "1087", "1089"];
+    for (const invalidMsgBit of invalidMsgBits) { 
+      await expect(
+        WitnessTester.construct(
+          "circuits/shared/components/keccak256/sponge.circom",
+          "Absorb",
+          {
+            templateParams: [invalidMsgBit, "1088"],
+          }
+        ),
+      ).rejects.toThrow();
+    }
+  });
+
+  describe("Absorb Message of Rate Size", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Absorb",
+        {
+          templateParams: ["1088", "1088"],
+        }
+      );
+      circuit.setConstraint("1088-bit message, 1088-bit rate");
+    });
+
+    it("should absorb the message the calculate the correct final state", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(136);
+      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const finalLanes = Keccak256.absorb(randomBytes);
+      const finalStateArray = Keccak256Utils.lanesToStateArray(finalLanes);
+
+      await circuit.expectPass({ msg }, { finalStateArray });
+    });
+  });
+
+  describe("Absorb Message of Double Rate Size", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Absorb",
+        {
+          templateParams: ["2176", "1088"],
+        }
+      );
+      circuit.setConstraint("1088-bit message, 1088-bit rate");
+    });
+
+    it("should absorb the message the calculate the correct final state", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(272);
+      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const finalLanes = Keccak256.absorb(randomBytes);
+      const finalStateArray = Keccak256Utils.lanesToStateArray(finalLanes);
+
+      await circuit.expectPass({ msg }, { finalStateArray });
     });
   });
 });

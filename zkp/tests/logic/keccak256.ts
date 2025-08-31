@@ -302,7 +302,7 @@ class Keccak256 {
     0, 1, 62, 28, 27, 36, 44, 6, 55, 20, 3, 10, 43, 25, 39, 41, 45, 15, 21, 8,
     18, 2, 61, 56, 14,
   ];
-  
+
   /**
    * Main Keccak256 hash function
    * 
@@ -346,7 +346,7 @@ class Keccak256 {
   static addPadding(input: Uint8Array): Uint8Array {
     const inputBits = Keccak256Utils.bytesToBits(input);
     const paddedBits = this.addPaddingBits(inputBits);
-    
+
     return Keccak256Utils.bitsToBytes(paddedBits);
   }
 
@@ -356,24 +356,24 @@ class Keccak256 {
   static addPaddingBits(inputBits: number[]): number[] {
     const inputBitLength = inputBits.length;
     const rateBits = this.RATE_BYTES * 8; // 136 * 8 = 1088 bits
-    
+
     // Calculate padding length
     const paddingBitLength = rateBits - (inputBitLength % rateBits);
-    
+
     // Create padded bits array
     const paddedBits = new Array(inputBitLength + paddingBitLength).fill(0);
-    
+
     // Copy input bits
     for (let i = 0; i < inputBitLength; i++) {
       paddedBits[i] = inputBits[i];
     }
-    
+
     // Add padding: first bit is 1
     paddedBits[inputBitLength] = 1;
-    
+
     // Last bit is 1
     paddedBits[paddedBits.length - 1] = 1;
-    
+
     return paddedBits;
   }
 

@@ -1,7 +1,8 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
-include "circomlib/circuits/comparators.circom";
+// include "circomlib/circuits/comparators.circom";
+include "circomlib/circuits/gates.circom";
 include "keccakF1600.circom";
 
 /**
@@ -74,7 +75,6 @@ template StateArrayToBytes() {
 template Padding(msgBits, rateBits) {
     var numBlocks = ((msgBits + 2) + rateBits - 1) \ rateBits;
     var totalBits = numBlocks * rateBits;
-    var paddingZeroBits = totalBits - msgBits - 2;
 
     signal input {bit} msg[msgBits];
     signal output {bit} paddedMsg[totalBits];
@@ -93,90 +93,71 @@ template Padding(msgBits, rateBits) {
     }
 }
 
-
-// test case:
-// rateBits = 1088
-// maxInputBits = 0
-// maxInputBits = 1088
-// maxInputBits = 1087
-// maxInputBits = 1086
-// maxInputBits = 544
-// maxInputBits = 1632
-
-
 /**
  * Keccak Absorb Phase
  * Processes padded input in rate-sized blocks
+ * XOR each states with block and apply Keccak-f[1600] permutation
  * 
- * @param numBlocks - Number of blocks to process
+ * @param msgBits - Message length in bits (including padding)
  * @param rateBytes - Rate in bits (1088 for Keccak256)
  */
-// template Absorb(numBlocks, rateBits) {
-//     signal input {bit} paddedInput[numBlocks][rateBits];
-//     signal output {bit} newStateArray[5][5][64];
+
+ // test case:
+ // msgBits = 0
+ // msgBits % rateBits != 0
+ // msgBits = rateBits
+ // msgBits = 2 * rateBits
+template Absorb(msgBits, rateBits) {
+    assert(msgBits > 0);
+    assert(msgBits % rateBits == 0);
+    var numBlocks = msgBits \ rateBits;
+
+    signal input {bit} msg[msgBits];
+    signal output {bit} finalStateArray[5][5][64];
     
-//     signal {bit} statesArray[numBlocks + 1][5][5][64];
-//     for (var x = 0; x < 5; x++) {
-//         for (var y = 0; y < 5; y++) {
-//             for (var z = 0; z < 64; z++) {
-//                 statesArray[0][x][y][z] = 0;
-//             }
-//         }
-//     }
+    signal blocks[numBlocks][rateBits];
+    signal {bit} statesArray[numBlocks + 1][5][5][64];
+    signal {bit} xoredStatesArray[numBlocks][5][5][64];
+
+    // Convert message into blocks
+    for (var blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
+        for (var bitIdx = 0; bitIdx < rateBits; bitIdx++) {
+            blocks[blockIdx][bitIdx] <== msg[blockIdx * rateBits + bitIdx];
+        }
+    }
+
+    // Initial the first state
+    for (var x = 0; x < 5; x++) {
+        for (var y = 0; y < 5; y++) {
+            for (var z = 0; z < 64; z++) {
+                statesArray[0][x][y][z] <== 0;
+            }
+        }
+    }
     
-//     for (var block = 0; block < numBlocks; block++) {
-//         // Convert current block to lanes
-//         signal blockLanes[17]; // Only first 17 lanes are affected by rate
+    for (var blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
+        for (var y = 0; y < 5; y++) {
+            for (var x = 0; x < 5; x++) {
+                var laneIdx = 5 * y + x;
+                if (laneIdx < 17) {
+                    // Xor state bit with current block bit
+                    for (var z = 0; z < 64; z++) {
+                        var bitIdx = 64 * laneIdx + z;
+                        xoredStatesArray[blockIdx][x][y][z] <== XOR()(statesArray[blockIdx][x][y][z], blocks[blockIdx][bitIdx]);
+                    }
+                } else {
+                    // Copy the previous state
+                    xoredStatesArray[blockIdx][x][y] <== statesArray[blockIdx][x][y];
+                }
+            }
+        }
         
-//         for (var laneIdx = 0; laneIdx < 17; laneIdx++) {
-//             var byteOffset = block * rateBytes + laneIdx * 8;
-            
-//             // Convert 8 bytes to 64-bit lane (little-endian)
-//             signal laneBytes[8];
-//             for (var i = 0; i < 8; i++) {
-//                 if (byteOffset + i < numBlocks * rateBytes) {
-//                     laneBytes[i] <== paddedInput[byteOffset + i];
-//                 } else {
-//                     laneBytes[i] <== 0;
-//                 }
-//             }
-            
-//             // Convert bytes to 64-bit value (little-endian)
-//             signal powers[8];
-//             powers[0] <== 1;
-//             for (var i = 1; i < 8; i++) {
-//                 powers[i] <== powers[i-1] * 256;
-//             }
-            
-//             signal contributions[8];
-//             for (var i = 0; i < 8; i++) {
-//                 contributions[i] <== laneBytes[i] * powers[i];
-//             }
-            
-//             signal partialSums[7];
-//             partialSums[0] <== contributions[0] + contributions[1];
-//             for (var i = 1; i < 7; i++) {
-//                 partialSums[i] <== partialSums[i-1] + contributions[i+1];
-//             }
-            
-//             blockLanes[laneIdx] <== partialSums[6];
-//         }
-        
-//         // XOR with state
-//         signal xoredState[25];
-//         for (var i = 0; i < 17; i++) {
-//             xoredState[i] <== states[block][i] ^ blockLanes[i];
-//         }
-//         for (var i = 17; i < 25; i++) {
-//             xoredState[i] <== states[block][i];
-//         }
-        
-//         // Apply Keccak-f permutation (placeholder - needs full implementation)
-//         states[block + 1] <== KeccakF()(xoredState);
-//     }
+        // Apply Keccak-f[1600] permutation
+        statesArray[blockIdx + 1] <== KeccakF1600()(xoredStatesArray[blockIdx]);
+    }
     
-//     finalState <== states[numBlocks];
-// }
+    finalStateArray <== statesArray[numBlocks];
+}
 
 // /**
 //  * Keccak Squeeze Phase
@@ -185,7 +166,7 @@ template Padding(msgBits, rateBits) {
 //  * @param outputBytes - Number of output bytes (32 for Keccak256)
 //  * @param rateBytes - Rate in bytes (136 for Keccak256)
 //  */
-// template KeccakSqueeze(outputBytes, rateBytes) {
+// template Squeeze(outputBytes, rateBytes) {
 //     signal input state[25];
 //     signal output hash[outputBytes];
     
