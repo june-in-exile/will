@@ -19,7 +19,8 @@
   },
   "keccak256": {
     "Keccak256Hash": {
-      "16-byte massage (less than one block)": 115328
+      "16-byte massage (less than one block)": 115328,
+      "170-byte massage (more than one block)": 232032
     }
   },
   "bits": {

@@ -22,9 +22,9 @@ template Keccak256Hash(msgBytes) {
     var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;
     var paddedMsgBits = numBlocks * rateBits;
 
-    signal bitsMsg[msgBits] <== BytesToBitsMsbFirst(msgBytes)(msg);
+    signal bitsMsg[msgBits] <== BytesToBitsLsbFirst(msgBytes)(msg);
     signal paddedMsg[paddedMsgBits] <== Padding(msgBits, rateBits)(bitsMsg);
     signal stateArray[5][5][64] <== Absorb(paddedMsgBits, rateBits)(paddedMsg);
     signal bitsDigest[256] <== Squeeze(digestBits, rateBits)(stateArray);
-    digest <== BitsToBytesMsbFirst(digestBytes)(bitsDigest);
+    digest <== BitsToBytesLsbFirst(digestBytes)(bitsDigest);
 }
