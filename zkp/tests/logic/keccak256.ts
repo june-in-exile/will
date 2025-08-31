@@ -268,25 +268,6 @@ class Keccak256Utils {
   }
 
   /**
-   * Convert hex string to bytes
-   */
-  static hexToBytes(hex: string): Uint8Array {
-    const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
-
-    if (cleanHex.length % 2 !== 0) {
-      throw new Error(
-        `Hex string must have even length, got ${cleanHex.length}`,
-      );
-    }
-
-    const bytes = new Uint8Array(cleanHex.length / 2);
-    for (let i = 0; i < cleanHex.length; i += 2) {
-      bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
-    }
-    return bytes;
-  }
-
-  /**
    * Create empty state array (5x5x64 bits, all zeros)
    */
   private static createEmptyStateArray(): number[][][] {
