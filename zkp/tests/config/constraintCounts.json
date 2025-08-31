@@ -15,11 +15,11 @@
     "ShiftRight": {},
     "BitwiseXor": {},
     "ByteAdder": {},
-    "Byte16ToBit128": {},
-    "Bit128ToByte16": {},
     "Byte16ToNum": {},
     "NumToByte16": {},
-    "RotateLeft": {}
+    "RotateLeft": {},
+    "BytesToBits": {},
+    "BitsToBytes": {}
   },
   "byteSubstitution": { "SubWord": {}, "SubBytes": {}, "SubstituteBytes": {} },
   "columnMixing": { "MixColumn": {}, "MixColumns": {} },

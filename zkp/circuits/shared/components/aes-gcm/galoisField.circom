@@ -63,8 +63,8 @@ template GF128Multiply() {
     signal {bit} cBits[129][128];
 
     // Convert 16-byte a, b to 128-bit, initialize c = 0
-    aBits <== Byte16ToBit128()(aBytes);
-    bBits[0] <== Byte16ToBit128()(bBytes);
+    aBits <== BytesToBits(16)(aBytes);
+    bBits[0] <== BytesToBits(16)(bBytes);
 
     for (var bit = 0; bit < 128; bit++) {
         cBits[0][bit] <== 0;
@@ -92,7 +92,7 @@ template GF128Multiply() {
     }
 
     // Convert final result bits back to bytes
-    cBytes <== Bit128ToByte16()(cBits[128]);
+    cBytes <== BitsToBytes(16)(cBits[128]);
 }
 
 /**
@@ -186,8 +186,8 @@ template GF128MultiplyOptimized() {
     signal counter3[4][6];      // Maximum 6 overflow bits from round 2
 
     // Convert 16-byte a, b to 128-bit
-    aBits <== Byte16ToBit128()(aBytes);
-    bBits <== Byte16ToBit128()(bBytes);
+    aBits <== BytesToBits(16)(aBytes);
+    bBits <== BytesToBits(16)(bBytes);
 
     // ===== Round 1: Main multiplication =====
     // For each bit of 'a', accumulate b shifted right by that bit position
@@ -253,7 +253,7 @@ template GF128MultiplyOptimized() {
     }
 
     // Convert final result bits back to bytes
-    cBytes <== Bit128ToByte16()(cBits);
+    cBytes <== BitsToBytes(16)(cBits);
 }
 
 /**

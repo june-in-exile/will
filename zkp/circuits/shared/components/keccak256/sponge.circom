@@ -1,9 +1,9 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
-// include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/gates.circom";
 include "keccakF1600.circom";
+include "../bits.circom";
 
 /**
  * Convert 200 bytes to Keccak state array (5x5x64 bits)
@@ -202,37 +202,41 @@ template Squeeze(hashBits, rateBits) {
  *
  * @param msgBytes - Number of message bytes
  */
-template Keccak256Hash(msgBytes) {
-    signal input msg[msgBytes];
-    signal output hash[32];
+// template Keccak256Hash(msgBytes) {
+//     signal input msg[msgBytes];
+//     signal output hash[32];
+
+//     signal msgInBits <== BytesToBits(msgBytes)(msg);
+
+//      Padding(msgBytes * 8);
     
-    // Step 1: Add padding
-    var rateBytes = 136; // 1088 bits / 8
-    component padding = KeccakPaddingVariable(maxInputLength, rateBytes);
-    padding.inputBytes <== inputBytes;
-    padding.actualLength <== inputLength;
+//     // Step 1: Add padding
+//     var rateBytes = 136; // 1088 bits / 8
+//     component padding = KeccakPaddingVariable(maxInputLength, rateBytes);
+//     padding.inputBytes <== inputBytes;
+//     padding.actualLength <== inputLength;
     
-    // Step 2: Absorb phase
-    var maxBlocks = (maxInputLength + rateBytes + rateBytes - 1) \ rateBytes;
-    component absorb = KeccakAbsorb(maxBlocks, rateBytes);
+//     // Step 2: Absorb phase
+//     var maxBlocks = (maxInputLength + rateBytes + rateBytes - 1) \ rateBytes;
+//     component absorb = KeccakAbsorb(maxBlocks, rateBytes);
     
-    // Initialize state with zeros
-    signal initialState[25];
-    for (var i = 0; i < 25; i++) {
-        initialState[i] <== 0;
-    }
+//     // Initialize state with zeros
+//     signal initialState[25];
+//     for (var i = 0; i < 25; i++) {
+//         initialState[i] <== 0;
+//     }
     
-    absorb.initialState <== initialState;
-    for (var i = 0; i < maxBlocks * rateBytes; i++) {
-        if (i < maxInputLength + rateBytes) {
-            absorb.paddedInput[i] <== padding.paddedBytes[i];
-        } else {
-            absorb.paddedInput[i] <== 0;
-        }
-    }
+//     absorb.initialState <== initialState;
+//     for (var i = 0; i < maxBlocks * rateBytes; i++) {
+//         if (i < maxInputLength + rateBytes) {
+//             absorb.paddedInput[i] <== padding.paddedBytes[i];
+//         } else {
+//             absorb.paddedInput[i] <== 0;
+//         }
+//     }
     
-    // Step 3: Squeeze phase
-    component squeeze = KeccakSqueeze(32, rateBytes);
-    squeeze.state <== absorb.finalState;
-    hash <== squeeze.hash;
-}
+//     // Step 3: Squeeze phase
+//     component squeeze = KeccakSqueeze(32, rateBytes);
+//     squeeze.state <== absorb.finalState;
+//     hash <== squeeze.hash;
+// }
