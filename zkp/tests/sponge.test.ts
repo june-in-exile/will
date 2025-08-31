@@ -1,5 +1,11 @@
 import { WitnessTester } from "./util/index.js";
-import { Keccak256, Keccak256Utils, absorb, squeeze, hash } from "./logic/index.js";
+import {
+  Keccak256,
+  Keccak256Utils,
+  absorb,
+  squeeze,
+  hash,
+} from "./logic/index.js";
 import { Bit, Byte } from "./type/index.js";
 
 describe("Padding Circuit", function () {
@@ -197,10 +203,7 @@ describe("Squeeze Circuit", function () {
       const stateArray = Keccak256Utils.bytesToStateArray(randomBytes);
       const digest = squeeze(stateArray);
 
-      await circuit.expectPass(
-        { stateArray },
-        { digest },
-      );
+      await circuit.expectPass({ stateArray }, { digest });
     });
   });
 
@@ -221,10 +224,7 @@ describe("Squeeze Circuit", function () {
       const stateArray = Keccak256Utils.bytesToStateArray(randomBytes);
       const digest = squeeze(stateArray);
 
-      await circuit.expectPass(
-        { stateArray },
-        { digest },
-      );
+      await circuit.expectPass({ stateArray }, { digest });
     });
   });
 
@@ -245,10 +245,7 @@ describe("Squeeze Circuit", function () {
       const stateArray = Keccak256Utils.bytesToStateArray(randomBytes);
       const digest = squeeze(stateArray);
 
-      await circuit.expectPass(
-        { stateArray },
-        { digest },
-      );
+      await circuit.expectPass({ stateArray }, { digest });
     });
   });
 });
@@ -274,10 +271,7 @@ describe("Keccak256 Circuit", function () {
       const msg = Array.from(randomBytes) as Byte[];
       const digest = hash(msg);
 
-      await circuit.expectPass(
-        { msg },
-        { digest },
-      );
+      await circuit.expectPass({ msg }, { digest });
     });
   });
 
@@ -298,10 +292,7 @@ describe("Keccak256 Circuit", function () {
       const msg = Array.from(randomBytes) as Byte[];
       const digest = hash(msg);
 
-      await circuit.expectPass(
-        { msg },
-        { digest },
-      );
+      await circuit.expectPass({ msg }, { digest });
     });
   });
 });

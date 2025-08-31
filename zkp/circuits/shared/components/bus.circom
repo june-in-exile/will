@@ -12,3 +12,9 @@ bus Word() {
 bus Address() {
     signal {ascii} hex[40];
 }
+
+bus Estate() {
+    Address bebeficiary;
+    Address token;
+    signal amount;
+}

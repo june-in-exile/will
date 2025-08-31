@@ -3,15 +3,14 @@ pragma circom 2.2.2;
 include "./base64.circom";
 include "./bus.circom";
 
-template deserialize() {
-    signal input serialized;
-    
+template Deserialize(serializedBytes) {
+    signal input {byte} serialized[serializedBytes];
     output Address testator;
-    output estates
-    output Address will
-    signal output nonce
-    signal output deadline
-    signal output signature
+    output Estate estates;
+    output Address will;
+    signal output nonce;
+    signal output deadline;
+    signal output signature;
 
 }
 

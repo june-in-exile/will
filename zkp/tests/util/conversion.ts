@@ -67,9 +67,7 @@ function hexToByte(hex: string): Byte[] {
   const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
 
   if (cleanHex.length % 2 !== 0) {
-    throw new Error(
-      `Hex string must have even length, got ${cleanHex.length}`,
-    );
+    throw new Error(`Hex string must have even length, got ${cleanHex.length}`);
   }
 
   const bytes = new Array(cleanHex.length / 2);

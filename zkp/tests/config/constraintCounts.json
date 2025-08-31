@@ -25,6 +25,7 @@
   "columnMixing": { "MixColumn": {}, "MixColumns": {} },
   "counterIncrement": { "IncrementCounter": {} },
   "ctrEncrypt": { "CtrEncrypt": {}, "CtrDecrypt": {} },
+  "deserialization": { "Deserialize": {} },
   "encryptBlock": { "EncryptBlock": {} },
   "galoisField": {
     "GF8Mul2": {},
