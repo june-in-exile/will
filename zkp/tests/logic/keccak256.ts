@@ -128,6 +128,59 @@ class Keccak256Utils {
   }
 
   /**
+   * Convert 25 lanes to bytes (200 bytes)
+   */
+  static lanesToBytes(lanes: BigUint64Array): Uint8Array {
+    if (lanes.length !== 25) {
+      throw new Error(`Expected 25 lanes, got ${lanes.length}`);
+    }
+
+    const bytes = new Uint8Array(200);
+    for (let i = 0; i < 25; i++) {
+      const laneBytes = this.laneToBytes(lanes[i]);
+      bytes.set(laneBytes, i * 8);
+    }
+    return bytes;
+  }
+
+  /**
+   * Convert a 64-bit lane to 8 bytes (little-endian)
+   */
+  static laneToBytes(lane: bigint): Uint8Array {
+    const bytes = new Uint8Array(8);
+    for (let i = 0; i < 8; i++) {
+      bytes[i] = Number((lane >> BigInt(i * 8)) & 0xffn);
+    }
+    return bytes;
+  }
+
+  /**
+   * Convert 200 bytes to 25 lanes
+   */
+  static bytesToLanes(bytes: Uint8Array): BigUint64Array {
+    if (bytes.length !== 200) {
+      throw new Error(`Expected 200 bytes, got ${bytes.length}`);
+    }
+
+    const lanes = new BigUint64Array(25);
+    for (let i = 0; i < 25; i++) {
+      lanes[i] = this.bytesToLane(bytes, i * 8);
+    }
+    return lanes;
+  }
+
+  /**
+   * Convert 8 bytes to a 64-bit lane (little-endian)
+   */
+  static bytesToLane(bytes: Uint8Array, offset: number): bigint {
+    let result = 0n;
+    for (let i = 0; i < 8 && offset + i < bytes.length; i++) {
+      result |= BigInt(bytes[offset + i]) << BigInt(i * 8);
+    }
+    return result;
+  }
+
+  /**
    * Convert bytes to bits array (each byte becomes 8 bits)
    */
   static bytesToBits(bytes: Uint8Array): number[] {
@@ -179,17 +232,6 @@ class Keccak256Utils {
   }
 
   /**
-   * Generate random Uint8Array of specified length
-   * @note Keep this for debug purpose
-   */
-  static randomBytes(length: number): Uint8Array {
-    const bytes = new Uint8Array(length);
-    const randomBytes = crypto.getRandomValues(new Uint8Array(length));
-    bytes.set(randomBytes);
-    return bytes;
-  }
-
-  /**
    * Convert 25 lanes to hex string (200 bytes)
    * @note Keep this for debug purpose
    */
@@ -209,6 +251,26 @@ class Keccak256Utils {
     }
 
     return lines.join("\n");
+  }
+
+  /**
+   * Convert bytes to hex string
+   */
+  static bytesToHex(bytes: Uint8Array): string {
+    return Array.from(bytes)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  /**
+   * Generate random Uint8Array of specified length
+   * @note Keep this for debug purpose
+   */
+  static randomBytes(length: number): Uint8Array {
+    const bytes = new Uint8Array(length);
+    const randomBytes = crypto.getRandomValues(new Uint8Array(length));
+    bytes.set(randomBytes);
+    return bytes;
   }
 
   /**
@@ -313,7 +375,7 @@ class Keccak256 {
     const paddedInput = this.addPadding(inputBytes);
     const state = this.absorb(paddedInput);
     const output = this.squeeze(state);
-    return "0x" + this.bytesToHex(output);
+    return "0x" + Keccak256Utils.bytesToHex(output);
   }
 
   /**
@@ -392,7 +454,7 @@ class Keccak256 {
         const laneIndex = Math.floor(i / 8);
         if (laneIndex < 17) {
           // RATE_BYTES / 8 = 17 lanes
-          const lane = this.bytesToLane(block, i);
+          const lane = Keccak256Utils.bytesToLane(block, i);
           state[laneIndex] ^= lane;
         }
       }
@@ -407,21 +469,21 @@ class Keccak256 {
   /**
    * Squeeze phase - extract output
    */
-  static squeeze(state: BigUint64Array): Uint8Array {
-    const output = new Uint8Array(this.OUTPUT_BYTES);
+  static squeeze(state: BigUint64Array, output_bytes: number = this.OUTPUT_BYTES): Uint8Array {
+    const output = new Uint8Array(output_bytes);
     let outputOffset = 0;
 
-    while (outputOffset < this.OUTPUT_BYTES) {
+    while (outputOffset < output_bytes) {
       // Extract bytes from current state
-      for (let i = 0; i < 17 && outputOffset < this.OUTPUT_BYTES; i++) {
-        const laneBytes = this.laneToBytes(state[i]);
-        const bytesToCopy = Math.min(8, this.OUTPUT_BYTES - outputOffset);
+      for (let i = 0; i < 17 && outputOffset < output_bytes; i++) {
+        const laneBytes = Keccak256Utils.laneToBytes(state[i]);
+        const bytesToCopy = Math.min(8, output_bytes - outputOffset);
         output.set(laneBytes.slice(0, bytesToCopy), outputOffset);
         outputOffset += bytesToCopy;
       }
 
       // If we need more output, apply permutation again
-      if (outputOffset < this.OUTPUT_BYTES) {
+      if (outputOffset < output_bytes) {
         state = this.keccakF(state);
       }
     }
@@ -557,37 +619,6 @@ class Keccak256 {
   static rotateLeft64(value: bigint, positions: number): bigint {
     const n = BigInt(positions % 64);
     return ((value << n) | (value >> (64n - n))) & 0xffffffffffffffffn;
-  }
-
-  /**
-   * Convert 8 bytes to a 64-bit lane (little-endian)
-   */
-  static bytesToLane(bytes: Uint8Array, offset: number): bigint {
-    let result = 0n;
-    for (let i = 0; i < 8 && offset + i < bytes.length; i++) {
-      result |= BigInt(bytes[offset + i]) << BigInt(i * 8);
-    }
-    return result;
-  }
-
-  /**
-   * Convert a 64-bit lane to 8 bytes (little-endian)
-   */
-  static laneToBytes(lane: bigint): Uint8Array {
-    const bytes = new Uint8Array(8);
-    for (let i = 0; i < 8; i++) {
-      bytes[i] = Number((lane >> BigInt(i * 8)) & 0xffn);
-    }
-    return bytes;
-  }
-
-  /**
-   * Convert bytes to hex string
-   */
-  static bytesToHex(bytes: Uint8Array): string {
-    return Array.from(bytes)
-      .map((byte) => byte.toString(16).padStart(2, "0"))
-      .join("");
   }
 }
 

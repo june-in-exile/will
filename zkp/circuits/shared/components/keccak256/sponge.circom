@@ -73,7 +73,7 @@ template StateArrayToBytes() {
  * @param rateBits - Rate in bits (1088 for Keccak256)
  */
 template Padding(msgBits, rateBits) {
-    var numBlocks = ((msgBits + 2) + rateBits - 1) \ rateBits;
+    var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;
     var totalBits = numBlocks * rateBits;
 
     signal input {bit} msg[msgBits];
@@ -99,19 +99,13 @@ template Padding(msgBits, rateBits) {
  * XOR each states with block and apply Keccak-f[1600] permutation
  * 
  * @param msgBits - Message length in bits (including padding)
- * @param rateBytes - Rate in bits (1088 for Keccak256)
+ * @param rateBits - Rate in bits (1088 for Keccak256)
  */
-
- // test case:
- // msgBits = 0
- // msgBits % rateBits != 0
- // msgBits = rateBits
- // msgBits = 2 * rateBits
 template Absorb(msgBits, rateBits) {
     assert(msgBits > 0);
     assert(msgBits % rateBits == 0);
     var numBlocks = msgBits \ rateBits;
-
+    
     signal input {bit} msg[msgBits];
     signal output {bit} finalStateArray[5][5][64];
     
@@ -135,11 +129,12 @@ template Absorb(msgBits, rateBits) {
         }
     }
     
+    var effectiveNumLanes = rateBits \ 64;
     for (var blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
         for (var y = 0; y < 5; y++) {
             for (var x = 0; x < 5; x++) {
                 var laneIdx = 5 * y + x;
-                if (laneIdx < 17) {
+                if (laneIdx < effectiveNumLanes) {
                     // Xor state bit with current block bit
                     for (var z = 0; z < 64; z++) {
                         var bitIdx = 64 * laneIdx + z;
@@ -159,76 +154,85 @@ template Absorb(msgBits, rateBits) {
     finalStateArray <== statesArray[numBlocks];
 }
 
-// /**
-//  * Keccak Squeeze Phase
-//  * Extracts output bytes from the final state
-//  * 
-//  * @param outputBytes - Number of output bytes (32 for Keccak256)
-//  * @param rateBytes - Rate in bytes (136 for Keccak256)
-//  */
-// template Squeeze(outputBytes, rateBytes) {
-//     signal input state[25];
-//     signal output hash[outputBytes];
-    
-//     // For Keccak256, we only need 32 bytes, which fits in the first squeeze
-//     // More complex implementation would handle multiple squeeze rounds
-    
-//     // Extract bytes from first 17 lanes (rate portion)
-//     var bytesExtracted = 0;
-    
-//     for (var laneIdx = 0; laneIdx < 17 && bytesExtracted < outputBytes; laneIdx++) {
-//         // Convert 64-bit lane to 8 bytes (little-endian)
-//         signal laneBits[64];
-//         laneBits <== Num2Bits(64)(state[laneIdx]);
-        
-//         for (var byteIdx = 0; byteIdx < 8 && bytesExtracted < outputBytes; byteIdx++) {
-//             signal byteBits[8];
-//             for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-//                 byteBits[bitIdx] <== laneBits[byteIdx * 8 + bitIdx];
-//             }
-            
-//             hash[bytesExtracted] <== Bits2Num(8)(byteBits);
-//             bytesExtracted++;
-//         }
-//     }
-// }
+/**
+ * Keccak Squeeze Phase
+ * Extracts hash bits from the final state
+ * 
+ * @param hashBits - Number of hash bits (256 for Keccak256)
+ * @param rateBits - Rate in bits (1088 for Keccak256)
+ */
+template Squeeze(hashBits, rateBits) {
+    var numBlocks = ((hashBits - 1) \ rateBits) + 1;
 
-// /**
-//  * Complete Keccak256 Hash Function
-//  * Combines padding, absorb, and squeeze phases
-//  */
-// template Keccak256Hash(maxInputLength) {
-//     signal input inputBytes[maxInputLength];
-//     signal input inputLength;
-//     signal output hash[32];
+    signal input {bit} stateArray[5][5][64];
+    signal output {bit} hash[hashBits];
+
+    signal {bit} statesArray[numBlocks][5][5][64];
+    var effectiveNumLanes = rateBits \ 64;
+
+    for (var blockIdx = 0; blockIdx < numBlocks; blockIdx++) {
+        if (blockIdx == 0) {
+            // Initialize the first state
+            statesArray[0] <== stateArray;
+        } else {
+            // Calculate the next block
+            statesArray[blockIdx] <== KeccakF1600()(statesArray[blockIdx - 1]);
+        }
+        // Extract hash from the first 17 lanes of each state
+        for (var y = 0; y < 5; y++) {
+            for (var x = 0; x < 5; x++) {
+                var laneIdx = x + 5 * y;
+                if (laneIdx < effectiveNumLanes) {
+                    for (var z = 0; z < 64; z++) {
+                        var bitIdx = laneIdx * 64 + z;
+                        var hashIdx = blockIdx * rateBits + bitIdx;
+                        if (hashIdx < hashBits) {
+                            hash[hashIdx] <== statesArray[blockIdx][x][y][z];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Complete Keccak256 Hash Function
+ * Combines padding, absorb, and squeeze phases
+ *
+ * @param msgBytes - Number of message bytes
+ */
+template Keccak256Hash(msgBytes) {
+    signal input msg[msgBytes];
+    signal output hash[32];
     
-//     // Step 1: Add padding
-//     var rateBytes = 136; // 1088 bits / 8
-//     component padding = KeccakPaddingVariable(maxInputLength, rateBytes);
-//     padding.inputBytes <== inputBytes;
-//     padding.actualLength <== inputLength;
+    // Step 1: Add padding
+    var rateBytes = 136; // 1088 bits / 8
+    component padding = KeccakPaddingVariable(maxInputLength, rateBytes);
+    padding.inputBytes <== inputBytes;
+    padding.actualLength <== inputLength;
     
-//     // Step 2: Absorb phase
-//     var maxBlocks = (maxInputLength + rateBytes + rateBytes - 1) \ rateBytes;
-//     component absorb = KeccakAbsorb(maxBlocks, rateBytes);
+    // Step 2: Absorb phase
+    var maxBlocks = (maxInputLength + rateBytes + rateBytes - 1) \ rateBytes;
+    component absorb = KeccakAbsorb(maxBlocks, rateBytes);
     
-//     // Initialize state with zeros
-//     signal initialState[25];
-//     for (var i = 0; i < 25; i++) {
-//         initialState[i] <== 0;
-//     }
+    // Initialize state with zeros
+    signal initialState[25];
+    for (var i = 0; i < 25; i++) {
+        initialState[i] <== 0;
+    }
     
-//     absorb.initialState <== initialState;
-//     for (var i = 0; i < maxBlocks * rateBytes; i++) {
-//         if (i < maxInputLength + rateBytes) {
-//             absorb.paddedInput[i] <== padding.paddedBytes[i];
-//         } else {
-//             absorb.paddedInput[i] <== 0;
-//         }
-//     }
+    absorb.initialState <== initialState;
+    for (var i = 0; i < maxBlocks * rateBytes; i++) {
+        if (i < maxInputLength + rateBytes) {
+            absorb.paddedInput[i] <== padding.paddedBytes[i];
+        } else {
+            absorb.paddedInput[i] <== 0;
+        }
+    }
     
-//     // Step 3: Squeeze phase
-//     component squeeze = KeccakSqueeze(32, rateBytes);
-//     squeeze.state <== absorb.finalState;
-//     hash <== squeeze.hash;
-// }
+    // Step 3: Squeeze phase
+    component squeeze = KeccakSqueeze(32, rateBytes);
+    squeeze.state <== absorb.finalState;
+    hash <== squeeze.hash;
+}

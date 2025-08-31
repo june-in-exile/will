@@ -181,7 +181,7 @@ describe("Absorb Circuit", function () {
 
   it("should reject unpadded message", async function (): Promise<void> {
     const invalidMsgBits = ["0", "1", "1087", "1089"];
-    for (const invalidMsgBit of invalidMsgBits) { 
+    for (const invalidMsgBit of invalidMsgBits) {
       await expect(
         WitnessTester.construct(
           "circuits/shared/components/keccak256/sponge.circom",
@@ -194,7 +194,7 @@ describe("Absorb Circuit", function () {
     }
   });
 
-  describe("Absorb Message of Rate Size", function (): void {
+  describe("Absorb One Block", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/keccak256/sponge.circom",
@@ -206,7 +206,7 @@ describe("Absorb Circuit", function () {
       circuit.setConstraint("1088-bit message, 1088-bit rate");
     });
 
-    it("should absorb the message the calculate the correct final state", async function (): Promise<void> {
+    it("should absorb one block and calculate the correct final state", async function (): Promise<void> {
       const randomBytes = Keccak256Utils.randomBytes(136);
       const msg = Keccak256Utils.bytesToBits(randomBytes);
       const finalLanes = Keccak256.absorb(randomBytes);
@@ -216,7 +216,7 @@ describe("Absorb Circuit", function () {
     });
   });
 
-  describe("Absorb Message of Double Rate Size", function (): void {
+  describe("Absorb Two Blocks", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/keccak256/sponge.circom",
@@ -225,16 +225,92 @@ describe("Absorb Circuit", function () {
           templateParams: ["2176", "1088"],
         }
       );
-      circuit.setConstraint("1088-bit message, 1088-bit rate");
+      circuit.setConstraint("2176-bit message, 1088-bit rate");
     });
 
-    it("should absorb the message the calculate the correct final state", async function (): Promise<void> {
+    it("should absorb two blocks and calculate the correct final state", async function (): Promise<void> {
       const randomBytes = Keccak256Utils.randomBytes(272);
       const msg = Keccak256Utils.bytesToBits(randomBytes);
       const finalLanes = Keccak256.absorb(randomBytes);
       const finalStateArray = Keccak256Utils.lanesToStateArray(finalLanes);
 
       await circuit.expectPass({ msg }, { finalStateArray });
+    });
+  });
+});
+
+describe("Squeeze Circuit", function () {
+  let circuit: WitnessTester<["stateArray"], ["hash"]>;
+
+  describe("Squeeze Less Than One Block", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Squeeze",
+        {
+          templateParams: ["256", "1088"],
+        }
+      );
+      circuit.setConstraint("256-bit hash, 1088-bit rate");
+    });
+
+    it("should squeeze the correct hash out of one block", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(200);
+      const lanes = Keccak256Utils.bytesToLanes(randomBytes);
+      const hash = Keccak256.squeeze(lanes, 32);
+
+      await circuit.expectPass(
+        { stateArray: Keccak256Utils.lanesToStateArray(lanes) },
+        { hash: Keccak256Utils.bytesToBits(hash) }
+      );
+    });
+  });
+
+  describe("Squeeze Exactly One Block", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Squeeze",
+        {
+          templateParams: ["1088", "1088"],
+        }
+      );
+      circuit.setConstraint("1088-bit hash, 1088-bit rate");
+    });
+
+    it("should squeeze the correct hash out of one block", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(200);
+      const lanes = Keccak256Utils.bytesToLanes(randomBytes);
+      const hash = Keccak256.squeeze(lanes, 136);
+
+      await circuit.expectPass(
+        { stateArray: Keccak256Utils.lanesToStateArray(lanes) },
+        { hash: Keccak256Utils.bytesToBits(hash) }
+      );
+    });
+  });
+
+  describe("Squeeze More Than One Block", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Squeeze",
+        {
+          templateParams: ["1360", "1088"],
+        }
+      );
+      circuit.setConstraint("1360-bit hash, 1088-bit rate");
+    });
+
+    it("should squeeze the correct hash out of two blocks", async function (): Promise<void> {
+      const randomBytes = Keccak256Utils.randomBytes(200);
+      const lanes = Keccak256Utils.bytesToLanes(randomBytes);
+      const hash = Keccak256.squeeze(lanes, 170);
+
+      await circuit.expectPass(
+        { stateArray: Keccak256Utils.lanesToStateArray(lanes) },
+        { hash: Keccak256Utils.bytesToBits(hash) }
+      );
     });
   });
 });

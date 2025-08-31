@@ -203,7 +203,13 @@
       "544-bit message, 1088-bit rate (544-bit padding)": 544
     },
     "Absorb": {
-      "1088-bit message, 1088-bit rate": 231488
+      "1088-bit message, 1088-bit rate": 115200,
+      "2176-bit message, 1088-bit rate": 231488
+    },
+    "Squeeze": {
+      "256-bit hash, 1088-bit rate": 0,
+      "1088-bit hash, 1088-bit rate": 0,
+      "1360-bit hash, 1088-bit rate": 115200
     }
   }
 }
