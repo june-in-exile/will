@@ -17,6 +17,8 @@ include "../bits.circom";
  * 
  * @param keyBits - AES key size in bits (128, 192, or 256)
  * @param plaintextBytes - Number of bytes to process
+ *
+ * @note CtrDecrypt can be implemented by swapping plaintext and ciphertext
  */
 template CtrEncrypt(keyBits, plaintextBytes) {
     var Nk;

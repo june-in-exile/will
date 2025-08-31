@@ -283,6 +283,9 @@
       "AES-256-GCM standard IV, 1-block plaintext, no aad encryption": 394529,
       "AES-256-GCM standard IV, 2-block plaintext, 1-block aad encryption": 549186,
       "AES-256-GCM 16-byte IV, 1-block plaintext, no aad encryption": 428849
+    },
+    "GcmDecrypt": {
+      "AES-256-GCM standard IV, 1-block plaintext, no aad encryption": 394529
     }
   },
   "keccak256": {

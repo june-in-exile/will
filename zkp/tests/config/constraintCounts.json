@@ -32,7 +32,7 @@
     "GF128Multiply": {},
     "GHash": {}
   },
-  "gcmEncrypt": { "GcmEncrypt": {} },
+  "gcmEncrypt": { "GcmEncrypt": {}, "GcmDecrypt": {} },
   "j0Computation": { "ComputeJ0Standard": {}, "ComputeJ0NonStandard": {} },
   "keccak256": {
     "Keccak256Hash": {}

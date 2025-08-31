@@ -11,13 +11,13 @@ function gcmEncrypt(
   const plaintextBuffer = Buffer.from(plaintext);
   const keyBuffer = wordToBuffer(key);
   const ivBuffer = Buffer.from(iv);
-  const additionalData = Buffer.from(aad);
+  const aadBuffer = Buffer.from(aad);
 
   const { ciphertext, authTag } = AESGCM.encrypt(
     plaintextBuffer,
     keyBuffer,
     ivBuffer,
-    additionalData,
+    aadBuffer,
   );
   return {
     ciphertext: Array.from(ciphertext) as Byte[],
@@ -25,4 +25,29 @@ function gcmEncrypt(
   };
 }
 
-export { gcmEncrypt };
+function gcmDecrypt(
+  ciphertext: Byte[],
+  key: Word[],
+  iv: Byte[],
+  authTag: Byte[],
+  aad: Byte[],
+): { plaintext: Byte[] } {
+  const ciphertextBuffer = Buffer.from(ciphertext);
+  const keyBuffer = wordToBuffer(key);
+  const ivBuffer = Buffer.from(iv);
+  const authTagBuffer = Buffer.from(authTag);
+  const aadBuffer = Buffer.from(aad);
+
+  const { plaintext } = AESGCM.decrypt(
+    ciphertextBuffer,
+    keyBuffer,
+    ivBuffer,
+    authTagBuffer,
+    aadBuffer,
+  );
+  return {
+    plaintext: Array.from(plaintext) as Byte[],
+  };
+}
+
+export { gcmEncrypt, gcmDecrypt };

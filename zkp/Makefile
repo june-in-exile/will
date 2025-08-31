@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = padding
+CIRCUIT = gcmEncrypt
 # CIRCUIT ?= multiplier2
 
-TEMPLATE = Padding
+TEMPLATE = TempGcmDecrypt
 # TEMPLATE ?= Multiplier2
 
 # Directory structure

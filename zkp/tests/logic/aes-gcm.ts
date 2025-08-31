@@ -601,7 +601,7 @@ class AESGCM {
     iv: Buffer,
     authTag: Buffer,
     additionalData: Buffer = Buffer.alloc(0),
-  ): Buffer {
+  ): { plaintext: Buffer } {
     // 1. Validate inputs
     if (authTag.length !== 16) {
       throw new Error("Authentication tag must be 16 bytes");
@@ -668,7 +668,7 @@ class AESGCM {
       throw new Error("Authentication failed: Invalid authentication tag");
     }
 
-    return plaintext;
+    return { plaintext };
   }
 }
 
@@ -754,7 +754,7 @@ class AESGCMEasy {
     const iv = AESUtils.base64ToBytes(ivBase64);
     const authTag = AESUtils.base64ToBytes(authTagBase64);
 
-    const plaintext = AESGCM.decrypt(ciphertext, key, iv, authTag);
+    const { plaintext } = AESGCM.decrypt(ciphertext, key, iv, authTag);
     return AESUtils.bytesToString(plaintext);
   }
 
@@ -1353,7 +1353,12 @@ class AESVerification {
       console.log("  Plaintext:", AESUtils.bytesToString(expectedPlaintext));
 
       // Test our implementation
-      const plaintext = AESGCM.decrypt(nodeCiphertext, key, iv, nodeAuthTag);
+      const { plaintext } = AESGCM.decrypt(
+        nodeCiphertext,
+        key,
+        iv,
+        nodeAuthTag,
+      );
       const plaintextMatches = plaintext.equals(expectedPlaintext);
 
       console.log("Our implementation:");
@@ -1396,7 +1401,7 @@ class AESVerification {
         const encrypted = AESGCM.encrypt(plaintext, key, iv);
         console.log("  Encryption successful ✅");
 
-        const decrypted = AESGCM.decrypt(
+        const { plaintext: decrypted } = AESGCM.decrypt(
           encrypted.ciphertext,
           key,
           iv,

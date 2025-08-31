@@ -17,6 +17,8 @@ include "../shared/components/bits.circom";
  * 
  * @param keyBits - AES key size in bits (128, 192, or 256)
  * @param numblocks - number of blocks to process
+ *
+ * @note CtrDecrypt can be implemented by swapping plaintext and ciphertext
  */
 template CtrEncrypt(keyBits, numblocks) {
     var Nk;
@@ -56,46 +58,3 @@ template CtrEncrypt(keyBits, numblocks) {
         }
     }
 }
-
-
-// Auto updated: 2025-07-18T22:16:33.207Z
-bus UntaggedWord() {
-    signal bytes[4];
-}
-
-template UntaggedCtrEncrypt(keyBits, numblocks) {
-    var Nk;
-    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
-    if (keyBits == 128) {
-        Nk = 4;
-    } else if (keyBits == 192) {
-        Nk = 6;
-    } else {
-        Nk = 8;
-    }
-
-    signal input plaintext[numblocks * 16];
-    input UntaggedWord() key[Nk];
-    signal input iv[16];
-    signal output {byte} ciphertext[numblocks * 16];
-
-    signal {byte} _plaintext[numblocks * 16];
-    _plaintext <== plaintext;
-    signal {byte} _iv[16];
-    _iv <== iv;
-
-    Word() _key[Nk];
-
-    for (var i = 0; i < Nk; i++) {
-        _key[i].bytes <== key[i].bytes;
-    }
-
-
-    component ctrencryptComponent = CtrEncrypt(keyBits, numblocks);
-    ctrencryptComponent.plaintext <== _plaintext;
-    ctrencryptComponent.key <== _key;
-    ctrencryptComponent.iv <== _iv;
-    ciphertext <== ctrencryptComponent.ciphertext;
-}
-
-component main {public [iv]} = UntaggedCtrEncrypt(256,  53);
