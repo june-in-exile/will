@@ -24,7 +24,7 @@
   "byteSubstitution": { "SubWord": {}, "SubBytes": {}, "SubstituteBytes": {} },
   "columnMixing": { "MixColumn": {}, "MixColumns": {} },
   "counterIncrement": { "IncrementCounter": {} },
-  "ctrEncrypt": { "CtrEncrypt": {} },
+  "ctrEncrypt": { "CtrEncrypt": {}, "CtrDecrypt": {} },
   "encryptBlock": { "EncryptBlock": {} },
   "galoisField": {
     "GF8Mul2": {},

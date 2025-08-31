@@ -16,9 +16,7 @@ include "../bits.circom";
  * 3. XORing the result with plaintext
  * 
  * @param keyBits - AES key size in bits (128, 192, or 256)
- * @param plaintextBytes - Number of bytes to process
- *
- * @note CtrDecrypt can be implemented by swapping plaintext and ciphertext
+ * @param plaintextBytes - Number of bytes to encrypt
  */
 template CtrEncrypt(keyBits, plaintextBytes) {
     var Nk;
@@ -60,4 +58,30 @@ template CtrEncrypt(keyBits, plaintextBytes) {
             ciphertext[byte] <== BitwiseXor(2, 8)([plaintext[byte], keystreams[byte \ 16][byte % 16]]);
         }
     }
+}
+
+/**
+ * AES CTR Mode Decryption Circuit
+ * Based on CtrEncrypt
+ * 
+ * @param keyBits - AES key size in bits (128, 192, or 256)
+ * @param ciphertextBytes - Number of bytes to decrypt
+ */
+template CtrDecrypt(keyBits, ciphertextBytes) {
+    var Nk;
+    assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
+    if (keyBits == 128) {
+        Nk = 4;
+    } else if (keyBits == 192) {
+        Nk = 6;
+    } else {
+        Nk = 8;
+    }
+    
+    signal input {byte} ciphertext[ciphertextBytes]; // Ciphertext data in bytes
+    input Word() key[Nk]; // AES key using Word bus structure
+    signal input {byte} iv[16]; // Initial counter value
+    signal output {byte} plaintext[ciphertextBytes]; // Decrypted output
+
+    plaintext <== CtrEncrypt(keyBits, ciphertextBytes)(ciphertext, key, iv);
 }

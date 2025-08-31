@@ -258,7 +258,11 @@
       "AES-192-CTR 30-byte encryption": 199857,
       "AES-192-CTR 4-block encryption": 399843,
       "AES-256-CTR 17-byte encryption": 240313,
-      "AES-256-CTR 4-block encryption": 481379
+      "AES-256-CTR 4-block encryption": 481379,
+      "AES-256-CTR 4-block decryption": 481379
+    },
+    "CtrDecrypt": {
+      "AES-256-CTR 4-block decryption": 481379
     }
   },
   "encryptBlock": {
