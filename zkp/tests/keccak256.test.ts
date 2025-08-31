@@ -18,8 +18,10 @@ describe.only("Keccak256Hash Circuit", function () {
 
     it("should calculate the correct hash", async function (): Promise<void> {
       const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+      console.log(`randomBytes: ${randomBytes}`);
       const digest = Keccak256.hash(randomBytes);
       const digestBytes = Keccak256Utils.hexToBytes(digest);
+      console.log(`digestBytes: ${digestBytes}`);
 
       await circuit.expectPass(
         { msg: Array.from(randomBytes) },

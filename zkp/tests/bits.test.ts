@@ -1458,19 +1458,19 @@ describe("RotateLeft Circuit", function () {
   });
 });
 
-describe("BytesToBits Circuit", function () {
+describe("BytesToBitsMsbFirst Circuit", function () {
   let circuit: WitnessTester<["bytes"], ["bits"]>;
 
-  describe("Bytes to Bits Conversion for GF(2^128)", function (): void {
+  describe("MSB-First Bytes to Bits Conversion", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
-        "BytesToBits",
+        "BytesToBitsMsbFirst",
         {
           templateParams: ["16"],
         },
       );
-      circuit.setConstraint("16-byte to 128 bits conversion");
+      circuit.setConstraint("msb-first 16-byte to 128 bits conversion");
     });
 
     it("should correctly convert all zero bytes", async function (): Promise<void> {
@@ -1502,19 +1502,19 @@ describe("BytesToBits Circuit", function () {
   });
 });
 
-describe("BitsToBytes Circuit", function () {
+describe("BitsToBytesMsbFirst Circuit", function () {
   let circuit: WitnessTester<["bits"], ["bytes"]>;
 
-  describe("Bits to Bytes Conversion for GF(2^128)", function (): void {
+  describe("MSB-First Bits to Bytes Conversion", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
-        "BitsToBytes",
+        "BitsToBytesMsbFirst",
         {
           templateParams: ["16"],
         },
       );
-      circuit.setConstraint("128 bits to 16-byte conversion");
+      circuit.setConstraint("msb-first 128 bits to 16-byte conversion");
     });
 
     it("should correctly convert all zero bits", async function (): Promise<void> {
@@ -1540,6 +1540,94 @@ describe("BitsToBytes Circuit", function () {
 
       const bytes = new Array(16).fill(0);
       bytes[0] = 0x01;
+
+      await circuit.expectPass({ bits }, { bytes });
+    });
+  });
+});
+
+describe("BytesToBitsLsbFirst Circuit", function () {
+  let circuit: WitnessTester<["bytes"], ["bits"]>;
+
+  describe("LSB-First Bytes to Bits Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BytesToBitsLsbFirst",
+        {
+          templateParams: ["32"],
+        },
+      );
+      circuit.setConstraint("lsb-first 32-byte to 256 bits conversion");
+    });
+
+    it("should correctly convert all zero bytes", async function (): Promise<void> {
+      const bytes = new Array(32).fill(0);
+      const bits = new Array(256).fill(0);
+
+      await circuit.expectPass({ bytes }, { bits });
+    });
+
+    it("should put MSB of first byte to bit 7", async function (): Promise<void> {
+      const bytes = new Array(32).fill(0);
+      bytes[0] = 0x80;
+
+      const bits = new Array(256).fill(0);
+      bits[7] = 1;
+
+      await circuit.expectPass({ bytes }, { bits });
+    });
+
+    it("should put LSB of first byte to bit 0", async function (): Promise<void> {
+      const bytes = new Array(32).fill(0);
+      bytes[0] = 0x01;
+
+      const bits = new Array(256).fill(0);
+      bits[0] = 1;
+
+      await circuit.expectPass({ bytes }, { bits });
+    });
+  });
+});
+
+describe("BitsToBytesLsbFirst Circuit", function () {
+  let circuit: WitnessTester<["bits"], ["bytes"]>;
+
+  describe("LSB-First Bits to Bytes Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BitsToBytesLsbFirst",
+        {
+          templateParams: ["32"],
+        },
+      );
+      circuit.setConstraint("lsb-first 256 bits to 32-byte conversion");
+    });
+
+    it("should correctly convert all zero bits", async function (): Promise<void> {
+      const bits = new Array(256).fill(0);
+      const bytes = new Array(32).fill(0);
+
+      await circuit.expectPass({ bits }, { bytes });
+    });
+
+    it("should put bit 0 to LSB of first byte", async function (): Promise<void> {
+      const bits = new Array(256).fill(0);
+      bits[0] = 1;
+
+      const bytes = new Array(32).fill(0);
+      bytes[0] = 0x01;
+
+      await circuit.expectPass({ bits }, { bytes });
+    });
+
+    it("should put bit 7 to MSB of first byte", async function (): Promise<void> {
+      const bits = new Array(256).fill(0);
+      bits[7] = 1;
+
+      const bytes = new Array(32).fill(0);
+      bytes[0] = 0x80;
 
       await circuit.expectPass({ bits }, { bytes });
     });

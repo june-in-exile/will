@@ -16,15 +16,15 @@ template Keccak256Hash(msgBytes) {
     signal output {byte} digest[32];
 
     var msgBits = msgBytes * 8;
-    var rateBits = 1088;
-    var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;
-    var paddedMsgBits = numBlocks * rateBits;
     var digestBits = 256;
     var digestBytes = digestBits \ 8;
+    var rateBits = 1600 - 2 * digestBits;
+    var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;
+    var paddedMsgBits = numBlocks * rateBits;
 
-    signal bitsMsg[msgBits] <== BytesToBits(msgBytes)(msg);
+    signal bitsMsg[msgBits] <== BytesToBitsMsbFirst(msgBytes)(msg);
     signal paddedMsg[paddedMsgBits] <== Padding(msgBits, rateBits)(bitsMsg);
     signal stateArray[5][5][64] <== Absorb(paddedMsgBits, rateBits)(paddedMsg);
     signal bitsDigest[256] <== Squeeze(digestBits, rateBits)(stateArray);
-    digest <== BitsToBytes(digestBytes)(bitsDigest);
+    digest <== BitsToBytesMsbFirst(digestBytes)(bitsDigest);
 }

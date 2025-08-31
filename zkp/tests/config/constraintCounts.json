@@ -18,8 +18,10 @@
     "Byte16ToNum": {},
     "NumToByte16": {},
     "RotateLeft": {},
-    "BytesToBits": {},
-    "BitsToBytes": {}
+    "BytesToBitsMsbFirst": {},
+    "BitsToBytesMsbFirst": {},
+    "BytesToBitsLsbFirst": {},
+    "BitsToBytesLsbFirst": {}
   },
   "byteSubstitution": { "SubWord": {}, "SubBytes": {}, "SubstituteBytes": {} },
   "columnMixing": { "MixColumn": {}, "MixColumns": {} },
