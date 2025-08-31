@@ -1,10 +1,17 @@
 pragma circom 2.2.2;
 
-include "../shared/components/base64.circom";
+include "./base64.circom";
+include "./bus.circom";
 
 template deserialize() {
-    signal input _in;
-    signal output _out;
+    signal input serialized;
+    
+    output Address testator;
+    output estates
+    output Address will
+    signal output nonce
+    signal output deadline
+    signal output signature
 
 }
 

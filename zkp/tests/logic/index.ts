@@ -10,4 +10,5 @@ export * from "./keccak256.js";
 export * from "./keyExpansion.js";
 export * from "./roundKeyAddition.js";
 export * from "./rowShifting.js";
+export * from "./sponge.js";
 export * from "./utf8.js";

@@ -8,3 +8,7 @@ bus Utf8() {
 bus Word() {
     signal {byte} bytes[4];
 }
+
+bus Address() {
+    signal {ascii} hex[40];
+}

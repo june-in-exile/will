@@ -178,6 +178,10 @@
       "256-bit digest, 1088-bit rate": 0,
       "1088-bit digest, 1088-bit rate": 0,
       "1360-bit digest, 1088-bit rate": 115200
+    },
+    "Keccak256": {
+      "16-byte massage (less than one block)": 115328,
+      "170-byte massage (more than one block)": 232032
     }
   },
   "keccakF1600": {
