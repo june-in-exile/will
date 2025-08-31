@@ -104,8 +104,8 @@ template Chi() {
     signal input {bit} stateArray[5][5][64];
     signal output {bit} newStateArray[5][5][64];
 
-    signal notNext[5][5][64];
-    signal andTerm[5][5][64];
+    signal {bit} notNext[5][5][64];
+    signal {bit} andTerm[5][5][64];
     signal sum[5][5][64];
     for (var x = 0; x < 5; x++) {
         for (var y = 0; y < 5; y++) {
@@ -114,8 +114,7 @@ template Chi() {
                // In binary arithmetic: a ⊕ ((1-b) ∧ c) = a + (1-b)*c - 2*a*(1-b)*c
                notNext[x][y][z] <== 1 - stateArray[(x + 1) % 5][y][z];
                andTerm[x][y][z] <== notNext[x][y][z] * stateArray[(x + 2) % 5][y][z];
-               sum[x][y][z] <== stateArray[x][y][z] + andTerm[x][y][z];
-               newStateArray[x][y][z] <== Mod2()(sum[x][y][z]);
+               newStateArray[x][y][z] <== XOR()(stateArray[x][y][z], andTerm[x][y][z]);
             }
         }
     }

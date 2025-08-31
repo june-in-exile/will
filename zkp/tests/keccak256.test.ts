@@ -1,7 +1,7 @@
 import { WitnessTester } from "./util/index.js";
 import { Keccak256, Keccak256Utils } from "./logic/index.js";
 
-describe.only("Keccak256Hash Circuit", function () {
+describe("Keccak256Hash Circuit", function () {
   let circuit: WitnessTester<["msg"], ["digest"]>;
 
   // 1 block is 1088 bits / 8 = 136 bytes

@@ -225,21 +225,36 @@ template RotateLeft(bits, positions) {
 
 /**
  * @param numBytes - Number of bytes for conversion
+ * @param bitFirst - MSB-first (0) or LSB-first (1)
+ *
+ * Single byte, MSB-first:
+ * 0x80 (10000000₂) → [1,0,0,0,0,0,0,0]
+ * 0x01 (00000001₂) → [0,0,0,0,0,0,0,1]
  * 
- * Bit Array Mapping (numBytes = 16):
- * - bits[0] = x^0 coefficient → bytes[0] bit 7
- * - bits[1] = x^1 coefficient → bytes[0] bit 6
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 0
- * - bits[8] = x^8 coefficient → bytes[1] bit 7
- * - ...
- * - bits[127] = x^127 coefficient → bytes[15] bit 0
- * 
- * Example:
- * - Input bytes[0] = 0x80 (10000000₂) → bits[0-7] = [1,0,0,0,0,0,0,0]
- * - Input bytes[0] = 0x01 (00000001₂) → bits[0-7] = [0,0,0,0,0,0,0,1]
+ * Single byte, LSB-first:
+ * 0x80 (10000000₂) → [0,0,0,0,0,0,0,1]
+ * 0x01 (00000001₂) → [1,0,0,0,0,0,0,0]
+ *
+ * 16 bytes, MSB-first:
+ * bytes[0] bit 7 → bits[0]
+ * bytes[0] bit 6 → bits[1]
+ * ...
+ * bytes[0] bit 0 → bits[7]
+ * bytes[1] bit 7 → bits[8]
+ * ...
+ * bytes[15] bit 0 → bits[127]
+ *
+ * 32 bytes, LSB-first:
+ * bytes[0] bit 0 → bits[0]
+ * bytes[0] bit 1 → bits[1]
+ * ...
+ * bytes[0] bit 7 → bits[7]
+ * bytes[1] bit 0 → bits[8]
+ * ...
+ * bytes[31] bit 7 → bits[255]
  */
-template BytesToBitsMsbFirst(numBytes) {
+template BytesToBits(numBytes, bitFirst) {
+    assert(bitFirst == 0 || bitFirst == 1);
     signal input {byte} bytes[numBytes];
     signal output {bit} bits[numBytes * 8];
     
@@ -250,93 +265,46 @@ template BytesToBitsMsbFirst(numBytes) {
         byteToBits[byteIdx].in <== bytes[byteIdx];
         
         for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[7 - bitIdx];
+            if (bitFirst == 0) {
+                bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[7 - bitIdx];
+            } else {
+                bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[bitIdx];
+            }
         }
-    }
-}
-
-/**
- * @param numBytes - Number of bytes to be converted
- * 
- * Bit Array Mapping (numBytes = 16):
- * - bits[0] = x^0 coefficient → bytes[0] bit 7
- * - bits[1] = x^1 coefficient → bytes[0] bit 6
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 0
- * - bits[8] = x^8 coefficient → bytes[1] bit 7
- * - ...
- * - bits[127] = x^127 coefficient → bytes[15] bit 0
- * 
- * Example:
- * - Input bits[0-7] = [1,0,0,0,0,0,0,0] → bytes[0] = 0x80 (10000000₂)
- * - Input bits[0-7] = [0,0,0,0,0,0,0,1] → bytes[0] = 0x01 (00000001₂)
- */
-template BitsToBytesMsbFirst(numBytes) {
-    signal input {bit} bits[numBytes * 8];
-    signal output {byte} bytes[numBytes];
-    
-    component bitsToBytes[numBytes];
-    
-    for (var byteIdx = 0; byteIdx < numBytes; byteIdx++) {
-        bitsToBytes[byteIdx] = Bits2Num(8);
-        
-        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bitsToBytes[byteIdx].in[7 - bitIdx] <== bits[byteIdx * 8 + bitIdx];
-        }
-        
-        bytes[byteIdx] <== bitsToBytes[byteIdx].out;
     }
 }
 
 /**
  * @param numBytes - Number of bytes for conversion
+ * @param bitFirst - MSB-first (0) or LSB-first (1)
+ *
+ * Single byte, MSB-first:
+ * [1,0,0,0,0,0,0,0] → 0x80 (10000000₂)
+ * [0,0,0,0,0,0,0,1] → 0x01 (00000001₂)
  * 
- * Bit Array Mapping (numBytes = 32):
- * - bits[0] = x^0 coefficient → bytes[0] bit 0
- * - bits[1] = x^1 coefficient → bytes[0] bit 1
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 7
- * - bits[8] = x^8 coefficient → bytes[1] bit 0
- * - ...
- * - bits[255] = x^255 coefficient → bytes[15] bit 7
- * 
- * Example:
- * - Input bytes[0] = 0x80 (10000000₂) → bits[0-7] = [0,0,0,0,0,0,0,1]
- * - Input bytes[0] = 0x01 (00000001₂) → bits[0-7] = [1,0,0,0,0,0,0,0]
- */
-template BytesToBitsLsbFirst(numBytes) {
-    signal input {byte} bytes[numBytes];
-    signal output {bit} bits[numBytes * 8];
-
-    component byteToBits[numBytes];
-    
-    for (var byteIdx = 0; byteIdx < numBytes; byteIdx++) {
-        byteToBits[byteIdx] = Num2Bits(8);
-        byteToBits[byteIdx].in <== bytes[byteIdx];
-        
-        for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bits[byteIdx * 8 + bitIdx] <== byteToBits[byteIdx].out[bitIdx];
-        }
-    }
-}
-
-/**
- * @param numBytes - Number of bytes to be converted
- * 
- * Bit Array Mapping (numBytes = 32):
- * - bits[0] = x^0 coefficient → bytes[0] bit 0
- * - bits[1] = x^1 coefficient → bytes[0] bit 1
- * - ...
- * - bits[7] = x^7 coefficient → bytes[0] bit 7
- * - bits[8] = x^8 coefficient → bytes[1] bit 0
- * - ...
- * - bits[255] = x^255 coefficient → bytes[15] bit 7
- * 
- * Example:
- * - Input bits[0-7] = [1,0,0,0,0,0,0,0] → bytes[0] = 0x80 (00000001₂)
- * - Input bits[0-7] = [0,0,0,0,0,0,0,1] → bytes[0] = 0x01 (10000000₂)
- */
-template BitsToBytesLsbFirst(numBytes) {
+ * Single byte, LSB-first:
+ * [0,0,0,0,0,0,0,1] → 0x80 (10000000₂)
+ * [1,0,0,0,0,0,0,0] → 0x01 (00000001₂)
+ *
+ * 16 bytes, MSB-first:
+ * bits[0] → bytes[0] bit 7
+ * bits[1] → bytes[0] bit 6
+ * ...
+ * bits[7] → bytes[0] bit 0
+ * bits[8] → bytes[1] bit 7
+ * ...
+ * bits[127] → bytes[15] bit 0
+ *
+ * 32 bytes, LSB-first:
+ * bits[0] → bytes[0] bit 0
+ * bits[1] → bytes[0] bit 1
+ * ...
+ * bits[7] → bytes[0] bit 7
+ * bits[8] → bytes[1] bit 0
+ * ...
+ * bits[255] → bytes[31] bit 7
+ */ 
+template BitsToBytes(numBytes, bitFirst) {
     signal input {bit} bits[numBytes * 8];
     signal output {byte} bytes[numBytes];
     
@@ -346,7 +314,11 @@ template BitsToBytesLsbFirst(numBytes) {
         bitsToBytes[byteIdx] = Bits2Num(8);
         
         for (var bitIdx = 0; bitIdx < 8; bitIdx++) {
-            bitsToBytes[byteIdx].in[bitIdx] <== bits[byteIdx * 8 + bitIdx];
+            if (bitFirst == 0) {
+                bitsToBytes[byteIdx].in[7 - bitIdx] <== bits[byteIdx * 8 + bitIdx];
+            } else {
+                bitsToBytes[byteIdx].in[bitIdx] <== bits[byteIdx * 8 + bitIdx];
+            }
         }
         
         bytes[byteIdx] <== bitsToBytes[byteIdx].out;
