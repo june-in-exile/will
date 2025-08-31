@@ -1468,7 +1468,7 @@ describe("BytesToBits Circuit", function () {
         "BytesToBits",
         {
           templateParams: ["16"],
-        }
+        },
       );
       circuit.setConstraint("16-byte to 128 bits conversion");
     });
@@ -1512,7 +1512,7 @@ describe("BitsToBytes Circuit", function () {
         "BitsToBytes",
         {
           templateParams: ["16"],
-        }
+        },
       );
       circuit.setConstraint("128 bits to 16-byte conversion");
     });

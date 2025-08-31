@@ -13,7 +13,9 @@ const lanesAfterPi = Keccak256.pi(lanesAfterRho);
 const lanesAfterChi = Keccak256.chi(lanesAfterPi);
 const lanesAfterIota = Keccak256.iota(lanesAfterChi, 0);
 
-const lanesAfterKeccakF = Keccak256.keccakF(Keccak256Utils.stateArrayToLanes(stateArrayOriginal));
+const lanesAfterKeccakF = Keccak256.keccakF(
+  Keccak256Utils.stateArrayToLanes(stateArrayOriginal),
+);
 
 describe("Theta Circuit", function () {
   let circuit: WitnessTester<["stateArray"], ["newStateArray"]>;
@@ -109,7 +111,7 @@ describe("Iota Circuit", function () {
         "Iota",
         {
           templateParams: ["0"],
-        }
+        },
       );
       circuit.setConstraint("iota");
     });
@@ -134,7 +136,7 @@ describe("KeccakF1600 Circuit", function () {
       );
       circuit.setConstraint("keccak-f[1600]");
     });
-    
+
     it("should calculate ι(χ(π(ρ(θ(A)))) for 24 rounds", async function (): Promise<void> {
       await circuit.expectPass(
         { stateArray: stateArrayOriginal },

@@ -204,13 +204,17 @@ class Keccak256Utils {
    */
   static bitsToBytes(bits: number[]): Uint8Array {
     if (bits.length % 8 !== 0) {
-      throw new Error(`Bits array length must be multiple of 8, got ${bits.length}`);
+      throw new Error(
+        `Bits array length must be multiple of 8, got ${bits.length}`,
+      );
     }
 
     // Validate that all values are 0 or 1
     for (let i = 0; i < bits.length; i++) {
       if (bits[i] !== 0 && bits[i] !== 1) {
-        throw new Error(`All bits must be 0 or 1, found ${bits[i]} at index ${i}`);
+        throw new Error(
+          `All bits must be 0 or 1, found ${bits[i]} at index ${i}`,
+        );
       }
     }
 
@@ -241,8 +245,9 @@ class Keccak256Utils {
     }
 
     const bytes = this.stateArrayToBytes(this.lanesToStateArray(lanes));
-    const hexBytes = Array.from(bytes)
-      .map((byte) => byte.toString(16).toUpperCase().padStart(2, "0"));
+    const hexBytes = Array.from(bytes).map((byte) =>
+      byte.toString(16).toUpperCase().padStart(2, "0"),
+    );
 
     // Group by 16 bytes per line
     const lines: string[] = [];
@@ -263,13 +268,21 @@ class Keccak256Utils {
   }
 
   /**
-   * Generate random Uint8Array of specified length
-   * @note Keep this for debug purpose
+   * Convert hex string to bytes
    */
-  static randomBytes(length: number): Uint8Array {
-    const bytes = new Uint8Array(length);
-    const randomBytes = crypto.getRandomValues(new Uint8Array(length));
-    bytes.set(randomBytes);
+  static hexToBytes(hex: string): Uint8Array {
+    const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
+
+    if (cleanHex.length % 2 !== 0) {
+      throw new Error(
+        `Hex string must have even length, got ${cleanHex.length}`,
+      );
+    }
+
+    const bytes = new Uint8Array(cleanHex.length / 2);
+    for (let i = 0; i < cleanHex.length; i += 2) {
+      bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
+    }
     return bytes;
   }
 
@@ -367,7 +380,7 @@ class Keccak256 {
 
   /**
    * Main Keccak256 hash function
-   * 
+   *
    * @note the hash value might differ from the official document since Solidity Keccak256 doesn't apply 01 suffix after message
    */
   static hash(input: string | Uint8Array): string {
@@ -469,7 +482,10 @@ class Keccak256 {
   /**
    * Squeeze phase - extract output
    */
-  static squeeze(state: BigUint64Array, output_bytes: number = this.OUTPUT_BYTES): Uint8Array {
+  static squeeze(
+    state: BigUint64Array,
+    output_bytes: number = this.OUTPUT_BYTES,
+  ): Uint8Array {
     const output = new Uint8Array(output_bytes);
     let outputOffset = 0;
 
