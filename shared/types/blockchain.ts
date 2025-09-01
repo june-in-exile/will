@@ -33,7 +33,7 @@ interface BalanceSnapshot {
 }
 
 interface Permit2Signature {
-  nonce: number;
+  nonce: bigint;
   deadline: number;
   signature: string;
 }

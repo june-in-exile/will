@@ -80,7 +80,7 @@ interface CryptoConfig {
   maxPlaintextSize: number;
   maxCiphertextSize: number;
   plaintextEncoding: Encoding;
-  cyphertextEncoding: Encoding;
+  ciphertextEncoding: Encoding;
   paths: {
     keyFile: string;
   };
@@ -88,11 +88,11 @@ interface CryptoConfig {
   validateEncodings: boolean;
 }
 
-interface CidValidationConfig {
-  minLength: number;
-  maxLength: number;
-  validPrefixes: string[];
-}
+// interface CidValidationConfig {
+//   minLength: number;
+//   maxLength: number;
+//   validPrefixes: string[];
+// }
 
 interface SignatureConfig {
   // maxMessageLength: number;
@@ -182,10 +182,7 @@ interface PathsConfig {
 }
 
 interface SaltConfig {
-  timestampMultiplier: number;
-  maxSafeInteger: number;
-  validateEntropy: boolean;
-  minEntropyBits: number;
+  defaultSaltBytes: number;
 }
 
 interface ErrorCategoriesConfig {
@@ -206,37 +203,29 @@ interface ErrorConfig {
   enableStackTrace: boolean;
 }
 
-interface Permit2SignatureValidationConfig {
-  enableDomainValidation: boolean;
-  enableTypeValidation: boolean;
-  enableValueValidation: boolean;
-}
-
 interface Permit2Config {
-  address: string | undefined;
   defaultDuration: number;
-  maxNonceValue: number;
-  signatureValidation: Permit2SignatureValidationConfig;
+  maxNonceBytes: number;
 }
 
-interface ZkGenerationConfig {
-  timeout: number;
-  maxCircuitSize: number;
-  enableOptimizations: boolean;
-}
+// interface ZkGenerationConfig {
+//   timeout: number;
+//   maxCircuitSize: number;
+//   enableOptimizations: boolean;
+// }
 
-interface ZkVerificationConfig {
-  timeout: number;
-  enableCache: boolean;
-  strictValidation: boolean;
-}
+// interface ZkVerificationConfig {
+//   timeout: number;
+//   enableCache: boolean;
+//   strictValidation: boolean;
+// }
 
-interface ZkConfig {
-  generation: ZkGenerationConfig;
-  verification: ZkVerificationConfig;
-  supportedCurves: string[];
-  maxConstraints: number;
-}
+// interface ZkConfig {
+//   generation: ZkGenerationConfig;
+//   verification: ZkVerificationConfig;
+//   supportedCurves: string[];
+//   maxConstraints: number;
+// }
 
 interface LoggingColorsConfig {
   success: string;
@@ -403,7 +392,7 @@ export const CRYPTO_CONFIG: CryptoConfig = {
 
   // Encodings
   plaintextEncoding: "utf8",
-  cyphertextEncoding: "base64",
+  ciphertextEncoding: "base64",
 
   // File paths (relative to utils/cryptography/)
   paths: {
@@ -580,12 +569,7 @@ export const PATHS_CONFIG: PathsConfig = {
 // SALT GENERATION CONFIG
 // ================================
 export const SALT_CONFIG: SaltConfig = {
-  timestampMultiplier: 10000000,
-  maxSafeInteger: Number.MAX_SAFE_INTEGER,
-
-  // Entropy validation
-  validateEntropy: true,
-  minEntropyBits: 128,
+  defaultSaltBytes: 32,
 };
 
 // ================================
@@ -617,46 +601,46 @@ export const ERROR_CONFIG: ErrorConfig = {
 // ================================
 export const PERMIT2_CONFIG: Permit2Config = {
   // Contract addresses
-  address: process.env.PERMIT2,
+  // address: process.env.PERMIT2,
 
   // Default duration
   defaultDuration: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
 
   // Nonce generation
-  maxNonceValue: 1e15, // 1 quadrillion potential nonces
+  maxNonceBytes: 16,
 
   // Signature validation
-  signatureValidation: {
-    enableDomainValidation: true,
-    enableTypeValidation: true,
-    enableValueValidation: true,
-  },
+  // signatureValidation: {
+  //   enableDomainValidation: true,
+  //   enableTypeValidation: true,
+  //   enableValueValidation: true,
+  // },
 };
 
-// ================================
-// ZERO KNOWLEDGE PROOF CONFIG
-// ================================
-export const ZK_CONFIG: ZkConfig = {
-  // Proof generation
-  generation: {
-    timeout: USE_ANVIL ? 60000 : 300000, // 1 min for local, 5 min for testnet
-    maxCircuitSize: 1000000,
-    enableOptimizations: true,
-  },
+// // ================================
+// // ZERO KNOWLEDGE PROOF CONFIG
+// // ================================
+// export const ZK_CONFIG: ZkConfig = {
+//   // Proof generation
+//   generation: {
+//     timeout: USE_ANVIL ? 60000 : 300000, // 1 min for local, 5 min for testnet
+//     maxCircuitSize: 1000000,
+//     enableOptimizations: true,
+//   },
 
-  // Verification
-  verification: {
-    timeout: 60000, // 1 minute
-    enableCache: true,
-    strictValidation: true,
-  },
+//   // Verification
+//   verification: {
+//     timeout: 60000, // 1 minute
+//     enableCache: true,
+//     strictValidation: true,
+//   },
 
-  // Supported curves
-  supportedCurves: ["bn128", "bls12-381"],
+//   // Supported curves
+//   supportedCurves: ["bn128", "bls12-381"],
 
-  // Circuit constraints
-  maxConstraints: 1000000,
-};
+//   // Circuit constraints
+//   maxConstraints: 1000000,
+// };
 
 // ================================
 // LOGGING CONFIG
@@ -759,7 +743,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
-      zk: ZK_CONFIG,
+      // zk: ZK_CONFIG,
       logging: LOGGING_CONFIG,
       env: ENV_CONFIG,
     };
@@ -823,7 +807,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
-      zk: ZK_CONFIG,
+      // zk: ZK_CONFIG,
       logging: LOGGING_CONFIG,
       env: ENV_CONFIG,
     };
@@ -850,8 +834,8 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
     const timeouts: { [key: string]: number } = {
       network: NETWORK_CONFIG.timeout,
       ipfs: IPFS_CONFIG.pinning.timeout,
-      zk_generation: ZK_CONFIG.generation.timeout,
-      zk_verification: ZK_CONFIG.verification.timeout,
+      // zk_generation: ZK_CONFIG.generation.timeout,
+      // zk_verification: ZK_CONFIG.verification.timeout,
     };
 
     return timeouts[operation] || 30000; // Default 30 seconds
@@ -918,7 +902,7 @@ export default {
   SALT_CONFIG,
   ERROR_CONFIG,
   PERMIT2_CONFIG,
-  ZK_CONFIG,
+  // ZK_CONFIG,
   LOGGING_CONFIG,
   ENV_CONFIG,
   CONFIG_UTILS,

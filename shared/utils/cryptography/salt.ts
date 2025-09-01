@@ -1,19 +1,17 @@
 import { SALT_CONFIG } from "@config";
 import chalk from "chalk";
 
-function generateSalt(timestamp: number = Date.now()): number {
+function generateSalt(bytes: number = SALT_CONFIG.defaultSaltBytes): bigint {
   try {
-    console.log(chalk.blue(`Generating salt...`));
+    const buf = crypto.getRandomValues(new Uint8Array(bytes));
 
-    const randomArray = new Uint32Array(1);
-    crypto.getRandomValues(randomArray);
-
-    const randomPart = randomArray[0] % SALT_CONFIG.timestampMultiplier;
-    const salt =
-      (timestamp * SALT_CONFIG.timestampMultiplier + randomPart) %
-      SALT_CONFIG.maxSafeInteger;
+    let salt = 0n;
+    for (let i = 0; i < buf.length; i++) {
+      salt = (salt << 8n) | BigInt(buf[i]);
+    }
 
     console.log(chalk.gray("Generated salt:"), salt);
+
     return salt;
   } catch (error) {
     throw new Error(

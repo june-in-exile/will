@@ -31,12 +31,12 @@ import chalk from "chalk";
 interface predictWillData {
   testator: EthereumAddress;
   estates: Estate[];
-  salt: number;
+  salt: bigint;
 }
 
 interface ProcessResult {
   predictedAddress: string;
-  salt: number;
+  salt: bigint;
   addressedWillPath: string;
 }
 

@@ -37,12 +37,12 @@ interface PermittedToken {
 interface Permit {
   permitted: PermittedToken[];
   spender: string;
-  nonce: number;
+  nonce: bigint;
   deadline: number;
 }
 
 interface ProcessResult {
-  nonce: number;
+  nonce: bigint;
   deadline: number;
   signature: string;
   signerAddress: string;
@@ -95,7 +95,7 @@ function calculatePermitDeadline(
 function createPermitStructure(
   estates: Estate[],
   willAddress: string,
-  nonce: number,
+  nonce: bigint,
   deadline: number,
 ): Permit {
   try {

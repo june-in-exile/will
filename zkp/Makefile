@@ -1,9 +1,9 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = gcmEncrypt
-# CIRCUIT ?= multiplier2
+# CIRCUIT = gcmEncrypt
+CIRCUIT ?= multiplier2
 
-TEMPLATE = TempGcmDecrypt
-# TEMPLATE ?= Multiplier2
+# TEMPLATE = TempGcmDecrypt
+TEMPLATE ?= Multiplier2
 
 # Directory structure
 SHARED_KEYS := ./circuits/shared/keys

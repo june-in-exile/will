@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@config";
+import { PATHS_CONFIG, SALT_CONFIG, PERMIT2_CONFIG } from "@config";
 import type {
     SignedWill,
     SerializedWill
@@ -41,14 +41,14 @@ function serializeWill(signedWill: SignedWill): SerializedWill {
     }
 
     // Add salt as hex string and ':' separator
-    hex += signedWill.salt.toString(16) + ':';
+    hex += signedWill.salt.toString(16).padStart(SALT_CONFIG.defaultSaltBytes * 2, "0");
 
     // Add will address (remove 0x prefix)  
     hex += signedWill.will.slice(2);
 
     // Add permit2 data
-    hex += signedWill.permit2.nonce.toString(16) + ':';
-    hex += signedWill.permit2.deadline.toString(16) + ':';
+    hex += signedWill.permit2.nonce.toString(16).padStart(PERMIT2_CONFIG.maxNonceBytes * 2, "0");
+    hex += signedWill.permit2.deadline.toString(16).padStart(8, "0");
     // Add signature (remove 0x prefix)
     hex += signedWill.permit2.signature.slice(2);
 

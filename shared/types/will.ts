@@ -21,7 +21,7 @@ interface FormattedWill {
 }
 
 interface AddressedWill extends FormattedWill {
-  salt: number;
+  salt: bigint;
   will: EthereumAddress;
 }
 

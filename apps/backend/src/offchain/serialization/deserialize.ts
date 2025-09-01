@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@config";
+import { PATHS_CONFIG, SALT_CONFIG, PERMIT2_CONFIG } from "@config";
 import type {
     Estate,
     DecryptedWill,
@@ -15,9 +15,16 @@ interface ProcessResult extends DeserializedWill {
     deserializedWillPath: string;
 }
 
-function readAddress(hex: string, start: number): { address: EthereumAddress; end: number } {
+function readBigInt(hex: string, start: number, bytes: number): { value: bigint, end: number } {
+    const end = start + bytes * 2;
+    const valueHex = hex.slice(start, end);
+    const value = BigInt('0x' + valueHex);
+    return { value, end };
+}
+
+function readAddress(hex: string, start: number): { address: EthereumAddress, end: number } {
     const end = start + 40;
-    const address = '0x' + hex.slice(start, start + 40) as EthereumAddress;
+    const address = '0x' + hex.slice(start, end) as EthereumAddress;
     return { address, end }
 }
 
@@ -69,26 +76,22 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
         estateStart = amountEnd;
     }
 
-
     const saltStart = estateStart;
-    const { hex: saltHex, end: saltEnd } = readUntilSeparator(serializedHex, saltStart);
-    const salt = parseInt(saltHex, 16);
+    const { value: salt, end: saltEnd } = readBigInt(serializedHex, saltStart, SALT_CONFIG.defaultSaltBytes);
 
     const willStart = saltEnd;
     const { address: will, end: willEnd } = readAddress(serializedHex, willStart);
 
     const nonceStart = willEnd;
-    const { hex: nonceHex, end: nonceEnd } = readUntilSeparator(serializedHex, nonceStart);
-    const nonce = parseInt(nonceHex, 16);
+    const { value: nonce, end: nonceEnd } = readBigInt(serializedHex, nonceStart, PERMIT2_CONFIG.maxNonceBytes);
 
     const deadlineStart = nonceEnd;
-    const { hex: deadlineHex, end: deadlineEnd } = readUntilSeparator(serializedHex, deadlineStart);
-    const deadline = parseInt(deadlineHex, 16);
+    const { value: deadlineBigInt, end: deadlineEnd } = readBigInt(serializedHex, deadlineStart, 4);
+    const deadline = Number(deadlineBigInt);
 
     const signatureStart = deadlineEnd;
     const { hex: signatureHex } = readUntilSeparator(serializedHex, signatureStart);
     const signature = '0x' + signatureHex;
-    console.log(`signature: ${signature}`)
 
     return {
         testator,
