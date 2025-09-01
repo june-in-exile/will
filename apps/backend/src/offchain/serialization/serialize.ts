@@ -1,9 +1,9 @@
-import { PATHS_CONFIG, SALT_CONFIG, PERMIT2_CONFIG } from "@config";
+import { PATHS_CONFIG } from "@config";
 import type {
     SignedWill,
     SerializedWill
 } from "@shared/types/index.js";
-import { WILL_TYPE } from "@shared/constants/index.js";
+import { WILL_TYPE, FIELD_HEX_LENGTH } from "@shared/constants/index.js";
 import {
     readWill,
     saveWill,
@@ -25,9 +25,6 @@ function serializeWill(signedWill: SignedWill): SerializedWill {
     // Add testator address (remove 0x prefix)
     hex += signedWill.testator.slice(2);
 
-    // Add estate count as hex string and ':' separator
-    hex += signedWill.estates.length.toString(16) + ':';
-
     // Add each estate
     for (let i = 0; i < signedWill.estates.length; i++) {
         const estate = signedWill.estates[i];
@@ -36,21 +33,21 @@ function serializeWill(signedWill: SignedWill): SerializedWill {
         hex += estate.beneficiary.slice(2);
         // Add token address (remove 0x prefix)
         hex += estate.token.slice(2);
-        // Add amount as hex string and ':' separator
-        hex += estate.amount.toString(16) + ':';
+        // Add amount as hex string
+        hex += estate.amount.toString(16).padStart(FIELD_HEX_LENGTH.AMOUNT, "0");
     }
 
-    // Add salt as hex string and ':' separator
-    hex += signedWill.salt.toString(16).padStart(SALT_CONFIG.defaultSaltBytes * 2, "0");
+    // Add salt as hex string
+    hex += signedWill.salt.toString(16).padStart(FIELD_HEX_LENGTH.SALT, "0");
 
     // Add will address (remove 0x prefix)  
     hex += signedWill.will.slice(2);
 
     // Add permit2 data
-    hex += signedWill.permit2.nonce.toString(16).padStart(PERMIT2_CONFIG.maxNonceBytes * 2, "0");
+    hex += signedWill.permit2.nonce.toString(16).padStart(FIELD_HEX_LENGTH.NONCE, "0");
     hex += signedWill.permit2.deadline.toString(16).padStart(8, "0");
     // Add signature (remove 0x prefix)
-    hex += signedWill.permit2.signature.slice(2);
+    hex += signedWill.permit2.signature.slice(2).padStart(FIELD_HEX_LENGTH.SIGNATURE, "0");
 
     console.log(chalk.green("✅ Serialized successfully"));
 

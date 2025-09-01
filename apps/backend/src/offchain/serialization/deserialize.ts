@@ -1,4 +1,4 @@
-import { PATHS_CONFIG, SALT_CONFIG, PERMIT2_CONFIG } from "@config";
+import { PATHS_CONFIG } from "@config";
 import type {
     Estate,
     DecryptedWill,
@@ -6,7 +6,7 @@ import type {
     SerializedWill,
     EthereumAddress
 } from "@shared/types/index.js";
-import { WILL_TYPE } from "@shared/constants/will.js";
+import { WILL_TYPE, FIELD_HEX_LENGTH } from "@shared/constants/will.js";
 import { readWill, saveWill } from "@shared/utils/file/index.js";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
@@ -15,8 +15,17 @@ interface ProcessResult extends DeserializedWill {
     deserializedWillPath: string;
 }
 
-function readBigInt(hex: string, start: number, bytes: number): { value: bigint, end: number } {
-    const end = start + bytes * 2;
+function calculateEstateCount(hex: string): number {
+    const perEstateLength = FIELD_HEX_LENGTH.BENEFICIARY + FIELD_HEX_LENGTH.TOKEN + FIELD_HEX_LENGTH.AMOUNT;
+    const totalEstatesLength = hex.length - (FIELD_HEX_LENGTH.TESTATOR + FIELD_HEX_LENGTH.SALT + FIELD_HEX_LENGTH.WILL + FIELD_HEX_LENGTH.NONCE + FIELD_HEX_LENGTH.DEADLINE + FIELD_HEX_LENGTH.SIGNATURE);
+    if (totalEstatesLength < 0 || totalEstatesLength % perEstateLength != 0) { 
+        throw new Error(`Invalid total estates length: ${totalEstatesLength}`);
+    }
+    return totalEstatesLength / perEstateLength;
+}
+
+function readBigInt(hex: string, start: number, length: number): { value: bigint, end: number } {
+    const end = start + length;
     const valueHex = hex.slice(start, end);
     const value = BigInt('0x' + valueHex);
     return { value, end };
@@ -26,21 +35,6 @@ function readAddress(hex: string, start: number): { address: EthereumAddress, en
     const end = start + 40;
     const address = '0x' + hex.slice(start, end) as EthereumAddress;
     return { address, end }
-}
-
-function readUntilSeparator(
-    hex: string,
-    offset: number,
-    separator: string = ':'
-): { hex: string; end: number } {
-    let end = offset;
-    while (end < hex.length && hex[end] !== separator) {
-        end++;
-    }
-
-    const value = hex.slice(offset, end);
-    end = end < hex.length ? end + 1 : end; // Skip separator if exists
-    return { hex: value, end };
 }
 
 /**
@@ -54,11 +48,9 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
     const testatorStart = 0;
     const { address: testator, end: testatorEnd } = readAddress(serializedHex, testatorStart);
 
-    const estateCountStart = testatorEnd;
-    const { hex: estateCountHex, end: estateCountEnd } = readUntilSeparator(serializedHex, estateCountStart);
-    const estateCount = parseInt(estateCountHex, 16);
+    const estateCount = calculateEstateCount(serializedHex);
 
-    let estateStart = estateCountEnd;
+    let estateStart = testatorEnd;
     const estates: Estate[] = [];
     for (let i = 0; i < estateCount; i++) {
         const beneficiaryStart = estateStart;
@@ -68,8 +60,7 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
         const { address: token, end: tokenEnd } = readAddress(serializedHex, tokenStart);
 
         const amountStart = tokenEnd;
-        const { hex: amountHex, end: amountEnd } = readUntilSeparator(serializedHex, amountStart);
-        const amount = BigInt('0x' + amountHex);
+        const { value: amount, end: amountEnd } = readBigInt(serializedHex, amountStart, FIELD_HEX_LENGTH.AMOUNT);
 
         estates.push({ beneficiary, token, amount });
 
@@ -77,23 +68,23 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
     }
 
     const saltStart = estateStart;
-    const { value: salt, end: saltEnd } = readBigInt(serializedHex, saltStart, SALT_CONFIG.defaultSaltBytes);
+    const { value: salt, end: saltEnd } = readBigInt(serializedHex, saltStart, FIELD_HEX_LENGTH.SALT);
 
     const willStart = saltEnd;
     const { address: will, end: willEnd } = readAddress(serializedHex, willStart);
 
     const nonceStart = willEnd;
-    const { value: nonce, end: nonceEnd } = readBigInt(serializedHex, nonceStart, PERMIT2_CONFIG.maxNonceBytes);
+    const { value: nonce, end: nonceEnd } = readBigInt(serializedHex, nonceStart, FIELD_HEX_LENGTH.NONCE);
 
     const deadlineStart = nonceEnd;
-    const { value: deadlineBigInt, end: deadlineEnd } = readBigInt(serializedHex, deadlineStart, 4);
+    const { value: deadlineBigInt, end: deadlineEnd } = readBigInt(serializedHex, deadlineStart, FIELD_HEX_LENGTH.DEADLINE);
     const deadline = Number(deadlineBigInt);
 
     const signatureStart = deadlineEnd;
-    const { hex: signatureHex } = readUntilSeparator(serializedHex, signatureStart);
-    const signature = '0x' + signatureHex;
+    const signatureEnd = signatureStart + FIELD_HEX_LENGTH.SIGNATURE;
+    const signature = '0x' + serializedHex.slice(signatureStart, signatureEnd);
 
-    return {
+    const deserializedWill = {
         testator,
         estates,
         salt,
@@ -104,6 +95,10 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
             signature
         }
     };
+
+    console.log(deserializedWill);
+
+    return deserializedWill;
 }
 
 /**
