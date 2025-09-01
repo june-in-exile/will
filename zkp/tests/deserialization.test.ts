@@ -1,8 +1,9 @@
+import { Byte, Address, Estate, Nonce, Timestamp, Signature } from "./type/index.js";
 import { WitnessTester, hexToByte } from "./util/index.js";
 
 describe("Deserialize Circuits", function () {
   let circuit: WitnessTester<
-    ["serialized"],
+    ["serializedBytes"],
     ["testator", "estates", "will", "nonce", "deadline", "signature"]
   >;
 
@@ -12,38 +13,38 @@ describe("Deserialize Circuits", function () {
         "circuits/shared/components/deserialization.circom",
         "Deserialize",
         {
-          templateParams: ["100"],
+          templateParams: ["269"],
         },
       );
       circuit.setConstraint("will deserialization");
     });
 
     it("should return the correct terms in the will", async function (): Promise<void> {
-      const serialized = hexToByte(
-        "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc2:3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d3e8:3fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E4c4b40:17befc98247f9d:8436b0792C2A7a8ECC007a4BaD29Cc67cf70f26934e03c403198b:6a8e4087:fa12e4495c42fe7d2342088355588888289689c7f32df8c32fceba20de587938764e43d5e9e89e1d2229207ce2c17377ebf581fb587bda165e7b31e748b94fba1c",
+      const serializedBytes: Byte[] = hexToByte(
+        "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40b1f48bd14750374db91306c88bc537b49fd7e3d9b8a79a1a2283e6db18f1ab7cf34F996Ba6FcBa4286aBCC4b1B39e5F4378233584f9540afb18a930371a6be8b044aa36b6a9686188795d3e26d5166091b9b25a260022e46311ae45cc9d1cc744b787a6e406fecd13f4a6eb5d3ae1a3c2a60590ed36b7a0220b84af1436f435d798b21e0ec4891871c",
       );
-      const testator = hexToByte("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc");
-      const estates = [
+      const testator: Address = BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc");
+      const estates: Estate[] = [
         {
-          beneficiary: hexToByte("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
-          token: hexToByte("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
-          amount: 1000,
+          beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
+          token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
+          amount: 1000n,
         },
         {
-          beneficiary: hexToByte("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
-          token: hexToByte("0xb1D4538B4571d411F07960EF2838Ce337FE1E80E"),
-          amount: 5000000,
+          beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
+          token: BigInt("0xb1D4538B4571d411F07960EF2838Ce337FE1E80E"),
+          amount: 5000000n,
         },
       ];
-      const will = hexToByte("0x5C0457d593A6ABA3220318f009838C9BDc29cA71");
-      const nonce = 950471206401626;
-      const deadline = 1787826829;
+      const will: Address = BigInt("0xf34F996Ba6FcBa4286aBCC4b1B39e5F437823358");
+      const nonce: Nonce = 105783975893019489732105565735546954603n;
+      const deadline: Timestamp = 1788249624;
       const signature = hexToByte(
-        "0xad49ccaae4bf2ed71a1f040ab7071f7436769267d88885c09dc8ccf30f948ed6256715bf4788080a14840906291673940879deaf5e6bed031bb9f96f71a69d041b",
-      );
+        "0x8795d3e26d5166091b9b25a260022e46311ae45cc9d1cc744b787a6e406fecd13f4a6eb5d3ae1a3c2a60590ed36b7a0220b84af1436f435d798b21e0ec4891871c",
+      ) as Signature;
 
       await circuit.expectPass(
-        { serialized },
+        { serializedBytes },
         {
           testator,
           estates,

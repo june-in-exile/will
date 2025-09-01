@@ -1,38 +1,138 @@
 pragma circom 2.2.2;
 
+include "circomlib/circuits/comparators.circom";
 include "./base64.circom";
 include "./bus.circom";
 
-template Deserialize(serializedBytesLength) {
-    signal input {byte} serialized[serializedBytesLength];
+/**
+ * Deserialize circuit that converts serialized byte data into structured will components.
+ * Takes serialized bytes containing testator address, estates (beneficiary, token, amount), 
+ * will address, nonce, deadline, and signature. The salt field is skipped during processing 
+ * as it's not needed for subsequent operations.
+ *
+ * @param bytesLength - the number of bytes in serialized input
+ */
+template Deserialize(bytesLength) {
+    var testatorBytesLength = 20;
+    var beneficiaryBytesLength = 20;
+    var tokenBytesLength = 20;
+    var amountBytesLength = 16;
+    var saltBytesLength = 32;
+    var willBytesLength = 20;
+    var nonceBytesLength = 16;
+    var deadlineBytesLength = 4;
+    var signatureBytesLength = 65;
+    var totalEstatesLength = bytesLength - (testatorBytesLength + saltBytesLength + willBytesLength + nonceBytesLength + deadlineBytesLength + signatureBytesLength);
+    var perEstateLength = beneficiaryBytesLength + tokenBytesLength + amountBytesLength;
+    assert (perEstateLength == 56);
+    assert (totalEstatesLength % perEstateLength == 0);
+
+    var estateCount = totalEstatesLength \ perEstateLength;
+
+    signal input {byte} serializedBytes[bytesLength];
     signal output {address} testator;   // 20 byte unsigned integer
-    output Estate estates;
+    output Estate() estates[estateCount];
     signal output {address} will;       // 20 byte unsigned integer
-    signal output nonce;                // 16 byte (128 bit) unsigned integer
+    signal output {uint128} nonce;      // 16 byte (128 bit) unsigned integer
     signal output {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-    signal output {byte} signature[65]; // 65 byte
+    signal output {byte} signature[signatureBytesLength]; // 65 byte
 
-    signal {hex} serializedHex[serializedBytes * 2] <== BytesToHex(serializedBytesLength)(serialized);
+    signal {address} testatorValues[testatorBytesLength];
+    signal {address} beneficiaryValues[estateCount][beneficiaryBytesLength];
+    signal {address} tokenValues[estateCount][tokenBytesLength];
+    signal amountValues[estateCount][amountBytesLength];
+    signal {address} willValues[willBytesLength];
+    signal {uint128} nonceValues[nonceBytesLength];
+    signal {uint32} deadlineValues[deadlineBytesLength];
 
-    // process testator (40 hex -> integer)
+    var byteIdx = 0;
 
-    // process estate count (until ':' -> integer)
+    // process testator
+    for (var i = 0; i < testatorBytesLength; i++) {
+        if (i == 0) {
+            testatorValues[i] <== serializedBytes[byteIdx];
+        } else {
+            testatorValues[i] <== testatorValues[i - 1] * 256 + serializedBytes[byteIdx];
+        }
+        byteIdx++;
+    }
+    testator <== testatorValues[testatorBytesLength - 1];
 
-    // process estates (for loop by estate count)
-        // process beneficiary (40 hex -> integer)
-        // process token (40 hex -> integer)
-        // process amount (until ':' -> integer)
+    // process estates
+    for (var estateIdx = 0; estateIdx < estateCount; estateIdx++) {
+        // process beneficiary
+        for (var i = 0; i < beneficiaryBytesLength; i++) {
+            if (i == 0) {
+                beneficiaryValues[estateIdx][i] <== serializedBytes[byteIdx];
+            } else {
+                beneficiaryValues[estateIdx][i] <== beneficiaryValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
+            }
+            byteIdx++;
+        }
+        estates[estateIdx].beneficiary <== beneficiaryValues[estateIdx][beneficiaryBytesLength - 1];
 
-    // process salt (64 hex skipped)
+        // process token
+        for (var i = 0; i < tokenBytesLength; i++) {
+            if (i == 0) {
+                tokenValues[estateIdx][i] <== serializedBytes[byteIdx];
+            } else {
+                tokenValues[estateIdx][i] <== tokenValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
+            }
+            byteIdx++;
+        }
+        estates[estateIdx].token <== tokenValues[estateIdx][tokenBytesLength - 1];
 
-    // process will (40 hex -> integer)
+        // process amount
+        for (var i = 0; i < amountBytesLength; i++) {
+            if (i == 0) {
+                amountValues[estateIdx][i] <== serializedBytes[byteIdx];
+            } else {
+                amountValues[estateIdx][i] <== amountValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
+            }
+            byteIdx++;
+        }
+        estates[estateIdx].amount <== amountValues[estateIdx][amountBytesLength - 1];
+    }
 
-    // process nonce (32 hex -> integer)
+    // skip salt
+    byteIdx += saltBytesLength;
 
-    // process deadline (8 hex -> integer)
+    // process will
+    for (var i = 0; i < willBytesLength; i++) {
+        if (i == 0) {
+            willValues[i] <== serializedBytes[byteIdx];
+        } else {
+            willValues[i] <== willValues[i - 1] * 256 + serializedBytes[byteIdx];
+        }
+        byteIdx++;
+    }
+    will <== willValues[willBytesLength - 1];
 
-    // process signature (130 hex -> 65 bytes)
+    // process nonce
+    for (var i = 0; i < nonceBytesLength; i++) {
+        if (i == 0) {
+            nonceValues[i] <== serializedBytes[byteIdx];
+        } else {
+            nonceValues[i] <== nonceValues[i - 1] * 256 + serializedBytes[byteIdx];
+        }
+        byteIdx++;
+    }
+    nonce <== nonceValues[nonceBytesLength - 1];
 
+    // process deadline
+    for (var i = 0; i < deadlineBytesLength; i++) {
+        if (i == 0) {
+            deadlineValues[i] <== serializedBytes[byteIdx];
+        } else {
+            deadlineValues[i] <== deadlineValues[i - 1] * 256 + serializedBytes[byteIdx];
+        }
+        byteIdx++;
+    }
+    deadline <== deadlineValues[deadlineBytesLength - 1];
+
+    // process signature
+    for (var i = 0; i < signatureBytesLength; i++) {
+        signature[i] <== serializedBytes[byteIdx];
+        byteIdx++;
+    }
 }
-
-// 041F57c4492760aaE44ECed29b49a30DaAD3D4Cc2:3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d3e8:3fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E4c4b40:ddb403290f11dd9d21f83a67e8b28dbb8456292218039e1a29e41d2908552376fD50f1D6937151dB2d20C6C47d5AE287fDf0cd1bba3ff4b04a0ed28bcdfd4f4f03b1dae46a965efbdb55f324c7f57f759055d61c3dc3c637a3e337bc01c9ee24a5ca9595ab80012a7ec2e405d2b7d1c864303e2bf1875e009b2bce61ef352976336a97f484f3572f1c

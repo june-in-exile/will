@@ -10,7 +10,7 @@ bus Word() {
 }
 
 bus Estate() {
-    signal {address} bebeficiary;
+    signal {address} beneficiary;
     signal {address} token;
     signal amount;
 }

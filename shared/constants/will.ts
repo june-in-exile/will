@@ -1,4 +1,4 @@
-import { PATHS_CONFIG } from "@config";
+import { PATHS_CONFIG, SALT_CONFIG, PERMIT2_CONFIG, SERIALIZATION_CONFIG, SIGNATURE_CONFIG } from "@config";
 import type { WillType } from "@shared/types/will.js";
 
 const WILL_TYPE = {
@@ -23,4 +23,16 @@ const WILL_FILE_PATH: Record<WillType, string> = {
   [WILL_TYPE.DESERIALIZED]: PATHS_CONFIG.will.deserialized,
 };
 
-export { WILL_TYPE, WILL_FILE_PATH };
+const FIELD_HEX_LENGTH = {
+  TESTATOR: 40,
+  BENEFICIARY: 40,
+  TOKEN: 40,
+  AMOUNT: SERIALIZATION_CONFIG.maxAmountBytes * 2,
+  SALT: SALT_CONFIG.defaultSaltBytes * 2,
+  WILL: 40,
+  NONCE: PERMIT2_CONFIG.maxNonceBytes * 2,
+  DEADLINE: 8,
+  SIGNATURE: SIGNATURE_CONFIG.signatureLength,
+}
+
+export { WILL_TYPE, WILL_FILE_PATH, FIELD_HEX_LENGTH };

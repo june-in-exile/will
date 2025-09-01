@@ -24,9 +24,9 @@ function validateSignature(signature: string): boolean {
     throw new Error("Signature must start with 0x prefix");
   }
 
-  if (signature.length !== SIGNATURE_CONFIG.signatureLength) {
+  if (signature.length !== SIGNATURE_CONFIG.signatureLength + 2) {
     throw new Error(
-      `Invalid signature length: expected ${SIGNATURE_CONFIG.signatureLength} characters, got ${signature.length}`,
+      `Invalid signature length: expected ${SIGNATURE_CONFIG.signatureLength + 2} characters, got ${signature.length}`,
     );
   }
 

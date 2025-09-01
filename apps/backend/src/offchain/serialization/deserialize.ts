@@ -96,8 +96,6 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
         }
     };
 
-    console.log(deserializedWill);
-
     return deserializedWill;
 }
 

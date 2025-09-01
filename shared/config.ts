@@ -88,20 +88,8 @@ interface CryptoConfig {
   validateEncodings: boolean;
 }
 
-// interface CidValidationConfig {
-//   minLength: number;
-//   maxLength: number;
-//   validPrefixes: string[];
-// }
-
 interface SignatureConfig {
-  // maxMessageLength: number;
-  // privateKeyLength: number;
   signatureLength: number;
-  // maxRetries: number;
-  // retryDelay: number;
-  // cid: CidValidationConfig;
-  // addressFormat: RegExp;
 }
 
 interface HashConfig {
@@ -208,24 +196,9 @@ interface Permit2Config {
   maxNonceBytes: number;
 }
 
-// interface ZkGenerationConfig {
-//   timeout: number;
-//   maxCircuitSize: number;
-//   enableOptimizations: boolean;
-// }
-
-// interface ZkVerificationConfig {
-//   timeout: number;
-//   enableCache: boolean;
-//   strictValidation: boolean;
-// }
-
-// interface ZkConfig {
-//   generation: ZkGenerationConfig;
-//   verification: ZkVerificationConfig;
-//   supportedCurves: string[];
-//   maxConstraints: number;
-// }
+interface SerializationConfig { 
+  maxAmountBytes: number;
+}
 
 interface LoggingColorsConfig {
   success: string;
@@ -408,26 +381,8 @@ export const CRYPTO_CONFIG: CryptoConfig = {
 // SIGNATURE CONFIG
 // ================================
 export const SIGNATURE_CONFIG: SignatureConfig = {
-  // Message constraints
-  // maxMessageLength: 1024 * 1024, // 1MB
-
-  // Key and signature formats
-  // privateKeyLength: 64, // 32 bytes in hex
-  signatureLength: 132, // 65 bytes in hex with 0x prefix
-
-  // Retry settings
-  // maxRetries: 3,
-  // retryDelay: 1000, // 1 second
-
-  // // CID validation
-  // cid: {
-  //   minLength: 46,
-  //   maxLength: 100,
-  //   validPrefixes: ["Qm", "b", "z", "f", "u"],
-  // },
-
-  // // Address validation
-  // addressFormat: /^0x[0-9a-fA-F]{40}$/,
+  // Signature formats
+  signatureLength: 130, // 65 bytes
 };
 
 // ================================
@@ -600,47 +555,20 @@ export const ERROR_CONFIG: ErrorConfig = {
 // PERMIT2 CONFIG
 // ================================
 export const PERMIT2_CONFIG: Permit2Config = {
-  // Contract addresses
-  // address: process.env.PERMIT2,
-
   // Default duration
   defaultDuration: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
 
   // Nonce generation
   maxNonceBytes: 16,
-
-  // Signature validation
-  // signatureValidation: {
-  //   enableDomainValidation: true,
-  //   enableTypeValidation: true,
-  //   enableValueValidation: true,
-  // },
 };
 
-// // ================================
-// // ZERO KNOWLEDGE PROOF CONFIG
-// // ================================
-// export const ZK_CONFIG: ZkConfig = {
-//   // Proof generation
-//   generation: {
-//     timeout: USE_ANVIL ? 60000 : 300000, // 1 min for local, 5 min for testnet
-//     maxCircuitSize: 1000000,
-//     enableOptimizations: true,
-//   },
-
-//   // Verification
-//   verification: {
-//     timeout: 60000, // 1 minute
-//     enableCache: true,
-//     strictValidation: true,
-//   },
-
-//   // Supported curves
-//   supportedCurves: ["bn128", "bls12-381"],
-
-//   // Circuit constraints
-//   maxConstraints: 1000000,
-// };
+// ================================
+// SERIALIZATION CONFIG
+// ================================
+export const SERIALIZATION_CONFIG: SerializationConfig = {
+  // amount serialization
+  maxAmountBytes: 16, // max amount = 2**128
+};
 
 // ================================
 // LOGGING CONFIG
@@ -743,7 +671,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
-      // zk: ZK_CONFIG,
+      serialization: SERIALIZATION_CONFIG,
       logging: LOGGING_CONFIG,
       env: ENV_CONFIG,
     };
@@ -807,7 +735,7 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
       salt: SALT_CONFIG,
       error: ERROR_CONFIG,
       permit2: PERMIT2_CONFIG,
-      // zk: ZK_CONFIG,
+      serialization: SERIALIZATION_CONFIG,
       logging: LOGGING_CONFIG,
       env: ENV_CONFIG,
     };
@@ -834,8 +762,6 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
     const timeouts: { [key: string]: number } = {
       network: NETWORK_CONFIG.timeout,
       ipfs: IPFS_CONFIG.pinning.timeout,
-      // zk_generation: ZK_CONFIG.generation.timeout,
-      // zk_verification: ZK_CONFIG.verification.timeout,
     };
 
     return timeouts[operation] || 30000; // Default 30 seconds
@@ -854,10 +780,6 @@ export const CONFIG_UTILS: ConfigUtilsInterface = {
         attempts: APPROVAL_CONFIG.maxRetries,
         delay: APPROVAL_CONFIG.retryDelay,
       },
-      // signature: {
-      //   attempts: SIGNATURE_CONFIG.maxRetries,
-      //   delay: SIGNATURE_CONFIG.retryDelay,
-      // },
       ipfs: {
         attempts: IPFS_CONFIG.pinning.retryAttempts,
         delay: IPFS_CONFIG.pinning.retryDelay,
@@ -902,7 +824,7 @@ export default {
   SALT_CONFIG,
   ERROR_CONFIG,
   PERMIT2_CONFIG,
-  // ZK_CONFIG,
+  SERIALIZATION_CONFIG,
   LOGGING_CONFIG,
   ENV_CONFIG,
   CONFIG_UTILS,
