@@ -204,7 +204,6 @@ async function processPermitSigning(): Promise<ProcessResult> {
 
     printPermit(permit);
 
-    // Sign the permit
     const signature = await signPermit(
       permit,
       PERMIT2,

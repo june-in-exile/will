@@ -38,61 +38,45 @@ template Deserialize(bytesLength) {
     signal output {uint32} deadline;    // 4 byte (32 bit) unsigned integer
     signal output {byte} signature[signatureBytesLength]; // 65 byte
 
-    signal {address} testatorValues[testatorBytesLength];
-    signal {address} beneficiaryValues[estateCount][beneficiaryBytesLength];
-    signal {address} tokenValues[estateCount][tokenBytesLength];
-    signal amountValues[estateCount][amountBytesLength];
-    signal {address} willValues[willBytesLength];
-    signal {uint128} nonceValues[nonceBytesLength];
-    signal {uint32} deadlineValues[deadlineBytesLength];
+    signal {byte} testatorBytes[testatorBytesLength];
+    signal {byte} beneficiaryBytes[estateCount][beneficiaryBytesLength];
+    signal {byte} tokenBytes[estateCount][tokenBytesLength];
+    signal {byte} amountBytes[estateCount][amountBytesLength];
+    signal {byte} willBytes[willBytesLength];
+    signal {byte} nonceBytes[nonceBytesLength];
+    signal {byte} deadlineBytes[deadlineBytesLength];
 
     var byteIdx = 0;
 
     // process testator
     for (var i = 0; i < testatorBytesLength; i++) {
-        if (i == 0) {
-            testatorValues[i] <== serializedBytes[byteIdx];
-        } else {
-            testatorValues[i] <== testatorValues[i - 1] * 256 + serializedBytes[byteIdx];
-        }
+        testatorBytes[i] <== serializedBytes[byteIdx];
         byteIdx++;
-    }
-    testator <== testatorValues[testatorBytesLength - 1];
+    }    
+    testator <== BytesToNum(testatorBytesLength, 0)(testatorBytes);
 
     // process estates
     for (var estateIdx = 0; estateIdx < estateCount; estateIdx++) {
         // process beneficiary
         for (var i = 0; i < beneficiaryBytesLength; i++) {
-            if (i == 0) {
-                beneficiaryValues[estateIdx][i] <== serializedBytes[byteIdx];
-            } else {
-                beneficiaryValues[estateIdx][i] <== beneficiaryValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
-            }
+            beneficiaryBytes[estateIdx][i] <== serializedBytes[byteIdx];
             byteIdx++;
         }
-        estates[estateIdx].beneficiary <== beneficiaryValues[estateIdx][beneficiaryBytesLength - 1];
+        estates[estateIdx].beneficiary <== BytesToNum(beneficiaryBytesLength, 0)(beneficiaryBytes[estateIdx]);
 
         // process token
         for (var i = 0; i < tokenBytesLength; i++) {
-            if (i == 0) {
-                tokenValues[estateIdx][i] <== serializedBytes[byteIdx];
-            } else {
-                tokenValues[estateIdx][i] <== tokenValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
-            }
+            tokenBytes[estateIdx][i] <== serializedBytes[byteIdx];
             byteIdx++;
         }
-        estates[estateIdx].token <== tokenValues[estateIdx][tokenBytesLength - 1];
+        estates[estateIdx].token <== BytesToNum(tokenBytesLength, 0)(tokenBytes[estateIdx]);
 
         // process amount
         for (var i = 0; i < amountBytesLength; i++) {
-            if (i == 0) {
-                amountValues[estateIdx][i] <== serializedBytes[byteIdx];
-            } else {
-                amountValues[estateIdx][i] <== amountValues[estateIdx][i - 1] * 256 + serializedBytes[byteIdx];
-            }
+            amountBytes[estateIdx][i] <== serializedBytes[byteIdx];
             byteIdx++;
         }
-        estates[estateIdx].amount <== amountValues[estateIdx][amountBytesLength - 1];
+        estates[estateIdx].amount <== BytesToNum(amountBytesLength, 0)(amountBytes[estateIdx]);
     }
 
     // skip salt
@@ -100,36 +84,24 @@ template Deserialize(bytesLength) {
 
     // process will
     for (var i = 0; i < willBytesLength; i++) {
-        if (i == 0) {
-            willValues[i] <== serializedBytes[byteIdx];
-        } else {
-            willValues[i] <== willValues[i - 1] * 256 + serializedBytes[byteIdx];
-        }
+        willBytes[i] <== serializedBytes[byteIdx];
         byteIdx++;
     }
-    will <== willValues[willBytesLength - 1];
+    will <== BytesToNum(willBytesLength, 0)(willBytes);
 
     // process nonce
     for (var i = 0; i < nonceBytesLength; i++) {
-        if (i == 0) {
-            nonceValues[i] <== serializedBytes[byteIdx];
-        } else {
-            nonceValues[i] <== nonceValues[i - 1] * 256 + serializedBytes[byteIdx];
-        }
+        nonceBytes[i] <== serializedBytes[byteIdx];
         byteIdx++;
     }
-    nonce <== nonceValues[nonceBytesLength - 1];
+    nonce <== BytesToNum(nonceBytesLength, 0)(nonceBytes);
 
     // process deadline
     for (var i = 0; i < deadlineBytesLength; i++) {
-        if (i == 0) {
-            deadlineValues[i] <== serializedBytes[byteIdx];
-        } else {
-            deadlineValues[i] <== deadlineValues[i - 1] * 256 + serializedBytes[byteIdx];
-        }
+        deadlineBytes[i] <== serializedBytes[byteIdx];
         byteIdx++;
     }
-    deadline <== deadlineValues[deadlineBytesLength - 1];
+    deadline <== BytesToNum(deadlineBytesLength, 0)(deadlineBytes);
 
     // process signature
     for (var i = 0; i < signatureBytesLength; i++) {

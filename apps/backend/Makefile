@@ -86,7 +86,8 @@ utils: keccak256 encrypt-data decrypt-data cid-data cid-path submit-proof
 
 keccak256:
 	@pnpm exec tsx ../../shared/utils/cryptography/keccak256.ts \
-		--input "Hello, World"
+		--input "TokenPermissions(address token,uint256 amount)"
+# 0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1
 
 encrypt-data:
 	@pnpm exec tsx ../../shared/utils/cryptography/encrypt.ts	\
