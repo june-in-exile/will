@@ -3,21 +3,35 @@ pragma circom 2.2.2;
 include "./base64.circom";
 include "./bus.circom";
 
-template Deserialize(serializedBytes) {
-    signal input {byte} serialized[serializedBytes];
-    signal output {address} testator;
+template Deserialize(serializedBytesLength) {
+    signal input {byte} serialized[serializedBytesLength];
+    signal output {address} testator;   // 20 byte unsigned integer
     output Estate estates;
-    signal output {address} will;
-    signal output {uint32} nonce;
-    signal output {uint32} deadline;
-    signal output {byte} signature[65];
+    signal output {address} will;       // 20 byte unsigned integer
+    signal output nonce;                // 16 byte (128 bit) unsigned integer
+    signal output {uint32} deadline;    // 4 byte (32 bit) unsigned integer
+    signal output {byte} signature[65]; // 65 byte
 
-    // process testator (20 bytes)
+    signal {hex} serializedHex[serializedBytes * 2] <== BytesToHex(serializedBytesLength)(serialized);
 
-    // process estate count (until)
+    // process testator (40 hex -> integer)
 
+    // process estate count (until ':' -> integer)
 
+    // process estates (for loop by estate count)
+        // process beneficiary (40 hex -> integer)
+        // process token (40 hex -> integer)
+        // process amount (until ':' -> integer)
 
+    // process salt (64 hex skipped)
+
+    // process will (40 hex -> integer)
+
+    // process nonce (32 hex -> integer)
+
+    // process deadline (8 hex -> integer)
+
+    // process signature (130 hex -> 65 bytes)
 
 }
 

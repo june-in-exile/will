@@ -57,6 +57,15 @@
     "BitsToBytes": {
       "msb-first 128 bits to 16-byte conversion": 0,
       "lsb-first 256 bits to 32-byte conversion": 0
+    },
+    "BytesToHex": {
+      "1-byte to 2-hex conversion": 0,
+      "8-byte to 16-hex conversion": 0,
+      "16-hex to 8-byte conversion": 0
+    },
+    "HexToBytes": {
+      "2-hex to 1-byte conversion": 0,
+      "16-hex to 8-byte conversion": 0
     }
   },
   "arithmetic": {

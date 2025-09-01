@@ -64,6 +64,20 @@ template ShiftRight(bits, offset) {
 }
 
 /**
+ * N-bit left rotation
+ * @param bits - Number of bits (64 for Keccak lanes)
+ * @param positions - Number of positions to rotate left
+ */
+template RotateLeft(bits, positions) {
+    signal input in;
+    signal output out;
+
+    signal (rightPart, leftPart) <== Divide()(in * 2 ** positions, 2 ** bits);
+
+    out <== leftPart + rightPart;
+}
+
+/**
  * @param n - The number of input elements
  * @param bits - The bit width of each input number
  *
@@ -210,17 +224,31 @@ template NumToByte16() {
 }
 
 /**
- * N-bit left rotation
- * @param bits - Number of bits (64 for Keccak lanes)
- * @param positions - Number of positions to rotate left
+ * Convert an array of bytes to an array of hex char
+ *
+ * @param bytesLength - Number of bytes
  */
-template RotateLeft(bits, positions) {
-    signal input in;
-    signal output out;
+template BytesToHex(bytesLength) {
+    signal input {byte} bytes[bytesLength];
+    signal output {hex} hex[bytesLength * 2];
 
-    signal (rightPart, leftPart) <== Divide()(in * 2 ** positions, 2 ** bits);
+    for (var i = 0; i < bytesLength; i++) {
+        (hex[i * 2], hex[i * 2 + 1]) <== Divide()(bytes[i], 16);
+    }
+}
 
-    out <== leftPart + rightPart;
+/**
+ * Convert an array of hex char to an array of bytes
+ *
+ * @param bytesLength - Number of bytes
+ */
+template HexToBytes(bytesLength) {
+    signal input {hex} hex[bytesLength * 2];
+    signal output {byte} bytes[bytesLength];
+
+    for (var i = 0; i < bytesLength; i++) {
+        bytes[i] <== hex[i * 2] * 16 + hex[i * 2 + 1];
+    }
 }
 
 /**
