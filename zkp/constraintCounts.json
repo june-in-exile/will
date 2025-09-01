@@ -38,12 +38,6 @@
     "ByteAdder": {
       "byte adder": 34
     },
-    "Byte16ToNum": {
-      "16-byte to 128-bit conversion": 128
-    },
-    "NumToByte16": {
-      "128-bit to 16-byte conversion": 128
-    },
     "RotateLeft": {
       "0-bit rotation in 64-bit": 0,
       "1-bit rotation in 64-bit": 0,
@@ -66,6 +60,22 @@
     "HexToBytes": {
       "2-hex to 1-byte conversion": 0,
       "16-hex to 8-byte conversion": 0
+    },
+    "BytesToNum": {
+      "big-endian 2-byte to 16-bit conversion": 0,
+      "little-endian 2-byte to 16-bit conversion": 0,
+      "big-endian 16-byte to 128-bit conversion": 0,
+      "little-endian 16-byte to 128-bit conversion": 0,
+      "big-endian 16-bit to 2-byte conversion": 0,
+      "little-endian 16-bit to 2-byte conversion": 0,
+      "big-endian 128-bit to 16-byte conversion": 0,
+      "little-endian 128-bit to 16-byte conversion": 0
+    },
+    "NumToBytes": {
+      "big-endian 16-bit to 2-byte conversion": 0,
+      "little-endian 16-bit to 2-byte conversion": 0,
+      "big-endian 128-bit to 16-byte conversion": 0,
+      "little-endian 128-bit to 16-byte conversion": 0
     }
   },
   "arithmetic": {

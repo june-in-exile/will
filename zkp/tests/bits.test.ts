@@ -1289,170 +1289,393 @@ describe("ByteAdder Circuits", function () {
   });
 });
 
-describe("Byte16ToNum Circuit", function () {
-  let circuit: WitnessTester<["in"], ["out"]>;
+describe("BytesToNum Circuit", function () {
+  let circuit: WitnessTester<["bytes"], ["num"]>;
 
-  describe("16-byte to 128-bit Number Conversion", function (): void {
+  describe("Big-Endian 2-byte to 16-bit Number Conversion", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
-        "Byte16ToNum",
+        "BytesToNum",
+        {
+          templateParams: ["2", "0"],
+        }
       );
-      circuit.setConstraint("16-byte to 128-bit conversion");
+      circuit.setConstraint("big-endian 2-byte to 16-bit conversion");
     });
 
-    it("should convert minimum and maximum value correctly", async function (): Promise<void> {
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          _in: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          _out: 0,
+          bytes: [
+            0x80, 0x00
+          ],
+          num: 2 ** 15,
         },
         {
-          _in: [
-            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-            0xff, 0xff, 0xff, 0xff, 0xff,
+          bytes: [
+            0x01, 0x00
           ],
-          _out: BigInt(2) ** BigInt(128) - BigInt(1),
+          num: 2 ** 8,
+        },
+        {
+          bytes: [
+            0x00, 0x80,
+          ],
+          num: 2 ** 7,
+        },
+        {
+          bytes: [
+            0x00, 0x01,
+          ],
+          num: 1,
         },
       ];
 
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
+      for (const { bytes, num } of testCases) {
+        await circuit.expectPass({ bytes }, { num });
       }
     });
+  });
 
-    it("should convert MSB patterns correctly", async function (): Promise<void> {
+  describe("Little-Endian 2-byte to 16-bit Number Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BytesToNum",
+        {
+          templateParams: ["2", "1"],
+        }
+      );
+      circuit.setConstraint("little-endian 2-byte to 16-bit conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          _in: [
+          bytes: [
+            0x80, 0x00
+          ],
+          num: 2 ** 7,
+        },
+        {
+          bytes: [
+            0x01, 0x00
+          ],
+          num: 1,
+        },
+        {
+          bytes: [
+            0x00, 0x80,
+          ],
+          num: 2 ** 15,
+        },
+        {
+          bytes: [
+            0x00, 0x01,
+          ],
+          num: 2 ** 8,
+        },
+      ];
+
+      for (const { bytes, num } of testCases) {
+        await circuit.expectPass({ bytes }, { num });
+      }
+    });
+  });
+
+  describe("Big-Endian 16-byte to 128-bit Number Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BytesToNum",
+        {
+          templateParams: ["16", "0"],
+        }
+      );
+      circuit.setConstraint("big-endian 16-byte to 128-bit conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          bytes: [
             0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00,
           ],
-          _out: 1,
+          num: BigInt(2) ** BigInt(127),
         },
         {
-          _in: [
-            0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          bytes: [
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00,
           ],
-          _out: BigInt(2) ** BigInt(8),
+          num: BigInt(2) ** BigInt(120),
         },
-      ];
-
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
-      }
-    });
-
-    it("should convert LSB patterns correctly", async function (): Promise<void> {
-      const testCases = [
         {
-          // LSB set: [..., 0x01] should equal 2^127
-          _in: [
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x80,
+          ],
+          num: 2 ** 7,
+        },
+        {
+          bytes: [
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x01,
           ],
-          _out: BigInt(2) ** BigInt(127),
-        },
-        {
-          // Second-to-last bit: [..., 0x02]
-          _in: [
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x02,
-          ],
-          _out: BigInt(2) ** BigInt(126),
+          num: 1,
         },
       ];
 
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
+      for (const { bytes, num } of testCases) {
+        await circuit.expectPass({ bytes }, { num });
+      }
+    });
+  });
+
+  describe("Little-Endian 16-byte to 128-bit Number Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "BytesToNum",
+        {
+          templateParams: ["16", "1"],
+        }
+      );
+      circuit.setConstraint("little-endian 16-byte to 128-bit conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          bytes: [
+            0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+          ],
+          num: 2 ** 7,
+        },
+        {
+          bytes: [
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+          ],
+          num: 1,
+        },
+        {
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x80,
+          ],
+          num: BigInt(2) ** BigInt(127),
+        },
+        {
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x01,
+          ],
+          num: BigInt(2) ** BigInt(120),
+        },
+      ];
+
+      for (const { bytes, num } of testCases) {
+        await circuit.expectPass({ bytes }, { num });
       }
     });
   });
 });
 
-describe("NumToByte16 Circuit", function () {
-  let circuit: WitnessTester<["in"], ["out"]>;
+describe("NumToBytes Circuit", function () {
+  let circuit: WitnessTester<["num"], ["bytes"]>;
 
-  describe("128-bit Number to 16-byte Conversion", function (): void {
+  describe("Big-Endian 16-bit Number to 2-byte Conversion", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/bits.circom",
-        "NumToByte16",
+        "NumToBytes",
+        {
+          templateParams: ["2", "0"],
+        }
       );
-      circuit.setConstraint("128-bit to 16-byte conversion");
+      circuit.setConstraint("big-endian 16-bit to 2-byte conversion");
     });
 
-    it("should convert minimum and maximum value correctly", async function (): Promise<void> {
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          _in: 0,
-          _out: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          num: 2 ** 15,
+          bytes: [
+            0x80, 0x00
+          ],
         },
         {
-          _in: BigInt(2) ** BigInt(128) - BigInt(1),
-          _out: [
-            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-            0xff, 0xff, 0xff, 0xff, 0xff,
+          num: 2 ** 8,
+          bytes: [
+            0x01, 0x00
+          ],
+        },
+        {
+          num: 2 ** 7,
+          bytes: [
+            0x00, 0x80,
+          ],
+        },
+        {
+          num: 1,
+          bytes: [
+            0x00, 0x01,
           ],
         },
       ];
 
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
+      for (const { num, bytes } of testCases) {
+        await circuit.expectPass({ num }, { bytes });
       }
     });
+  });
 
-    it("should convert small numbers correctly", async function (): Promise<void> {
+  describe("Little-Endian 16-bit Number to 2-byte Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "NumToBytes",
+        {
+          templateParams: ["2", "1"],
+        }
+      );
+      circuit.setConstraint("little-endian 16-bit to 2-byte conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          _in: 1,
-          _out: [
+          num: 2 ** 7,
+          bytes: [
+            0x80, 0x00
+          ],
+        },
+        {
+          num: 1,
+          bytes: [
+            0x01, 0x00
+          ],
+        },
+        {
+          num: 2 ** 15,
+          bytes: [
+            0x00, 0x80,
+          ],
+        },
+        {
+          num: 2 ** 8,
+          bytes: [
+            0x00, 0x01,
+          ],
+        },
+      ];
+
+      for (const { num, bytes } of testCases) {
+        await circuit.expectPass({ num }, { bytes });
+      }
+    });
+  });
+
+  describe("Big-Endian 128-bit Number to 16-byte Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "NumToBytes",
+        {
+          templateParams: ["16", "0"],
+        }
+      );
+      circuit.setConstraint("big-endian 128-bit to 16-byte conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          num: BigInt(2) ** BigInt(127),
+          bytes: [
             0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00,
           ],
         },
         {
-          _in: 2,
-          _out: [
-            0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          num: BigInt(2) ** BigInt(120),
+          bytes: [
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00,
           ],
         },
-      ];
-
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
-      }
-    });
-
-    it("should convert powers of 2 correctly", async function (): Promise<void> {
-      const testCases = [
         {
-          _in: BigInt(2) ** BigInt(127),
-          _out: [
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x01,
-          ],
-        },
-        {
-          _in: BigInt(2) ** BigInt(120),
-          _out: [
+          num: 2 ** 7,
+          bytes: [
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x80,
           ],
         },
         {
-          _in: BigInt(2) ** BigInt(56),
-          _out: [
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00,
+          num: 1,
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x01,
           ],
         },
       ];
 
-      for (const { _in, _out } of testCases) {
-        await circuit.expectPass({ in: _in }, { out: _out });
+      for (const { num, bytes } of testCases) {
+        await circuit.expectPass({ num }, { bytes });
+      }
+    });
+  });
+
+  describe("Little-Endian 128-bit Number to 16-byte Conversion", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/bits.circom",
+        "NumToBytes",
+        {
+          templateParams: ["16", "1"],
+        }
+      );
+      circuit.setConstraint("little-endian 128-bit to 16-byte conversion");
+    });
+
+    it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
+      const testCases = [
+        {
+          num: 2 ** 7,
+          bytes: [
+            0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+          ],
+        },
+        {
+          num: 1,
+          bytes: [
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00,
+          ],
+        },
+        {
+          num: BigInt(2) ** BigInt(127),
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x80,
+          ],
+        },
+        {
+          num: BigInt(2) ** BigInt(120),
+          bytes: [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x01,
+          ],
+        },
+      ];
+
+      for (const { num, bytes } of testCases) {
+        await circuit.expectPass({ num }, { bytes });
       }
     });
   });

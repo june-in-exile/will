@@ -16,10 +16,10 @@
     "RotateLeft": {},
     "BitwiseXor": {},
     "ByteAdder": {},
-    "Byte16ToNum": {},
+    "BytesToNum": {},
+    "NumToBytes": {},
     "BytesToHex": {},
     "HexToBytes": {},
-    "NumToByte16": {},
     "BytesToBits": {},
     "BitsToBytes": {}
   },

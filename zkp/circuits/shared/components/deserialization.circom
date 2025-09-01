@@ -2,6 +2,7 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 include "./base64.circom";
+include "./bits.circom";
 include "./bus.circom";
 
 /**

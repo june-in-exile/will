@@ -173,54 +173,69 @@ template ByteAdder() {
 }
 
 /**
- * Convert an array of 16 bytes to a single 128-bit number
+ * Convert an array of bytes to a single 128-bit number
+ *
+ * @param numBytes - Number of bytes for conversion
+ * @param endian - big-endian (0) or little-endian (1)
  * 
  * Example:
  * - Input: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
- * - Output: 1 (big-endian interpretation)
+ * - Output: 2^127 (big-endian)
+ * - Output: 2^7 (litte-endian)
  *
  * - Input: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
- * - Output: 2^127 (big-endian interpretation)
+ * - Output: 1 (big-endian)
+ * - Output: 2^120 (litte-endian)
  */
-template Byte16ToNum() {
-    signal input {byte} in[16];
-    signal output out;
+template BytesToNum(numBytes, endian) {
+    assert(endian == 0 || endian == 1);
+    signal input {byte} bytes[numBytes];
+    signal output num;
 
-    signal byteBits[16][8];
-    signal bits[128];
-    for (var byte = 0; byte < 16; byte++) {
-        byteBits[byte] <== Num2Bits(8)(in[byte]);
-        for (var bit = 0; bit < 8; bit++) {
-            bits[byte * 8 + bit] <== byteBits[byte][7 - bit];
+    signal intermediateNums[numBytes];
+    
+    intermediateNums[0] <== bytes[0];
+    for (var i = 1; i < numBytes; i++) {
+        if (endian == 0) {
+            intermediateNums[i] <== intermediateNums[i - 1] * 2**8 + bytes[i];
+        } else {
+            intermediateNums[i] <== intermediateNums[i - 1] + bytes[i] * 2**(8*i);
         }
     }
-
-    out <== Bits2Num(128)(bits);
+    num <== intermediateNums[numBytes - 1];
 }
 
-/**
- * Convert a 128-bit number to an array of 16 bytes
+/*
+ * Convert a number to an array of bytes
+ *
+ * @param numBytes - Number of bytes for conversion
+ * @param endian - big-endian (0) or little-endian (1)
  * 
  * Example:
  * - Input: 1
- * - Output: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+ * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01] (big-endian)
+ * - Output: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] (litte-endian)
  *
  * - Input: 2^127
- * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
+ * - Output: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] (big-endian)
+ * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80] (litte-endian)
  */
-template NumToByte16() {
-    signal input in;
-    signal output {byte} out[16];
+template NumToBytes(numBytes, endian) {
+    assert(endian == 0 || endian == 1);
+    signal input num;
+    signal output {byte} bytes[numBytes];
 
-    signal bits[128] <== Num2Bits(128)(in);
-    signal byteBits[16][8];
-
-    for (var byte = 0; byte < 16; byte++) {
-        for (var bit = 0; bit < 8; bit++) {
-            byteBits[byte][7 - bit] <== bits[byte * 8 + bit];
+    signal intermediateNums[numBytes];
+    
+    intermediateNums[0] <== num;
+    for (var numIdx = 1; numIdx < numBytes; numIdx++) {
+        if (endian == 0) {
+            (intermediateNums[numIdx], bytes[numBytes - numIdx]) <== Divide()(intermediateNums[numIdx - 1], 2**8);
+        } else {
+            (intermediateNums[numIdx], bytes[numIdx - 1]) <== Divide()(intermediateNums[numIdx - 1], 2**8);
         }
-        out[byte] <== Bits2Num(8)(byteBits[byte]);
     }
+    bytes[(numBytes - 1) * endian] <== intermediateNums[numBytes - 1];
 }
 
 /**
