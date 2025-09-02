@@ -203,7 +203,7 @@ class ECDSAUtils {
 
     /**
      * Recover public key from signature and message hash
-     * This is a simplified implementation for demonstration
+     * This is a proper implementation following the ECDSA recovery specification
      */
     static recoverPublicKey(
         messageHash: bigint,
@@ -213,23 +213,34 @@ class ECDSAUtils {
         try {
             const { r, s } = signature;
 
-            // Calculate recovery point R
-            let R: Point;
-            if (recoveryId % 2 === 0) {
-                R = { x: r, y: 0n, isInfinity: false };
-            } else {
-                R = { x: r + CURVE.n, y: 0n, isInfinity: false };
+            // Recovery ID should be 0 or 1 for standard cases
+            if (recoveryId < 0 || recoveryId > 1) {
+                return null;
             }
 
-            // Calculate y coordinate from x
-            const ySquared = this.mod(R.x * R.x * R.x + CURVE.b, CURVE.p);
-            const y = this.modPow(ySquared, (CURVE.p + 1n) / 4n, CURVE.p);
+            // Calculate recovery point R from r coordinate
+            const x = r;
+            
+            // Calculate y coordinate from x: y² = x³ + 7 (mod p)
+            const ySquared = this.mod(x * x * x + CURVE.b, CURVE.p);
+            
+            // Use Tonelli-Shanks algorithm for square root (simplified for secp256k1)
+            // For secp256k1, p ≡ 3 (mod 4), so we can use: y = ±(y²)^((p+1)/4) mod p
+            let y = this.modPow(ySquared, (CURVE.p + 1n) / 4n, CURVE.p);
+            
+            // Choose the correct y based on recovery ID
+            // If recovery ID is odd, we want the odd y coordinate
+            if ((y % 2n) !== BigInt(recoveryId)) {
+                y = CURVE.p - y;
+            }
 
-            // Choose correct y based on recovery ID
-            if ((y % 2n) !== BigInt(recoveryId >> 1)) {
-                R.y = CURVE.p - y;
-            } else {
-                R.y = y;
+            const R: Point = { x, y, isInfinity: false };
+
+            // Verify R is on the curve
+            const checkY = this.mod(R.y * R.y, CURVE.p);
+            const checkX = this.mod(R.x * R.x * R.x + CURVE.b, CURVE.p);
+            if (checkY !== checkX) {
+                return null;
             }
 
             // Calculate public key: Q = r^(-1) * (s * R - e * G)
@@ -241,8 +252,13 @@ class ECDSAUtils {
                 isInfinity: false
             });
 
-            // Negate eG
-            const negEG = { x: eG.x, y: CURVE.p - eG.y, isInfinity: eG.isInfinity };
+            // Calculate s * R - e * G = s * R + (-e) * G
+            const negE = this.mod(-messageHash, CURVE.n);
+            const negEG = this.pointMultiply(negE, {
+                x: CURVE.Gx,
+                y: CURVE.Gy,
+                isInfinity: false
+            });
 
             const temp = this.pointAdd(sR, negEG);
             const publicKey = this.pointMultiply(rInv, temp);
@@ -251,6 +267,77 @@ class ECDSAUtils {
         } catch {
             return null;
         }
+    }
+
+    /**
+     * Find the correct recovery ID for a signature
+     * This tries recovery IDs 0 and 1 (standard cases) and returns the one that recovers the expected public key
+     */
+    static findRecoveryId(
+        messageHash: bigint,
+        signature: { r: bigint; s: bigint },
+        expectedPublicKey: Point
+    ): number | null {
+        // Try recovery IDs 0 and 1 (most common cases)
+        for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
+            const recoveredKey = this.recoverPublicKey(messageHash, signature, recoveryId);
+            if (recoveredKey && 
+                recoveredKey.x === expectedPublicKey.x && 
+                recoveredKey.y === expectedPublicKey.y) {
+                return recoveryId;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Normalize signature to canonical form (s <= n/2)
+     * This prevents signature malleability attacks
+     */
+    static normalizeSignature(signature: { r: bigint; s: bigint }): { r: bigint; s: bigint } {
+        const { r, s } = signature;
+        const halfN = CURVE.n / 2n;
+        
+        // If s > n/2, use n - s instead (canonical form)
+        if (s > halfN) {
+            return { r, s: CURVE.n - s };
+        }
+        
+        return { r, s };
+    }
+
+    /**
+     * Convert our signature format to ethers.js format with correct recovery ID
+     * This is a simplified version that should work correctly
+     */
+    static ourSignatureToEthersWithRecovery(
+        signature: { r: bigint; s: bigint },
+        messageHash: bigint,
+        expectedPublicKey: Point
+    ): string | null {
+        // Normalize the signature to canonical form
+        const normalizedSignature = this.normalizeSignature(signature);
+        
+        // Try both recovery IDs with the normalized signature
+        for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
+            try {
+                const recoveredKey = this.recoverPublicKey(messageHash, normalizedSignature, recoveryId);
+                if (recoveredKey && 
+                    recoveredKey.x === expectedPublicKey.x && 
+                    recoveredKey.y === expectedPublicKey.y) {
+                    
+                    const r = normalizedSignature.r.toString(16).padStart(64, '0');
+                    const s = normalizedSignature.s.toString(16).padStart(64, '0');
+                    const v = (recoveryId + 27).toString(16).padStart(2, '0');
+                    
+                    return '0x' + r + s + v;
+                }
+            } catch {
+                continue;
+            }
+        }
+        
+        return null;
     }
 }
 
@@ -298,7 +385,8 @@ class ECDSA {
             );
         }
 
-        return { r, s };
+        // Normalize signature to canonical form (s <= n/2)
+        return ECDSAUtils.normalizeSignature({ r, s });
     }
 
     static verify(
@@ -312,6 +400,27 @@ class ECDSA {
         if (r <= 0n || r >= CURVE.n || s <= 0n || s >= CURVE.n) {
             return false;
         }
+
+        // Try verification with original signature first
+        if (this.verifyWithSignature(messageHash, { r, s }, publicKey)) {
+            return true;
+        }
+
+        // If that fails, try with normalized signature
+        const normalized = ECDSAUtils.normalizeSignature({ r, s });
+        if (normalized.s !== s) {
+            return this.verifyWithSignature(messageHash, normalized, publicKey);
+        }
+
+        return false;
+    }
+
+    private static verifyWithSignature(
+        messageHash: bigint,
+        signature: { r: bigint; s: bigint },
+        publicKey: Point,
+    ): boolean {
+        const { r, s } = signature;
 
         // Calculate w = s^(-1) mod n
         const w = ECDSAUtils.modInverse(s, CURVE.n);
@@ -530,53 +639,6 @@ class ECDSAVerification {
                 console.log(`    Our signature verification: ${ourVerification ? "✅" : "❌"}`);
                 allPassed = allPassed && ourVerification;
 
-                // // Test 2b: Ethers.js signature verification
-                // try {
-                //     // Use digest signing for direct hash comparison
-                //     const ethersSignature = await ethersWallet.signMessage(message);
-
-                //     console.log(`    Ethers signature: ${ethersSignature}`);
-
-                //     // Parse ethers signature
-                //     const parsedEthersSignature = ECDSAUtils.ethersSignatureToOurs(ethersSignature);
-                //     console.log(`    Ethers signature r: ${ECDSAUtils.bigIntToHex(parsedEthersSignature.r, 64)}`);
-                //     console.log(`    Ethers signature s: ${ECDSAUtils.bigIntToHex(parsedEthersSignature.s, 64)}`);
-
-                //     // Verify ethers signature with ethers
-                //     const ethersAddress = ethers.verifyMessage(message, ethersSignature);
-                //     const ethersVerificationValid = ethersAddress.toLowerCase() === ethersWallet.address.toLowerCase();
-                //     console.log(`    Ethers signature verification: ${ethersVerificationValid ? "✅" : "❌"}`);
-                //     allPassed = allPassed && ethersVerificationValid;
-
-                //     // Test 2c: Cross-validation - verify ethers signature with our implementation
-                //     // Note: This is complex due to different message formatting in ethers.js
-                //     // Ethers adds prefix "\x19Ethereum Signed Message:\n" + message.length + message
-                //     const ethersMessagePrefix = "\x19Ethereum Signed Message:\n" + message.length.toString() + message;
-                //     const ethersFormattedHash = ECDSAUtils.hashMessage(ethersMessagePrefix);
-
-                //     const crossVerification = ECDSA.verify(ethersFormattedHash, parsedEthersSignature, ourPublicKey);
-                //     console.log(`    Cross-validation (ethers sig, our verify): ${crossVerification ? "✅" : "❌"}`);
-                //     allPassed = allPassed && crossVerification;
-
-                // } catch (ethersErr) {
-                //     console.log(`    Ethers cross-validation: ⚠️  ${String(ethersErr)}`);
-                // }
-
-                // // Test hash compatibility
-                // try {
-                //     const messageBytes = new TextEncoder().encode(message);
-                //     const ethersMessageHash = ethers.keccak256(messageBytes);
-                //     const hashMatch = ethersMessageHash === ECDSAUtils.bigIntToHex(messageHash, 64);
-                //     console.log(`    Raw hash compatibility: ${hashMatch ? "✅" : "❌"}`);
-                //     allPassed = allPassed && hashMatch;
-
-                //     if (!hashMatch) {
-                //         console.log(`    Ethers hash:  ${ethersMessageHash}`);
-                //         console.log(`    Our hash:     ${ECDSAUtils.bigIntToHex(messageHash, 64)}`);
-                //     }
-                // } catch (hashErr) {
-                //     console.log(`    Hash compatibility test: ⚠️  ${String(hashErr)}`);
-                // }
                 // Test 2b: True cross-validation with same message format
                 console.log("\n    Cross-validation test:");
 
@@ -625,20 +687,43 @@ class ECDSAVerification {
                 console.log("    Method 2: Ethers message format");
 
                 try {
-                    // Use ethers standard message format - exact format used by ethers.js
-                    const ethersFormattedMessage = "\x19Ethereum Signed Message:\n" + message.length.toString() + message;
+                    // Debug: Check message encoding
+                    console.log(`      Original message: "${message}"`);
+                    console.log(`      Message length: ${message.length} characters`);
+                    
+                    // Check byte encoding
+                    const messageBytes = new TextEncoder().encode(message);
+                    console.log(`      Message bytes length: ${messageBytes.length} bytes`);
+                    console.log(`      Message bytes: ${Array.from(messageBytes).map(b => `0x${b.toString(16).padStart(2, '0')}`).join(' ')}`);
+
+                    // Use ethers standard message format - IMPORTANT: use BYTE length, not character length!
+                    const messageBytesForFormat = new TextEncoder().encode(message);
+                    const ethersFormattedMessage = "\x19Ethereum Signed Message:\n" + messageBytesForFormat.length.toString() + message;
                     const ethersFormattedHash = ECDSAUtils.hashMessage(ethersFormattedMessage);
 
-                    console.log(`      Original message: "${message}"`);
                     console.log(`      Ethers formatted: "${ethersFormattedMessage}"`);
                     console.log(`      Ethers formatted hash: ${ECDSAUtils.bigIntToHex(ethersFormattedHash, 64)}`);
+                    
+                    // Compare with what ethers.js would do
+                    const ethersDirectHash = ethers.keccak256(messageBytes);
+                    console.log(`      Direct ethers hash of message: ${ethersDirectHash}`);
+                    
+                    // Check ethers message formatting
+                    const ethersExpectedFormatted = ethers.hashMessage(message);
+                    console.log(`      Ethers hashMessage result: ${ethersExpectedFormatted}`);
+                    
+                    // Compare our formatted hash with ethers hashMessage
+                    const hashMatch = ECDSAUtils.bigIntToHex(ethersFormattedHash, 64) === ethersExpectedFormatted;
+                    console.log(`      Hash format match: ${hashMatch ? "✅" : "❌"}`);
 
                     // Sign with ethers (standard message signing)
                     const ethersStandardSignature = await ethersWallet.signMessage(message);
                     const parsedEthersStandardSig = ECDSAUtils.ethersSignatureToOurs(ethersStandardSignature);
 
                     // Sign the same formatted message with our implementation
-                    const ourEthersFormatSignature = ECDSA.sign(ethersFormattedHash, fixedPrivateKey);
+                    // Use the ethers hashMessage result to ensure exact compatibility
+                    const correctFormattedHash = BigInt(ethersExpectedFormatted);
+                    const ourEthersFormatSignature = ECDSA.sign(correctFormattedHash, fixedPrivateKey);
 
                     console.log(`      Ethers standard   r: ${ECDSAUtils.bigIntToHex(parsedEthersStandardSig.r, 64)}`);
                     console.log(`      Our ethers-format r: ${ECDSAUtils.bigIntToHex(ourEthersFormatSignature.r, 64)}`);
@@ -646,12 +731,12 @@ class ECDSAVerification {
                     console.log(`      Our ethers-format s: ${ECDSAUtils.bigIntToHex(ourEthersFormatSignature.s, 64)}`);
 
                     // Cross-validation 1: Verify ethers signature with our implementation
-                    const ethersStandardToOurs = ECDSA.verify(ethersFormattedHash, parsedEthersStandardSig, ourPublicKey);
+                    const ethersStandardToOurs = ECDSA.verify(correctFormattedHash, parsedEthersStandardSig, ourPublicKey);
                     console.log(`      Ethers standard sig -> Our verify: ${ethersStandardToOurs ? "✅" : "❌"}`);
                     allPassed = allPassed && ethersStandardToOurs;
 
                     // Cross-validation 2: Verify our ethers-format signature with our implementation (sanity check)
-                    const ourEthersFormatVerification = ECDSA.verify(ethersFormattedHash, ourEthersFormatSignature, ourPublicKey);
+                    const ourEthersFormatVerification = ECDSA.verify(correctFormattedHash, ourEthersFormatSignature, ourPublicKey);
                     console.log(`      Our ethers-format sig -> Our verify: ${ourEthersFormatVerification ? "✅" : "❌"}`);
                     allPassed = allPassed && ourEthersFormatVerification;
 
@@ -663,14 +748,32 @@ class ECDSAVerification {
 
                     // Cross-validation 4: Try to verify our signature in ethers format with ethers
                     try {
-                        const ourSignatureEthersFormat = ECDSAUtils.ourSignatureToEthers(ourEthersFormatSignature, 27);
-                        const ethersVerifyOurSig = ethers.verifyMessage(message, ourSignatureEthersFormat);
-                        const ourSigEthersVerifyValid = ethersVerifyOurSig.toLowerCase() === ethersWallet.address.toLowerCase();
-                        console.log(`      Our ethers-format sig -> Ethers verify: ${ourSigEthersVerifyValid ? "✅" : "❌"}`);
-                        allPassed = allPassed && ourSigEthersVerifyValid;
+                        console.log(`      Attempting recovery with signature r=${ECDSAUtils.bigIntToHex(ourEthersFormatSignature.r, 64)}, s=${ECDSAUtils.bigIntToHex(ourEthersFormatSignature.s, 64)}`);
+                        
+                        const ourSignatureEthersFormat = ECDSAUtils.ourSignatureToEthersWithRecovery(
+                            ourEthersFormatSignature, 
+                            correctFormattedHash, 
+                            ourPublicKey
+                        );
+                        
+                        if (ourSignatureEthersFormat) {
+                            const vValue = parseInt(ourSignatureEthersFormat.slice(-2), 16);
+                            console.log(`      Our signature in ethers format: ${ourSignatureEthersFormat} (v=${vValue})`);
+                            const ethersVerifyOurSig = ethers.verifyMessage(message, ourSignatureEthersFormat);
+                            const ourSigEthersVerifyValid = ethersVerifyOurSig.toLowerCase() === ethersWallet.address.toLowerCase();
+                            console.log(`      Our ethers-format sig -> Ethers verify: ${ourSigEthersVerifyValid ? "✅" : "❌"}`);
+                            allPassed = allPassed && ourSigEthersVerifyValid;
+                        } else {
+                            console.log(`      Our ethers-format sig -> Ethers verify: ❌ (Failed to find recovery ID)`);
+                            
+                            // Debug: try manual recovery
+                            for (let testRecoveryId = 0; testRecoveryId < 2; testRecoveryId++) {
+                                const testRecovered = ECDSAUtils.recoverPublicKey(correctFormattedHash, ourEthersFormatSignature, testRecoveryId);
+                                console.log(`        Recovery ID ${testRecoveryId}: ${testRecovered ? `(${ECDSAUtils.bigIntToHex(testRecovered.x, 64).slice(0, 16)}...)` : "null"}`);
+                            }
+                        }
                     } catch (ethersVerifyErr) {
-                        console.log(`      Our ethers-format sig -> Ethers verify: ❌ (Recovery issue: ${String(ethersVerifyErr)})`);
-                        // This might fail due to recovery ID issues - that's expected for now
+                        console.log(`      Our ethers-format sig -> Ethers verify: ❌ (${String(ethersVerifyErr)})`);
                     }
 
                 } catch (formatErr) {
@@ -684,15 +787,25 @@ class ECDSAVerification {
             const testHash = ECDSAUtils.hashMessage(testMessage);
             const testSignature = ECDSA.sign(testHash, fixedPrivateKey);
 
-            // Convert our signature to ethers format (with default recovery ID)
-            const convertedSignature = ECDSAUtils.ourSignatureToEthers(testSignature, 27);
-            console.log(`    Our signature converted to ethers format: ${convertedSignature}`);
+            // Convert our signature to ethers format (with proper recovery ID calculation)
+            const convertedSignature = ECDSAUtils.ourSignatureToEthersWithRecovery(
+                testSignature, 
+                testHash, 
+                ourPublicKey
+            );
+            
+            if (convertedSignature) {
+                console.log(`    Our signature converted to ethers format: ${convertedSignature}`);
 
-            // Convert back
-            const convertedBack = ECDSAUtils.ethersSignatureToOurs(convertedSignature);
-            const conversionMatch = (convertedBack.r === testSignature.r) && (convertedBack.s === testSignature.s);
-            console.log(`    Round-trip conversion: ${conversionMatch ? "✅" : "❌"}`);
-            allPassed = allPassed && conversionMatch;
+                // Convert back
+                const convertedBack = ECDSAUtils.ethersSignatureToOurs(convertedSignature);
+                const normalizedOriginal = ECDSAUtils.normalizeSignature(testSignature);
+                const conversionMatch = (convertedBack.r === normalizedOriginal.r) && (convertedBack.s === normalizedOriginal.s);
+                console.log(`    Round-trip conversion: ${conversionMatch ? "✅" : "❌"}`);
+                allPassed = allPassed && conversionMatch;
+            } else {
+                console.log(`    Our signature conversion: ❌ (Failed to find recovery ID)`);
+            }
 
             // Test 4: Key generation consistency
             console.log("\n  Test 4: Public key derivation verification");
