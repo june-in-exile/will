@@ -33,22 +33,6 @@ template GenerateSignature() {
 }
 
 
-
-template CreatePermitStructure() {
-    signal input {address} testator;   // 20 byte unsigned integer
-    input Estate() estates[estateCount];
-    signal input {address} will;       // 20 byte unsigned integer
-    signal input {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-    signal input {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-    signal output Permit() permit;
-
-    // createPermitStructure
-
-    // signPermit
-
-}
-
-
 template HashPermit() {
     // _TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
     // = 0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1

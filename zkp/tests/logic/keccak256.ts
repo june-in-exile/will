@@ -374,22 +374,27 @@ class Keccak256 {
 
   /**
    * Convert input to bytes
+   * Only processes as hex if it starts with "0x", otherwise treats as plain text
    */
   static prepareInput(input: string | Uint8Array): Uint8Array {
     if (typeof input === "string") {
-      // Remove 0x prefix if present
-      const cleanHex = input.startsWith("0x") ? input.slice(2) : input;
-
-      // Check if it's hex or plain text
-      if (/^[0-9a-fA-F]*$/.test(cleanHex) && cleanHex.length % 2 === 0) {
-        // It's hex
-        const bytes = new Uint8Array(cleanHex.length / 2);
-        for (let i = 0; i < cleanHex.length; i += 2) {
-          bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
+      // Only process as hex if it has 0x prefix
+      if (input.startsWith("0x")) {
+        const cleanHex = input.slice(2);
+        
+        // Validate hex format
+        if (/^[0-9a-fA-F]*$/.test(cleanHex) && cleanHex.length % 2 === 0) {
+          const bytes = new Uint8Array(cleanHex.length / 2);
+          for (let i = 0; i < cleanHex.length; i += 2) {
+            bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+          }
+          return bytes;
+        } else {
+          // Invalid hex format after 0x, treat as plain text
+          return new TextEncoder().encode(input);
         }
-        return bytes;
       } else {
-        // It's plain text
+        // No 0x prefix, treat as plain text regardless of content
         return new TextEncoder().encode(input);
       }
     }
@@ -628,11 +633,9 @@ class Keccak256Verification {
     );
 
     const testVectors = [
-      "",
       "Hello World",
-      "0x48656c6c6f20576f726c64", // "Hello World" in hex
-      new Uint8Array([0x00]), // single byte
-      "The quick brown fox jumps over the lazy dog", // longer message
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+      "測試中文字",
     ];
 
     for (const testVector of testVectors) {
@@ -642,7 +645,7 @@ class Keccak256Verification {
 
       const actualDigest = Keccak256.hash(input);
       const isEqual = actualDigest == expectedDigest;
-      console.log("Our implementation:\t", actualDigest, isEqual ? "✅" : "❌");
+      console.log("Our impl:\t", actualDigest, isEqual ? "✅" : "❌");
 
       allPassed = allPassed && isEqual;
     }
@@ -650,13 +653,289 @@ class Keccak256Verification {
     return allPassed;
   }
 
+  static testEncodingCompatibility(): boolean {
+    console.log(
+      chalk.cyan("\n=== Keccak256 input format compatibility testing ==="),
+    );
+
+    let allPassed = true;
+
+    // Test cases with the same content in different formats
+    const testCases = [
+      {
+        name: "Empty string",
+        formats: {
+          plainText: "",
+          hexString: "0x",
+          uint8Array: new Uint8Array([]),
+        }
+      },
+      {
+        name: "Binary data with nulls",
+        formats: {
+          hexString: "0x000102ff",
+          uint8Array: new Uint8Array([0x00, 0x01, 0x02, 0xff]),
+        }
+      },
+      {
+        name: "Hello World",
+        formats: {
+          plainText: "Hello World",
+          hexString: "0x48656c6c6f20576f726c64",
+          uint8Array: new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64]),
+        }
+      },
+    ];
+
+    for (const { name, formats } of testCases) {
+      console.log(`\n  Testing ${name}:`);
+
+      const hashes: { [key: string]: string } = {};
+      let referenceHash: string | null = null;
+
+      // Calculate hash for each format
+      for (const [formatName, input] of Object.entries(formats)) {
+        try {
+          const hash = Keccak256.hash(input);
+          hashes[formatName] = hash;
+
+          if (referenceHash === null) {
+            referenceHash = hash;
+          }
+
+          console.log(`    ${formatName.padEnd(15)}: ${hash}`);
+        } catch (error) {
+          console.log(`    ${formatName.padEnd(15)}: Error - ${error}`);
+          allPassed = false;
+          continue;
+        }
+      }
+
+      // Verify all hashes are identical
+      const allHashesMatch = Object.values(hashes).every(hash => hash === referenceHash);
+
+      console.log(`    All formats match: ${allHashesMatch ? "✅" : "❌"}`);
+
+      if (!allHashesMatch) {
+        console.log("    Hash differences detected:");
+        const uniqueHashes = new Set(Object.values(hashes));
+        uniqueHashes.forEach(hash => {
+          const formatsWithThisHash = Object.entries(hashes)
+            .filter(([_, h]) => h === hash)
+            .map(([format, _]) => format);
+          console.log(`      ${hash} -> ${formatsWithThisHash.join(", ")}`);
+        });
+      }
+
+      allPassed = allPassed && allHashesMatch;
+
+      // Also verify against ethers.js for the plainText or uint8Array format
+      if (formats.plainText !== undefined || formats.uint8Array !== undefined) {
+        const referenceInput = formats.uint8Array || Keccak256.prepareInput(formats.plainText || "");
+        const ethersHash = ethers.keccak256(referenceInput);
+        const ethersMatch = referenceHash === ethersHash;
+
+        console.log(`    Ethers.js match:    ${ethersMatch ? "✅" : "❌"}`);
+        if (!ethersMatch) {
+          console.log(`      Expected: ${ethersHash}`);
+          console.log(`      Got:      ${referenceHash}`);
+        }
+
+        allPassed = allPassed && ethersMatch;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test Keccak256 with edge cases and boundary conditions
+   */
+  static testKeccak256Boundary(): boolean {
+    console.log(
+      chalk.cyan("\n=== Keccak256 boundary conditions testing ==="),
+    );
+
+    let allPassed = true;
+
+    // Test messages of various lengths and edge cases
+    const testMessages = [
+      { name: "Empty message", message: "" },
+      { name: "Single byte", message: "A" },
+      { name: "135 bytes (rate-1)", message: "A".repeat(135) },
+      { name: "136 bytes (= rate)", message: "A".repeat(136) },
+      { name: "137 bytes (rate+1)", message: "A".repeat(137) },
+      { name: "272 bytes (2*rate)", message: "A".repeat(272) },
+      { name: "273 bytes (2*rate+1)", message: "A".repeat(273) },
+    ];
+
+    for (const { name, message } of testMessages) {
+      console.log(`\n  Testing ${name}:`);
+
+      try {
+        const inputBytes = Keccak256.prepareInput(message);
+
+        // Test our implementation
+        const ourHash = Keccak256.hash(inputBytes);
+
+        // Compare with ethers
+        const expectedHash = ethers.keccak256(inputBytes);
+        const success = ourHash === expectedHash;
+
+        console.log("    Length:", inputBytes.length, "bytes");
+        console.log("    Expected:", expectedHash);
+        console.log("    Our impl:", ourHash, success ? "✅" : "❌");
+
+        if (!success) {
+          console.log("    Input bytes:", Keccak256Utils.bytesToHex(inputBytes.slice(0, 32)), inputBytes.length > 32 ? "..." : "");
+        }
+
+        allPassed = allPassed && success;
+      } catch (error) {
+        console.log(`    Error with ${name}:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Test Keccak256 padding edge cases
+   */
+  static testKeccak256Padding(): boolean {
+    console.log(chalk.cyan("\n=== Keccak256 padding testing ==="));
+
+    let allPassed = true;
+
+    // Test padding with different input sizes that affect padding behavior
+    const paddingTests = [
+      {
+        name: "0 bits (requires full rate padding)",
+        input: new Uint8Array(0),
+      },
+      {
+        name: "1 bit input",
+        input: new Uint8Array([0x01]),
+      },
+      {
+        name: "Rate - 2 bytes (1072 bits)",
+        input: new Uint8Array(134).fill(0xaa),
+      },
+      {
+        name: "Rate - 1 byte (1080 bits)",
+        input: new Uint8Array(135).fill(0xaa),
+      },
+      {
+        name: "Exactly rate boundary",
+        input: new Uint8Array(136).fill(0x55),
+      },
+    ];
+
+    for (const { name, input } of paddingTests) {
+      console.log(`\n  Testing ${name}:`);
+
+      try {
+        const testInput = input;
+
+        // For bit-level tests, we'd need to modify the implementation
+        // For now, test byte-level boundaries
+        const ourHash = Keccak256.hash(testInput);
+        const expectedHash = ethers.keccak256(testInput);
+        const success = ourHash === expectedHash;
+
+        console.log("    Input length:", testInput.length, "bytes");
+        console.log("    Expected:", expectedHash);
+        console.log("    Our impl:", ourHash, success ? "✅" : "❌");
+
+        allPassed = allPassed && success;
+      } catch (error) {
+        console.log(`    Error with ${name}:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
+  /**
+   * Performance test for Keccak256 with large data
+   * Tests hashing of larger data sets to verify performance
+   */
+  static testKeccak256Performance(): boolean {
+    console.log(chalk.cyan("\n=== Keccak256 performance testing ==="));
+
+    let allPassed = true;
+
+    // Test with different data sizes
+    const dataSizes = [1024, 4096, 16384, 65536]; // 1KB, 4KB, 16KB, 64KB
+
+    for (const size of dataSizes) {
+      console.log(`\n  Testing ${size} bytes:`);
+
+      try {
+        // Generate test data
+        const testData = new Uint8Array(size);
+        // Fill with pseudo-random data for realistic testing
+        for (let i = 0; i < size; i++) {
+          testData[i] = (i * 7) % 256;
+        }
+
+        const startTime = Date.now();
+
+        // Hash with our implementation
+        const ourHash = Keccak256.hash(testData);
+
+        const ourTime = Date.now() - startTime;
+        console.log(`    Our implementation time: ${ourTime}ms`);
+
+        // Compare with ethers for correctness
+        const ethersStartTime = Date.now();
+        const expectedHash = ethers.keccak256(testData);
+        const ethersTime = Date.now() - ethersStartTime;
+        console.log(`    Ethers time: ${ethersTime}ms`);
+
+        const success = ourHash === expectedHash;
+        console.log("    Correctness:", success ? "✅" : "❌");
+
+        // Basic performance check (should complete in reasonable time)
+        const performanceOK = ourTime < 5000; // Should complete within 5 seconds for largest test
+        console.log(
+          "    Performance:",
+          performanceOK ? "✅" : "❌",
+          `(${ourTime}ms)`,
+        );
+
+        // Calculate throughput
+        const throughputMBps = (size / (ourTime / 1000)) / (1024 * 1024);
+        console.log(`    Throughput: ${throughputMBps.toFixed(2)} MB/s`);
+
+        allPassed = allPassed && success && performanceOK;
+      } catch (error) {
+        console.log(`    Error with ${size} bytes:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    return allPassed;
+  }
+
   static runAllTests(): boolean {
-    const kecccak256Passed = this.testKeccak256();
+    const keccak256Passed = this.testKeccak256();
+    const encodingCompatibilityPassed = this.testEncodingCompatibility();
+    const boundaryPassed = this.testKeccak256Boundary();
+    const paddingPassed = this.testKeccak256Padding();
+    const performancePassed = this.testKeccak256Performance();
 
     console.log("\n📊 Complete Test Summary:");
-    console.log("Keccak256:", kecccak256Passed ? "✅" : "❌");
+    console.log("Basic Keccak256:", keccak256Passed ? "✅" : "❌");
+    console.log("Encoding compatibility:", encodingCompatibilityPassed ? "✅" : "❌");
+    console.log("Edge cases:", boundaryPassed ? "✅" : "❌");
+    console.log("Padding tests:", paddingPassed ? "✅" : "❌");
+    console.log("Performance tests:", performancePassed ? "✅" : "❌");
 
-    const allPassed = kecccak256Passed;
+    const allPassed = keccak256Passed && encodingCompatibilityPassed && boundaryPassed &&
+      paddingPassed && performancePassed;
 
     console.log(
       "Overall status:",
