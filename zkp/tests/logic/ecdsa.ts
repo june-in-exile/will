@@ -246,11 +246,11 @@ class ECDSAUtils {
             // Calculate public key: Q = r^(-1) * (s * R - e * G)
             const rInv = this.modInverse(r, CURVE.n);
             const sR = this.pointMultiply(s, R);
-            const eG = this.pointMultiply(messageHash, {
-                x: CURVE.Gx,
-                y: CURVE.Gy,
-                isInfinity: false
-            });
+            // const eG = this.pointMultiply(messageHash, {
+            //     x: CURVE.Gx,
+            //     y: CURVE.Gy,
+            //     isInfinity: false
+            // });
 
             // Calculate s * R - e * G = s * R + (-e) * G
             const negE = this.mod(-messageHash, CURVE.n);

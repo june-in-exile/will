@@ -362,7 +362,7 @@ class Keccak256 {
   /**
    * Main Keccak256 hash function
    *
-   * @note the hash value might differ from the official document since Solidity Keccak256 doesn't apply 01 suffix after message
+   * @note the hash value might differ from the NIST document since Solidity Keccak256 doesn't apply 01 suffix after message
    */
   static hash(input: string | Uint8Array): string {
     const inputBytes = this.prepareInput(input);
@@ -495,7 +495,6 @@ class Keccak256 {
 
   /**
    * Keccak-f[1600] permutation
-   * Returns a new state without modifying the original
    */
   static keccakF(state: BigUint64Array): BigUint64Array {
     let currentState: BigUint64Array = new BigUint64Array(25);
@@ -523,7 +522,6 @@ class Keccak256 {
 
   /**
    * θ (theta) step: Column parity computation
-   * Returns a new state without modifying the original
    */
   static theta(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
@@ -555,7 +553,6 @@ class Keccak256 {
 
   /**
    * ρ (rho) step: Bit rotation
-   * Returns a new state without modifying the original
    */
   static rho(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
@@ -569,7 +566,6 @@ class Keccak256 {
 
   /**
    * π (pi) step: Lane permutation
-   * Returns a new state without modifying the original
    */
   static pi(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
@@ -587,7 +583,6 @@ class Keccak256 {
 
   /**
    * χ (chi) step: Non-linear transformation
-   * Returns a new state without modifying the original
    */
   static chi(state: BigUint64Array): BigUint64Array {
     const newState = new BigUint64Array(25);
@@ -606,7 +601,6 @@ class Keccak256 {
 
   /**
    * ι (iota) step: Add round constant
-   * Returns a new state without modifying the original
    */
   static iota(state: BigUint64Array, round: number): BigUint64Array {
     const newState = new BigUint64Array(25);

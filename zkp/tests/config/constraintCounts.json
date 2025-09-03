@@ -23,20 +23,32 @@
     "BytesToBits": {},
     "BitsToBytes": {}
   },
-  "byteSubstitution": { "SubWord": {}, "SubBytes": {}, "SubstituteBytes": {} },
-  "columnMixing": { "MixColumn": {}, "MixColumns": {} },
   "counterIncrement": { "IncrementCounter": {} },
   "ctrEncrypt": { "CtrEncrypt": {}, "CtrDecrypt": {} },
   "deserialization": { "Deserialize": {} },
-  "encryptBlock": { "EncryptBlock": {} },
+  "encryptBlock": {
+    "ExpandKey": {},
+    "SubWord": {},
+    "SubBytes": {},
+    "SubstituteBytes": {},
+    "ShiftRows": {},
+    "MixColumn": {},
+    "MixColumns": {},
+    "AddRoundKey": {},
+    "EncryptBlock": {}
+  },
   "galoisField": {
     "GF8Mul2": {},
     "GF8Mul3": {},
     "GF128Multiply": {},
     "GHash": {}
   },
-  "gcmEncrypt": { "GcmEncrypt": {}, "GcmDecrypt": {} },
-  "j0Computation": { "ComputeJ0Standard": {}, "ComputeJ0NonStandard": {} },
+  "gcmEncrypt": {
+    "ComputeJ0Standard": {},
+    "ComputeJ0NonStandard": {},
+    "GcmEncrypt": {},
+    "GcmDecrypt": {}
+  },
   "keccakF1600": {
     "Theta": {},
     "Rho": {},
@@ -45,11 +57,8 @@
     "Iota": {},
     "KeccakF1600": {}
   },
-  "keyExpansion": { "ExpandKey": {} },
   "multiplier2": { "Multiplier2": {} },
   "range": { "InRange": {} },
-  "roundKeyAddition": { "AddRoundKey": {} },
-  "rowShifting": { "ShiftRows": {} },
   "sponge": {
     "Padding": {},
     "Absorb": {},

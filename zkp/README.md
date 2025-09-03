@@ -226,5 +226,4 @@ tests/
 
 - [NIST FIPS 202](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
 - [TeamKeccak](https://keccak.team/keccak_specs_summary.html)
-- [Keccak Circuit](https://hackmd.io/@dieGzUCgSGmRZFQ7SDxXCA/H1vMF0_u2)
 - [NIST Examples with Intermediate Values](https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values)
