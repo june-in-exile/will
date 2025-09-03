@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "counterIncrement.circom";
+include "counter.circom";
 include "encryptBlock.circom";
 include "../bus.circom";
 include "../bits.circom";

@@ -381,7 +381,7 @@ class Keccak256 {
       // Only process as hex if it has 0x prefix
       if (input.startsWith("0x")) {
         const cleanHex = input.slice(2);
-        
+
         // Validate hex format
         if (/^[0-9a-fA-F]*$/.test(cleanHex) && cleanHex.length % 2 === 0) {
           const bytes = new Uint8Array(cleanHex.length / 2);
@@ -662,22 +662,24 @@ class Keccak256Verification {
           plainText: "",
           hexString: "0x",
           uint8Array: new Uint8Array([]),
-        }
+        },
       },
       {
         name: "Binary data with nulls",
         formats: {
           hexString: "0x000102ff",
           uint8Array: new Uint8Array([0x00, 0x01, 0x02, 0xff]),
-        }
+        },
       },
       {
         name: "Hello World",
         formats: {
           plainText: "Hello World",
           hexString: "0x48656c6c6f20576f726c64",
-          uint8Array: new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64]),
-        }
+          uint8Array: new Uint8Array([
+            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
+          ]),
+        },
       },
     ];
 
@@ -706,14 +708,16 @@ class Keccak256Verification {
       }
 
       // Verify all hashes are identical
-      const allHashesMatch = Object.values(hashes).every(hash => hash === referenceHash);
+      const allHashesMatch = Object.values(hashes).every(
+        (hash) => hash === referenceHash,
+      );
 
       console.log(`    All formats match: ${allHashesMatch ? "✅" : "❌"}`);
 
       if (!allHashesMatch) {
         console.log("    Hash differences detected:");
         const uniqueHashes = new Set(Object.values(hashes));
-        uniqueHashes.forEach(hash => {
+        uniqueHashes.forEach((hash) => {
           const formatsWithThisHash = Object.entries(hashes)
             .filter(([_, h]) => h === hash)
             .map(([format, _]) => format);
@@ -725,7 +729,8 @@ class Keccak256Verification {
 
       // Also verify against ethers.js for the plainText or uint8Array format
       if (formats.plainText !== undefined || formats.uint8Array !== undefined) {
-        const referenceInput = formats.uint8Array || Keccak256.prepareInput(formats.plainText || "");
+        const referenceInput =
+          formats.uint8Array || Keccak256.prepareInput(formats.plainText || "");
         const ethersHash = ethers.keccak256(referenceInput);
         const ethersMatch = referenceHash === ethersHash;
 
@@ -746,9 +751,7 @@ class Keccak256Verification {
    * Test Keccak256 with edge cases and boundary conditions
    */
   static testKeccak256Boundary(): boolean {
-    console.log(
-      chalk.cyan("\n=== Keccak256 boundary conditions testing ==="),
-    );
+    console.log(chalk.cyan("\n=== Keccak256 boundary conditions testing ==="));
 
     let allPassed = true;
 
@@ -781,7 +784,11 @@ class Keccak256Verification {
         console.log("    Our impl:", ourHash, success ? "✅" : "❌");
 
         if (!success) {
-          console.log("    Input bytes:", Keccak256Utils.bytesToHex(inputBytes.slice(0, 32)), inputBytes.length > 32 ? "..." : "");
+          console.log(
+            "    Input bytes:",
+            Keccak256Utils.bytesToHex(inputBytes.slice(0, 32)),
+            inputBytes.length > 32 ? "..." : "",
+          );
         }
 
         allPassed = allPassed && success;
@@ -901,7 +908,7 @@ class Keccak256Verification {
         );
 
         // Calculate throughput
-        const throughputMBps = (size / (ourTime / 1000)) / (1024 * 1024);
+        const throughputMBps = size / (ourTime / 1000) / (1024 * 1024);
         console.log(`    Throughput: ${throughputMBps.toFixed(2)} MB/s`);
 
         allPassed = allPassed && success && performanceOK;
@@ -923,13 +930,20 @@ class Keccak256Verification {
 
     console.log("\n📊 Complete Test Summary:");
     console.log("Basic Keccak256:", keccak256Passed ? "✅" : "❌");
-    console.log("Encoding compatibility:", encodingCompatibilityPassed ? "✅" : "❌");
+    console.log(
+      "Encoding compatibility:",
+      encodingCompatibilityPassed ? "✅" : "❌",
+    );
     console.log("Edge cases:", boundaryPassed ? "✅" : "❌");
     console.log("Padding tests:", paddingPassed ? "✅" : "❌");
     console.log("Performance tests:", performancePassed ? "✅" : "❌");
 
-    const allPassed = keccak256Passed && encodingCompatibilityPassed && boundaryPassed &&
-      paddingPassed && performancePassed;
+    const allPassed =
+      keccak256Passed &&
+      encodingCompatibilityPassed &&
+      boundaryPassed &&
+      paddingPassed &&
+      performancePassed;
 
     console.log(
       "Overall status:",

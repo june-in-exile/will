@@ -1,6 +1,17 @@
 import { Byte, Byte4, Byte16, Word, Word4 } from "./type/index.js";
 import { WitnessTester, wordToByte, byteToWord } from "./util/index.js";
-import { AESUtils, expandKey, subWord, subBytes, substituteBytes, shiftRows, mixColumn, mixColumns, addRoundKey, encryptBlock } from "./logic/index.js";
+import {
+  AESUtils,
+  expandKey,
+  subWord,
+  subBytes,
+  substituteBytes,
+  shiftRows,
+  mixColumn,
+  mixColumns,
+  addRoundKey,
+  encryptBlock,
+} from "./logic/index.js";
 
 describe("ExpandKey Circuit", function () {
   let circuit: WitnessTester<["key"], ["roundKey"]>;

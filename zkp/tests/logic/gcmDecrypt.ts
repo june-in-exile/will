@@ -2,27 +2,29 @@ import { Byte, Word } from "../type/index.js";
 import { AESGCM } from "./aes-gcm.js";
 import { wordToBuffer } from "../util/index.js";
 
-function gcmEncrypt(
-  plaintext: Byte[],
+function gcmDecrypt(
+  ciphertext: Byte[],
   key: Word[],
   iv: Byte[],
+  authTag: Byte[],
   aad: Byte[],
-): { ciphertext: Byte[]; authTag: Byte[] } {
-  const plaintextBuffer = Buffer.from(plaintext);
+): { plaintext: Byte[] } {
+  const ciphertextBuffer = Buffer.from(ciphertext);
   const keyBuffer = wordToBuffer(key);
   const ivBuffer = Buffer.from(iv);
+  const authTagBuffer = Buffer.from(authTag);
   const aadBuffer = Buffer.from(aad);
 
-  const { ciphertext, authTag } = AESGCM.encrypt(
-    plaintextBuffer,
+  const { plaintext } = AESGCM.decrypt(
+    ciphertextBuffer,
     keyBuffer,
     ivBuffer,
+    authTagBuffer,
     aadBuffer,
   );
   return {
-    ciphertext: Array.from(ciphertext) as Byte[],
-    authTag: Array.from(authTag) as Byte[],
+    plaintext: Array.from(plaintext) as Byte[],
   };
 }
 
-export { gcmEncrypt };
+export { gcmDecrypt };

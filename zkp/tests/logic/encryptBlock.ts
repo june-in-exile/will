@@ -12,7 +12,7 @@ function expandKey(key: Word[]): Word[] {
 
   return roundKeyWord;
 }
-  
+
 function subWord(_in: Word): Word {
   const substituted = substituteBytes(_in.bytes);
   return {
@@ -73,4 +73,14 @@ function encryptBlock(plaintext: Byte16, key: Word[]): Byte16 {
   return ciphertext as Byte16;
 }
 
-export { expandKey, subWord, subBytes, substituteBytes, shiftRows, mixColumn, mixColumns, addRoundKey, encryptBlock };
+export {
+  expandKey,
+  subWord,
+  subBytes,
+  substituteBytes,
+  shiftRows,
+  mixColumn,
+  mixColumns,
+  addRoundKey,
+  encryptBlock,
+};

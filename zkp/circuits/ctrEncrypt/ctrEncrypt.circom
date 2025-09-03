@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-include "../shared/components/aes-gcm/counterIncrement.circom";
+include "../shared/components/aes-gcm/counter.circom";
 include "../shared/components/aes-gcm/encryptBlock.circom";
 include "../shared/components/bus.circom";
 include "../shared/components/bits.circom";

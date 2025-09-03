@@ -8,15 +8,15 @@ include "../bus.circom";
 include "../bits.circom";
 
 /**
- * Main AES-GCM Encryption Template
- * Combines all components to provide complete AES-GCM functionality
+ * Main AES-GCM Decryption Template
+ * Based on GcmEncrypt with authTag comparison
  * 
  * @param keyBits - AES key size (128, 192, or 256)
  * @param ivLength - IV length in bytes
  * @param textLengthBytes - Number of bytes to process
  * @param aadLengthBytes - Number of bytes for additional authenticated data
  */
-template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
+template GcmDecrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     var Nk;
     assert(keyBits == 128 || keyBits == 192 || keyBits == 256);
     if (keyBits == 128) {
@@ -27,12 +27,12 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
         Nk = 8;
     }
 
-    signal input {byte} plaintext[textLengthBytes];
+    signal input {byte} ciphertext[textLengthBytes];
     input Word() key[Nk];
     signal input {byte} iv[ivLength];
+    signal input {byte} authTag[16];
     signal input {byte} aad[aadLengthBytes];
-    signal output {byte} ciphertext[textLengthBytes];
-    signal output {byte} authTag[16];
+    signal output {byte} plaintext[textLengthBytes];
 
     // Step 1: Generate hash subkey H = CIPH_K(0^128)
     signal {byte} zeroBlock[16];
@@ -52,7 +52,7 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     }
 
     // Step 3: CTR encryption with incremented J0
-    ciphertext <== CtrEncrypt(keyBits, textLengthBytes)(plaintext, key, IncrementCounterOptimized()(j0));
+    plaintext <== CtrEncrypt(keyBits, textLengthBytes)(ciphertext, key, IncrementCounterOptimized()(j0));
     
     // Step 4: Calculate total blocks needed for GHASH input
     var aadNumBlocks = (aadLengthBytes + 15) \ 16;
@@ -122,7 +122,9 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     
     // Step 6: Final tag calculation: T = GCTR_K(J0, S) = S ⊕ CIPH_K(J0)
     signal {byte} tagMask[16] <== EncryptBlock(keyBits)(j0, key);
+    signal {byte} expectedAuthTag[16];
     for (var i = 0; i < 16; i++) {
-        authTag[i] <== BitwiseXor(2, 8)([S[i], tagMask[i]]);
+        expectedAuthTag[i] <== BitwiseXor(2, 8)([S[i], tagMask[i]]);
+        expectedAuthTag[i] === authTag[i];
     }
 }

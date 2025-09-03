@@ -1121,7 +1121,9 @@ class AESVerification {
    * Tests encryption of larger data sets and compares with Node.js crypto performance
    */
   static testCTRPerformance(): boolean {
-    console.log(chalk.cyan("\n=== AES CTR performance testing vs Node.js crypto ==="));
+    console.log(
+      chalk.cyan("\n=== AES CTR performance testing vs Node.js crypto ==="),
+    );
 
     let allPassed = true;
     const key = AESUtils.randomBytes(32); // AES-256
@@ -1131,7 +1133,7 @@ class AESVerification {
     const dataSizes = [1024, 4096, 16384, 65536]; // 1KB, 4KB, 16KB, 64KB
 
     for (const size of dataSizes) {
-      console.log(`\n  Testing ${size} bytes (${(size/1024).toFixed(1)}KB):`);
+      console.log(`\n  Testing ${size} bytes (${(size / 1024).toFixed(1)}KB):`);
 
       // Generate test data
       const testData = AESUtils.randomBytes(size);
@@ -1147,43 +1149,56 @@ class AESVerification {
         const ourDecryptTime = Date.now() - ourDecryptStart;
 
         const ourTotalTime = ourEncryptTime + ourDecryptTime;
-        const ourThroughputMBps = (size * 2 / (ourTotalTime / 1000)) / (1024 * 1024); // *2 for encrypt+decrypt
+        const ourThroughputMBps =
+          (size * 2) / (ourTotalTime / 1000) / (1024 * 1024); // *2 for encrypt+decrypt
 
         console.log(`    Our implementation:`);
-        console.log(`      Encrypt: ${ourEncryptTime}ms, Decrypt: ${ourDecryptTime}ms`);
-        console.log(`      Total: ${ourTotalTime}ms, Throughput: ${ourThroughputMBps.toFixed(2)} MB/s`);
+        console.log(
+          `      Encrypt: ${ourEncryptTime}ms, Decrypt: ${ourDecryptTime}ms`,
+        );
+        console.log(
+          `      Total: ${ourTotalTime}ms, Throughput: ${ourThroughputMBps.toFixed(2)} MB/s`,
+        );
 
         // === Node.js Crypto Module ===
         const nodeStartTime = Date.now();
-        
+
         // Node.js CTR encryption
-        const nodeCipher = createCipheriv('aes-256-ctr', key, iv);
+        const nodeCipher = createCipheriv("aes-256-ctr", key, iv);
         let nodeCiphertext = nodeCipher.update(testData);
         nodeCiphertext = Buffer.concat([nodeCiphertext, nodeCipher.final()]);
-        
+
         const nodeEncryptTime = Date.now() - nodeStartTime;
 
         const nodeDecryptStart = Date.now();
-        
-        // Node.js CTR decryption 
-        const nodeDecipher = createDecipheriv('aes-256-ctr', key, iv);
+
+        // Node.js CTR decryption
+        const nodeDecipher = createDecipheriv("aes-256-ctr", key, iv);
         let nodeDecrypted = nodeDecipher.update(nodeCiphertext);
         nodeDecrypted = Buffer.concat([nodeDecrypted, nodeDecipher.final()]);
-        
+
         const nodeDecryptTime = Date.now() - nodeDecryptStart;
         const nodeTotalTime = nodeEncryptTime + nodeDecryptTime;
-        const nodeThroughputMBps = (size * 2 / (nodeTotalTime / 1000)) / (1024 * 1024);
+        const nodeThroughputMBps =
+          (size * 2) / (nodeTotalTime / 1000) / (1024 * 1024);
 
         console.log(`    Node.js crypto:`);
-        console.log(`      Encrypt: ${nodeEncryptTime}ms, Decrypt: ${nodeDecryptTime}ms`);
-        console.log(`      Total: ${nodeTotalTime}ms, Throughput: ${nodeThroughputMBps.toFixed(2)} MB/s`);
+        console.log(
+          `      Encrypt: ${nodeEncryptTime}ms, Decrypt: ${nodeDecryptTime}ms`,
+        );
+        console.log(
+          `      Total: ${nodeTotalTime}ms, Throughput: ${nodeThroughputMBps.toFixed(2)} MB/s`,
+        );
 
         // === Performance Comparison ===
-        const speedRatio = nodeTotalTime > 0 ? (ourTotalTime / nodeTotalTime) : 0;
-        const throughputRatio = nodeThroughputMBps > 0 ? (ourThroughputMBps / nodeThroughputMBps) : 0;
-        
+        const speedRatio = nodeTotalTime > 0 ? ourTotalTime / nodeTotalTime : 0;
+        const throughputRatio =
+          nodeThroughputMBps > 0 ? ourThroughputMBps / nodeThroughputMBps : 0;
+
         console.log(`    Performance comparison:`);
-        console.log(`      Speed ratio (ours/node): ${speedRatio.toFixed(2)}x ${speedRatio <= 10 ? "✅" : "⚠️"}`);
+        console.log(
+          `      Speed ratio (ours/node): ${speedRatio.toFixed(2)}x ${speedRatio <= 10 ? "✅" : "⚠️"}`,
+        );
         console.log(`      Throughput ratio: ${throughputRatio.toFixed(2)}x`);
 
         // === Correctness Verification ===
@@ -1215,16 +1230,21 @@ class AESVerification {
         if (!correctnessOK) {
           console.log(`      Debugging info:`);
           if (!outputsMatch) {
-            console.log(`        First 16 bytes - Ours: ${AESUtils.bytesToHex(ourCiphertext.subarray(0, 16))}`);
-            console.log(`        First 16 bytes - Node: ${AESUtils.bytesToHex(nodeCiphertext.subarray(0, 16))}`);
+            console.log(
+              `        First 16 bytes - Ours: ${AESUtils.bytesToHex(ourCiphertext.subarray(0, 16))}`,
+            );
+            console.log(
+              `        First 16 bytes - Node: ${AESUtils.bytesToHex(nodeCiphertext.subarray(0, 16))}`,
+            );
           }
         } else if (!performanceOK) {
-          console.log(`      Performance warning: ${speedRatio > 20 ? "Speed ratio exceeded 20x" : "Execution time exceeded 5 seconds"}`);
+          console.log(
+            `      Performance warning: ${speedRatio > 20 ? "Speed ratio exceeded 20x" : "Execution time exceeded 5 seconds"}`,
+          );
         }
 
         // Only fail if correctness is wrong, performance warnings are acceptable
         allPassed = allPassed && correctnessOK;
-
       } catch (error) {
         console.log(`    Error with ${size} bytes:`, String(error), "❌");
         allPassed = false;

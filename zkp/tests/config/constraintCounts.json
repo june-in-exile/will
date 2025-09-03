@@ -23,8 +23,13 @@
     "BytesToBits": {},
     "BitsToBytes": {}
   },
-  "counterIncrement": { "IncrementCounter": {} },
-  "ctrEncrypt": { "CtrEncrypt": {}, "CtrDecrypt": {} },
+  "counter": {
+    "ComputeJ0Standard": {},
+    "ComputeJ0NonStandard": {},
+    "IncrementCounter": {}
+  },
+  "ctrDecrypt": { "CtrDecrypt": {} },
+  "ctrEncrypt": { "CtrEncrypt": {} },
   "deserialization": { "Deserialize": {} },
   "encryptBlock": {
     "ExpandKey": {},
@@ -43,11 +48,11 @@
     "GF128Multiply": {},
     "GHash": {}
   },
-  "gcmEncrypt": {
-    "ComputeJ0Standard": {},
-    "ComputeJ0NonStandard": {},
-    "GcmEncrypt": {},
+  "gcmDecrypt": {
     "GcmDecrypt": {}
+  },
+  "gcmEncrypt": {
+    "GcmEncrypt": {}
   },
   "keccakF1600": {
     "Theta": {},

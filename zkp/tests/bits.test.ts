@@ -1299,7 +1299,7 @@ describe("BytesToNum Circuit", function () {
         "BytesToNum",
         {
           templateParams: ["2", "0"],
-        }
+        },
       );
       circuit.setConstraint("big-endian 2-byte to 16-bit conversion");
     });
@@ -1307,27 +1307,19 @@ describe("BytesToNum Circuit", function () {
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          bytes: [
-            0x80, 0x00
-          ],
+          bytes: [0x80, 0x00],
           num: 2 ** 15,
         },
         {
-          bytes: [
-            0x01, 0x00
-          ],
+          bytes: [0x01, 0x00],
           num: 2 ** 8,
         },
         {
-          bytes: [
-            0x00, 0x80,
-          ],
+          bytes: [0x00, 0x80],
           num: 2 ** 7,
         },
         {
-          bytes: [
-            0x00, 0x01,
-          ],
+          bytes: [0x00, 0x01],
           num: 1,
         },
       ];
@@ -1345,7 +1337,7 @@ describe("BytesToNum Circuit", function () {
         "BytesToNum",
         {
           templateParams: ["2", "1"],
-        }
+        },
       );
       circuit.setConstraint("little-endian 2-byte to 16-bit conversion");
     });
@@ -1353,27 +1345,19 @@ describe("BytesToNum Circuit", function () {
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
-          bytes: [
-            0x80, 0x00
-          ],
+          bytes: [0x80, 0x00],
           num: 2 ** 7,
         },
         {
-          bytes: [
-            0x01, 0x00
-          ],
+          bytes: [0x01, 0x00],
           num: 1,
         },
         {
-          bytes: [
-            0x00, 0x80,
-          ],
+          bytes: [0x00, 0x80],
           num: 2 ** 15,
         },
         {
-          bytes: [
-            0x00, 0x01,
-          ],
+          bytes: [0x00, 0x01],
           num: 2 ** 8,
         },
       ];
@@ -1391,7 +1375,7 @@ describe("BytesToNum Circuit", function () {
         "BytesToNum",
         {
           templateParams: ["16", "0"],
-        }
+        },
       );
       circuit.setConstraint("big-endian 16-byte to 128-bit conversion");
     });
@@ -1441,7 +1425,7 @@ describe("BytesToNum Circuit", function () {
         "BytesToNum",
         {
           templateParams: ["16", "1"],
-        }
+        },
       );
       circuit.setConstraint("little-endian 16-byte to 128-bit conversion");
     });
@@ -1495,7 +1479,7 @@ describe("NumToBytes Circuit", function () {
         "NumToBytes",
         {
           templateParams: ["2", "0"],
-        }
+        },
       );
       circuit.setConstraint("big-endian 16-bit to 2-byte conversion");
     });
@@ -1504,27 +1488,19 @@ describe("NumToBytes Circuit", function () {
       const testCases = [
         {
           num: 2 ** 15,
-          bytes: [
-            0x80, 0x00
-          ],
+          bytes: [0x80, 0x00],
         },
         {
           num: 2 ** 8,
-          bytes: [
-            0x01, 0x00
-          ],
+          bytes: [0x01, 0x00],
         },
         {
           num: 2 ** 7,
-          bytes: [
-            0x00, 0x80,
-          ],
+          bytes: [0x00, 0x80],
         },
         {
           num: 1,
-          bytes: [
-            0x00, 0x01,
-          ],
+          bytes: [0x00, 0x01],
         },
       ];
 
@@ -1541,7 +1517,7 @@ describe("NumToBytes Circuit", function () {
         "NumToBytes",
         {
           templateParams: ["2", "1"],
-        }
+        },
       );
       circuit.setConstraint("little-endian 16-bit to 2-byte conversion");
     });
@@ -1550,27 +1526,19 @@ describe("NumToBytes Circuit", function () {
       const testCases = [
         {
           num: 2 ** 7,
-          bytes: [
-            0x80, 0x00
-          ],
+          bytes: [0x80, 0x00],
         },
         {
           num: 1,
-          bytes: [
-            0x01, 0x00
-          ],
+          bytes: [0x01, 0x00],
         },
         {
           num: 2 ** 15,
-          bytes: [
-            0x00, 0x80,
-          ],
+          bytes: [0x00, 0x80],
         },
         {
           num: 2 ** 8,
-          bytes: [
-            0x00, 0x01,
-          ],
+          bytes: [0x00, 0x01],
         },
       ];
 
@@ -1587,7 +1555,7 @@ describe("NumToBytes Circuit", function () {
         "NumToBytes",
         {
           templateParams: ["16", "0"],
-        }
+        },
       );
       circuit.setConstraint("big-endian 128-bit to 16-byte conversion");
     });
@@ -1637,7 +1605,7 @@ describe("NumToBytes Circuit", function () {
         "NumToBytes",
         {
           templateParams: ["16", "1"],
-        }
+        },
       );
       circuit.setConstraint("little-endian 128-bit to 16-byte conversion");
     });
@@ -1691,7 +1659,7 @@ describe("BytesToHex Circuit", function () {
         "BytesToHex",
         {
           templateParams: ["1"],
-        }
+        },
       );
       circuit.setConstraint("1-byte to 2-hex conversion");
     });
@@ -1738,7 +1706,7 @@ describe("BytesToHex Circuit", function () {
           bytes: [128],
           hex: [8, 0],
         },
-      ]
+      ];
 
       for (const { bytes, hex } of testCases) {
         await circuit.expectPass({ bytes }, { hex });
@@ -1753,7 +1721,7 @@ describe("BytesToHex Circuit", function () {
         "BytesToHex",
         {
           templateParams: ["8"],
-        }
+        },
       );
       circuit.setConstraint("8-byte to 16-hex conversion");
     });
@@ -1768,7 +1736,7 @@ describe("BytesToHex Circuit", function () {
           bytes: [10, 20, 30, 40, 50, 60, 70, 80],
           hex: [0, 10, 1, 4, 1, 14, 2, 8, 3, 2, 3, 12, 4, 6, 5, 0],
         },
-      ]
+      ];
 
       for (const { bytes, hex } of testCases) {
         await circuit.expectPass({ bytes }, { hex });
@@ -1787,7 +1755,7 @@ describe("HexToBytes Circuit", function () {
         "HexToBytes",
         {
           templateParams: ["1"],
-        }
+        },
       );
       circuit.setConstraint("2-hex to 1-byte conversion");
     });
@@ -1834,7 +1802,7 @@ describe("HexToBytes Circuit", function () {
           hex: [8, 0],
           bytes: [128],
         },
-      ]
+      ];
 
       for (const { hex, bytes } of testCases) {
         await circuit.expectPass({ hex }, { bytes });
@@ -1849,7 +1817,7 @@ describe("HexToBytes Circuit", function () {
         "HexToBytes",
         {
           templateParams: ["8"],
-        }
+        },
       );
       circuit.setConstraint("16-hex to 8-byte conversion");
     });
@@ -1864,7 +1832,7 @@ describe("HexToBytes Circuit", function () {
           hex: [0, 10, 1, 4, 1, 14, 2, 8, 3, 2, 3, 12, 4, 6, 5, 0],
           bytes: [10, 20, 30, 40, 50, 60, 70, 80],
         },
-      ]
+      ];
 
       for (const { hex, bytes } of testCases) {
         await circuit.expectPass({ hex }, { bytes });
