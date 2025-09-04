@@ -420,18 +420,9 @@ class ECDSA {
       return false;
     }
 
-    // Try verification with original signature first
-    if (this.verifyWithSignature(messageHash, { r, s }, publicKey)) {
-      return true;
-    }
-
-    // If that fails, try with normalized signature
+    // Verify with normalized signature
     const normalized = ECDSAUtils.normalizeSignature({ r, s });
-    if (normalized.s !== s) {
-      return this.verifyWithSignature(messageHash, normalized, publicKey);
-    }
-
-    return false;
+    return this.verifyWithSignature(messageHash, normalized, publicKey);
   }
 
   private static verifyWithSignature(

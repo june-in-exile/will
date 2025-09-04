@@ -866,7 +866,11 @@ async function searchBusInIncludes(
 
   while ((match = includeRegex.exec(content)) !== null) {
     const includePath = match[1];
-    if (includePath.startsWith("circomlib/") || includePath.startsWith("keccak256-circom/")) continue;
+    if (
+      includePath.startsWith("circomlib/") ||
+      includePath.startsWith("keccak256-circom/")
+    )
+      continue;
 
     try {
       const resolvedPath = path.resolve(circuitDir, includePath);

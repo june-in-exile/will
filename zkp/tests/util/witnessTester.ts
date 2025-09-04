@@ -151,7 +151,6 @@ class WitnessTester<
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
     try {
-
       const circomTester = await construct_wasm(
         circuitPath,
         templateName,
@@ -159,7 +158,9 @@ class WitnessTester<
       );
       return new WitnessTester(circomTester);
     } catch (error) {
-      throw new Error(`Failed to construct witness tester: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw new Error(
+        `Failed to construct witness tester: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 

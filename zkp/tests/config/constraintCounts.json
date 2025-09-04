@@ -31,6 +31,7 @@
   "ctrDecrypt": { "CtrDecrypt": {} },
   "ctrEncrypt": { "CtrEncrypt": {} },
   "deserialization": { "Deserialize": {} },
+  "ecdsa": { "ECDSAVerifyNoPubkeyCheck": {} },
   "encryptBlock": {
     "ExpandKey": {},
     "SubWord": {},

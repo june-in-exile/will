@@ -30,6 +30,6 @@ export default defineConfig({
       no_asm: false,
       no_init: false,
     }),
-    CONSTRAINT_COUNTS_PATH: '"./constraintCounts.json"'
+    CONSTRAINT_COUNTS_PATH: '"./constraintCounts.json"',
   },
 });

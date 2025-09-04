@@ -22,7 +22,9 @@ declare global {
  * @returns Array containing [parent directory, circuits directory] of the package
  * @throws Error if package is not found
  */
-async function getCircuitPackagePath(packageName: string = "circomlib"): Promise<[string, string]> {
+async function getCircuitPackagePath(
+  packageName: string = "circomlib",
+): Promise<[string, string]> {
   const zkpNodeModulesPath = path.join(process.cwd(), "node_modules");
   const packagePath = path.join(zkpNodeModulesPath, packageName);
 
@@ -31,7 +33,9 @@ async function getCircuitPackagePath(packageName: string = "circomlib"): Promise
     const packageJsonPath = path.join(packagePath, "package.json");
     require(packageJsonPath); // This will throw if the file doesn't exist
   } catch {
-    throw new Error(`${packageName} not found in ${zkpNodeModulesPath}. Please run: pnpm add ${packageName} -w`);
+    throw new Error(
+      `${packageName} not found in ${zkpNodeModulesPath}. Please run: pnpm add ${packageName} -w`,
+    );
   }
 
   return [path.dirname(packagePath), path.join(packagePath, "circuits")];
@@ -87,7 +91,9 @@ async function construct_wasm(
 
     return wasm_tester;
   } catch (error) {
-    throw new Error(`Fail to construct with wasm_tester: ${error instanceof Error ? error.message : "Unknown error"}`);
+    throw new Error(
+      `Fail to construct with wasm_tester: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 

@@ -3,6 +3,7 @@ export * from "./counter.js";
 export * from "./encryptBlock.js";
 export * from "./ctrDecrypt.js";
 export * from "./ctrEncrypt.js";
+export * from "./ecdsa.js";
 export * from "./gcmDecrypt.js";
 export * from "./gcmEncrypt.js";
 export * from "./keccak256.js";

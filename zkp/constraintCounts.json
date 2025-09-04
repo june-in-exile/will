@@ -311,5 +311,10 @@
       "512-bit massage": 151424,
       "1080-bit massage": 152560
     }
+  },
+  "ecdsa": {
+    "ECDSAVerifyNoPubkeyCheck": {
+      "256-bit message hash signature verification": 1508904
+    }
   }
 }
