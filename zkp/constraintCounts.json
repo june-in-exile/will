@@ -40,52 +40,6 @@
       "360-byte base64 decoder": 53289
     }
   },
-  "counter": {
-    "ComputeJ0Standard": {
-      "j0 computation for standard IV (12 bytes)": 4
-    },
-    "ComputeJ0NonStandard": {
-      "j0 computation for 16-byte IV": 34320,
-      "j0 computation for 1-byte IV": 34320,
-      "j0 computation for 4-byte IV": 34320,
-      "j0 computation for 7-byte IV": 34320,
-      "j0 computation for 8-byte IV": 34320,
-      "j0 computation for 13-byte IV": 34320,
-      "j0 computation for 15-byte IV": 34320,
-      "j0 computation for 31-byte IV": 51472,
-      "j0 computation for 32-byte IV": 51472
-    },
-    "IncrementCounter": {
-      "counter increment": 136
-    },
-    "IncrementCounterOptimized": {
-      "optimized counter increment": 33
-    }
-  },
-  "galosiField": {
-    "GF8Mul2": {
-      "GF(2^8) multiplication by 2": 59
-    },
-    "GF8Mul3": {
-      "GF(2^8) multiplication by 3": 83
-    },
-    "GF128MultiplyOptimized": {
-      "optimized GF(2^128) multiplication": 16768
-    },
-    "GF128Multiply": {
-      "GF(2^128) multiplication": 33280
-    },
-    "GHash": {
-      "1-block GHASH": 17152,
-      "2-block GHASH": 34304,
-      "4-block GHASH": 68608
-    },
-    "GHashOptimized": {
-      "optimized 1-block GHASH": 16768,
-      "optimized 2-block GHASH": 33920,
-      "optimized 4-block GHASH": 68224
-    }
-  },
   "bits": {
     "Mod2": {
       "modulo 2": 1
@@ -172,6 +126,51 @@
       "15-character utf8 string encoder": 15198
     }
   },
+  "counter": {
+    "ComputeJ0Standard": {
+      "j0 computation for standard IV (12 bytes)": 4
+    },
+    "ComputeJ0NonStandard": {
+      "j0 computation for 16-byte IV": 34320,
+      "j0 computation for 1-byte IV": 34320,
+      "j0 computation for 4-byte IV": 34320,
+      "j0 computation for 7-byte IV": 34320,
+      "j0 computation for 8-byte IV": 34320,
+      "j0 computation for 15-byte IV": 34320,
+      "j0 computation for 31-byte IV": 51472,
+      "j0 computation for 32-byte IV": 51472
+    },
+    "IncrementCounter": {
+      "counter increment": 136
+    },
+    "IncrementCounterOptimized": {
+      "optimized counter increment": 33
+    }
+  },
+  "galosiField": {
+    "GF8Mul2": {
+      "GF(2^8) multiplication by 2": 59
+    },
+    "GF8Mul3": {
+      "GF(2^8) multiplication by 3": 83
+    },
+    "GF128MultiplyOptimized": {
+      "optimized GF(2^128) multiplication": 16768
+    },
+    "GF128Multiply": {
+      "GF(2^128) multiplication": 33280
+    },
+    "GHash": {
+      "1-block GHASH": 17152,
+      "2-block GHASH": 34304,
+      "4-block GHASH": 68608
+    },
+    "GHashOptimized": {
+      "optimized 1-block GHASH": 16768,
+      "optimized 2-block GHASH": 33920,
+      "optimized 4-block GHASH": 68224
+    }
+  },
   "sponge": {
     "Padding": {
       "0-bit message, 1088-bit rate (1088-bit padding)": 1088,
@@ -190,8 +189,15 @@
       "1360-bit digest, 1088-bit rate": 115200
     },
     "Keccak256": {
-      "32-byte massage (less than one block)": 115456,
-      "170-byte massage (more than one block)": 232032
+      "1-bit massage": 115200,
+      "128-bit massage": 115200,
+      "256-bit massage": 115200,
+      "512-bit massage": 115200,
+      "1080-bit massage": 115200,
+      "1086-bit massage": 115200,
+      "1087-bit massage": 230400,
+      "1088-bit massage": 230400,
+      "1360-bit massage": 230672
     }
   },
   "keccakF1600": {
@@ -212,12 +218,6 @@
     },
     "KeccakF1600": {
       "keccak-f[1600]": 115200
-    }
-  },
-  "range": {
-    "InRange": {
-      "4-bit in-range check": 27,
-      "8-bit in-range check": 51
     }
   },
   "encryptBlock": {
@@ -253,6 +253,12 @@
       "AES-128 block cipher": 86432,
       "AES-192 block cipher": 99552,
       "AES-256 block cipher": 119936
+    }
+  },
+  "range": {
+    "InRange": {
+      "4-bit in-range check": 27,
+      "8-bit in-range check": 51
     }
   },
   "deserialization": {
@@ -297,9 +303,13 @@
       "AES-256-CTR 4-block decryption": 481379
     }
   },
-  "vocdoniKeccak": {
-    "VocdoniKeccak": {
-      "256-bit (32-byte) massage (less than one block)": 150848
+  "vocdoniKeccak256": {
+    "VocdoniKeccak256": {
+      "1-bit massage": 138170,
+      "128-bit massage": 149248,
+      "256-bit massage": 150848,
+      "512-bit massage": 151424,
+      "1080-bit massage": 152560
     }
   }
 }

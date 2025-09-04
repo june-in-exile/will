@@ -143,24 +143,20 @@ template Squeeze(digestBits, rateBits) {
  * Complete Keccak256 Hash Function
  *
  * Combines padding, absorb, and squeeze phases
- * Generates 32-byte (256-bit) digest
+ * Generates 256-bit digest
  *
- * @param msgBytes - Number of message bytes
+ * @param msgBits - Number of message bits
  */
-template Keccak256(msgBytes) {
-    signal input {byte} msg[msgBytes];
-    signal output {byte} digest[32];
+template Keccak256(msgBits) {
+    signal input {bit} msg[msgBits];
+    signal output {bit} digest[256];
 
-    var msgBits = msgBytes * 8;
     var digestBits = 256;
-    var digestBytes = digestBits \ 8;
     var rateBits = 1600 - 2 * digestBits;
     var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;
     var paddedMsgBits = numBlocks * rateBits;
 
-    signal bitsMsg[msgBits] <== BytesToBits(msgBytes, 1)(msg);
-    signal paddedMsg[paddedMsgBits] <== Padding(msgBits, rateBits)(bitsMsg);
+    signal paddedMsg[paddedMsgBits] <== Padding(msgBits, rateBits)(msg);
     signal stateArray[5][5][64] <== Absorb(paddedMsgBits, rateBits)(paddedMsg);
-    signal bitsDigest[256] <== Squeeze(digestBits, rateBits)(stateArray);
-    digest <== BitsToBytes(digestBytes, 1)(bitsDigest);
+    digest <== Squeeze(digestBits, rateBits)(stateArray);
 }

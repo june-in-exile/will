@@ -6,7 +6,7 @@ import {
   squeeze,
   keccak256,
 } from "./logic/index.js";
-import { Bit, Byte } from "./type/index.js";
+import { Bit } from "./type/index.js";
 
 describe("Padding Circuit", function () {
   let circuit: WitnessTester<["msg"], ["paddedMsg"]>;
@@ -46,8 +46,7 @@ describe("Padding Circuit", function () {
     });
 
     it("should add 1 whole block of padding", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(136));
-      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const msg = Keccak256Utils.getRandomBits(1088);
       const paddedMsg = Keccak256.addPaddingBits(msg);
 
       await circuit.expectPass({ msg }, { paddedMsg });
@@ -69,9 +68,7 @@ describe("Padding Circuit", function () {
     });
 
     it("should add 1 block plus 1 bit of padding", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(136));
-      const randomBits = Keccak256Utils.bytesToBits(randomBytes);
-      const msg = randomBits.slice(0, 1087);
+      const msg = Keccak256Utils.getRandomBits(1087);
       const paddedMsg = Keccak256.addPaddingBits(msg);
 
       await circuit.expectPass({ msg }, { paddedMsg });
@@ -91,9 +88,7 @@ describe("Padding Circuit", function () {
     });
 
     it("should add 2 bits of padding", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(136));
-      const randomBits = Keccak256Utils.bytesToBits(randomBytes);
-      const msg = randomBits.slice(0, 1086);
+      const msg = Keccak256Utils.getRandomBits(1086);
       const paddedMsg = Keccak256.addPaddingBits(msg);
 
       await circuit.expectPass({ msg }, { paddedMsg });
@@ -113,8 +108,7 @@ describe("Padding Circuit", function () {
     });
 
     it("should pad to 1 block", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(68));
-      const msg = Keccak256Utils.bytesToBits(randomBytes);
+      const msg = Keccak256Utils.getRandomBits(544);
       const paddedMsg = Keccak256.addPaddingBits(msg);
 
       await circuit.expectPass({ msg }, { paddedMsg });
@@ -153,8 +147,7 @@ describe("Absorb Circuit", function () {
     });
 
     it("should absorb one block and calculate the correct final state", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(136));
-      const msg = Keccak256Utils.bytesToBits(randomBytes) as Bit[];
+      const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
       const finalStateArray = absorb(msg);
 
       await circuit.expectPass({ msg }, { finalStateArray });
@@ -174,8 +167,7 @@ describe("Absorb Circuit", function () {
     });
 
     it("should absorb two blocks and calculate the correct final state", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(272));
-      const msg = Keccak256Utils.bytesToBits(randomBytes) as Bit[];
+      const msg = Keccak256Utils.getRandomBits(2176) as Bit[];
       const finalStateArray = absorb(msg);
 
       await circuit.expectPass({ msg }, { finalStateArray });
@@ -250,46 +242,166 @@ describe("Squeeze Circuit", function () {
   });
 });
 
-describe.only("Keccak256 Circuit", function () {
+describe("Keccak256 Circuit", function () {
   let circuit: WitnessTester<["msg"], ["digest"]>;
 
-  // 1 block is 1088 bits / 8 = 136 bytes
-  describe("Hash Less Than One Block", function (): void {
+  /*
+   * @note 1 block is 1088 bits / 8 = 136 bytes
+   */
+  describe("Hash 1 bit", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/keccak256/sponge.circom",
         "Keccak256",
         {
-          templateParams: ["32"],
+          templateParams: ["1"],
         },
       );
-      circuit.setConstraint("32-byte massage (less than one block)");
+      circuit.setConstraint("1-bit massage");
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(32));
-      const msg = Array.from(randomBytes) as Byte[];
+      const msg = Keccak256Utils.getRandomBits(1) as Bit[];
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
     });
   });
 
-  describe("Hash More Than One Block", function (): void {
+  describe("Hash 256 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
         "circuits/shared/components/keccak256/sponge.circom",
         "Keccak256",
         {
-          templateParams: ["170"],
+          templateParams: ["256"],
         },
       );
-      circuit.setConstraint("170-byte massage (more than one block)");
+      circuit.setConstraint("256-bit massage");
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(170));
-      const msg = Array.from(randomBytes) as Byte[];
+      const msg = Keccak256Utils.getRandomBits(256) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 512 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["512"],
+        },
+      );
+      circuit.setConstraint("512-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(512) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 1080 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["1080"],
+        },
+      );
+      circuit.setConstraint("1080-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(1080) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 1086 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["1086"],
+        },
+      );
+      circuit.setConstraint("1086-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(1086) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 1087 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["1087"],
+        },
+      );
+      circuit.setConstraint("1087-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(1087) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 1088 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["1088"],
+        },
+      );
+      circuit.setConstraint("1088-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
+      const digest = keccak256(msg);
+
+      await circuit.expectPass({ msg }, { digest });
+    });
+  });
+
+  describe("Hash 1360 bits", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/sponge.circom",
+        "Keccak256",
+        {
+          templateParams: ["1360"],
+        },
+      );
+      circuit.setConstraint("1360-bit massage");
+    });
+
+    it("should calculate the correct hash", async function (): Promise<void> {
+      const msg = Keccak256Utils.getRandomBits(1360) as Bit[];
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });

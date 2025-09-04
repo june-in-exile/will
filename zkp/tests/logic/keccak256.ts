@@ -272,21 +272,28 @@ class Keccak256Utils {
    */
   static hexToBytes(hex: string): Uint8Array {
     const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
-    
+
     if (cleanHex.length % 2 !== 0) {
       throw new Error(`Hex string must have even length, got ${cleanHex.length}`);
     }
-    
+
     if (!/^[0-9a-fA-F]*$/.test(cleanHex)) {
       throw new Error(`Invalid hex string: ${hex}`);
     }
-    
+
     const bytes = new Uint8Array(cleanHex.length / 2);
     for (let i = 0; i < cleanHex.length; i += 2) {
       bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
     }
-    
+
     return bytes;
+  }
+
+  static getRandomBits(numBits: number): number[] {
+    const numBytes = ((numBits - 1) / 8) + 1;
+    const randomBytes = crypto.getRandomValues(new Uint8Array(numBytes));
+    const bits = Keccak256Utils.bytesToBits(randomBytes).slice(0, numBits);
+    return bits;
   }
 
   /**
@@ -395,8 +402,49 @@ class Keccak256 {
   }
 
   /**
+   * Keccak256 hash function for bit arrays (non-byte-aligned inputs)
+   * 
+   * @param inputBits - Array of bits (0 or 1 values)
+   * @returns Hex string hash
+   */
+  static hashBits(inputBits: number[]): number[] {
+    // Validate input bits
+    for (let i = 0; i < inputBits.length; i++) {
+      if (inputBits[i] !== 0 && inputBits[i] !== 1) {
+        throw new Error(`All bits must be 0 or 1, found ${inputBits[i]} at index ${i}`);
+      }
+    }
+
+    const paddedBits = this.addPaddingBits(inputBits);
+    const paddedBytes = Keccak256Utils.bitsToBytes(paddedBits);
+    const state = this.absorb(paddedBytes);
+    const output = this.squeeze(state);
+    return Keccak256Utils.bytesToBits(output);
+  }
+
+  /**
+   * Keccak256 hash function for binary strings (e.g., "1010110")
+   * 
+   * @param binaryString - String of '0' and '1' characters
+   * @returns Binary string hash
+   */
+  static hashBinaryString(binaryString: string): string {
+    // Validate binary string format
+    if (!/^[01]*$/.test(binaryString)) {
+      throw new Error(`Binary string must only contain '0' and '1' characters, got: ${binaryString}`);
+    }
+
+    // Convert binary string to bit array
+    const inputBits = binaryString.split('').map(bit => parseInt(bit, 10));
+    const hashBits = this.hashBits(inputBits);
+
+    // Convert hash bits back to binary string
+    return hashBits.map(bit => bit.toString()).join('');
+  }
+
+  /**
    * Convert input to bytes
-   * Only processes as hex if it starts with "0x", otherwise treats as plain text
+   * For regular byte-based hashing. For non-byte-aligned inputs, use hashBits() instead.
    */
   static prepareInput(input: string | Uint8Array): Uint8Array {
     if (typeof input === "string") {
@@ -420,6 +468,7 @@ class Keccak256 {
         return new TextEncoder().encode(input);
       }
     }
+
     return input;
   }
 
@@ -440,8 +489,13 @@ class Keccak256 {
     const inputBitLength = inputBits.length;
     const rateBits = this.RATE_BYTES * 8; // 136 * 8 = 1088 bits
 
-    // Calculate padding length
-    const paddingBitLength = rateBits - (inputBitLength % rateBits);
+    // Calculate padding length - Keccak padding requires at least 2 bits (10*1 pattern)
+    // This means we need at least one '1', zero or more '0's, and one final '1'
+    let paddingBitLength = rateBits - (inputBitLength % rateBits);
+    if (paddingBitLength === 1) {
+      // If only 1 bit available, we need to add a full rate block to have space for "10...01"
+      paddingBitLength += rateBits;
+    }
 
     // Create padded bits array
     const paddedBits = new Array(inputBitLength + paddingBitLength).fill(0);
@@ -451,10 +505,11 @@ class Keccak256 {
       paddedBits[i] = inputBits[i];
     }
 
-    // Add padding: first bit is 1
+    // Add Keccak padding: 10*1 pattern
+    // First bit after input is always 1
     paddedBits[inputBitLength] = 1;
 
-    // Last bit is 1
+    // Last bit is always 1 (we now guarantee paddingBitLength >= 2)
     paddedBits[paddedBits.length - 1] = 1;
 
     return paddedBits;
@@ -943,12 +998,124 @@ class Keccak256Verification {
     return allPassed;
   }
 
+  /**
+   * Test Keccak256 with non-byte-aligned inputs (1-bit, 7-bit, etc.)
+   */
+  static testKeccak256BitInputs(): boolean {
+    console.log(chalk.cyan("\n=== Keccak256 non-byte-aligned input testing ==="));
+
+    let allPassed = true;
+
+    // Test cases for bit-level inputs
+    const bitTestCases = [
+      {
+        name: "1 bit (1)",
+        input: [1],
+        binaryString: "1",
+      },
+      {
+        name: "1 bit (0)",
+        input: [0],
+        binaryString: "0",
+      },
+      {
+        name: "7 bits (1010110)",
+        input: [1, 0, 1, 0, 1, 1, 0],
+        binaryString: "1010110",
+      },
+      {
+        name: "3 bits (101)",
+        input: [1, 0, 1],
+        binaryString: "101",
+      },
+      {
+        name: "5 bits (11010)",
+        input: [1, 1, 0, 1, 0],
+        binaryString: "11010",
+      },
+      {
+        name: "9 bits (101010101)",
+        input: [1, 0, 1, 0, 1, 0, 1, 0, 1],
+        binaryString: "101010101",
+      },
+      {
+        name: "15 bits (alternating)",
+        input: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+        binaryString: "101010101010101",
+      },
+      {
+        name: "Empty bit array",
+        input: [],
+        binaryString: "",
+      },
+    ];
+
+    for (const { name, input, binaryString } of bitTestCases) {
+      console.log(`\n  Testing ${name}:`);
+
+      try {
+        // Test hashBits method
+        const hashFromBits = Keccak256.hashBits(input);
+        console.log("    hashBits result:", hashFromBits);
+
+        // Test hashBinaryString method
+        const hashFromString = Keccak256.hashBinaryString(binaryString);
+        console.log("    hashBinaryString result:", hashFromString);
+
+        // Both methods should produce the same result (convert bits to string for comparison)
+        const hashFromBitsAsString = hashFromBits.map(bit => bit.toString()).join('');
+        const methodsMatch = hashFromBitsAsString === hashFromString;
+        console.log("    Methods match:", methodsMatch ? "✅" : "❌");
+
+        // Bit-exact methods should match, byte-padded methods should match
+        const bitExactMethodsMatch = hashFromBitsAsString === hashFromString;
+        // const bytePaddedMethodsMatch = hashFromPreparedInput === hashFromBinaryStringInput;
+        const allMethodsMatch = bitExactMethodsMatch;
+        // && bytePaddedMethodsMatch;
+
+        console.log("    All methods consistent:", allMethodsMatch ? "✅" : "❌");
+
+        allPassed = allPassed && methodsMatch && allMethodsMatch;
+
+        // Show bit length
+        console.log(`    Input bit length: ${input.length}`);
+
+      } catch (error) {
+        console.log(`    Error with ${name}:`, String(error), "❌");
+        allPassed = false;
+      }
+    }
+
+    // Test validation
+    console.log(`\n  Testing input validation:`);
+    try {
+      // Should throw error for invalid bit values
+      Keccak256.hashBits([1, 0, 2, 1]);
+      console.log("    Invalid bit validation: ❌ (should have thrown error)");
+      allPassed = false;
+    } catch (error) {
+      console.log("    Invalid bit validation: ✅ (correctly threw error)", String(error));
+    }
+
+    try {
+      // Should throw error for invalid binary string
+      Keccak256.hashBinaryString("10102");
+      console.log("    Invalid binary string validation: ❌ (should have thrown error)");
+      allPassed = false;
+    } catch (error) {
+      console.log("    Invalid binary string validation: ✅ (correctly threw error)", String(error));
+    }
+
+    return allPassed;
+  }
+
   static runAllTests(): boolean {
     const keccak256Passed = this.testKeccak256();
     const encodingCompatibilityPassed = this.testEncodingCompatibility();
     const boundaryPassed = this.testKeccak256Boundary();
     const paddingPassed = this.testKeccak256Padding();
     const performancePassed = this.testKeccak256Performance();
+    const bitInputsPassed = this.testKeccak256BitInputs();
 
     console.log("\n📊 Complete Test Summary:");
     console.log("Basic Keccak256:", keccak256Passed ? "✅" : "❌");
@@ -959,13 +1126,15 @@ class Keccak256Verification {
     console.log("Edge cases:", boundaryPassed ? "✅" : "❌");
     console.log("Padding tests:", paddingPassed ? "✅" : "❌");
     console.log("Performance tests:", performancePassed ? "✅" : "❌");
+    console.log("Non-byte-aligned inputs:", bitInputsPassed ? "✅" : "❌");
 
     const allPassed =
       keccak256Passed &&
       encodingCompatibilityPassed &&
       boundaryPassed &&
       paddingPassed &&
-      performancePassed;
+      performancePassed &&
+      bitInputsPassed;
 
     console.log(
       "Overall status:",

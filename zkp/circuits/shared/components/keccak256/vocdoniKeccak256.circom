@@ -4,7 +4,7 @@ include "keccak256-circom/circuits/keccak.circom";
 
 template VocdoniKeccak256(nBitsIn) {
     signal input msg[nBitsIn];
-    signal output digest[nBitsOut];
+    signal output digest[256];
 
     digest <== Keccak(nBitsIn, 256)(msg);
 }

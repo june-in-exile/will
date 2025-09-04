@@ -1,14 +1,10 @@
 import { Bit } from "../type/index.js";
-import { Keccak256, Keccak256Utils } from "./keccak256.js";
-import { hexToByte, byteToBit } from "../util/index.js";
+import { Keccak256 } from "./keccak256.js";
 
-function vocdoniKeccak256(inBits: Bit[]): Bit[] {
-    const inBytes = Keccak256Utils.bitsToBytes(inBits);
-    const outHex = Keccak256.hash(inBytes);
-    const outBytes = hexToByte(outHex);
-    const outBits = byteToBit(outBytes);
+function vocdoniKeccak256(msg: Bit[]): Bit[] {
+    const digest = Keccak256.hashBits(msg);
 
-    return outBits as Bit[];
+    return digest as Bit[];
 }
 
 export { vocdoniKeccak256 };
