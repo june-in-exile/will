@@ -8,6 +8,9 @@ include "../bits.circom";
 /**
  * ComputeJ0 for standard 12-byte (96-bit) IV
  * J0 = IV || 0x00000001
+ *
+ * J0 is the initial counter block in AES-GCM,
+ * from which the actual encryption counters (J0+1, J0+2, ...) are derived.
  */
 template ComputeJ0Standard() {
     signal input {byte} iv[12];
@@ -24,6 +27,9 @@ template ComputeJ0Standard() {
  * ComputeJ0 for non-standard IV lengths (not 96 bits)
  * Supports IV lengths from 1 to 16 bytes
  * J0 = GHASH_H(IV || 0^s || 0^64 || [len(IV)]64)
+ *
+ * J0 is the initial counter block in AES-GCM,
+ * from which the actual encryption counters (J0+1, J0+2, ...) are derived.
  */
 template ComputeJ0NonStandard(ivLengthInBytes) {
     assert(ivLengthInBytes > 0 && ivLengthInBytes <= 64);

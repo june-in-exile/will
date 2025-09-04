@@ -70,5 +70,6 @@
     "Squeeze": {},
     "Keccak256": {}
   },
-  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
+  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
+  "vocdoniKeccak": { "VocdoniKeccak": {} }
 }

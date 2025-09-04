@@ -1,4 +1,4 @@
-import { Byte, Byte4, Word } from "../type/index.js";
+import { Bit, Byte, Byte4, Word } from "../type/index.js";
 
 /**
  * @param bytes - Byte array (length should be a multiple of 4)
@@ -77,4 +77,66 @@ function hexToByte(hex: string): Byte[] {
   return bytes as Byte[];
 }
 
-export { byteToWord, wordToByte, bufferToWord, wordToBuffer, hexToByte };
+/**
+ * Convert bytes to hex string
+ */
+function byteToHex(bytes: Byte[]): string {
+  return bytes
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Convert bytes to bits array (each byte becomes 8 bits)
+ */
+function byteToBit(bytes: Byte[]): Bit[] {
+  const bits: Bit[] = [];
+  
+  for (const byte of bytes) {
+    // Extract each bit from the byte (LSB first)
+    for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+      const bit = (byte >> bitIdx) & 1;
+      bits.push(bit as Bit);
+    }
+  }
+  
+  return bits;
+}
+
+/**
+ * Convert bits array to bytes (every 8 bits becomes 1 byte)
+ */
+function bitToByte(bits: Bit[]): Byte[] {
+  if (bits.length % 8 !== 0) {
+    throw new Error(
+      `Bits array length must be multiple of 8, got ${bits.length}`
+    );
+  }
+  
+  // Validate that all values are 0 or 1
+  for (let i = 0; i < bits.length; i++) {
+    if (bits[i] !== 0 && bits[i] !== 1) {
+      throw new Error(
+        `All bits must be 0 or 1, found ${bits[i]} at index ${i}`
+      );
+    }
+  }
+  
+  const bytes: Byte[] = [];
+  
+  for (let byteIdx = 0; byteIdx < bits.length / 8; byteIdx++) {
+    let byteValue = 0;
+    
+    // Combine 8 bits into a byte (LSB first)
+    for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+      const bit = bits[byteIdx * 8 + bitIdx];
+      byteValue |= bit << bitIdx;
+    }
+    
+    bytes.push(byteValue as Byte);
+  }
+  
+  return bytes;
+}
+
+export { byteToWord, wordToByte, bufferToWord, wordToBuffer, hexToByte, byteToHex, byteToBit, bitToByte };

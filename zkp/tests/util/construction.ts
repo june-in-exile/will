@@ -11,20 +11,30 @@ const circom_tester = require("circom_tester");
 
 declare global {
   namespace globalThis {
+    var INCLUDE_LIB: string[];
     var CIRCOM_DEFAULTS: Record<string, unknown>;
   }
 }
 
-async function getCircomlibPath() {
-  let circomlibPath: string;
+/**
+ * Get the path for a circuit package
+ * @param packageName - Name of the circuit package (default: "circomlib")
+ * @returns Array containing [parent directory, circuits directory] of the package
+ * @throws Error if package is not found
+ */
+async function getCircuitPackagePath(packageName: string = "circomlib"): Promise<[string, string]> {
+  const zkpNodeModulesPath = path.join(process.cwd(), "node_modules");
+  const packagePath = path.join(zkpNodeModulesPath, packageName);
 
   try {
-    circomlibPath = path.dirname(require.resolve("circomlib/package.json"));
+    // Check if package.json exists in the package directory
+    const packageJsonPath = path.join(packagePath, "package.json");
+    require(packageJsonPath); // This will throw if the file doesn't exist
   } catch {
-    throw new Error("circomlib not found. Please run: pnpm add circomlib -w");
+    throw new Error(`${packageName} not found in ${zkpNodeModulesPath}. Please run: pnpm add ${packageName} -w`);
   }
 
-  return [path.dirname(circomlibPath), path.join(circomlibPath, "circuits")];
+  return [path.dirname(packagePath), path.join(packagePath, "circuits")];
 }
 
 /**
@@ -40,35 +50,45 @@ async function construct_wasm(
   templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
-  await modifyComponentMainInFile(circuitPath, "comment");
+  try {
+    await modifyComponentMainInFile(circuitPath, "comment");
 
-  const testCircuitPath = await generateUntaggedTemplate(
-    circuitPath,
-    templateName,
-  );
+    const testCircuitPath = await generateUntaggedTemplate(
+      circuitPath,
+      templateName,
+    );
 
-  const circomlibPath = await getCircomlibPath();
+    const includeLibPaths: string[] = [];
+    if (globalThis.INCLUDE_LIB && Array.isArray(globalThis.INCLUDE_LIB)) {
+      for (const lib of globalThis.INCLUDE_LIB) {
+        const path = await getCircuitPackagePath(lib);
+        includeLibPaths.push(...path);
+      }
+    }
 
-  const defaultOptions = globalThis.CIRCOM_DEFAULTS;
+    const defaultOptions = globalThis.CIRCOM_DEFAULTS;
 
-  const wasm_tester = await circom_tester.wasm(testCircuitPath, {
-    include: circomlibPath,
-    templateName: `Untagged${templateName}`,
-    ...(options?.templateParams && {
-      templateParams: options.templateParams,
-    }),
-    ...(options?.templatePublicSignals && {
-      templatePublicSignals: options.templatePublicSignals,
-    }),
-    ...defaultOptions,
-    ...options,
-  });
+    const wasm_tester = await circom_tester.wasm(testCircuitPath, {
+      include: [...includeLibPaths],
+      templateName: `Untagged${templateName}`,
+      ...(options?.templateParams && {
+        templateParams: options.templateParams,
+      }),
+      ...(options?.templatePublicSignals && {
+        templatePublicSignals: options.templatePublicSignals,
+      }),
+      ...defaultOptions,
+      ...options,
+    });
 
-  wasm_tester.templateName = templateName;
+    wasm_tester.templateName = templateName;
 
-  await modifyComponentMainInFile(circuitPath, "uncomment");
+    await modifyComponentMainInFile(circuitPath, "uncomment");
 
-  return wasm_tester;
+    return wasm_tester;
+  } catch (error) {
+    throw new Error(`Fail to construct with wasm_tester: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
 export { construct_wasm };

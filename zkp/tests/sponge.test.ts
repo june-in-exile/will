@@ -4,7 +4,7 @@ import {
   Keccak256Utils,
   absorb,
   squeeze,
-  hash,
+  keccak256,
 } from "./logic/index.js";
 import { Bit, Byte } from "./type/index.js";
 
@@ -250,7 +250,7 @@ describe("Squeeze Circuit", function () {
   });
 });
 
-describe("Keccak256 Circuit", function () {
+describe.only("Keccak256 Circuit", function () {
   let circuit: WitnessTester<["msg"], ["digest"]>;
 
   // 1 block is 1088 bits / 8 = 136 bytes
@@ -260,16 +260,16 @@ describe("Keccak256 Circuit", function () {
         "circuits/shared/components/keccak256/sponge.circom",
         "Keccak256",
         {
-          templateParams: ["16"],
+          templateParams: ["32"],
         },
       );
-      circuit.setConstraint("16-byte massage (less than one block)");
+      circuit.setConstraint("32-byte massage (less than one block)");
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
-      const randomBytes = crypto.getRandomValues(new Uint8Array(16));
+      const randomBytes = crypto.getRandomValues(new Uint8Array(32));
       const msg = Array.from(randomBytes) as Byte[];
-      const digest = hash(msg);
+      const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
     });
@@ -290,7 +290,7 @@ describe("Keccak256 Circuit", function () {
     it("should calculate the correct hash", async function (): Promise<void> {
       const randomBytes = crypto.getRandomValues(new Uint8Array(170));
       const msg = Array.from(randomBytes) as Byte[];
-      const digest = hash(msg);
+      const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
     });

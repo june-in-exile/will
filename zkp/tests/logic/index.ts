@@ -8,3 +8,4 @@ export * from "./gcmEncrypt.js";
 export * from "./keccak256.js";
 export * from "./sponge.js";
 export * from "./utf8.js";
+export * from "./vocdoniKeccak256.js";

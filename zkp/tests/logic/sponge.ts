@@ -16,10 +16,10 @@ function squeeze(stateArray: number[][][]): Bit[] {
   return Keccak256Utils.bytesToBits(digest) as Bit[];
 }
 
-function hash(msg: Byte[]): Byte[] {
+function keccak256(msg: Byte[]): Byte[] {
   const digest = Keccak256.hash(Uint8Array.from(msg));
 
   return hexToByte(digest) as Byte[];
 }
 
-export { absorb, squeeze, hash };
+export { absorb, squeeze, keccak256 };

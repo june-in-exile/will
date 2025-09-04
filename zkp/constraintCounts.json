@@ -190,7 +190,7 @@
       "1360-bit digest, 1088-bit rate": 115200
     },
     "Keccak256": {
-      "16-byte massage (less than one block)": 115328,
+      "32-byte massage (less than one block)": 115456,
       "170-byte massage (more than one block)": 232032
     }
   },
@@ -295,6 +295,11 @@
   "ctrDecrypt": {
     "CtrDecrypt": {
       "AES-256-CTR 4-block decryption": 481379
+    }
+  },
+  "vocdoniKeccak": {
+    "VocdoniKeccak": {
+      "256-bit (32-byte) massage (less than one block)": 150848
     }
   }
 }

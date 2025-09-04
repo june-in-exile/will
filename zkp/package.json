@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "circomkit": "^0.3.3",
-    "circomlib": "^2.0.5"
+    "circomlib": "^2.0.5",
+    "keccak256-circom": "git+https://github.com/vocdoni/keccak256-circom"
   }
 }
