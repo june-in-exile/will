@@ -55,6 +55,9 @@
   "gcmEncrypt": {
     "GcmEncrypt": {}
   },
+  "keccak256": {
+    "Keccak256": {}
+  },
   "keccakF1600": {
     "Theta": {},
     "Rho": {},
@@ -77,8 +80,7 @@
   "sponge": {
     "Padding": {},
     "Absorb": {},
-    "Squeeze": {},
-    "Keccak256": {}
+    "Squeeze": {}
   },
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
   "VocdoniKeccak256": { "VocdoniKeccak256": {} }

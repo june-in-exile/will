@@ -1,30 +1,22 @@
 {
-  "arithmetic": {
-    "Divide": {
-      "division": 1
+  "sponge": {
+    "Padding": {
+      "1088-bit message, 1088-bit rate (1088-bit padding)": 1088,
+      "1087-bit message, 1088-bit rate (1089-bit padding)": 1089,
+      "1086-bit message, 1088-bit rate (2-bit padding)": 2,
+      "544-bit message, 1088-bit rate (544-bit padding)": 544
     },
-    "MultiplyTwoArray": {
-      "1-element array multiplication": 1,
-      "3-element array multiplication": 3,
-      "5-element array multiplication": 5,
-      "10-element array multiplication": 10
+    "Absorb": {
+      "1088-bit message, 1088-bit rate": 115200,
+      "2176-bit message, 1088-bit rate": 231488
     },
-    "Sum": {
-      "sum 3 elements": 0,
-      "sum 5 elements": 0,
-      "sum 10 elements": 0
+    "Squeeze": {
+      "256-bit digest, 1088-bit rate": 0,
+      "1088-bit digest, 1088-bit rate": 0,
+      "1360-bit digest, 1088-bit rate": 115200
     }
   },
   "base64": {
-    "Base64Char": {
-      "base64 character": 144
-    },
-    "Base64CharExcludingPadding": {
-      "base64 character excluding padding": 142
-    },
-    "Base64CharWithPaddingDetector": {
-      "base64 character with padding detector": 144
-    },
     "Base64GroupDecoder": {
       "base64 group decoder": 65
     },
@@ -40,13 +32,21 @@
       "360-byte base64 decoder": 53289
     }
   },
+  "utf8": {
+    "Utf8StringEncoder": {
+      "3-character utf8 string encoder": 882,
+      "15-character utf8 string encoder": 15198
+    }
+  },
+  "arithmetic": {
+    "Sum": {
+      "sum 3 elements": 0,
+      "sum 5 elements": 0,
+      "sum 10 elements": 0
+    }
+  },
   "bits": {
-    "Mod2": {
-      "modulo 2": 1
-    },
     "Mask": {
-      "8-bit 0x0F mask": 24,
-      "16-bit 0x00FF mask": 48,
       "32-bit 0x0000FFFF mask": 96
     },
     "ShiftRight": {
@@ -114,110 +114,24 @@
       "lsb-first 256 bits to 32-byte conversion": 0
     }
   },
-  "utf8": {
-    "Utf8ByteLength": {
-      "utf8 length (in bytes) calculation": 135
+  "secp256k1": {
+    "Secp256k1PointOnLine": {
+      "check 3 points are collinear": 598
     },
-    "Utf8Encoder": {
-      "utf8 encoder": 174
+    "Secp256k1PointOnTangent": {
+      "check 2 points on the same tangent line": 1160
     },
-    "Utf8StringEncoder": {
-      "3-character utf8 string encoder": 882,
-      "15-character utf8 string encoder": 15198
-    }
-  },
-  "counter": {
-    "ComputeJ0Standard": {
-      "j0 computation for standard IV (12 bytes)": 4
+    "Secp256k1PointOnCurve": {
+      "check point is on curve": 1126
     },
-    "ComputeJ0NonStandard": {
-      "j0 computation for 16-byte IV": 34320,
-      "j0 computation for 1-byte IV": 34320,
-      "j0 computation for 4-byte IV": 34320,
-      "j0 computation for 7-byte IV": 34320,
-      "j0 computation for 8-byte IV": 34320,
-      "j0 computation for 15-byte IV": 34320,
-      "j0 computation for 31-byte IV": 51472,
-      "j0 computation for 32-byte IV": 51472
+    "Secp256k1AddUnequal": {
+      "point addition on secp256k1 curve": 2515
     },
-    "IncrementCounter": {
-      "counter increment": 136
+    "Secp256k1Double": {
+      "point doubling on secp256k1 curve": 2955
     },
-    "IncrementCounterOptimized": {
-      "optimized counter increment": 33
-    }
-  },
-  "galosiField": {
-    "GF8Mul2": {
-      "GF(2^8) multiplication by 2": 59
-    },
-    "GF8Mul3": {
-      "GF(2^8) multiplication by 3": 83
-    },
-    "GF128MultiplyOptimized": {
-      "optimized GF(2^128) multiplication": 16768
-    },
-    "GF128Multiply": {
-      "GF(2^128) multiplication": 33280
-    },
-    "GHash": {
-      "1-block GHASH": 17152,
-      "2-block GHASH": 34304,
-      "4-block GHASH": 68608
-    },
-    "GHashOptimized": {
-      "optimized 1-block GHASH": 16768,
-      "optimized 2-block GHASH": 33920,
-      "optimized 4-block GHASH": 68224
-    }
-  },
-  "sponge": {
-    "Padding": {
-      "0-bit message, 1088-bit rate (1088-bit padding)": 1088,
-      "1088-bit message, 1088-bit rate (1088-bit padding)": 1088,
-      "1087-bit message, 1088-bit rate (1089-bit padding)": 1089,
-      "1086-bit message, 1088-bit rate (2-bit padding)": 2,
-      "544-bit message, 1088-bit rate (544-bit padding)": 544
-    },
-    "Absorb": {
-      "1088-bit message, 1088-bit rate": 115200,
-      "2176-bit message, 1088-bit rate": 231488
-    },
-    "Squeeze": {
-      "256-bit digest, 1088-bit rate": 0,
-      "1088-bit digest, 1088-bit rate": 0,
-      "1360-bit digest, 1088-bit rate": 115200
-    },
-    "Keccak256": {
-      "1-bit massage": 115200,
-      "128-bit massage": 115200,
-      "256-bit massage": 115200,
-      "512-bit massage": 115200,
-      "1080-bit massage": 115200,
-      "1086-bit massage": 115200,
-      "1087-bit massage": 230400,
-      "1088-bit massage": 230400,
-      "1360-bit massage": 230672
-    }
-  },
-  "keccakF1600": {
-    "Theta": {
-      "theta": 1600
-    },
-    "Rho": {
-      "rho": 0
-    },
-    "Pi": {
-      "pi": 0
-    },
-    "Chi": {
-      "chi": 3200
-    },
-    "Iota": {
-      "iota": 0
-    },
-    "KeccakF1600": {
-      "keccak-f[1600]": 115200
+    "Secp256k1ScalarMult": {
+      "point multiplication by scalar on secp256k1 curve": 1399441
     }
   },
   "encryptBlock": {
@@ -255,20 +169,60 @@
       "AES-256 block cipher": 119936
     }
   },
-  "range": {
-    "InRange": {
-      "4-bit in-range check": 27,
-      "8-bit in-range check": 51
+  "keccakF1600": {
+    "Theta": {
+      "theta": 1600
+    },
+    "Rho": {
+      "rho": 0
+    },
+    "Pi": {
+      "pi": 0
+    },
+    "Chi": {
+      "chi": 3200
+    },
+    "Iota": {
+      "iota": 0
+    },
+    "KeccakF1600": {
+      "keccak-f[1600]": 115200
     }
   },
-  "deserialization": {
-    "Deserialize": {
-      "will deserialization": 0
+  "counter": {
+    "ComputeJ0NonStandard": {
+      "j0 computation for 16-byte IV": 34320,
+      "j0 computation for 1-byte IV": 34320,
+      "j0 computation for 4-byte IV": 34320,
+      "j0 computation for 7-byte IV": 34320,
+      "j0 computation for 8-byte IV": 34320,
+      "j0 computation for 15-byte IV": 34320,
+      "j0 computation for 31-byte IV": 51472,
+      "j0 computation for 32-byte IV": 51472
+    },
+    "IncrementCounterOptimized": {
+      "optimized counter increment": 33
+    },
+    "IncrementCounter": {
+      "counter increment": 136
     }
   },
-  "multiplier2": {
-    "Multiplier2": {
-      "multiplication": 1
+  "galosiField": {
+    "GF128MultiplyOptimized": {
+      "optimized GF(2^128) multiplication": 16768
+    },
+    "GF128Multiply": {
+      "GF(2^128) multiplication": 33280
+    },
+    "GHash": {
+      "1-block GHASH": 17152,
+      "2-block GHASH": 34304,
+      "4-block GHASH": 68608
+    },
+    "GHashOptimized": {
+      "optimized 1-block GHASH": 16768,
+      "optimized 2-block GHASH": 33920,
+      "optimized 4-block GHASH": 68224
     }
   },
   "ctrEncrypt": {
@@ -278,6 +232,12 @@
       "AES-128-CTR 4-block encryption": 347363,
       "AES-192-CTR 4-block encryption": 399843,
       "AES-256-CTR 4-block encryption": 481379
+    }
+  },
+  "range": {
+    "InRange": {
+      "4-bit in-range check": 27,
+      "8-bit in-range check": 51
     }
   },
   "gcmEncrypt": {
@@ -293,9 +253,39 @@
       "AES-256-GCM 16-byte IV, 1-block plaintext, no aad encryption": 428849
     }
   },
+  "keccak256": {
+    "Keccak256": {
+      "1-bit massage": 115200,
+      "256-bit massage": 115200,
+      "512-bit massage": 115200,
+      "1080-bit massage": 115200,
+      "1086-bit massage": 115200,
+      "1087-bit massage": 230400,
+      "1088-bit massage": 230400,
+      "1360-bit massage": 230672
+    }
+  },
+  "deserialization": {
+    "Deserialize": {
+      "will deserialization": 0
+    }
+  },
+  "multiplier2": {
+    "Multiplier2": {
+      "multiplication": 1
+    }
+  },
   "gcmDecrypt": {
     "GcmDecrypt": {
       "AES-256-GCM standard IV, 1-block plaintext, no aad encryption": 394529
+    }
+  },
+  "vocdoniKeccak256": {
+    "VocdoniKeccak256": {
+      "1-bit massage": 138170,
+      "256-bit massage": 150848,
+      "512-bit massage": 151424,
+      "1080-bit massage": 152560
     }
   },
   "ctrDecrypt": {
@@ -303,50 +293,9 @@
       "AES-256-CTR 4-block decryption": 481379
     }
   },
-  "vocdoniKeccak256": {
-    "VocdoniKeccak256": {
-      "1-bit massage": 138170,
-      "128-bit massage": 149248,
-      "256-bit massage": 150848,
-      "512-bit massage": 151424,
-      "1080-bit massage": 152560
-    }
-  },
   "ecdsa": {
-    "ECDSAPrivToPub": {
-      "calculate ecdsa public key from private key": 95444
-    },
     "ECDSAVerifyNoPubkeyCheck": {
-      "256-bit message hash signature verification": 1508904,
       "256-bit message hash signature verification w/o checking public key": 1508904
-    }
-  },
-  "ecdsaVerify": {
-    "EcdsaVerify": {
-      "256-bit message hash signature verification": 1508904
-    }
-  },
-  "secp256k1": {
-    "Secp256k1ScalarMult": {
-      "point multiplication on secp256k1 curve": 1399441
-    },
-    "AddUnequalCubicConstraint": {
-      "check cubic constraint for elliptic curve point addition": 1257
-    },
-    "Secp256k1PointOnLine": {
-      "check 3 points are collinear": 598
-    },
-    "Secp256k1PointOnTangent": {
-      "check 2 points on the same tangent line": 1160
-    },
-    "Secp256k1PointOnCurve": {
-      "check point is on curve": 1126
-    },
-    "Secp256k1AddUnequal": {
-      "point addition on secp256k1 curve": 2515
-    },
-    "Secp256k1Double": {
-      "point doubling on secp256k1 curve": 2955
     }
   }
 }

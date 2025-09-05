@@ -165,7 +165,7 @@ clean:
 	@echo "✅ $(CIRCUIT) cleaned!"
 
 clean-all:
-	@echo "🧹 Cleaning all circuits and Powers of Tau..."
+	@echo "🧹 Cleaning all circuits..."
 	@for circuit_dir in circuits/*/; do \
 		[ -d "$$circuit_dir" ] && [ "$$(basename "$$circuit_dir")" != "shared" ] || continue; \
 		echo "  Cleaning $$(basename "$$circuit_dir")..."; \

@@ -25,8 +25,7 @@ template Deserialize(bytesLength) {
     var signatureBytesLength = 65;
     var totalEstatesLength = bytesLength - (testatorBytesLength + saltBytesLength + willBytesLength + nonceBytesLength + deadlineBytesLength + signatureBytesLength);
     var perEstateLength = beneficiaryBytesLength + tokenBytesLength + amountBytesLength;
-    assert (perEstateLength == 56);
-    assert (totalEstatesLength % perEstateLength == 0);
+    assert (perEstateLength == 56 && totalEstatesLength % perEstateLength == 0);
 
     var estateCount = totalEstatesLength \ perEstateLength;
 

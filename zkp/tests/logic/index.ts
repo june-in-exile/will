@@ -7,6 +7,7 @@ export * from "./ctrDecrypt.js";
 export * from "./ctrEncrypt.js";
 export * from "./gcmDecrypt.js";
 export * from "./gcmEncrypt.js";
+export * from "./keccak256.js";
 export * from "./secp256k1.js";
 export * from "./sponge.js";
 export * from "./utf8.js";
