@@ -334,7 +334,8 @@
       "check 3 points are collinear": 598
     },
     "Secp256k1PointOnTangent": {
-      "check 2 points satisfy the point doubling relationship": 1160
+      "check 2 points satisfy the point doubling relationship": 1160,
+      "check 2 points on the same tangent line": 1160
     },
     "Secp256k1PointOnCurve": {
       "check point is on curve": 1126

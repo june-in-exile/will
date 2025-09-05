@@ -1,5 +1,5 @@
 import { WitnessTester, pointToBigInts, splitBigInt } from "./util/index.js";
-import { EllipticCurve, ECDSAUtils, secp256k1PointOnLine, secp256k1PointOnCurve, secp256k1AddUnequal, secp256k1PointOnTangent } from "./logic/index.js";
+import { CURVE, EllipticCurve, ECDSAUtils, secp256k1PointOnLine, secp256k1PointOnCurve, secp256k1AddUnequal, secp256k1PointOnTangent } from "./logic/index.js";
 
 describe("Secp256k1PointOnLine Circuit", function () {
     let circuit: WitnessTester<["x1", "y1", "x2", "y2", "x3", "y3"]>;
@@ -14,20 +14,25 @@ describe("Secp256k1PointOnLine Circuit", function () {
         });
 
         it("should accept 3 collinear random points", async function (): Promise<void> {
-            const p1 = EllipticCurve.generateRandomPoint();
-            const x1 = splitBigInt(p1.x);
-            const y1 = splitBigInt(p1.y);
+            const slope = ECDSAUtils.generateRandomScalar(CURVE.p);
 
-            const p2 = EllipticCurve.generateRandomPoint();
-            const x2 = splitBigInt(p2.x);
-            const y2 = splitBigInt(p2.y);
+            const x1BigInt = ECDSAUtils.generateRandomScalar(CURVE.p);
+            const y1BigInt = ECDSAUtils.mod(slope * x1BigInt, CURVE.p);
+            const x1 = splitBigInt(x1BigInt);
+            const y1 = splitBigInt(y1BigInt);
 
-            const p3 = EllipticCurve.pointAdd(p1, p2);
-            const x3 = splitBigInt(p3.x);
-            const y3 = splitBigInt(p3.y);
+            const x2BigInt = ECDSAUtils.generateRandomScalar(CURVE.p);
+            const y2BigInt = ECDSAUtils.mod(slope * x2BigInt, CURVE.p);
+            const x2 = splitBigInt(x2BigInt);
+            const y2 = splitBigInt(y2BigInt);
+
+            const x3BigInt = ECDSAUtils.generateRandomScalar(CURVE.p);
+            const y3BigInt = ECDSAUtils.mod(slope * x3BigInt, CURVE.p);
+            const x3 = splitBigInt(x3BigInt);
+            const y3 = splitBigInt(y3BigInt);
 
             if (!secp256k1PointOnLine(x1, y1, x2, y2, x3, y3)) {
-                throw new Error("p1, p2, p3 should be collinear");
+                throw new Error("p1, p2, -p3 should be collinear");
             }
 
             await circuit.expectPass({ x1, y1, x2, y2, x3, y3 });
@@ -60,32 +65,41 @@ describe("Secp256k1PointOnLine Circuit", function () {
 describe("Secp256k1PointOnTangent Circuit", function () {
     let circuit: WitnessTester<["x1", "y1", "x3", "y3"]>;
 
-    describe("Check 2 Points Satisfy Point Doubling", function (): void {
+    describe("Check 2 Points on Same Tangent Line", function (): void {
         beforeAll(async function (): Promise<void> {
             circuit = await WitnessTester.construct(
                 "circuits/shared/components/ecdsa/secp256k1.circom",
                 "Secp256k1PointOnTangent",
             );
-            circuit.setConstraint("check 2 points satisfy the point doubling relationship");
+            circuit.setConstraint("check 2 points on the same tangent line");
         });
 
-        it("should accept 2 points with doubling relationship", async function (): Promise<void> {
+        it("should accept 2 points on the same tangent line", async function (): Promise<void> {
             const p1 = EllipticCurve.generateRandomPoint();
             const x1 = splitBigInt(p1.x);
             const y1 = splitBigInt(p1.y);
 
-            const p3 = EllipticCurve.pointDouble(p1);
-            const x3 = splitBigInt(p3.x);
-            const y3 = splitBigInt(p3.y);
+            // Calculate the tangent slope at p1: slope = (3x² + a) / (2y) where a=0 for secp256k1
+            const tangentNumerator = ECDSAUtils.mod(3n * p1.x * p1.x, CURVE.p);
+            const tangentDenominator = ECDSAUtils.mod(2n * p1.y, CURVE.p);
+            const tangentSlope = ECDSAUtils.mod(
+                tangentNumerator * ECDSAUtils.modInverse(tangentDenominator, CURVE.p), 
+                CURVE.p
+            );
+
+            // Generate another point on the same tangent line: y - y1 = slope * (x - x1)
+            const deltaX = ECDSAUtils.generateRandomScalar(CURVE.p);
+            const x3 = splitBigInt(ECDSAUtils.mod(p1.x + deltaX, CURVE.p));
+            const y3 = splitBigInt(ECDSAUtils.mod(tangentSlope * deltaX + p1.y, CURVE.p));
 
             if (!secp256k1PointOnTangent(x1, y1, x3, y3)) {
-                throw new Error("p3 should equal 2 * p1");
+                throw new Error("p1 and p3 should be on the same tangent line");
             }
 
             await circuit.expectPass({ x1, y1, x3, y3 });
         });
 
-        it("should reject 2 points without doubling relationship", async function (): Promise<void> {
+        it("should reject 2 points not on the same tangent line", async function (): Promise<void> {
             const p1 = EllipticCurve.generateRandomPoint();
             const x1 = splitBigInt(p1.x);
             const y1 = splitBigInt(p1.y);
@@ -130,12 +144,12 @@ describe("Secp256k1PointOnCurve Circuit", function () {
         });
 
         it("should reject point not on curve", async function (): Promise<void> {
-            let x = splitBigInt(ECDSAUtils.generateRandomScalar());
-            let y = splitBigInt(ECDSAUtils.generateRandomScalar());
+            let x = splitBigInt(ECDSAUtils.generateRandomScalar(CURVE.p));
+            let y = splitBigInt(ECDSAUtils.generateRandomScalar(CURVE.p));
 
             while (secp256k1PointOnCurve(x, y)) {
-                x = splitBigInt(ECDSAUtils.generateRandomScalar());
-                y = splitBigInt(ECDSAUtils.generateRandomScalar());
+                x = splitBigInt(ECDSAUtils.generateRandomScalar(CURVE.p));
+                y = splitBigInt(ECDSAUtils.generateRandomScalar(CURVE.p));
             }
 
             await circuit.expectFail({ x, y });

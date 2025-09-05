@@ -288,7 +288,7 @@ class ECDSAUtils {
   /**
    * Generate cryptographically secure random BigInt
    */
-  static generateRandomScalar(max: bigint = CURVE.n): bigint {
+  static generateRandomScalar(max: bigint): bigint {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
 
@@ -1201,12 +1201,6 @@ class ECDSAVerification {
       console.log(`    Infinity curve point handled: ${!infinityTangentTest ? "✅" : "❌"}`);
       allPassed = allPassed && !infinityTangentTest;
 
-      // Test 6: Special case - point with y = 0 (vertical tangent)
-      // Find a point on the curve with y = 0 if it exists
-      // For secp256k1: y² = x³ + 7, so y = 0 means x³ + 7 = 0 (mod p)
-      // This means x³ = -7 (mod p), which may not have a solution
-      console.log(`    Vertical tangent case: Skipped (no y=0 points on secp256k1)`);
-
     } catch (err) {
       console.log("❌ Error in elliptic curve verification test:", String(err));
       allPassed = false;
@@ -1300,4 +1294,4 @@ if (
   ECDSAVerification.runAllTests().catch(console.error);
 }
 
-export { ECDSA, ECDSAUtils, ECDSAVerification, EllipticCurve };
+export { CURVE, ECDSA, ECDSAUtils, ECDSAVerification, EllipticCurve };
