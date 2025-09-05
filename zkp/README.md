@@ -227,3 +227,8 @@ tests/
 - [NIST FIPS 202](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf)
 - [TeamKeccak](https://keccak.team/keccak_specs_summary.html)
 - [NIST Examples with Intermediate Values](https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values)
+- [keccak256-circom](https://github.com/vocdoni/keccak256-circom)
+
+### ECDSA
+
+- [circom-ecdsa](https://github.com/0xPARC/circom-ecdsa)
