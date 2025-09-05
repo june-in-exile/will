@@ -1,4 +1,4 @@
-pragma circom 2.0.2;
+pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/multiplexer.circom";

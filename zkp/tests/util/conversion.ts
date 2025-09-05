@@ -156,38 +156,28 @@ function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
  * This is the reverse operation of concatBigInts
  *
  * @param value - The large BigInt to split
- * @param numParts - Number of parts to split into (default: 4)
- * @param bitWidth - Number of bits per part (default: 64)
- * @param modulus - Optional modulus for handling negative numbers in modular arithmetic
+ * @param options - Configuration options
  * @returns Array of BigInts representing the split components
  */
 function splitBigInt(
   value: bigint,
-  numParts: number = 4,
-  bitWidth: number = 64,
-  modulus?: bigint,
+  options: number | { numParts?: number; bitWidth?: number; modulus?: bigint } = {}
 ): bigint[] {
-  let normalizedValue = value;
-  
-  // Handle negative numbers in modular arithmetic
-  if (modulus && value < 0n) {
-    normalizedValue = ((value % modulus) + modulus) % modulus;
-  } else if (modulus) {
-    normalizedValue = value % modulus;
-  }
-  
-  const mask = (1n << BigInt(bitWidth)) - 1n; // Create mask for extracting bits
-  const result: bigint[] = [];
+  const { numParts = typeof options === 'number' ? options : 4,
+    bitWidth = 64,
+    modulus } = typeof options === 'number' ? {} : options;
 
-  let remainingValue = normalizedValue;
+  const mask = (1n << BigInt(bitWidth)) - 1n;
 
-  // Extract components from right to left (least significant first)
-  for (let i = 0; i < numParts; i++) {
-    result.unshift(remainingValue & mask); // Extract lowest bits and prepend
-    remainingValue >>= BigInt(bitWidth); // Shift right for next component
-  }
+  let normalizedValue = modulus
+    ? ((value % modulus) + modulus) % modulus // handle negatives
+    : value;
 
-  return result;
+  return Array.from({ length: numParts }, () => {
+    const part = normalizedValue & mask;
+    normalizedValue >>= BigInt(bitWidth);
+    return part;
+  }).reverse(); // least significant first -> reverse
 }
 
 /**
@@ -224,24 +214,69 @@ function bigIntsToPoint(pubkey: bigint[][]): Point {
  * This is the reverse operation of pubkeyToPoint
  *
  * @param point - Point with x, y coordinates
- * @param componentsPerCoordinate - Number of BigInt components per coordinate (default: 4)
- * @param bitWidth - Bits per component (default: 64)
+ * @param options - Configuration options
  * @returns Array of [x_components, y_components]
  */
 function pointToBigInts(
   point: Point,
-  componentsPerCoordinate: number = 4,
-  bitWidth: number = 64,
+  options?: {
+    componentsPerCoordinate?: number;
+    bitWidth?: number;
+    modulus?: bigint;
+  },
+): bigint[][];
+
+/**
+ * Legacy overload for backward compatibility
+ * @deprecated Use the options object form instead
+ */
+function pointToBigInts(
+  point: Point,
+  componentsPerCoordinate?: number,
+  bitWidth?: number,
+  modulus?: bigint,
+): bigint[][];
+
+function pointToBigInts(
+  point: Point,
+  componentsPerCoordinateOrOptions?: number | { componentsPerCoordinate?: number; bitWidth?: number; modulus?: bigint },
+  bitWidth?: number,
+  modulus?: bigint,
 ): bigint[][] {
+  // Handle both new options form and legacy parameters
+  let actualComponentsPerCoordinate: number;
+  let actualBitWidth: number;
+  let actualModulus: bigint | undefined;
+
+  if (typeof componentsPerCoordinateOrOptions === 'object' && componentsPerCoordinateOrOptions !== null) {
+    // New options form
+    actualComponentsPerCoordinate = componentsPerCoordinateOrOptions.componentsPerCoordinate ?? 4;
+    actualBitWidth = componentsPerCoordinateOrOptions.bitWidth ?? 64;
+    actualModulus = componentsPerCoordinateOrOptions.modulus;
+  } else {
+    // Legacy form
+    actualComponentsPerCoordinate = (componentsPerCoordinateOrOptions as number) ?? 4;
+    actualBitWidth = bitWidth ?? 64;
+    actualModulus = modulus;
+  }
+
   // Handle point at infinity
   if (point.isInfinity) {
-    const zeroComponents = new Array(componentsPerCoordinate).fill(0n);
+    const zeroComponents = new Array(actualComponentsPerCoordinate).fill(0n);
     return [zeroComponents, zeroComponents];
   }
 
-  // Split coordinates into components
-  const xComponents = splitBigInt(point.x, componentsPerCoordinate, bitWidth);
-  const yComponents = splitBigInt(point.y, componentsPerCoordinate, bitWidth);
+  // Split coordinates into components, handling negative values with modulus
+  const xComponents = splitBigInt(point.x, {
+    numParts: actualComponentsPerCoordinate,
+    bitWidth: actualBitWidth,
+    modulus: actualModulus,
+  });
+  const yComponents = splitBigInt(point.y, {
+    numParts: actualComponentsPerCoordinate,
+    bitWidth: actualBitWidth,
+    modulus: actualModulus,
+  });
 
   return [xComponents, yComponents];
 }

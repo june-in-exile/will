@@ -282,7 +282,9 @@ class EllipticCurve {
 
   /**
    * Verify if a point is on the tangent line at a given curve point
-   * The tangent line at point P has slope: (3x² + a) / (2y)
+   * Uses the tangent constraint formula: 2y₁² + 2y₁y₃ - 3x₁³ + 3x₁²x₃ = 0 mod p
+   * 
+   * This constraint ensures that point (x₃,y₃) lies on the tangent line at curve point (x₁,y₁)
    */
   static pointOnTangent(curvePoint: Point, testPoint: Point): boolean {
     // Handle infinity points
@@ -300,31 +302,32 @@ class EllipticCurve {
       return true;
     }
 
-    // Special case: if y = 0, the tangent is vertical
-    if (curvePoint.y === 0n) {
-      return curvePoint.x === testPoint.x;
-    }
+    const { x: x1, y: y1 } = curvePoint;
+    const { x: x3, y: y3 } = testPoint;
 
-    // Calculate tangent slope: slope = (3x² + a) / (2y)
-    const numerator = MathUtils.mod(
-      3n * curvePoint.x * curvePoint.x + CURVE.a,
-      CURVE.p,
-    );
-    const denominator = MathUtils.mod(2n * curvePoint.y, CURVE.p);
-    const slope = MathUtils.mod(
-      numerator * MathUtils.modInverse(denominator, CURVE.p),
-      CURVE.p,
-    );
+    // Calculate components of the tangent constraint formula:
+    // 2y₁² + 2y₁y₃ - 3x₁³ + 3x₁²x₃ = 0 mod p
 
-    // Tangent line equation: y - y1 = slope * (x - x1)
-    // Rearranged: y = slope * (x - x1) + y1
-    const expectedY = MathUtils.mod(
-      slope * MathUtils.mod(testPoint.x - curvePoint.x, CURVE.p) +
-      curvePoint.y,
-      CURVE.p,
-    );
+    // 2y₁²
+    const twoY1Squared = MathUtils.mod(2n * y1 * y1, CURVE.p);
 
-    return testPoint.y === expectedY;
+    // 2y₁y₃
+    const twoY1Y3 = MathUtils.mod(2n * y1 * y3, CURVE.p);
+
+    // 3x₁³
+    const threeX1Cubed = MathUtils.mod(3n * x1 * x1 * x1, CURVE.p);
+
+    // 3x₁²x₃
+    const threeX1SquaredX3 = MathUtils.mod(3n * x1 * x1 * x3, CURVE.p);
+
+    // Calculate the full tangent constraint expression:
+    // 2y₁² + 2y₁y₃ - 3x₁³ + 3x₁²x₃
+    let result = MathUtils.mod(twoY1Squared + twoY1Y3, CURVE.p);
+    result = MathUtils.mod(result - threeX1Cubed, CURVE.p);
+    result = MathUtils.mod(result + threeX1SquaredX3, CURVE.p);
+
+    // The constraint is satisfied if the result equals zero
+    return result === 0n;
   }
 
   /**
@@ -769,9 +772,10 @@ class ECDSAVerification {
         CURVE.p,
       );
 
-      // Create a point on the tangent line: y - Gy = slope * (x - Gx)
+      // Create the reflection point for point doubling: y - Gy = slope * (x - Gx), then negate y
       const testX = MathUtils.mod(G.x + 1n, CURVE.p);
-      const testY = MathUtils.mod(tangentSlope * (testX - G.x) + G.y, CURVE.p);
+      const testY_unreflected = MathUtils.mod(tangentSlope * (testX - G.x) + G.y, CURVE.p);
+      const testY = MathUtils.mod(-testY_unreflected, CURVE.p); // Reflection point (negate y)
       const tangentPoint = { x: testX, y: testY, isInfinity: false };
 
       const tangentTest = EllipticCurve.pointOnTangent(G, tangentPoint);

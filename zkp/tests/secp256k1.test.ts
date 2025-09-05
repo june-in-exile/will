@@ -114,7 +114,7 @@ describe("Secp256k1PointOnLine Circuit", function () {
       const x3BigInt = MathUtils.generateRandomScalar(CURVE.p);
       const y3BigInt = -MathUtils.mod(slope * x3BigInt, CURVE.p);
       const x3 = splitBigInt(x3BigInt);
-      const y3 = splitBigInt(y3BigInt, 4, 64, CURVE.p);
+      const y3 = splitBigInt(y3BigInt, { modulus: CURVE.p });
 
       if (!secp256k1PointOnLine(x1, y1, x2, y2, x3, y3)) {
         throw new Error("p1, p2, p3 should be collinear");
@@ -172,15 +172,17 @@ describe("Secp256k1PointOnTangent Circuit", function () {
         CURVE.p,
       );
 
-      // Generate another point on the same tangent line: y - y1 = slope * (x - x1)
+      // Generate the reflection point for point doubling: y - y1 = slope * (x - x1), then negate y
       const deltaX = MathUtils.generateRandomScalar(CURVE.p);
-      const x3 = splitBigInt(MathUtils.mod(p1.x + deltaX, CURVE.p));
-      const y3 = splitBigInt(
-        MathUtils.mod(tangentSlope * deltaX + p1.y, CURVE.p),
-      );
+      const x3BigInt = MathUtils.mod(p1.x + deltaX, CURVE.p);
+      const y3_unreflected = MathUtils.mod(tangentSlope * deltaX + p1.y, CURVE.p);
+      const y3BigInt = MathUtils.mod(-y3_unreflected, CURVE.p); // Reflection point (negate y)
+      
+      const x3 = splitBigInt(x3BigInt);
+      const y3 = splitBigInt(y3BigInt, { modulus: CURVE.p }); // Use modulus for negative handling
 
       if (!secp256k1PointOnTangent(x1, y1, x3, y3)) {
-        throw new Error("p1 and p3 should be on the same tangent line");
+        throw new Error("p1 and p3 should satisfy the tangent constraint");
       }
 
       await circuit.expectPass({ x1, y1, x3, y3 });
