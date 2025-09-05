@@ -67,7 +67,7 @@ class MathUtils {
   /**
    * Generate cryptographically secure random BigInt
    */
-  static generateRandomScalar(max: bigint): bigint {
+  static generateRandomScalar(max: bigint = 2n ** 256n): bigint {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
 

@@ -313,12 +313,12 @@
     }
   },
   "ecdsa": {
+    "ECDSAPrivToPub": {
+      "calculate ecdsa public key from private key": 95444
+    },
     "ECDSAVerifyNoPubkeyCheck": {
       "256-bit message hash signature verification": 1508904,
       "256-bit message hash signature verification w/o checking public key": 1508904
-    },
-    "ECDSAPrivToPub": {
-      "calculate ecdsa public key from private key": 95444
     }
   },
   "ecdsaVerify": {

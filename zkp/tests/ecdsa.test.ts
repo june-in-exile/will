@@ -1,8 +1,8 @@
 import { WitnessTester, splitBigInt, pointToBigInts } from "./util/index.js";
-import { ECDSA, ECDSAUtils } from "./logic/index.js";
+import { ECDSA, ECDSAUtils, MathUtils } from "./logic/index.js";
 import { ecdsaPrivToPub, ecdsaVerifyNoPubkeyCheck } from "./logic/ecdsa.js";
 
-describe.only("ECDSAPrivToPub Circuit", function () {
+describe.skip("ECDSAPrivToPub Circuit", function () {
   let circuit: WitnessTester<["privkey"], ["pubkey"]>;
 
   describe("ECDSA Private Key to Public Key", function (): void {
@@ -27,7 +27,7 @@ describe.only("ECDSAPrivToPub Circuit", function () {
   });
 });
 
-describe.skip("ECDSAVerifyNoPubkeyCheck Circuit", function () {
+describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
   let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
 
   describe("256-Bit Message Hash Signature Verification Without Checking Public Key", function (): void {
@@ -44,7 +44,7 @@ describe.skip("ECDSAVerifyNoPubkeyCheck Circuit", function () {
       );
     });
 
-    it.only("should verify fixed signature correctly", async function (): Promise<void> {
+    it("should verify fixed signature", async function (): Promise<void> {
       const r = [
         BigInt("11878389131962663075"),
         BigInt("9922462056030557342"),
@@ -81,26 +81,46 @@ describe.skip("ECDSAVerifyNoPubkeyCheck Circuit", function () {
         ],
       ];
 
-      // const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
-
-      await circuit.expectPass({ r, s, msghash, pubkey }, { result: 1 });
-    });
-
-    it("should verify random signature correctly", async function (): Promise<void> {
-      const message = "Hello, ECDSA!";
-      const messageHash = ECDSAUtils.hashMessage(message);
-      const msghash = splitBigInt(messageHash);
-
-      const keyPair = ECDSA.generateKeyPair();
-      const pubkey = pointToBigInts(keyPair.publicKey);
-
-      const signature = ECDSA.sign(messageHash, keyPair.privateKey);
-      const r = splitBigInt(signature.r);
-      const s = splitBigInt(signature.s);
-
       const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
 
       await circuit.expectPass({ r, s, msghash, pubkey }, { result });
+    });
+
+    it("should verify random signature with fixed message hash", async function (): Promise<void> {
+      const messages = ["", "a", "Hello, ECDSA!", "1234567890ABCDEF"]
+      for (const message in messages) {
+        const messageHash = ECDSAUtils.hashMessage(message);
+        const msghash = splitBigInt(messageHash);
+
+        const keyPair = ECDSA.generateKeyPair();
+        const pubkey = pointToBigInts(keyPair.publicKey);
+
+        const signature = ECDSA.sign(messageHash, keyPair.privateKey);
+        const r = splitBigInt(signature.r);
+        const s = splitBigInt(signature.s);
+
+        const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
+
+        await circuit.expectPass({ r, s, msghash, pubkey }, { result });
+      }
+    });
+
+    it("should verify random signature with random message hash", async function (): Promise<void> {
+      for (let i = 0; i < 3; i++) { 
+        const messageHash = MathUtils.generateRandomScalar();
+        const msghash = splitBigInt(messageHash);
+        
+        const keyPair = ECDSA.generateKeyPair();
+        const pubkey = pointToBigInts(keyPair.publicKey);
+        
+        const signature = ECDSA.sign(messageHash, keyPair.privateKey);
+        const r = splitBigInt(signature.r);
+        const s = splitBigInt(signature.s);
+        
+        const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
+        
+        await circuit.expectPass({ r, s, msghash, pubkey }, { result });
+      }
     });
   });
 });
