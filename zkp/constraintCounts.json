@@ -339,6 +339,9 @@
     },
     "Secp256k1PointOnCurve": {
       "check point is on curve": 1126
+    },
+    "AddUnequalCubicConstraint": {
+      "check cubic constraint for elliptic curve point addition": 1257
     }
   }
 }

@@ -1,5 +1,10 @@
 import { Byte, Byte4, Byte16, Word, Word4 } from "../type/index.js";
-import { AES, AESKeyExpansion, AESSbox, AESTransforms } from "./cryptography/aes-gcm.js";
+import {
+  AES,
+  AESKeyExpansion,
+  AESSbox,
+  AESTransforms,
+} from "./cryptography/aes-gcm.js";
 import { byteToWord, wordToByte } from "../util/index.js";
 
 function expandKey(key: Word[]): Word[] {

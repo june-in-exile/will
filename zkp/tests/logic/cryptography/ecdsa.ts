@@ -3,11 +3,6 @@ import { Point } from "../../type/index.js";
 import chalk from "chalk";
 
 /**
- * ECDSA Implementation for secp256k1 curve
- * This is an educational implementation - DO NOT use in production
- */
-
-/**
  * secp256k1 curve parameters
  */
 const CURVE = {
@@ -23,6 +18,67 @@ const CURVE = {
   Gx: 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n,
   Gy: 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n,
 };
+
+/**
+ * Mathematical Utility functions for cryptographic operations
+ * Pure mathematical operations without cryptographic dependencies
+ */
+class MathUtils {
+  /**
+   * Modular arithmetic - ensures result is positive
+   */
+  static mod(a: bigint, m: bigint): bigint {
+    return ((a % m) + m) % m;
+  }
+
+  /**
+   * Modular inverse using Extended Euclidean Algorithm
+   */
+  static modInverse(a: bigint, m: bigint): bigint {
+    if (a < 0n) a = this.mod(a, m);
+    let [oldR, r] = [a, m];
+    let [oldS, s] = [1n, 0n];
+
+    while (r !== 0n) {
+      const quotient = oldR / r;
+      [oldR, r] = [r, oldR - quotient * r];
+      [oldS, s] = [s, oldS - quotient * s];
+    }
+
+    return this.mod(oldS, m);
+  }
+
+  /**
+   * Modular exponentiation: base^exp mod m
+   */
+  static modPow(base: bigint, exp: bigint, mod: bigint): bigint {
+    let result = 1n;
+    base = base % mod;
+    while (exp > 0n) {
+      if (exp % 2n === 1n) {
+        result = (result * base) % mod;
+      }
+      exp = exp >> 1n;
+      base = (base * base) % mod;
+    }
+    return result;
+  }
+
+  /**
+   * Generate cryptographically secure random BigInt
+   */
+  static generateRandomScalar(max: bigint): bigint {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+
+    let result = 0n;
+    for (let i = 0; i < bytes.length; i++) {
+      result = (result << 8n) + BigInt(bytes[i]);
+    }
+
+    return this.mod(result, max - 1n) + 1n;
+  }
+}
 
 /**
  * Elliptic Curve operations for secp256k1
@@ -43,12 +99,15 @@ class EllipticCurve {
       }
     }
 
-    const dx = ECDSAUtils.mod(p2.x - p1.x, CURVE.p);
-    const dy = ECDSAUtils.mod(p2.y - p1.y, CURVE.p);
-    const slope = ECDSAUtils.mod(dy * ECDSAUtils.modInverse(dx, CURVE.p), CURVE.p);
+    const dx = MathUtils.mod(p2.x - p1.x, CURVE.p);
+    const dy = MathUtils.mod(p2.y - p1.y, CURVE.p);
+    const slope = MathUtils.mod(
+      dy * MathUtils.modInverse(dx, CURVE.p),
+      CURVE.p,
+    );
 
-    const x3 = ECDSAUtils.mod(slope * slope - p1.x - p2.x, CURVE.p);
-    const y3 = ECDSAUtils.mod(slope * (p1.x - x3) - p1.y, CURVE.p);
+    const x3 = MathUtils.mod(slope * slope - p1.x - p2.x, CURVE.p);
+    const y3 = MathUtils.mod(slope * (p1.x - x3) - p1.y, CURVE.p);
 
     return { x: x3, y: y3, isInfinity: false };
   }
@@ -58,16 +117,19 @@ class EllipticCurve {
    */
   static pointDouble(p: Point): Point {
     if (p.isInfinity) return p;
+    if (p.y === 0n) {
+      return { x: 0n, y: 0n, isInfinity: true };
+    }
 
-    const numerator = ECDSAUtils.mod(3n * p.x * p.x + CURVE.a, CURVE.p);
-    const denominator = ECDSAUtils.mod(2n * p.y, CURVE.p);
-    const slope = ECDSAUtils.mod(
-      numerator * ECDSAUtils.modInverse(denominator, CURVE.p),
+    const numerator = MathUtils.mod(3n * p.x * p.x + CURVE.a, CURVE.p);
+    const denominator = MathUtils.mod(2n * p.y, CURVE.p);
+    const slope = MathUtils.mod(
+      numerator * MathUtils.modInverse(denominator, CURVE.p),
       CURVE.p,
     );
 
-    const x3 = ECDSAUtils.mod(slope * slope - 2n * p.x, CURVE.p);
-    const y3 = ECDSAUtils.mod(slope * (p.x - x3) - p.y, CURVE.p);
+    const x3 = MathUtils.mod(slope * slope - 2n * p.x, CURVE.p);
+    const y3 = MathUtils.mod(slope * (p.x - x3) - p.y, CURVE.p);
 
     return { x: x3, y: y3, isInfinity: false };
   }
@@ -77,6 +139,13 @@ class EllipticCurve {
    */
   static pointMultiply(k: bigint, p: Point): Point {
     if (k === 0n) return { x: 0n, y: 0n, isInfinity: true };
+    if (k < 0n) {
+      return this.pointMultiply(
+        -k,
+        { x: p.x, y: MathUtils.mod(-p.y, CURVE.p), isInfinity: p.isInfinity }
+      );
+    }
+
     if (k === 1n) return p;
 
     let result: Point = { x: 0n, y: 0n, isInfinity: true };
@@ -97,13 +166,81 @@ class EllipticCurve {
    * Generate k * G where k is a random scalar
    */
   static generateRandomPoint(): Point {
-    const randomScalar = ECDSAUtils.generateRandomScalar(CURVE.n);
+    const randomScalar = MathUtils.generateRandomScalar(CURVE.n);
     return this.pointMultiply(randomScalar, ECDSA.G);
   }
 
   /**
-   * Verify if three points are collinear (on the same line)
+   * Verify the cubic constraint for elliptic curve point addition:
+   * x₁ + x₂ + x₃ - λ² = 0 mod p, where the slope λ = (y₂ - y₁) / (x₂ - x₁)
+   * 
+   * This is mathematically equivalent to the expanded form:
+   * x₁³ + x₂³ - x₁²x₂ - x₁x₂² + x₂²x₃ + x₁²x₃ - 2x₁x₂x₃ - y₁² + 2y₁y₂ - y₂² = 0 mod p
+   * 
+   * This constraint ensures that the three points (x₁,y₁), (x₂,y₂), (x₃,y₃) 
+   * satisfy the elliptic curve addition relationship algebraically.
+   */
+  static verifyCubicConstraint(p1: Point, p2: Point, p3: Point): boolean {
+    if (p1.isInfinity || p2.isInfinity || p3.isInfinity) {
+      return false;
+    }
+
+    const { x: x1, y: y1 } = p1;
+    const { x: x2, y: y2 } = p2;
+    const { x: x3 } = p3;
+
+    // x₁³
+    const x1_cubed = MathUtils.mod(x1 * x1 * x1, CURVE.p);
+
+    // x₂³
+    const x2_cubed = MathUtils.mod(x2 * x2 * x2, CURVE.p);
+
+    // x₁²x₂
+    const x1_squared_x2 = MathUtils.mod(x1 * x1 * x2, CURVE.p);
+
+    // x₁x₂²
+    const x1_x2_squared = MathUtils.mod(x1 * x2 * x2, CURVE.p);
+
+    // x₂²x₃
+    const x2_squared_x3 = MathUtils.mod(x2 * x2 * x3, CURVE.p);
+
+    // x₁²x₃
+    const x1_squared_x3 = MathUtils.mod(x1 * x1 * x3, CURVE.p);
+
+    // x₁x₂x₃
+    const x1_x2_x3 = MathUtils.mod(x1 * x2 * x3, CURVE.p);
+
+    // y₁²
+    const y1_squared = MathUtils.mod(y1 * y1, CURVE.p);
+
+    // y₂²
+    const y2_squared = MathUtils.mod(y2 * y2, CURVE.p);
+
+    // y₁y₂
+    const y1_y2 = MathUtils.mod(y1 * y2, CURVE.p);
+
+    // Calculate the full cubic constraint expression:
+    // x₁³ + x₂³ - x₁²x₂ - x₁x₂² + x₂²x₃ + x₁²x₃ - 2x₁x₂x₃ - y₂² + 2y₁y₂ - y₁²
+    let result = MathUtils.mod(x1_cubed + x2_cubed, CURVE.p);
+    result = MathUtils.mod(result - x1_squared_x2, CURVE.p);
+    result = MathUtils.mod(result - x1_x2_squared, CURVE.p);
+    result = MathUtils.mod(result + x2_squared_x3, CURVE.p);
+    result = MathUtils.mod(result + x1_squared_x3, CURVE.p);
+    result = MathUtils.mod(result - 2n * x1_x2_x3, CURVE.p);
+    result = MathUtils.mod(result - y1_squared, CURVE.p);
+    result = MathUtils.mod(result + 2n * y1_y2, CURVE.p);
+    result = MathUtils.mod(result - y2_squared, CURVE.p);
+
+    // The constraint is satisfied if the result equals zero
+    return result === 0n;
+  }
+
+  /**
+   * Verify if three points (x1, y1), (x2, y2), (x3, -y3) are co-linear
    * Uses the cross product method: (P2-P1) × (P3-P1) = 0
+   * 
+   * This is mathmatically equivalent to the expanded form::
+   * x₃y₂ + x₂y₃ + x₂y₁ - x₃y₁ - x₁y₂ - x₁y₃ = 0 mod p
    */
   static pointOnLine(p1: Point, p2: Point, p3: Point): boolean {
     // Handle infinity points
@@ -112,22 +249,35 @@ class EllipticCurve {
     }
 
     // If any two points are the same, they are collinear with any third point
-    if ((p1.x === p2.x && p1.y === p2.y) || 
-        (p1.x === p3.x && p1.y === p3.y) || 
-        (p2.x === p3.x && p2.y === p3.y)) {
+    if (
+      (p1.x === p2.x && p1.y === p2.y) ||
+      (p1.x === p3.x && p1.y === p3.y) ||
+      (p2.x === p3.x && p2.y === p3.y)
+    ) {
       return true;
     }
 
-    // Calculate vectors P2-P1 and P3-P1
-    const dx1 = ECDSAUtils.mod(p2.x - p1.x, CURVE.p);
-    const dy1 = ECDSAUtils.mod(p2.y - p1.y, CURVE.p);
-    const dx2 = ECDSAUtils.mod(p3.x - p1.x, CURVE.p);
-    const dy2 = ECDSAUtils.mod(p3.y - p1.y, CURVE.p);
+    const { x: x1, y: y1 } = p1;
+    const { x: x2, y: y2 } = p2;
+    const { x: x3, y: y3 } = p3;
 
-    // Cross product: dx1 * dy2 - dy1 * dx2 = 0 for collinear points
-    const crossProduct = ECDSAUtils.mod(dx1 * dy2 - dy1 * dx2, CURVE.p);
-    
-    return crossProduct === 0n;
+    // Calculate all cross products for the collinearity test
+    // Formula: x₃y₂ + x₂y₃ + x₂y₁ - x₃y₁ - x₁y₂ - x₁y₃ = 0 mod p
+    const x3y2 = MathUtils.mod(x3 * y2, CURVE.p);
+    const x2y3 = MathUtils.mod(x2 * y3, CURVE.p);
+    const x2y1 = MathUtils.mod(x2 * y1, CURVE.p);
+    const x3y1 = MathUtils.mod(x3 * y1, CURVE.p);
+    const x1y2 = MathUtils.mod(x1 * y2, CURVE.p);
+    const x1y3 = MathUtils.mod(x1 * y3, CURVE.p);
+
+    // Compute the collinearity expression
+    let result = MathUtils.mod(x3y2 + x2y3, CURVE.p);
+    result = MathUtils.mod(result + x2y1, CURVE.p);
+    result = MathUtils.mod(result - x3y1, CURVE.p);
+    result = MathUtils.mod(result - x1y2, CURVE.p);
+    result = MathUtils.mod(result - x1y3, CURVE.p);
+
+    return result === 0n;
   }
 
   /**
@@ -156,15 +306,22 @@ class EllipticCurve {
     }
 
     // Calculate tangent slope: slope = (3x² + a) / (2y)
-    const numerator = ECDSAUtils.mod(3n * curvePoint.x * curvePoint.x + CURVE.a, CURVE.p);
-    const denominator = ECDSAUtils.mod(2n * curvePoint.y, CURVE.p);
-    const slope = ECDSAUtils.mod(numerator * ECDSAUtils.modInverse(denominator, CURVE.p), CURVE.p);
+    const numerator = MathUtils.mod(
+      3n * curvePoint.x * curvePoint.x + CURVE.a,
+      CURVE.p,
+    );
+    const denominator = MathUtils.mod(2n * curvePoint.y, CURVE.p);
+    const slope = MathUtils.mod(
+      numerator * MathUtils.modInverse(denominator, CURVE.p),
+      CURVE.p,
+    );
 
     // Tangent line equation: y - y1 = slope * (x - x1)
     // Rearranged: y = slope * (x - x1) + y1
-    const expectedY = ECDSAUtils.mod(
-      slope * ECDSAUtils.mod(testPoint.x - curvePoint.x, CURVE.p) + curvePoint.y,
-      CURVE.p
+    const expectedY = MathUtils.mod(
+      slope * MathUtils.mod(testPoint.x - curvePoint.x, CURVE.p) +
+      curvePoint.y,
+      CURVE.p,
     );
 
     return testPoint.y === expectedY;
@@ -181,125 +338,23 @@ class EllipticCurve {
     }
 
     // Calculate y²
-    const leftSide = ECDSAUtils.mod(point.y * point.y, CURVE.p);
-    
+    const leftSide = MathUtils.mod(point.y * point.y, CURVE.p);
+
     // Calculate x³ + 7
-    const rightSide = ECDSAUtils.mod(point.x * point.x * point.x + CURVE.b, CURVE.p);
-    
+    const rightSide = MathUtils.mod(
+      point.x * point.x * point.x + CURVE.b,
+      CURVE.p,
+    );
+
     return leftSide === rightSide;
-  }
-
-  /**
-   * Recover public key from signature and message hash
-   * This is a proper implementation following the ECDSA recovery specification
-   */
-  static recoverPublicKey(
-    messageHash: bigint,
-    signature: { r: bigint; s: bigint },
-    recoveryId: number,
-  ): Point | null {
-    try {
-      const { r, s } = signature;
-
-      // Recovery ID should be 0 or 1 for standard cases
-      if (recoveryId < 0 || recoveryId > 1) {
-        return null;
-      }
-
-      // Calculate recovery point R from r coordinate
-      const x = r;
-
-      // Calculate y coordinate from x: y² = x³ + 7 (mod p)
-      const ySquared = ECDSAUtils.mod(x * x * x + CURVE.b, CURVE.p);
-
-      // Use Tonelli-Shanks algorithm for square root (simplified for secp256k1)
-      // For secp256k1, p ≡ 3 (mod 4), so we can use: y = ±(y²)^((p+1)/4) mod p
-      let y = ECDSAUtils.modPow(ySquared, (CURVE.p + 1n) / 4n, CURVE.p);
-
-      // Choose the correct y based on recovery ID
-      // If recovery ID is odd, we want the odd y coordinate
-      if (y % 2n !== BigInt(recoveryId)) {
-        y = CURVE.p - y;
-      }
-
-      const R: Point = { x, y, isInfinity: false };
-
-      // Verify R is on the curve
-      if (!this.pointOnCurve(R)) {
-        return null;
-      }
-
-      // Calculate public key: Q = r^(-1) * (s * R - e * G)
-      const rInv = ECDSAUtils.modInverse(r, CURVE.n);
-      const sR = this.pointMultiply(s, R);
-      // const eG = this.pointMultiply(messageHash, {
-      //     x: CURVE.Gx,
-      //     y: CURVE.Gy,
-      //     isInfinity: false
-      // });
-
-      // Calculate s * R - e * G = s * R + (-e) * G
-      const negE = ECDSAUtils.mod(-messageHash, CURVE.n);
-      const negEG = this.pointMultiply(negE, {
-        x: CURVE.Gx,
-        y: CURVE.Gy,
-        isInfinity: false,
-      });
-
-      const temp = this.pointAdd(sR, negEG);
-      const publicKey = this.pointMultiply(rInv, temp);
-
-      return publicKey;
-    } catch {
-      return null;
-    }
   }
 }
 
 /**
- * ECDSA Utility functions for mathematical operations
+ * ECDSA Utility functions for cryptographic operations
+ * This class focuses on ECDSA-specific utilities, with mathematical operations delegated to MathUtils
  */
 class ECDSAUtils {
-  /**
-   * Modular arithmetic - ensures result is positive
-   */
-  static mod(a: bigint, m: bigint): bigint {
-    return ((a % m) + m) % m;
-  }
-
-  /**
-   * Modular inverse using Extended Euclidean Algorithm
-   */
-  static modInverse(a: bigint, m: bigint): bigint {
-    if (a < 0n) a = this.mod(a, m);
-    let [oldR, r] = [a, m];
-    let [oldS, s] = [1n, 0n];
-
-    while (r !== 0n) {
-      const quotient = oldR / r;
-      [oldR, r] = [r, oldR - quotient * r];
-      [oldS, s] = [s, oldS - quotient * s];
-    }
-
-    return this.mod(oldS, m);
-  }
-
-
-  /**
-   * Generate cryptographically secure random BigInt
-   */
-  static generateRandomScalar(max: bigint): bigint {
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-
-    let result = 0n;
-    for (let i = 0; i < bytes.length; i++) {
-      result = (result << 8n) + BigInt(bytes[i]);
-    }
-
-    return this.mod(result, max - 1n) + 1n;
-  }
-
 
   /**
    * Convert BigInt to hex string with padding
@@ -316,22 +371,6 @@ class ECDSAUtils {
       typeof message === "string" ? new TextEncoder().encode(message) : message;
     const hash = ethers.keccak256(messageBytes);
     return BigInt(hash);
-  }
-
-  /**
-   * Modular exponentiation: base^exp mod m
-   */
-  static modPow(base: bigint, exp: bigint, mod: bigint): bigint {
-    let result = 1n;
-    base = base % mod;
-    while (exp > 0n) {
-      if (exp % 2n === 1n) {
-        result = (result * base) % mod;
-      }
-      exp = exp >> 1n;
-      base = (base * base) % mod;
-    }
-    return result;
   }
 
   /**
@@ -368,7 +407,6 @@ class ECDSAUtils {
     return "0x" + r + s + vHex;
   }
 
-
   /**
    * Find the correct recovery ID for a signature
    * This tries recovery IDs 0 and 1 (standard cases) and returns the one that recovers the expected public key
@@ -380,7 +418,7 @@ class ECDSAUtils {
   ): number | null {
     // Try recovery IDs 0 and 1 (most common cases)
     for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
-      const recoveredKey = EllipticCurve.recoverPublicKey(
+      const recoveredKey = this.recoverPublicKey(
         messageHash,
         signature,
         recoveryId,
@@ -430,7 +468,7 @@ class ECDSAUtils {
     // Try both recovery IDs with the normalized signature
     for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
       try {
-        const recoveredKey = EllipticCurve.recoverPublicKey(
+        const recoveredKey = this.recoverPublicKey(
           messageHash,
           normalizedSignature,
           recoveryId,
@@ -453,6 +491,72 @@ class ECDSAUtils {
 
     return null;
   }
+
+  /**
+   * Recover public key from signature and message hash
+   * This is a proper implementation following the ECDSA recovery specification
+   */
+  static recoverPublicKey(
+    messageHash: bigint,
+    signature: { r: bigint; s: bigint },
+    recoveryId: number,
+  ): Point | null {
+    try {
+      const { r, s } = signature;
+
+      // Recovery ID should be 0 or 1 for standard cases
+      if (recoveryId < 0 || recoveryId > 1) {
+        return null;
+      }
+
+      // Calculate recovery point R from r coordinate
+      const x = r;
+
+      // Calculate y coordinate from x: y² = x³ + 7 (mod p)
+      const ySquared = MathUtils.mod(x * x * x + CURVE.b, CURVE.p);
+
+      // Use Tonelli-Shanks algorithm for square root (simplified for secp256k1)
+      // For secp256k1, p ≡ 3 (mod 4), so we can use: y = ±(y²)^((p+1)/4) mod p
+      let y = MathUtils.modPow(ySquared, (CURVE.p + 1n) / 4n, CURVE.p);
+
+      // Choose the correct y based on recovery ID
+      // If recovery ID is odd, we want the odd y coordinate
+      if (y % 2n !== BigInt(recoveryId)) {
+        y = CURVE.p - y;
+      }
+
+      const R: Point = { x, y, isInfinity: false };
+
+      // Verify R is on the curve
+      if (!EllipticCurve.pointOnCurve(R)) {
+        return null;
+      }
+
+      // Calculate public key: Q = r^(-1) * (s * R - e * G)
+      const rInv = MathUtils.modInverse(r, CURVE.n);
+      const sR = EllipticCurve.pointMultiply(s, R);
+      // const eG = this.pointMultiply(messageHash, {
+      //     x: CURVE.Gx,
+      //     y: CURVE.Gy,
+      //     isInfinity: false
+      // });
+
+      // Calculate s * R - e * G = s * R + (-e) * G
+      const negE = MathUtils.mod(-messageHash, CURVE.n);
+      const negEG = EllipticCurve.pointMultiply(negE, {
+        x: CURVE.Gx,
+        y: CURVE.Gy,
+        isInfinity: false,
+      });
+
+      const temp = EllipticCurve.pointAdd(sR, negEG);
+      const publicKey = EllipticCurve.pointMultiply(rInv, temp);
+
+      return publicKey;
+    } catch {
+      return null;
+    }
+  }
 }
 
 /**
@@ -467,7 +571,7 @@ class ECDSA {
 
   static generateKeyPair(): { privateKey: bigint; publicKey: Point } {
     // Generate random private key
-    const privateKey = ECDSAUtils.generateRandomScalar(CURVE.n);
+    const privateKey = MathUtils.generateRandomScalar(CURVE.n);
     const publicKey = EllipticCurve.pointMultiply(privateKey, this.G);
 
     return { privateKey, publicKey };
@@ -482,18 +586,18 @@ class ECDSA {
 
     while (r === 0n || s === 0n) {
       // Generate random k
-      const k = ECDSAUtils.generateRandomScalar(CURVE.n);
+      const k = MathUtils.generateRandomScalar(CURVE.n);
 
       // Calculate r = (k * G).x mod n
       const kG = EllipticCurve.pointMultiply(k, this.G);
-      r = ECDSAUtils.mod(kG.x, CURVE.n);
+      r = MathUtils.mod(kG.x, CURVE.n);
 
       if (r === 0n) continue;
 
       // Calculate s = k^(-1) * (hash + r * privateKey) mod n
-      const kInv = ECDSAUtils.modInverse(k, CURVE.n);
-      s = ECDSAUtils.mod(
-        kInv * (messageHash + ECDSAUtils.mod(r * privateKey, CURVE.n)),
+      const kInv = MathUtils.modInverse(k, CURVE.n);
+      s = MathUtils.mod(
+        kInv * (messageHash + MathUtils.mod(r * privateKey, CURVE.n)),
         CURVE.n,
       );
     }
@@ -527,13 +631,13 @@ class ECDSA {
     const { r, s } = signature;
 
     // Calculate w = s^(-1) mod n
-    const w = ECDSAUtils.modInverse(s, CURVE.n);
+    const w = MathUtils.modInverse(s, CURVE.n);
 
     // Calculate u1 = hash * w mod n
-    const u1 = ECDSAUtils.mod(messageHash * w, CURVE.n);
+    const u1 = MathUtils.mod(messageHash * w, CURVE.n);
 
     // Calculate u2 = r * w mod n
-    const u2 = ECDSAUtils.mod(r * w, CURVE.n);
+    const u2 = MathUtils.mod(r * w, CURVE.n);
 
     // Calculate point = u1 * G + u2 * publicKey
     const u1G = EllipticCurve.pointMultiply(u1, this.G);
@@ -543,7 +647,7 @@ class ECDSA {
     if (point.isInfinity) return false;
 
     // Verify r == point.x mod n
-    return ECDSAUtils.mod(point.x, CURVE.n) === r;
+    return MathUtils.mod(point.x, CURVE.n) === r;
   }
 }
 
@@ -551,6 +655,233 @@ class ECDSA {
  * ECDSA Verification Test Suite
  */
 class ECDSAVerification {
+  /**
+   * Test elliptic curve verification functions
+   */
+  static testEllipticCurveVerification(): boolean {
+    console.log(
+      chalk.cyan("\n=== Elliptic curve verification functions testing ==="),
+    );
+
+    let allPassed = true;
+
+    try {
+      // Test pointOnCurve
+      console.log("\n  Testing pointOnCurve:");
+
+      // Test 1: Generator point should be on curve
+      const generatorPoint = { x: CURVE.Gx, y: CURVE.Gy, isInfinity: false };
+      const generatorOnCurve = EllipticCurve.pointOnCurve(generatorPoint);
+      console.log(
+        `    Generator point on curve: ${generatorOnCurve ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && generatorOnCurve;
+
+      // Test 2: Infinity point should be on curve
+      const infinityPoint = { x: 0n, y: 0n, isInfinity: true };
+      const infinityOnCurve = EllipticCurve.pointOnCurve(infinityPoint);
+      console.log(
+        `    Infinity point on curve: ${infinityOnCurve ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && infinityOnCurve;
+
+      // Test 3: Random valid point should be on curve
+      const keyPair = ECDSA.generateKeyPair();
+      const randomValidPoint = keyPair.publicKey;
+      const randomOnCurve = EllipticCurve.pointOnCurve(randomValidPoint);
+      console.log(
+        `    Random valid point on curve: ${randomOnCurve ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && randomOnCurve;
+
+      // Test 4: Invalid point should not be on curve
+      const invalidPoint = { x: 1n, y: 1n, isInfinity: false };
+      const invalidOnCurve = EllipticCurve.pointOnCurve(invalidPoint);
+      console.log(
+        `    Invalid point rejected: ${!invalidOnCurve ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !invalidOnCurve;
+
+      // Test pointOnLine
+      console.log("\n  Testing pointOnLine:");
+
+      // Test 1: Three points that should be collinear
+      // Let's create a proper collinear test case using the line equation
+      const p1 = { x: 1n, y: 2n, isInfinity: false };
+      const p2 = { x: 2n, y: 4n, isInfinity: false };
+      const p3 = { x: 3n, y: -6n, isInfinity: false }; // Points on line y = 2x
+
+      const collinearTest = EllipticCurve.pointOnLine(p1, p2, p3);
+      console.log(
+        `    Collinear points detected: ${collinearTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && collinearTest;
+
+      // Test 2: Three points that should not be collinear
+      const nonCollinear1 = { x: 1n, y: 1n, isInfinity: false };
+      const nonCollinear2 = { x: 2n, y: 3n, isInfinity: false };
+      const nonCollinear3 = { x: 3n, y: -2n, isInfinity: false };
+
+      const nonCollinearTest = EllipticCurve.pointOnLine(
+        nonCollinear1,
+        nonCollinear2,
+        nonCollinear3,
+      );
+      console.log(
+        `    Non-collinear points rejected: ${!nonCollinearTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !nonCollinearTest;
+
+      // Test 3: Identical points are collinear
+      const identicalTest = EllipticCurve.pointOnLine(p1, p1, p2);
+      console.log(
+        `    Identical points are collinear: ${identicalTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && identicalTest;
+
+      // Test 4: Infinity points
+      const infinityTest = EllipticCurve.pointOnLine(infinityPoint, p1, p2);
+      console.log(
+        `    Infinity points handled: ${!infinityTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !infinityTest;
+
+      // Test pointOnTangent
+      console.log("\n  Testing pointOnTangent:");
+
+      // Use generator point for tangent tests
+      const G = { x: CURVE.Gx, y: CURVE.Gy, isInfinity: false };
+
+      // Test 1: Point should be on its own tangent
+      const selfTangentTest = EllipticCurve.pointOnTangent(G, G);
+      console.log(
+        `    Point on its own tangent: ${selfTangentTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && selfTangentTest;
+
+      // Test 2: Test with a known curve point and calculate tangent
+      // For point G, calculate the tangent line and test a point on it
+      // Tangent slope at G: (3*Gx² + a) / (2*Gy) where a = 0 for secp256k1
+      const tangentNumerator = MathUtils.mod(3n * G.x * G.x, CURVE.p);
+      const tangentDenominator = MathUtils.mod(2n * G.y, CURVE.p);
+      const tangentSlope = MathUtils.mod(
+        tangentNumerator * MathUtils.modInverse(tangentDenominator, CURVE.p),
+        CURVE.p,
+      );
+
+      // Create a point on the tangent line: y - Gy = slope * (x - Gx)
+      const testX = MathUtils.mod(G.x + 1n, CURVE.p);
+      const testY = MathUtils.mod(tangentSlope * (testX - G.x) + G.y, CURVE.p);
+      const tangentPoint = { x: testX, y: testY, isInfinity: false };
+
+      const tangentTest = EllipticCurve.pointOnTangent(G, tangentPoint);
+      console.log(
+        `    Point on calculated tangent: ${tangentTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && tangentTest;
+
+      // Test 3: Point not on tangent
+      const notOnTangent = {
+        x: testX,
+        y: MathUtils.mod(testY + 1n, CURVE.p),
+        isInfinity: false,
+      };
+      const notTangentTest = EllipticCurve.pointOnTangent(G, notOnTangent);
+      console.log(
+        `    Point not on tangent rejected: ${!notTangentTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !notTangentTest;
+
+      // Test 4: Invalid curve point for tangent
+      const invalidTangentTest = EllipticCurve.pointOnTangent(
+        invalidPoint,
+        tangentPoint,
+      );
+      console.log(
+        `    Invalid curve point rejected: ${!invalidTangentTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !invalidTangentTest;
+
+      // Test 5: Infinity points for tangent
+      const infinityTangentTest = EllipticCurve.pointOnTangent(
+        infinityPoint,
+        tangentPoint,
+      );
+      console.log(
+        `    Infinity curve point handled: ${!infinityTangentTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !infinityTangentTest;
+
+      // Test verifyCubicConstraint
+      console.log("\n  Testing verifyCubicConstraint:");
+
+      // Test 1: Verify cubic constraint for valid elliptic curve addition
+      // Generate two random curve points and compute their addition
+      const keyPair1 = ECDSA.generateKeyPair();
+      const keyPair2 = ECDSA.generateKeyPair();
+      const p1_cubic = keyPair1.publicKey;
+      const p2_cubic = keyPair2.publicKey;
+      const p3_cubic = EllipticCurve.pointAdd(p1_cubic, p2_cubic);
+
+      const validCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, p3_cubic);
+      console.log(
+        `    Valid EC addition cubic constraint: ${validCubicTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && validCubicTest;
+
+      // Test 2: Verify cubic constraint fails for invalid point addition
+      const invalidP3 = { x: MathUtils.mod(p3_cubic.x + 1n, CURVE.p), y: p3_cubic.y, isInfinity: false };
+      const invalidCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, invalidP3);
+      console.log(
+        `    Invalid EC addition constraint rejected: ${!invalidCubicTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !invalidCubicTest;
+
+      // Test 3: Test with point doubling case (P1 = P2)
+      const doublingResult = EllipticCurve.pointDouble(p1_cubic);
+      const doublingCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p1_cubic, doublingResult);
+      console.log(
+        `    Point doubling cubic constraint: ${doublingCubicTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && doublingCubicTest;
+
+      // Test 4: Test with generator point operations
+      const scalarK = MathUtils.generateRandomScalar(CURVE.n);
+      const kG = EllipticCurve.pointMultiply(scalarK, ECDSA.G);
+      const twoKG = EllipticCurve.pointDouble(kG);
+      const kGPlusKG = EllipticCurve.pointAdd(kG, kG);
+
+      // Verify that 2*kG = kG + kG satisfies cubic constraint
+      const generatorCubicTest = EllipticCurve.verifyCubicConstraint(kG, kG, twoKG);
+      console.log(
+        `    Generator point operations cubic: ${generatorCubicTest ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && generatorCubicTest;
+
+      // Verify the computed addition matches doubling
+      const additionMatchesDoubling = twoKG.x === kGPlusKG.x && twoKG.y === kGPlusKG.y;
+      console.log(
+        `    Point doubling consistency: ${additionMatchesDoubling ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && additionMatchesDoubling;
+
+      // Test 5: Handle infinity points in cubic constraint
+      const infinityCubicTest1 = EllipticCurve.verifyCubicConstraint(infinityPoint, p1_cubic, p2_cubic);
+      const infinityCubicTest2 = EllipticCurve.verifyCubicConstraint(p1_cubic, infinityPoint, p2_cubic);
+      const infinityCubicTest3 = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, infinityPoint);
+
+      console.log(
+        `    Infinity points in cubic handled: ${!infinityCubicTest1 && !infinityCubicTest2 && !infinityCubicTest3 ? "✅" : "❌"}`,
+      );
+      allPassed = allPassed && !infinityCubicTest1 && !infinityCubicTest2 && !infinityCubicTest3;
+    } catch (err) {
+      console.log("❌ Error in elliptic curve verification test:", String(err));
+      allPassed = false;
+    }
+
+    return allPassed;
+  }
+
   /**
    * Test basic ECDSA signing and verification
    */
@@ -981,7 +1312,7 @@ class ECDSAVerification {
                 testRecoveryId < 2;
                 testRecoveryId++
               ) {
-                const testRecovered = EllipticCurve.recoverPublicKey(
+                const testRecovered = ECDSAUtils.recoverPublicKey(
                   correctFormattedHash,
                   ourEthersFormatSignature,
                   testRecoveryId,
@@ -1090,126 +1421,6 @@ class ECDSAVerification {
   }
 
   /**
-   * Test elliptic curve verification functions
-   */
-  static testEllipticCurveVerification(): boolean {
-    console.log(chalk.cyan("\n=== Elliptic curve verification functions testing ==="));
-
-    let allPassed = true;
-
-    try {
-      // Test pointOnCurve
-      console.log("\n  Testing pointOnCurve:");
-      
-      // Test 1: Generator point should be on curve
-      const generatorPoint = { x: CURVE.Gx, y: CURVE.Gy, isInfinity: false };
-      const generatorOnCurve = EllipticCurve.pointOnCurve(generatorPoint);
-      console.log(`    Generator point on curve: ${generatorOnCurve ? "✅" : "❌"}`);
-      allPassed = allPassed && generatorOnCurve;
-
-      // Test 2: Infinity point should be on curve
-      const infinityPoint = { x: 0n, y: 0n, isInfinity: true };
-      const infinityOnCurve = EllipticCurve.pointOnCurve(infinityPoint);
-      console.log(`    Infinity point on curve: ${infinityOnCurve ? "✅" : "❌"}`);
-      allPassed = allPassed && infinityOnCurve;
-
-      // Test 3: Random valid point should be on curve
-      const keyPair = ECDSA.generateKeyPair();
-      const randomValidPoint = keyPair.publicKey;
-      const randomOnCurve = EllipticCurve.pointOnCurve(randomValidPoint);
-      console.log(`    Random valid point on curve: ${randomOnCurve ? "✅" : "❌"}`);
-      allPassed = allPassed && randomOnCurve;
-
-      // Test 4: Invalid point should not be on curve
-      const invalidPoint = { x: 1n, y: 1n, isInfinity: false };
-      const invalidOnCurve = EllipticCurve.pointOnCurve(invalidPoint);
-      console.log(`    Invalid point rejected: ${!invalidOnCurve ? "✅" : "❌"}`);
-      allPassed = allPassed && !invalidOnCurve;
-
-      // Test pointOnLine
-      console.log("\n  Testing pointOnLine:");
-
-      // Test 1: Three points that should be collinear
-      // Let's create a proper collinear test case using the line equation
-      const p1 = { x: 1n, y: 2n, isInfinity: false };
-      const p2 = { x: 2n, y: 4n, isInfinity: false };
-      const p3 = { x: 3n, y: 6n, isInfinity: false }; // Points on line y = 2x
-      
-      const collinearTest = EllipticCurve.pointOnLine(p1, p2, p3);
-      console.log(`    Collinear points detected: ${collinearTest ? "✅" : "❌"}`);
-      allPassed = allPassed && collinearTest;
-
-      // Test 2: Three points that should not be collinear
-      const nonCollinear1 = { x: 1n, y: 1n, isInfinity: false };
-      const nonCollinear2 = { x: 2n, y: 3n, isInfinity: false };
-      const nonCollinear3 = { x: 3n, y: 2n, isInfinity: false };
-      
-      const nonCollinearTest = EllipticCurve.pointOnLine(nonCollinear1, nonCollinear2, nonCollinear3);
-      console.log(`    Non-collinear points rejected: ${!nonCollinearTest ? "✅" : "❌"}`);
-      allPassed = allPassed && !nonCollinearTest;
-
-      // Test 3: Identical points are collinear
-      const identicalTest = EllipticCurve.pointOnLine(p1, p1, p2);
-      console.log(`    Identical points are collinear: ${identicalTest ? "✅" : "❌"}`);
-      allPassed = allPassed && identicalTest;
-
-      // Test 4: Infinity points
-      const infinityTest = EllipticCurve.pointOnLine(infinityPoint, p1, p2);
-      console.log(`    Infinity points handled: ${!infinityTest ? "✅" : "❌"}`);
-      allPassed = allPassed && !infinityTest;
-
-      // Test pointOnTangent
-      console.log("\n  Testing pointOnTangent:");
-
-      // Use generator point for tangent tests
-      const G = { x: CURVE.Gx, y: CURVE.Gy, isInfinity: false };
-
-      // Test 1: Point should be on its own tangent
-      const selfTangentTest = EllipticCurve.pointOnTangent(G, G);
-      console.log(`    Point on its own tangent: ${selfTangentTest ? "✅" : "❌"}`);
-      allPassed = allPassed && selfTangentTest;
-
-      // Test 2: Test with a known curve point and calculate tangent
-      // For point G, calculate the tangent line and test a point on it
-      // Tangent slope at G: (3*Gx² + a) / (2*Gy) where a = 0 for secp256k1
-      const tangentNumerator = ECDSAUtils.mod(3n * G.x * G.x, CURVE.p);
-      const tangentDenominator = ECDSAUtils.mod(2n * G.y, CURVE.p);
-      const tangentSlope = ECDSAUtils.mod(tangentNumerator * ECDSAUtils.modInverse(tangentDenominator, CURVE.p), CURVE.p);
-      
-      // Create a point on the tangent line: y - Gy = slope * (x - Gx)
-      const testX = ECDSAUtils.mod(G.x + 1n, CURVE.p);
-      const testY = ECDSAUtils.mod(tangentSlope * (testX - G.x) + G.y, CURVE.p);
-      const tangentPoint = { x: testX, y: testY, isInfinity: false };
-      
-      const tangentTest = EllipticCurve.pointOnTangent(G, tangentPoint);
-      console.log(`    Point on calculated tangent: ${tangentTest ? "✅" : "❌"}`);
-      allPassed = allPassed && tangentTest;
-
-      // Test 3: Point not on tangent
-      const notOnTangent = { x: testX, y: ECDSAUtils.mod(testY + 1n, CURVE.p), isInfinity: false };
-      const notTangentTest = EllipticCurve.pointOnTangent(G, notOnTangent);
-      console.log(`    Point not on tangent rejected: ${!notTangentTest ? "✅" : "❌"}`);
-      allPassed = allPassed && !notTangentTest;
-
-      // Test 4: Invalid curve point for tangent
-      const invalidTangentTest = EllipticCurve.pointOnTangent(invalidPoint, tangentPoint);
-      console.log(`    Invalid curve point rejected: ${!invalidTangentTest ? "✅" : "❌"}`);
-      allPassed = allPassed && !invalidTangentTest;
-
-      // Test 5: Infinity points for tangent
-      const infinityTangentTest = EllipticCurve.pointOnTangent(infinityPoint, tangentPoint);
-      console.log(`    Infinity curve point handled: ${!infinityTangentTest ? "✅" : "❌"}`);
-      allPassed = allPassed && !infinityTangentTest;
-
-    } catch (err) {
-      console.log("❌ Error in elliptic curve verification test:", String(err));
-      allPassed = false;
-    }
-
-    return allPassed;
-  }
-
-  /**
    * Test curve parameters and boundary conditions
    */
   static testBoundaryConditions(): boolean {
@@ -1251,14 +1462,18 @@ class ECDSAVerification {
   static async runAllTests(): Promise<boolean> {
     console.log(chalk.yellow("🧪 Running ECDSA Test Suite...\n"));
 
+    const eccVerificationTestPassed = this.testEllipticCurveVerification();
     const basicTestPassed = this.testBasicSigningAndVerification();
     const invalidTestPassed = this.testInvalidSignatureRejection();
     const multipleTestPassed = this.testMultipleSignatures();
     const ethersTestPassed = await this.testEthersCompatibility();
-    const verificationTestPassed = this.testEllipticCurveVerification();
     const boundaryTestPassed = this.testBoundaryConditions();
 
     console.log("\n📊 Complete Test Summary:");
+    console.log(
+      "Elliptic curve verification:",
+      eccVerificationTestPassed ? "✅" : "❌",
+    );
     console.log("Basic signing & verification:", basicTestPassed ? "✅" : "❌");
     console.log(
       "Invalid signature rejection:",
@@ -1266,15 +1481,14 @@ class ECDSAVerification {
     );
     console.log("Multiple signatures:", multipleTestPassed ? "✅" : "❌");
     console.log("Ethers.js compatibility:", ethersTestPassed ? "✅" : "❌");
-    console.log("Elliptic curve verification:", verificationTestPassed ? "✅" : "❌");
     console.log("Boundary conditions:", boundaryTestPassed ? "✅" : "❌");
 
     const allPassed =
+      eccVerificationTestPassed &&
       basicTestPassed &&
       invalidTestPassed &&
       multipleTestPassed &&
       ethersTestPassed &&
-      verificationTestPassed &&
       boundaryTestPassed;
 
     console.log(
@@ -1294,4 +1508,4 @@ if (
   ECDSAVerification.runAllTests().catch(console.error);
 }
 
-export { CURVE, ECDSA, ECDSAUtils, ECDSAVerification, EllipticCurve };
+export { CURVE, MathUtils, ECDSA, ECDSAUtils, ECDSAVerification, EllipticCurve };

@@ -12,10 +12,10 @@ include "secp256k1_utils.circom";
  * AddUnequalCubicConstraint
  * 
  * Verifies the cubic constraint for elliptic curve point addition:
- * x₁ + x₂ + x₃ - λ² = 0 mod p
+ * x₁ + x₂ + x₃ - λ² = 0 mod p, where the slope λ = (y₂ - y₁) / (x₂ - x₁)
  * 
  * This is mathematically equivalent to the expanded form:
- * x₁³ + x₂³ - x₁²x₂ - x₁x₂² + x₂²x₃ + x₁²x₃ - 2x₁x₂x₃ - y₂² - 2y₁y₂ - y₁² = 0 mod p
+ * x₁³ + x₂³ - x₁²x₂ - x₁x₂² + x₂²x₃ + x₁²x₃ - 2x₁x₂x₃ - y₂² + 2y₁y₂ - y₁² = 0 mod p
  * 
  * This constraint ensures that the three points (x₁,y₁), (x₂,y₂), (x₃,y₃) 
  * satisfy the elliptic curve addition relationship.

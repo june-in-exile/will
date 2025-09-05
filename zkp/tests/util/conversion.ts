@@ -158,17 +158,28 @@ function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
  * @param value - The large BigInt to split
  * @param numParts - Number of parts to split into (default: 4)
  * @param bitWidth - Number of bits per part (default: 64)
+ * @param modulus - Optional modulus for handling negative numbers in modular arithmetic
  * @returns Array of BigInts representing the split components
  */
 function splitBigInt(
   value: bigint,
   numParts: number = 4,
   bitWidth: number = 64,
+  modulus?: bigint,
 ): bigint[] {
+  let normalizedValue = value;
+  
+  // Handle negative numbers in modular arithmetic
+  if (modulus && value < 0n) {
+    normalizedValue = ((value % modulus) + modulus) % modulus;
+  } else if (modulus) {
+    normalizedValue = value % modulus;
+  }
+  
   const mask = (1n << BigInt(bitWidth)) - 1n; // Create mask for extracting bits
   const result: bigint[] = [];
 
-  let remainingValue = value;
+  let remainingValue = normalizedValue;
 
   // Extract components from right to left (least significant first)
   for (let i = 0; i < numParts; i++) {
@@ -247,5 +258,5 @@ export {
   concatBigInts,
   splitBigInt,
   bigIntsToPoint,
-  pointToBigInts
+  pointToBigInts,
 };
