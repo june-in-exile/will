@@ -65,6 +65,12 @@
   },
   "multiplier2": { "Multiplier2": {} },
   "range": { "InRange": {} },
+  "secp256k1": {
+    "Secp256k1PointOnLine": {},
+    "Secp256k1PointOnTangent": {},
+    "Secp256k1PointOCurve": {},
+    "Secp256k1AddUnequal": {}
+  },
   "sponge": {
     "Padding": {},
     "Absorb": {},

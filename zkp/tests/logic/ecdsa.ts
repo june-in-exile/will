@@ -1,10 +1,10 @@
-import { ECDSA, ECDSAUtils } from "./index.js";
+import { ECDSA, EllipticCurve } from "./index.js";
 import { concatBigInts, pointToBigInts, bigIntsToPoint } from "../util/index.js";
 import { Bit } from "../type/index.js";
 
 function ecdsaPrivToPub(privkey: bigint[]): bigint[][] {
     const privateKey = concatBigInts(privkey);
-    const publicKey = ECDSAUtils.pointMultiply(privateKey, ECDSA.G);
+    const publicKey = EllipticCurve.pointMultiply(privateKey, ECDSA.G);
     const pubkey = pointToBigInts(publicKey);
     return pubkey;
 }

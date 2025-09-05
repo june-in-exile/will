@@ -288,7 +288,7 @@ class ECDSAUtils {
   /**
    * Generate cryptographically secure random BigInt
    */
-  static generateRandomScalar(max: bigint): bigint {
+  static generateRandomScalar(max: bigint = CURVE.n): bigint {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
 
