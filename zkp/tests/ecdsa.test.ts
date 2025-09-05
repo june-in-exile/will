@@ -2,7 +2,7 @@ import { WitnessTester, splitBigInt, pointToBigInts } from "./util/index.js";
 import { ECDSA, ECDSAUtils, MathUtils } from "./logic/index.js";
 import { ecdsaPrivToPub, ecdsaVerifyNoPubkeyCheck } from "./logic/ecdsa.js";
 
-describe.skip("ECDSAPrivToPub Circuit", function () {
+describe("ECDSAPrivToPub Circuit", function () {
   let circuit: WitnessTester<["privkey"], ["pubkey"]>;
 
   describe("ECDSA Private Key to Public Key", function (): void {
