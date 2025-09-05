@@ -6,6 +6,7 @@ export * from "./byte.js";
 export * from "./estate.js";
 export * from "./generics.js";
 export * from "./nonce.js";
+export * from "./point.js";
 export * from "./signature.js";
 export * from "./timestamp.js";
 export * from "./utf8.js";

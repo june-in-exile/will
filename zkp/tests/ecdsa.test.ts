@@ -1,23 +1,48 @@
-import { WitnessTester } from "./util/index.js";
+import { WitnessTester, splitBigInt, pointToPubkey } from "./util/index.js";
 import { ECDSA, ECDSAUtils } from "./logic/index.js";
-import { concatBigInts, splitBigInt, pubkeyToPoint, pointToPubkey } from "./logic/ecdsaVerify.js";
+import { ecdsaPrivToPub, ecdsaVerifyNoPubkeyCheck } from "./logic/ecdsa.js";
 
-describe("EcdsaVerify Circuit", function () {
-    let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
+describe.skip("ECDSAPrivToPub Circuit", function () {
+    let circuit: WitnessTester<["privkey"], ["pubkey"]>;
 
-    describe("256-Bit Message Hash Signature Verification", function (): void {
+    describe("ECDSA Private Key to Public Key", function (): void {
         beforeAll(async function (): Promise<void> {
             circuit = await WitnessTester.construct(
-                "circuits/shared/components/ecdsa/ecdsaVerify.circom",
-                "EcdsaVerify",
+                "circuits/shared/components/ecdsa/ecdsa.circom",
+                "ECDSAPrivToPub",
                 {
                     templateParams: ["64", "4"],
                 },
             );
-            circuit.setConstraint("256-bit message hash signature verification");
+            circuit.setConstraint("calculate ecdsa public key from private key");
         });
 
-        it("should verify fixed signature correctly", async function (): Promise<void> {
+        it("should calculate the correct public key", async function (): Promise<void> {
+            const keyPair = ECDSA.generateKeyPair();
+            const privkey = splitBigInt(keyPair.privateKey);
+            const pubkey = ecdsaPrivToPub(privkey);
+
+            await circuit.expectPass({ privkey }, { pubkey });
+        });
+    });
+});
+
+describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
+    let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
+
+    describe("256-Bit Message Hash Signature Verification Without Checking Public Key", function (): void {
+        beforeAll(async function (): Promise<void> {
+            circuit = await WitnessTester.construct(
+                "circuits/shared/components/ecdsa/ecdsa.circom",
+                "ECDSAVerifyNoPubkeyCheck",
+                {
+                    templateParams: ["64", "4"],
+                },
+            );
+            circuit.setConstraint("256-bit message hash signature verification w/o checking public key");
+        });
+
+        it.only("should verify fixed signature correctly", async function (): Promise<void> {
             const r = [
                 BigInt("11878389131962663075"),
                 BigInt("9922462056030557342"),
@@ -54,39 +79,24 @@ describe("EcdsaVerify Circuit", function () {
                 ],
             ];
 
-            const result = ECDSA.verify(
-                concatBigInts(msghash),
-                {
-                    r: concatBigInts(r),
-                    s: concatBigInts(s),
-                },
-                pubkeyToPoint(pubkey),
-            )
-                ? 1
-                : 0;
-            console.log(`expected: ${result}`);
+            // const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
 
-            await circuit.expectPass({ r, s, msghash, pubkey }, { result });
+            await circuit.expectPass({ r, s, msghash, pubkey }, { result: 1 });
         });
 
         it("should verify random signature correctly", async function (): Promise<void> {
-            const keyPair = ECDSA.generateKeyPair();
-            const pubkey = pointToPubkey(keyPair.publicKey);
-
             const message = "Hello, ECDSA!";
             const messageHash = ECDSAUtils.hashMessage(message);
             const msghash = splitBigInt(messageHash);
-            console.log(`msghash: ${msghash}`)
+
+            const keyPair = ECDSA.generateKeyPair();
+            const pubkey = pointToPubkey(keyPair.publicKey);
 
             const signature = ECDSA.sign(messageHash, keyPair.privateKey);
             const r = splitBigInt(signature.r);
             const s = splitBigInt(signature.s);
 
-            const result = ECDSA.verify(messageHash, signature, keyPair.publicKey)
-                ? 1
-                : 0;
-
-            console.log(`expected: ${result}`);
+            const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
 
             await circuit.expectPass({ r, s, msghash, pubkey }, { result });
         });

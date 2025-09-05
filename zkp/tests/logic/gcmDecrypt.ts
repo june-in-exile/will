@@ -1,5 +1,5 @@
 import { Byte, Word } from "../type/index.js";
-import { AESGCM } from "./aes-gcm.js";
+import { AESGCM } from "./cryptography/aes-gcm.js";
 import { wordToBuffer } from "../util/index.js";
 
 function gcmDecrypt(
