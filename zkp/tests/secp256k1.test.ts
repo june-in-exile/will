@@ -177,7 +177,7 @@ describe("Secp256k1PointOnTangent Circuit", function () {
       const x3BigInt = MathUtils.mod(p1.x + deltaX, CURVE.p);
       const y3_unreflected = MathUtils.mod(tangentSlope * deltaX + p1.y, CURVE.p);
       const y3BigInt = MathUtils.mod(-y3_unreflected, CURVE.p); // Reflection point (negate y)
-      
+
       const x3 = splitBigInt(x3BigInt);
       const y3 = splitBigInt(y3BigInt, { modulus: CURVE.p }); // Use modulus for negative handling
 

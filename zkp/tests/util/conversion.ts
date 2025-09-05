@@ -138,13 +138,14 @@ function bitToByte(bits: Bit[]): Byte[] {
 }
 
 /**
- * Original concatenation function for reference
+ * Concatenates BigInts assuming LSB-First format (values[0] is least significant)
  */
 function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
   let result = 0n;
   const shift = BigInt(bitWidth);
 
-  for (let i = 0; i < values.length; i++) {
+  // Process from most significant to least significant (reverse order)
+  for (let i = values.length - 1; i >= 0; i--) {
     result = (result << shift) | values[i];
   }
 
@@ -177,7 +178,7 @@ function splitBigInt(
     const part = normalizedValue & mask;
     normalizedValue >>= BigInt(bitWidth);
     return part;
-  }).reverse(); // least significant first -> reverse
+  });
 }
 
 /**
