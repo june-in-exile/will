@@ -184,7 +184,7 @@ function splitBigInt(
  * @param pubkey - Array of [x_components, y_components] where each component is 4 BigInts
  * @returns Point with concatenated x and y coordinates
  */
-function pubkeyToPoint(pubkey: bigint[][]): Point {
+function bigIntsToPoint(pubkey: bigint[][]): Point {
   if (pubkey.length !== 2) {
     throw new Error("Pubkey must have exactly 2 components [x, y]");
   }
@@ -217,7 +217,7 @@ function pubkeyToPoint(pubkey: bigint[][]): Point {
  * @param bitWidth - Bits per component (default: 64)
  * @returns Array of [x_components, y_components]
  */
-function pointToPubkey(
+function pointToBigInts(
   point: Point,
   componentsPerCoordinate: number = 4,
   bitWidth: number = 64,
@@ -246,6 +246,6 @@ export {
   bitToByte,
   concatBigInts,
   splitBigInt,
-  pubkeyToPoint,
-  pointToPubkey
+  bigIntsToPoint,
+  pointToBigInts
 };

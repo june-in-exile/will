@@ -23,7 +23,12 @@ template ECDSAPrivToPub(n, k) {
     }
 
     var num_strides = div_ceil(n * k, stride);
-    // power[i][j] contains: [j * (1 << stride * i) * G] for 1 <= j < (1 << stride)
+    // powers[i][j]   = (2**(stride*i)) * j   * G for 1 <= j < (2^stride)
+    // powers[0][1]   =  2**0           * 1   * G
+    // powers[0][255] =  2**0           * 255 * G
+    // powers[1][1]   =  2**8           * 1   * G
+    // powers[1][255] =  2**8           * 255 * G
+    // powers[2][1]   =  2**16          * 1   * G
     var powers[num_strides][2 ** stride][2][k];
     powers = get_g_pow_stride8_table(n, k);
 
@@ -35,7 +40,7 @@ template ECDSAPrivToPub(n, k) {
     for (var i = 0; i < k; i++) dummy[0][i] = dummyHolder[0][i];
     for (var i = 0; i < k; i++) dummy[1][i] = dummyHolder[1][i];
 
-    // selector[i] contains a value in [0, ..., 2**i - 1]
+    // selector[i] contains a value in [0, ..., 2**stride - 1]
     component selectors[num_strides];
     for (var i = 0; i < num_strides; i++) {
         selectors[i] = Bits2Num(stride);
@@ -85,6 +90,12 @@ template ECDSAPrivToPub(n, k) {
         has_prev_nonzero[i].b <== 1 - iszero[i].out;
     }
 
+    // partial[i][l][idx] stores the cumulative elliptic curve point sum up to stride i
+    // partial[0] = a₀ * G
+    // partial[1] = a₀ * G + a₁ * 2^8 * G  
+    // partial[2] = a₀ * G + a₁ * 2^8 * G + a₂ * 2^16 * G
+    // ...
+    // partial[num_strides-1] = privkey * G (final public key)
     signal partial[num_strides][2][k];
     for (var idx = 0; idx < k; idx++) {
         for (var l = 0; l < 2; l++) {
@@ -99,17 +110,19 @@ template ECDSAPrivToPub(n, k) {
         adders[i - 1] = Secp256k1AddUnequal(n, k);
         for (var idx = 0; idx < k; idx++) {
             for (var l = 0; l < 2; l++) {
+                // adders[i-1].out = partial[i - 1] + multiplexers[i].out
                 adders[i - 1].a[l][idx] <== partial[i - 1][l][idx];
                 adders[i - 1].b[l][idx] <== multiplexers[i][l].out[idx];
             }
         }
 
-        // partial[i] = has_prev_nonzero[i - 1] * ((1 - iszero[i]) * adders[i - 1].out + iszero[i] * partial[i - 1][0][idx])
-        //              + (1 - has_prev_nonzero[i - 1]) * (1 - iszero[i]) * multiplexers[i]
         for (var idx = 0; idx < k; idx++) {
             for (var l = 0; l < 2; l++) {
+                // intermed1 = iszero[i] ? partial[i-1] : adders[i-1].out
                 intermed1[i - 1][l][idx] <== iszero[i].out * (partial[i - 1][l][idx] - adders[i - 1].out[l][idx]) + adders[i - 1].out[l][idx];
+                // intermed2 = iszero[i] ? 0 : multiplexers[i].out
                 intermed2[i - 1][l][idx] <== multiplexers[i][l].out[idx] - iszero[i].out * multiplexers[i][l].out[idx];
+                // partial[i] = has_prev_nonzero[i-1] ? intermed1[i - 1] : intermed2[i - 1]
                 partial[i][l][idx] <== has_prev_nonzero[i - 1].out * (intermed1[i - 1][l][idx] - intermed2[i - 1][l][idx]) + intermed2[i - 1][l][idx];
             }
         }
