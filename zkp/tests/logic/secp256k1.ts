@@ -62,10 +62,25 @@ function secp256k1AddUnequal(a: bigint[][], b: bigint[][]): bigint[][] {
   return out;
 }
 
+function secp256k1Double(_in: bigint[][]): bigint[][] { 
+  const pin = bigIntsToPoint(_in);
+  const pout = EllipticCurve.pointDouble(pin);
+  return pointToBigInts(pout);
+}
+
+function secp256k1ScalarMult(scalar: bigint[], point: bigint[][]): bigint[][] { 
+  const p = bigIntsToPoint(point);
+  const scalarBigInt = concatBigInts(scalar);
+  const out = EllipticCurve.pointMultiply(scalarBigInt, p);
+  return pointToBigInts(out);
+}
+
 export {
   addUnequalCubicConstraint,
   secp256k1PointOnLine,
   secp256k1PointOnTangent,
   secp256k1PointOnCurve,
   secp256k1AddUnequal,
+  secp256k1Double,
+  secp256k1ScalarMult
 };

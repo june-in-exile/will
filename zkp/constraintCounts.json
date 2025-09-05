@@ -327,21 +327,26 @@
     }
   },
   "secp256k1": {
-    "Secp256k1AddUnequal": {
-      "point addition on secp256k1 curve": 2515
+    "Secp256k1ScalarMult": {
+      "point multiplication on secp256k1 curve": 1399441
+    },
+    "AddUnequalCubicConstraint": {
+      "check cubic constraint for elliptic curve point addition": 1257
     },
     "Secp256k1PointOnLine": {
       "check 3 points are collinear": 598
     },
     "Secp256k1PointOnTangent": {
-      "check 2 points satisfy the point doubling relationship": 1160,
       "check 2 points on the same tangent line": 1160
     },
     "Secp256k1PointOnCurve": {
       "check point is on curve": 1126
     },
-    "AddUnequalCubicConstraint": {
-      "check cubic constraint for elliptic curve point addition": 1257
+    "Secp256k1AddUnequal": {
+      "point addition on secp256k1 curve": 2515
+    },
+    "Secp256k1Double": {
+      "point doubling on secp256k1 curve": 2955
     }
   }
 }

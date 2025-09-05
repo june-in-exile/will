@@ -5,9 +5,11 @@ import {
   MathUtils,
   addUnequalCubicConstraint,
   secp256k1PointOnLine,
+  secp256k1PointOnTangent,
   secp256k1PointOnCurve,
   secp256k1AddUnequal,
-  secp256k1PointOnTangent,
+  secp256k1Double,
+  secp256k1ScalarMult
 } from "./logic/index.js";
 
 describe("AddUnequalCubicConstraint Circuit", function () {
@@ -270,6 +272,66 @@ describe("Secp256k1AddUnequal Circuit", function () {
       const out = secp256k1AddUnequal(a, b);
 
       await circuit.expectPass({ a, b }, { out });
+    });
+  });
+});
+
+describe("Secp256k1Double Circuit", function () {
+  let circuit: WitnessTester<["in"], ["out"]>;
+
+  describe("Point Doubling on Secp256k1 Curve", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/ecdsa/secp256k1.circom",
+        "Secp256k1Double",
+        {
+          templateParams: ["64", "4"],
+        },
+      );
+      circuit.setConstraint("point doubling on secp256k1 curve");
+    });
+
+    it("should double a random point correctly", async function (): Promise<void> {
+      const p = EllipticCurve.generateRandomPoint();
+      const _in = pointToBigInts(p);
+      const out = secp256k1Double(_in);
+
+      await circuit.expectPass({ in: _in }, { out });
+    });
+  });
+});
+
+describe("Secp256k1ScalarMult Circuit", function () {
+  let circuit: WitnessTester<["scalar", "point"], ["out"]>;
+
+  describe("Point Multiplication by Scalar on Secp256k1 Curve", function (): void {
+    beforeAll(async function (): Promise<void> {
+      circuit = await WitnessTester.construct(
+        "circuits/shared/components/ecdsa/secp256k1.circom",
+        "Secp256k1ScalarMult",
+        {
+          templateParams: ["64", "4"],
+        },
+      );
+      circuit.setConstraint("point multiplication by scalar on secp256k1 curve");
+    });
+
+    it("should multiply a random point by 2 correctly", async function (): Promise<void> {
+      const scalarBigInt = 2n;
+      const scalar = splitBigInt(scalarBigInt);
+      const point = pointToBigInts(EllipticCurve.generateRandomPoint());
+      const out = secp256k1ScalarMult(scalar, point);
+
+      await circuit.expectPass({ scalar, point }, { out });
+    });
+
+    it("should multiply a random point by a random scalar correctly", async function (): Promise<void> {
+      const scalarBigInt = MathUtils.generateRandomScalar(CURVE.p);
+      const scalar = splitBigInt(scalarBigInt);
+      const point = pointToBigInts(EllipticCurve.generateRandomPoint());
+      const out = secp256k1ScalarMult(scalar, point);
+
+      await circuit.expectPass({ scalar, point }, { out });
     });
   });
 });
