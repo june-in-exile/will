@@ -135,8 +135,12 @@
     "Deserialize": {}
   },
   "ecdsa": {
-    "ECDSAPrivToPub": {},
-    "ECDSAVerifyNoPubkeyCheck": {}
+    "ECDSAPrivToPub": {
+      "calculate ecdsa public key from private key": 95444
+    },
+    "ECDSAVerifyNoPubkeyCheck": {
+      "256-bit message hash signature verification w/o checking public key": 1508904
+    }
   },
   "encryptBlock": {
     "ExpandKey": {
@@ -219,7 +223,9 @@
     "Secp256k1Double": {
       "point doubling on secp256k1 curve": 2955
     },
-    "Secp256k1ScalarMult": {},
+    "Secp256k1ScalarMult": {
+      "point multiplication by scalar on secp256k1 curve": 1399441
+    },
     "Secp256k1PointOnCurve": {
       "check point is on curve": 1126
     }

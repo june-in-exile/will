@@ -10,7 +10,7 @@
     "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
     "test:aesgcm": "pnpm exec tsx ./tests/logic/modules/aesGcm.ts",
     "test:ecdsa": "pnpm exec tsx ./tests/logic/modules/ecdsa.ts",
-    "test:all": "pnpm exec tsx ./tests/logic/modules/index.ts && vitest run --reporter=basic",
+    "test:all": "pnpm exec tsx ./tests/logic/modules/runTests.ts && vitest run --reporter=basic",
     "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",

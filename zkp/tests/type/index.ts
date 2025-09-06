@@ -9,5 +9,6 @@ export * from "./nonce.js";
 export * from "./point.js";
 export * from "./signature.js";
 export * from "./timestamp.js";
+export * from "./uint.js";
 export * from "./utf8.js";
 export * from "./word.js";

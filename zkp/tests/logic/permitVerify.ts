@@ -1,5 +1,5 @@
 import { AbiEncoder, Keccak256 } from "./index.js"
-import { Bit, Byte, Address, Estate, Nonce, Timestamp, Signature } from "../type/index.js";
+import { Bit, Byte, Uint256, Address, Estate, Nonce, Timestamp, Signature } from "../type/index.js";
 import { byteToBigInt, concatBigInts, splitBigInt } from "../util/conversion.js";
 
 const _TOKEN_PERMISSIONS_TYPEHASH = "0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1";
@@ -10,7 +10,7 @@ function hashPermit(
     nonce: Nonce,
     deadline: Timestamp,
     will: Address,
-): bigint[] {
+): Uint256 {
     const tokenPermissionDigests: string[] = [];
     for (let i = 0; i < estates.length; i++) {
         tokenPermissionDigests[i] = Keccak256.hash(AbiEncoder.encode(_TOKEN_PERMISSIONS_TYPEHASH, estates[i].token, estates[i].amount));
@@ -28,7 +28,7 @@ function hashPermit(
     return splitBigInt(BigInt(permitDigest));
 }
 
-function eip712Hash(dataHash: bigint[], chainId: number = 421614): bigint[] {
+function eip712Hash(dataHash: Uint256, chainId: number = 421614): Uint256 {
     let DOMAIN_SEPARATOR;
     if (chainId == 421614) {  // Arbitrum Sepolia
         DOMAIN_SEPARATOR = "0x97caedc57dcfc2ae625d68b894a8a814d7be09e29aa5321eebada2423410d9d0";
@@ -40,8 +40,8 @@ function eip712Hash(dataHash: bigint[], chainId: number = 421614): bigint[] {
 }
 
 function decodeSignature(signature: Signature): {
-    r: bigint[],
-    s: bigint[],
+    r: Uint256,
+    s: Uint256,
     v: Byte
 } {
     const rBytes: Byte[] = signature.slice(0, 32);
@@ -54,7 +54,7 @@ function decodeSignature(signature: Signature): {
     return { r: splitBigInt(r), s: splitBigInt(s), v };
 }
 
-function verifySignature(signature: Signature, permitDigest: bigint[], testator: Address): Bit {
+function verifySignature(signature: Signature, permitDigest: Uint256, testator: Address): Bit {
     const { r, s, v } = decodeSignature(signature);
     const signer: Address = AbiEncoder.ecrecover(permitDigest, v, r, s);
     const isValid = (signer == testator);
@@ -69,7 +69,7 @@ function verifyPermit(
     will: Address,
     signature: Signature
 ): Bit {
-    const permitDigest: bigint[] = hashPermit(estates, nonce, deadline, will);
+    const permitDigest: Uint256 = hashPermit(estates, nonce, deadline, will);
     const permitEip712Digest = eip712Hash(permitDigest);
     return verifySignature(signature, permitEip712Digest, testator);
 }
