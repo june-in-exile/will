@@ -399,43 +399,43 @@ class ECDSAUtils {
    * Convert our signature format to ethers.js format
    * Note: This is incomplete as we need recovery ID (v)
    */
-  static ourSignatureToEthers(
-    signature: { r: bigint; s: bigint },
-    v: number = 27,
-  ): string {
-    const r = signature.r.toString(16).padStart(64, "0");
-    const s = signature.s.toString(16).padStart(64, "0");
-    const vHex = v.toString(16).padStart(2, "0");
+  // static ourSignatureToEthers(
+  //   signature: { r: bigint; s: bigint },
+  //   v: number = 27,
+  // ): string {
+  //   const r = signature.r.toString(16).padStart(64, "0");
+  //   const s = signature.s.toString(16).padStart(64, "0");
+  //   const vHex = v.toString(16).padStart(2, "0");
 
-    return "0x" + r + s + vHex;
-  }
+  //   return "0x" + r + s + vHex;
+  // }
 
   /**
    * Find the correct recovery ID for a signature
    * This tries recovery IDs 0 and 1 (standard cases) and returns the one that recovers the expected public key
    */
-  static findRecoveryId(
-    messageHash: bigint,
-    signature: { r: bigint; s: bigint },
-    expectedPublicKey: Point,
-  ): number | null {
-    // Try recovery IDs 0 and 1 (most common cases)
-    for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
-      const recoveredKey = this.recoverPublicKey(
-        messageHash,
-        signature,
-        recoveryId,
-      );
-      if (
-        recoveredKey &&
-        recoveredKey.x === expectedPublicKey.x &&
-        recoveredKey.y === expectedPublicKey.y
-      ) {
-        return recoveryId;
-      }
-    }
-    return null;
-  }
+  // static findRecoveryId(
+  //   messageHash: bigint,
+  //   signature: { r: bigint; s: bigint },
+  //   expectedPublicKey: Point,
+  // ): number | null {
+  //   // Try recovery IDs 0 and 1 (most common cases)
+  //   for (let recoveryId = 0; recoveryId < 2; recoveryId++) {
+  //     const recoveredKey = this.recoverPublicKey(
+  //       messageHash,
+  //       signature,
+  //       recoveryId,
+  //     );
+  //     if (
+  //       recoveredKey &&
+  //       recoveredKey.x === expectedPublicKey.x &&
+  //       recoveredKey.y === expectedPublicKey.y
+  //     ) {
+  //       return recoveryId;
+  //     }
+  //   }
+  //   return null;
+  // }
 
   /**
    * Normalize signature to canonical form (s <= n/2)

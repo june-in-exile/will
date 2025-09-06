@@ -13,7 +13,7 @@ describe("ComputeJ0Standard Circuits", function () {
 
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "ComputeJ0Standard",
       );
       circuit.setConstraint("j0 computation for standard IV (12 bytes)");
@@ -50,7 +50,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   it("should reject 0-byte IV input", async function (): Promise<void> {
     await expect(
       WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["0"],
@@ -62,7 +62,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   it("should reject 12-byte IV input", async function (): Promise<void> {
     await expect(
       WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["12"],
@@ -74,7 +74,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   describe("Compute J0 Non-Standard (16-Byte IV) Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "ComputeJ0NonStandard",
         {
           templateParams: ["16"],
@@ -117,7 +117,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
 
       for (const length of ivLengths) {
         const circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/counter.circom",
+          "circuits/shared/components/aesGcm/counter.circom",
           "ComputeJ0NonStandard",
           {
             templateParams: [String(length)],
@@ -146,11 +146,11 @@ describe("IncrementCounter Circuits", function () {
   describe("Increment Counter Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "IncrementCounter",
       );
       circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/counter.circom",
+        "circuits/shared/components/aesGcm/counter.circom",
         "IncrementCounterOptimized",
       );
       circuit.setConstraint("counter increment");

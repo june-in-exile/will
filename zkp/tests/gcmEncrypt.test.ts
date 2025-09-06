@@ -13,7 +13,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("No Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "12", "0", "0"],
@@ -50,7 +50,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("12-Byte Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "12", "12", "0"],
@@ -90,7 +90,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "12", "16", "0"],
@@ -124,7 +124,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("2-Block Plaintext, 1-Block AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "12", "32", "16"],
@@ -168,7 +168,7 @@ describe("GcmEncrypt Circuits", function () {
       describe.skip("2-Block Plaintext, 30-Byte AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "12", "32", "30"],
@@ -207,7 +207,7 @@ describe("GcmEncrypt Circuits", function () {
       describe.skip("1-Byte IV, 1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "1", "16", "0"],
@@ -244,7 +244,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("8-Byte IV, 1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["128", "8", "16", "0"],
@@ -285,7 +285,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["192", "12", "16", "0"],
@@ -354,7 +354,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("12-Byte Plaintext, 5-Byte AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["192", "12", "12", "5"],
@@ -396,7 +396,7 @@ describe("GcmEncrypt Circuits", function () {
       describe.skip("2-Block Plaintext, 1-Block AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["192", "12", "32", "16"],
@@ -446,7 +446,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["256", "12", "16", "0"],
@@ -490,7 +490,7 @@ describe("GcmEncrypt Circuits", function () {
       describe.skip("2-Block Plaintext, 1-Block AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["256", "12", "32", "16"],
@@ -566,7 +566,7 @@ describe("GcmEncrypt Circuits", function () {
       describe("16-Byte IV, 1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmEncrypt.circom",
+            "circuits/shared/components/aesGcm/gcmEncrypt.circom",
             "GcmEncrypt",
             {
               templateParams: ["256", "16", "16", "0"],

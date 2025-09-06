@@ -6,10 +6,11 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:keccak256": "pnpm exec tsx ./tests/logic/keccak256.ts",
-    "test:aes-gcm": "pnpm exec tsx ./tests/logic/aes-gcm.ts",
-    "test:ecdsa": "pnpm exec tsx ./tests/logic/ecdsa.ts",
-    "test:all": "pnpm exec tsx ./tests/logic/cryptography/runTests.ts && vitest run --reporter=basic",
+    "test:abiEncoder": "pnpm exec tsx ./tests/logic/modules/abiEncoder.ts",
+    "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
+    "test:aesgcm": "pnpm exec tsx ./tests/logic/modules/aesGcm.ts",
+    "test:ecdsa": "pnpm exec tsx ./tests/logic/modules/ecdsa.ts",
+    "test:all": "pnpm exec tsx ./tests/logic/modules/index.ts && vitest run --reporter=basic",
     "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
@@ -22,7 +23,7 @@
     "zk-snarks",
     "aes",
     "aes-ctr",
-    "aes-gcm"
+    "aesGcm"
   ],
   "author": "June",
   "license": "MIT",

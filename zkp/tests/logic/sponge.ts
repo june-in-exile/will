@@ -1,5 +1,5 @@
 import { Bit } from "../type/index.js";
-import { Keccak256, Keccak256Utils } from "./cryptography/keccak256.js";
+import { Keccak256, Keccak256Utils } from "./modules/keccak256.js";
 
 function absorb(msg: Bit[]): number[][][] {
   const msgBytes = Keccak256Utils.bitsToBytes(msg);

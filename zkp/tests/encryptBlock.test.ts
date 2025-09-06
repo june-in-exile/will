@@ -19,7 +19,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-128", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "ExpandKey",
         {
           templateParams: ["128"],
@@ -48,7 +48,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-192", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "ExpandKey",
         {
           templateParams: ["192"],
@@ -76,7 +76,7 @@ describe("ExpandKey Circuit", function () {
   describe("Key Expansion for AES-256", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "ExpandKey",
         {
           templateParams: ["256"],
@@ -110,7 +110,7 @@ describe("SubWord Circuit", function () {
   describe("Word Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "SubWord",
       );
       circuit.setConstraint("word substitution");
@@ -135,7 +135,7 @@ describe("SubBytes Circuit", function () {
   describe("Bytes Substitution in Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "SubBytes",
       );
       circuit.setConstraint("16-byte substitution");
@@ -157,7 +157,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("Single Byte Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "SubstituteBytes",
         {
           templateParams: ["1"],
@@ -181,7 +181,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("4-Byte Bytes Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "SubstituteBytes",
         {
           templateParams: ["4"],
@@ -205,7 +205,7 @@ describe("SubstituteBytes Circuit", function () {
   describe("16-Byte Bytes Substitution", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "SubstituteBytes",
         {
           templateParams: ["16"],
@@ -233,7 +233,7 @@ describe("ShiftRows Circuit", function () {
   describe("Row Shifting for Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "ShiftRows",
       );
       circuit.setConstraint("rows shifting");
@@ -275,7 +275,7 @@ describe("MixColumn Circuit", function () {
   describe("MixColumns Transformation for a Single Column", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "MixColumn",
       );
       circuit.setConstraint("column mixing");
@@ -347,7 +347,7 @@ describe("MixColumns Circuit", function () {
   describe("MixColumns Transformation for the Entire 16-byte State", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "MixColumns",
       );
       circuit.setConstraint("columns mixing");
@@ -465,7 +465,7 @@ describe("AddRoundKey Circuit", function () {
   describe("AddRoundKey Transformation", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "AddRoundKey",
       );
       circuit.setConstraint("round key addition");
@@ -494,7 +494,7 @@ describe("EncryptBlock Circuit", function () {
     for (const keySize of keySizes) {
       await expect(
         WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/encryptBlock.circom",
+          "circuits/shared/components/aesGcm/encryptBlock.circom",
           "EncryptBlock",
           {
             templateParams: [String(keySize)],
@@ -507,7 +507,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-128 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["128"],
@@ -532,7 +532,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-192 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["192"],
@@ -557,7 +557,7 @@ describe("EncryptBlock Circuit", function () {
   describe("AES-256 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/encryptBlock.circom",
+        "circuits/shared/components/aesGcm/encryptBlock.circom",
         "EncryptBlock",
         {
           templateParams: ["256"],

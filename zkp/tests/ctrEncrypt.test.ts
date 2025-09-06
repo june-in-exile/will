@@ -9,7 +9,7 @@ describe("CtrEncrypt Circuits", function () {
     describe("3 Bytes (With 13-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["128", "3"],
@@ -60,7 +60,7 @@ describe("CtrEncrypt Circuits", function () {
     describe("16 Bytes (1 Block)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["128", "16"],
@@ -101,7 +101,7 @@ describe("CtrEncrypt Circuits", function () {
     describe.skip("47 Bytes (With 1-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["128", "47"],
@@ -130,7 +130,7 @@ describe("CtrEncrypt Circuits", function () {
     describe("64 Bytes (4 Block)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["128", "64"],
@@ -202,7 +202,7 @@ describe("CtrEncrypt Circuits", function () {
     describe.skip("30 Bytes (With 2-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["192", "30"],
@@ -233,7 +233,7 @@ describe("CtrEncrypt Circuits", function () {
     describe("64 Bytes (4 Block)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["192", "64"],
@@ -287,7 +287,7 @@ describe("CtrEncrypt Circuits", function () {
     describe.skip("17 Bytes (With 15-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["256", "17"],
@@ -320,7 +320,7 @@ describe("CtrEncrypt Circuits", function () {
     describe("64 Bytes (4 Block)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aes-gcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
           "CtrEncrypt",
           {
             templateParams: ["256", "64"],

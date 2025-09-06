@@ -13,7 +13,7 @@ describe("GcmDecrypt Circuits", function () {
       describe("1-Block Plaintext, No AAD", function () {
         beforeAll(async function (): Promise<void> {
           circuit = await WitnessTester.construct(
-            "circuits/shared/components/aes-gcm/gcmDecrypt.circom",
+            "circuits/shared/components/aesGcm/gcmDecrypt.circom",
             "GcmDecrypt",
             {
               templateParams: ["256", "12", "16", "0"],

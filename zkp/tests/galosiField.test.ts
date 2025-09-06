@@ -7,7 +7,7 @@ describe("GF8Mul2 Circuit", function () {
   describe("Galois Field Multiplication by 2 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GF8Mul2",
       );
       circuit.setConstraint("GF(2^8) multiplication by 2");
@@ -60,7 +60,7 @@ describe("GF8Mul3 Circuit", function () {
   describe("Galois Field Multiplication by 3 in GF(2^8)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GF8Mul3",
       );
       circuit.setConstraint("GF(2^8) multiplication by 3");
@@ -132,11 +132,11 @@ describe("GF128Multiply Circuit", function () {
 
   beforeAll(async function (): Promise<void> {
     circuit = await WitnessTester.construct(
-      "circuits/shared/components/aes-gcm/galoisField.circom",
+      "circuits/shared/components/aesGcm/galoisField.circom",
       "GF128Multiply",
     );
     circuitOptimized = await WitnessTester.construct(
-      "circuits/shared/components/aes-gcm/galoisField.circom",
+      "circuits/shared/components/aesGcm/galoisField.circom",
       "GF128MultiplyOptimized",
     );
     circuit.setConstraint("GF(2^128) multiplication");
@@ -204,14 +204,14 @@ describe("GHash Circuit", function () {
   describe("GHASH with 1 block (16 bytes)", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHash",
         {
           templateParams: ["1"],
         },
       );
       circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHashOptimized",
         {
           templateParams: ["1"],
@@ -259,14 +259,14 @@ describe("GHash Circuit", function () {
   describe("GHASH with 2 blocks (32 bytes)", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHash",
         {
           templateParams: ["2"],
         },
       );
       circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHashOptimized",
         {
           templateParams: ["2"],
@@ -316,14 +316,14 @@ describe("GHash Circuit", function () {
   describe("GHASH with 4 blocks (64 bytes)", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHash",
         {
           templateParams: ["4"],
         },
       );
       circuitOptimized = await WitnessTester.construct(
-        "circuits/shared/components/aes-gcm/galoisField.circom",
+        "circuits/shared/components/aesGcm/galoisField.circom",
         "GHashOptimized",
         {
           templateParams: ["4"],

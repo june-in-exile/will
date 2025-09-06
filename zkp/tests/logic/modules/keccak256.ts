@@ -396,7 +396,7 @@ class Keccak256 {
    * @note the hash value might differ from the NIST document since Solidity Keccak256 doesn't apply 01 suffix after message
    */
   static hash(input: string | Uint8Array): string {
-    const inputBytes = this.prepareInput(input);
+    const inputBytes = this.encode(input);
     const paddedInput = this.addPadding(inputBytes);
     const state = this.absorb(paddedInput);
     const output = this.squeeze(state);
@@ -449,10 +449,10 @@ class Keccak256 {
   }
 
   /**
-   * Convert input to bytes
-   * For regular byte-based hashing. For non-byte-aligned inputs, use hashBits() instead.
+   * Encode input to bytes for regular byte-based hashing.
+   * For non-byte-aligned inputs, use hashBits() instead.
    */
-  static prepareInput(input: string | Uint8Array): Uint8Array {
+  static encode(input: string | Uint8Array): Uint8Array {
     if (typeof input === "string") {
       // Only process as hex if it has 0x prefix
       if (input.startsWith("0x")) {
@@ -716,7 +716,7 @@ class Keccak256Verification {
     ];
 
     for (const testVector of testVectors) {
-      const input = Keccak256.prepareInput(testVector);
+      const input = Keccak256.encode(testVector);
       const expectedDigest = ethers.keccak256(input);
       console.log("Ether:\t\t\t", expectedDigest);
 
@@ -813,7 +813,7 @@ class Keccak256Verification {
       // Also verify against ethers.js for the plainText or uint8Array format
       if (formats.plainText !== undefined || formats.uint8Array !== undefined) {
         const referenceInput =
-          formats.uint8Array || Keccak256.prepareInput(formats.plainText || "");
+          formats.uint8Array || Keccak256.encode(formats.plainText || "");
         const ethersHash = ethers.keccak256(referenceInput);
         const ethersMatch = referenceHash === ethersHash;
 
@@ -853,7 +853,7 @@ class Keccak256Verification {
       console.log(`\n  Testing ${name}:`);
 
       try {
-        const inputBytes = Keccak256.prepareInput(message);
+        const inputBytes = Keccak256.encode(message);
 
         // Test our implementation
         const ourHash = Keccak256.hash(inputBytes);

@@ -1,4 +1,4 @@
-import { EllipticCurve } from "./cryptography/ecdsa.js";
+import { EllipticCurve } from "./modules/ecdsa.js";
 import {
   bigIntsToPoint,
   concatBigInts,
@@ -62,13 +62,13 @@ function secp256k1AddUnequal(a: bigint[][], b: bigint[][]): bigint[][] {
   return out;
 }
 
-function secp256k1Double(_in: bigint[][]): bigint[][] { 
+function secp256k1Double(_in: bigint[][]): bigint[][] {
   const pin = bigIntsToPoint(_in);
   const pout = EllipticCurve.pointDouble(pin);
   return pointToBigInts(pout);
 }
 
-function secp256k1ScalarMult(scalar: bigint[], point: bigint[][]): bigint[][] { 
+function secp256k1ScalarMult(scalar: bigint[], point: bigint[][]): bigint[][] {
   const p = bigIntsToPoint(point);
   const scalarBigInt = concatBigInts(scalar);
   const out = EllipticCurve.pointMultiply(scalarBigInt, p);

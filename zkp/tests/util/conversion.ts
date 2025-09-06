@@ -85,6 +85,31 @@ function byteToHex(bytes: Byte[]): string {
 }
 
 /**
+ * Convert bigint to bytes
+ */
+function bigIntToByte(val: bigint): Byte[] {
+  if (val < 0n) {
+    throw new Error("BigInt value must be non-negative");
+  }
+
+  if (val === 0n) {
+    return [0] as Byte[];
+  }
+
+  const hex = val.toString(16);
+  const paddedHex = hex.length % 2 === 0 ? hex : "0" + hex;
+  return hexToByte(paddedHex);
+}
+
+/**
+ * Convert bytes to bigint
+ */
+function byteToBigInt(bytes: Byte[]): bigint {
+  const hex = byteToHex(bytes);
+  return BigInt(hex);
+}
+
+/**
  * Convert bytes to bits array (each byte becomes 8 bits)
  */
 function byteToBit(bytes: Byte[]): Bit[] {
@@ -289,6 +314,8 @@ export {
   wordToBuffer,
   hexToByte,
   byteToHex,
+  bigIntToByte,
+  byteToBigInt,
   byteToBit,
   bitToByte,
   concatBigInts,

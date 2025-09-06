@@ -4,7 +4,7 @@ import {
   AESKeyExpansion,
   AESSbox,
   AESTransforms,
-} from "./cryptography/aes-gcm.js";
+} from "./modules/aesGcm.js";
 import { byteToWord, wordToByte } from "../util/index.js";
 
 function expandKey(key: Word[]): Word[] {

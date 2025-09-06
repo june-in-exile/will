@@ -1,5 +1,5 @@
 import { Word, Byte, Byte16 } from "../type/index.js";
-import { AESGCM } from "./cryptography/aes-gcm.js";
+import { AESGCM } from "./modules/aesGcm.js";
 import { wordToBuffer } from "../util/index.js";
 
 function ctrEncrypt(plaintext: Byte[], key: Word[], j0: Byte16): Byte[] {
