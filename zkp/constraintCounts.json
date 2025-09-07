@@ -119,20 +119,40 @@
       "j0 computation for standard IV (12 bytes)": 4
     },
     "ComputeJ0NonStandard": {
-      "j0 computation for 16-byte IV": 34320
+      "j0 computation for 16-byte IV": 34320,
+      "j0 computation for 1-byte IV": 34320,
+      "j0 computation for 4-byte IV": 34320,
+      "j0 computation for 7-byte IV": 34320,
+      "j0 computation for 8-byte IV": 34320,
+      "j0 computation for 15-byte IV": 34320,
+      "j0 computation for 31-byte IV": 51472,
+      "j0 computation for 32-byte IV": 51472
     },
-    "IncrementCounter": {}
+    "IncrementCounter": {
+      "counter increment": 136
+    },
+    "IncrementCounterOptimized": {
+      "optimized counter increment": 33
+    }
   },
   "ctrDecrypt": {
-    "CtrDecrypt": {}
+    "CtrDecrypt": {
+      "AES-256-CTR 4-block decryption": 481379
+    }
   },
   "ctrEncrypt": {
     "CtrEncrypt": {
-      "AES-128-CTR 3-byte encryption": 86504
+      "AES-128-CTR 3-byte encryption": 86504,
+      "AES-128-CTR 1-block encryption": 86816,
+      "AES-128-CTR 4-block encryption": 347363,
+      "AES-192-CTR 4-block encryption": 399843,
+      "AES-256-CTR 4-block encryption": 481379
     }
   },
   "deserialization": {
-    "Deserialize": {}
+    "Deserialize": {
+      "will deserialization": 0
+    }
   },
   "ecdsa": {
     "ECDSAPrivToPub": {
@@ -156,13 +176,26 @@
     },
     "SubstituteBytes": {
       "1-byte bytes substitution": 256,
-      "4-byte bytes substitution": 1024
+      "4-byte bytes substitution": 1024,
+      "16-byte bytes substitution": 4096
     },
-    "ShiftRows": {},
-    "MixColumn": {},
-    "MixColumns": {},
-    "AddRoundKey": {},
-    "EncryptBlock": {}
+    "ShiftRows": {
+      "rows shifting": 0
+    },
+    "MixColumn": {
+      "column mixing": 728
+    },
+    "MixColumns": {
+      "columns mixing": 2912
+    },
+    "AddRoundKey": {
+      "round key addition": 384
+    },
+    "EncryptBlock": {
+      "AES-128 block cipher": 86432,
+      "AES-192 block cipher": 99552,
+      "AES-256 block cipher": 119936
+    }
   },
   "galoisField": {
     "GF8Mul2": {},
@@ -171,10 +204,20 @@
     "GHash": {}
   },
   "gcmDecrypt": {
-    "GcmDecrypt": {}
+    "GcmDecrypt": {
+      "AES-256-GCM standard IV, 1-block plaintext, no aad encryption": 394529
+    }
   },
   "gcmEncrypt": {
-    "GcmEncrypt": {}
+    "GcmEncrypt": {
+      "AES-128-GCM standard IV, no plaintext, no aad encryption": 190049,
+      "AES-128-GCM standard IV, 12-byte plaintext, no aad encryption": 293921,
+      "AES-128-GCM standard IV, 1-block plaintext, no aad encryption": 294017,
+      "AES-128-GCM standard IV, 2-block plaintext, 1-block aad encryption": 415170,
+      "AES-128-GCM 8-byte IV, 1-block plaintext, no aad encryption": 328337,
+      "AES-192-GCM standard IV, 1-block plaintext, no aad encryption": 333377,
+      "AES-192-GCM standard IV, 12-byte plaintext, 5-byte aad encryption": 350433
+    }
   },
   "keccak256": {
     "Keccak256": {}
@@ -195,10 +238,15 @@
     "Iota": {
       "iota": 0
     },
-    "KeccakF1600": {}
+    "KeccakF1600": {},
+    "ChiOptimized": {
+      "optimized chi": 10240
+    }
   },
   "multiplier2": {
-    "Multiplier2": {}
+    "Multiplier2": {
+      "multiplication": 1
+    }
   },
   "range": {
     "InRange": {
@@ -268,6 +316,24 @@
     },
     "GF128Multiply": {
       "GF(2^128) multiplication": 33280
+    },
+    "GHash": {
+      "1-block GHASH": 17152,
+      "2-block GHASH": 34304,
+      "4-block GHASH": 68608
+    },
+    "GHashOptimized": {
+      "optimized 1-block GHASH": 16768,
+      "optimized 2-block GHASH": 33920,
+      "optimized 4-block GHASH": 68224
+    }
+  },
+  "vocdoniKeccak256": {
+    "VocdoniKeccak256": {
+      "1-bit massage": 138170,
+      "256-bit massage": 150848,
+      "512-bit massage": 151424,
+      "1080-bit massage": 152560
     }
   }
 }

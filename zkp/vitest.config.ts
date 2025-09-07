@@ -19,7 +19,7 @@ export default defineConfig({
   define: {
     LOG_LEVEL: '"log"',
     INCLUDE_LIB: ["circomlib", "keccak256-circom"],
-    CIRCOM_DEFAULTS: JSON.stringify({
+    CIRCOM_TESTER_DEFAULTS: JSON.stringify({
       O: 2,
       verbose: false,
       inspect: false,
@@ -30,6 +30,7 @@ export default defineConfig({
       no_asm: false,
       no_init: false,
     }),
+    CIRCOM_TESTER_OUTPUT_DIR: '"./circuits/test"',
     CONSTRAINT_COUNTS_PATH: '"./constraintCounts.json"',
   },
 });

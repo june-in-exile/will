@@ -12,7 +12,8 @@ const circom_tester = require("circom_tester");
 declare global {
   namespace globalThis {
     var INCLUDE_LIB: string[];
-    var CIRCOM_DEFAULTS: Record<string, unknown>;
+    var CIRCOM_TESTER_DEFAULTS: Record<string, unknown>;
+    var CIRCOM_TESTER_OUTPUT_DIR: string;
   }
 }
 
@@ -51,6 +52,7 @@ async function getCircuitPackagePath(
  */
 async function construct_wasm(
   circuitPath: string,
+  fileName: string,
   templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
@@ -70,10 +72,11 @@ async function construct_wasm(
       }
     }
 
-    const defaultOptions = globalThis.CIRCOM_DEFAULTS;
+    const defaultOptions = globalThis.CIRCOM_TESTER_DEFAULTS;
 
     const wasm_tester = await circom_tester.wasm(testCircuitPath, {
       include: [...includeLibPaths],
+      output: `${globalThis.CIRCOM_TESTER_OUTPUT_DIR}/${fileName}`,
       templateName: `Untagged${templateName}`,
       ...(options?.templateParams && {
         templateParams: options.templateParams,

@@ -4,6 +4,7 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/sha256/shift.circom";
 include "circomlib/circuits/gates.circom";
 include "arithmetic.circom";
+include "bits.circom";
 
 /**
 * @param in - The input number to check parity for

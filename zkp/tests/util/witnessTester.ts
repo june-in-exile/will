@@ -1,4 +1,4 @@
-// Reference: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
+// Modified from https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
 import { construct_wasm } from "./construction.js";
 import { AssertionError } from "assert";
@@ -151,8 +151,10 @@ class WitnessTester<
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
     try {
+      const fileName = WitnessTester.getCurrentTestFilename();
       const circomTester = await construct_wasm(
         circuitPath,
+        fileName,
         templateName,
         options,
       );
@@ -488,7 +490,7 @@ class WitnessTester<
     description: string,
     testFileName?: string,
   ): Promise<void> {
-    const finalTestFileName = testFileName || this.getCurrentTestFileName();
+    const finalTestFileName = testFileName || WitnessTester.getCurrentTestFilename();
     const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
     console.info(`${description}: ${constraintCount}`);
@@ -628,10 +630,9 @@ class WitnessTester<
   }
 
   /**
-   * Helper method to get current test file name (for auto-naming circuit types)
-   * This is useful when you want to automatically determine circuit type from test file name
+   * Helper method to get current test filename
    */
-  private getCurrentTestFileName(): string {
+  private static getCurrentTestFilename(): string {
     try {
       // Try to get the test file from the call stack
       const stack = new Error().stack;
@@ -646,7 +647,7 @@ class WitnessTester<
         }
       }
     } catch {
-      // Continue to fallback
+      throw new Error("Cannot get the current filenmae");
     }
 
     return "unknownCircuitType";
