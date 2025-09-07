@@ -106,7 +106,7 @@ function bigIntToByte(val: bigint): Byte[] {
  */
 function byteToBigInt(bytes: Byte[]): bigint {
   const hex = byteToHex(bytes);
-  return BigInt(hex);
+  return BigInt('0x' + hex);
 }
 
 /**

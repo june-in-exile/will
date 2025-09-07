@@ -1,6 +1,8 @@
 import { Keccak256, ECDSAUtils } from "./index.js";
 import { Point } from "../../type/index.js";
 import { concatBigInts } from "../../util/conversion.js";
+import { AbiCoder, solidityPacked } from 'ethers';
+import chalk from "chalk";
 
 class AbiEncoder {
 
@@ -104,13 +106,32 @@ class AbiEncoder {
         if (type.endsWith('[]')) {
             const elementType = type.slice(0, -2);
             const length = this.padHex(this.numberToHex(value.length));
-            let encoded = length;
 
-            for (const item of value) {
-                encoded += this.encodeSingleValue(elementType, item);
+            if (this.isDynamicType(elementType)) {
+                // Dynamic array elements need offset pointers
+                let encoded = length;
+                let dynamicData = '';
+                const staticSize = value.length * 32; // Each pointer is 32 bytes
+
+                for (let i = 0; i < value.length; i++) {
+                    // Add offset pointer
+                    const offset = staticSize + dynamicData.length / 2;
+                    encoded += this.padHex(this.numberToHex(offset));
+
+                    // Add actual data
+                    const itemEncoded = this.encodeSingleValue(elementType, value[i]);
+                    dynamicData += itemEncoded;
+                }
+
+                return encoded + dynamicData;
+            } else {
+                // Static array elements can be directly concatenated
+                let encoded = length;
+                for (const item of value) {
+                    encoded += this.encodeSingleValue(elementType, item);
+                }
+                return encoded;
             }
-
-            return encoded;
         }
 
         if (type.startsWith('tuple(')) {
@@ -176,7 +197,25 @@ class AbiEncoder {
         for (const value of values) {
             const type = this.detectType(value);
 
-            if (type === 'string') {
+            if (type.endsWith('[]')) {
+                // Array processing - process each item individually
+                for (const item of value) {
+                    const itemType = this.detectType(item);
+                    if (itemType === 'string') {
+                        result += this.stringToHex(item);
+                    } else if (itemType === 'bytes') {
+                        const cleanBytes = item.startsWith('0x') ? item.slice(2) : item;
+                        result += cleanBytes;
+                    } else if (itemType.startsWith('uint') || itemType.startsWith('int')) {
+                        result += this.numberToHex(item);
+                    } else if (itemType === 'address') {
+                        const cleanAddress = item.startsWith('0x') ? item.slice(2) : item;
+                        result += this.padHex(cleanAddress);
+                    } else if (itemType === 'bool') {
+                        result += item ? '01' : '00';
+                    }
+                }
+            } else if (type === 'string') {
                 result += this.stringToHex(value);
             } else if (type === 'bytes') {
                 const cleanBytes = value.startsWith('0x') ? value.slice(2) : value;
@@ -188,12 +227,6 @@ class AbiEncoder {
                 result += cleanAddress.toLowerCase();
             } else if (type === 'bool') {
                 result += value ? '01' : '00';
-            } else if (type.endsWith('[]')) {
-                // Array processing
-                for (const item of value) {
-                    const packedItem = this.encodePacked(item);
-                    result += packedItem.slice(2); // Remove 0x prefix
-                }
             }
         }
 
@@ -245,39 +278,102 @@ class AbiEncoder {
     }
 }
 
-// Usage examples
-function examples() {
-    // Auto type detection encoding
-    const encoded1 = AbiEncoder.encode(42, "hello", true);
-    console.log('Auto encode:', encoded1);
+function truncateHex(hex: string) {
+    if (hex.length <= 62) return `${hex} (${hex.length} chars)`;
+    return `${hex.slice(0, 42)}...${hex.slice(-20)} (${hex.length} chars)`;
+}
 
-    // Address and number
-    const encoded2 = AbiEncoder.encode(
-        "0x742d35Cc6634C0532925a3b8D6Ac68d2dC26e203",
-        BigInt("1000000000000000000") // 1 ETH in wei
+function validateEncoding(abiCoder: AbiCoder, ...values: any[]): boolean {
+    let allPessed = true;
+
+    if (values.length === 0) {
+        throw new Error('At least one value is required');
+    }
+
+    const types = values.map(value => AbiEncoder.detectType(value));
+    console.log(`\nInputs  : ${values.join(', ')}`);
+    console.log(`Types   : ${types.join(', ')}`);
+
+    const ethersEncoded = abiCoder.encode(types, values);
+    const encoded = AbiEncoder.encode(...values);
+    const encodedMatches = (ethersEncoded.toLowerCase() === encoded.toLowerCase());
+
+    const ethersEncodedPacked = solidityPacked(types, values);
+    const encodedPacked = AbiEncoder.encodePacked(...values);
+    const encodedPackedMatches = (ethersEncodedPacked.toLowerCase() === encodedPacked.toLowerCase());
+
+    console.log(chalk.gray("/* Unpacked */"))
+    console.log('Ethers  :', encodedMatches ? truncateHex(ethersEncoded) : ethersEncoded);
+    console.log('Our impl:', encodedMatches ? truncateHex(encoded) : encoded, encodedMatches ? "✅" : "❌");
+
+    console.log(chalk.gray("/* Packed */"))
+    console.log('Ethers  :', encodedPackedMatches ? truncateHex(ethersEncodedPacked) : ethersEncodedPacked);
+    console.log('Our impl:', encodedPackedMatches ? truncateHex(encodedPacked) : encodedPacked, encodedPackedMatches ? "✅" : "❌");
+
+    allPessed = allPessed && encodedMatches;
+    allPessed = allPessed && encodedPackedMatches;
+
+    return allPessed;
+}
+
+function abiEncoderVerification() {
+    const abiCoder = AbiCoder.defaultAbiCoder();
+
+    let allPassed = true;
+
+    console.log(
+        chalk.cyan(
+            "\n=== Single element encoding ===",
+        ),
     );
-    console.log('Address + BigInt:', encoded2);
+    const inputElements = [
+        42,
+        BigInt("1000000000000000000"), // 1 ETH in wei
+        "hello",
+        "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203", // address should be in lower case
+    ];
+    for (const input of inputElements) {
+        allPassed = allPassed && validateEncoding(abiCoder, input);
+    }
 
-    // Arrays
-    const encoded3 = AbiEncoder.encode([1, 2, 3], ["a", "b"]);
-    console.log('Arrays:', encoded3);
+    console.log(
+        chalk.cyan(
+            "\n=== Array of the same type encoding ===",
+        ),
+    );
+    const inputArrays = [
+        [1, 2, 3],
+        [BigInt("1000000000000000000"), BigInt("1"), BigInt("2000000000000000000")],
+        ["a", "b", "c"],
+        ["0x742d35cc6634c0532925a3b8d6ac68d2dc26e203", "0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d", "0xb1d4538b4571d411f07960ef2838ce337fe1e80e"], // address should be in lower case
+    ];
+    for (const input of inputArrays) {
+        allPassed = allPassed && validateEncoding(abiCoder, input);
+    }
 
-    // Object as struct
-    const user = { name: "Alice", age: 25, active: true };
-    const encoded4 = AbiEncoder.encode(user);
-    console.log('Object as struct:', encoded4);
+    console.log(
+        chalk.cyan(
+            "\n=== Multiple elements of the same type encoding ===",
+        ),
+    );
+    allPassed = allPassed && validateEncoding(abiCoder, 1, 2, 3);
+    allPassed = allPassed && validateEncoding(abiCoder, BigInt("1000000000000000000"), BigInt("2000000000000000000"), 1n);
+    allPassed = allPassed && validateEncoding(abiCoder, "a", "b", "c");
+    allPassed = allPassed && validateEncoding(abiCoder, "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203", "0x75faf114eafb1bdbe2f0316df893fd58ce46aa4d", "0xb1d4538b4571d411f07960ef2838ce337fe1e80e");
 
-    // Packed encoding
-    const packed = AbiEncoder.encodePacked(123, "0x742d35Cc6634C0532925a3b8D6Ac68d2dC26e203");
-    console.log('Auto packed:', packed);
+    console.log(
+        chalk.cyan(
+            "\n=== Multiple elements of mixed types encoding ===",
+        ),
+    );
 
-    // Type detection tests
-    console.log('Type detection:');
-    console.log('42 ->', AbiEncoder.detectType(42));
-    console.log('"hello" ->', AbiEncoder.detectType("hello"));
-    console.log('address ->', AbiEncoder.detectType("0x742d35Cc6634C0532925a3b8D6Ac68d2dC26e203"));
-    console.log('[1,2,3] ->', AbiEncoder.detectType([1, 2, 3]));
-    console.log('object ->', AbiEncoder.detectType({ name: "Alice", age: 25 }));
+    allPassed = allPassed && validateEncoding(abiCoder, 1, BigInt("1000000000000000000"), "a", "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203");
+    allPassed = allPassed && validateEncoding(abiCoder, 1, [BigInt("1000000000000000000"), 1n], ["a", "b"], "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203");
+
+    console.log(
+        "\nOverall status:",
+        allPassed ? "🎉 All tests passed!" : "❌  Issues need debugging",
+    );
 }
 
 if (
@@ -285,7 +381,8 @@ if (
     process.argv?.[1] &&
     process.argv[1].endsWith("abiEncoder.ts")
 ) {
-    examples();
+    abiEncoderVerification();
 }
 
 export { AbiEncoder };
+
