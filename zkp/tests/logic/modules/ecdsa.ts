@@ -384,6 +384,7 @@ class ECDSAUtils {
   static ethersSignatureToOurs(ethersSignature: string): {
     r: bigint;
     s: bigint;
+    v: number;
   } {
     // Remove 0x prefix
     const sig = ethersSignature.slice(2);
@@ -391,24 +392,25 @@ class ECDSAUtils {
     // Extract r and s (each 64 hex characters)
     const r = BigInt("0x" + sig.slice(0, 64));
     const s = BigInt("0x" + sig.slice(64, 128));
+    const v = Number("0x" + sig.slice(128, 130));
 
-    return { r, s };
+    return { r, s, v };
   }
 
   /**
    * Convert our signature format to ethers.js format
    * Note: This is incomplete as we need recovery ID (v)
    */
-  // static ourSignatureToEthers(
-  //   signature: { r: bigint; s: bigint },
-  //   v: number = 27,
-  // ): string {
-  //   const r = signature.r.toString(16).padStart(64, "0");
-  //   const s = signature.s.toString(16).padStart(64, "0");
-  //   const vHex = v.toString(16).padStart(2, "0");
+  static ourSignatureToEthers(
+    signature: { r: bigint; s: bigint },
+    v: number = 27,
+  ): string {
+    const r = signature.r.toString(16).padStart(64, "0");
+    const s = signature.s.toString(16).padStart(64, "0");
+    const vHex = v.toString(16).padStart(2, "0");
 
-  //   return "0x" + r + s + vHex;
-  // }
+    return "0x" + r + s + vHex;
+  }
 
   /**
    * Find the correct recovery ID for a signature

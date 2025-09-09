@@ -1,4 +1,5 @@
-import { Bit, Byte, Byte4, Word, Point } from "../type/index.js";
+import { Bit, Byte, Byte4, Word, Point, Address } from "../type/index.js";
+import { assert } from "console";
 
 /**
  * @param bytes - Byte array (length should be a multiple of 4)
@@ -256,12 +257,12 @@ function pointToBigInts(
  * Legacy overload for backward compatibility
  * @deprecated Use the options object form instead
  */
-function pointToBigInts(
-  point: Point,
-  componentsPerCoordinate?: number,
-  bitWidth?: number,
-  modulus?: bigint,
-): bigint[][];
+// function pointToBigInts(
+//   point: Point,
+//   componentsPerCoordinate?: number,
+//   bitWidth?: number,
+//   modulus?: bigint,
+// ): bigint[][];
 
 function pointToBigInts(
   point: Point,
@@ -307,6 +308,49 @@ function pointToBigInts(
   return [xComponents, yComponents];
 }
 
+
+/**
+ * Convert from string to Point
+ */
+function hexToPoint(publicKeyHex: string): Point {
+  const cleanHex = publicKeyHex.startsWith('0x')
+    ? publicKeyHex.slice(2)
+    : publicKeyHex;
+
+  assert(/^[0-9a-fA-F]+$/.test(cleanHex));
+
+  const prefix = cleanHex.slice(0, 2);
+  assert(prefix == "04"); // Handle uncompressed key only
+
+  const coordData = cleanHex.slice(2);
+
+  const xHex = coordData.slice(0, 64);
+  const yHex = coordData.slice(64, 128);
+
+  const x = BigInt("0x" + xHex);
+  const y = BigInt("0x" + yHex);
+
+  return {
+    x, y, isInfinity: false
+  }
+}
+
+/**
+ * Convert from Point to string
+ */
+function pointToHex(point: Point): string {
+  const xHex = point.x.toString(16).padStart(64, '0');
+  const yHex = point.y.toString(16).padStart(64, '0');
+  return "0x04" + xHex + yHex;
+}
+
+/**
+ * Convert address from bigint to string
+ */
+function addressBigintToHex(value: Address): string {
+  return '0x' + value.toString(16).padStart(40, '0');
+}
+
 export {
   byteToWord,
   wordToByte,
@@ -322,4 +366,7 @@ export {
   splitBigInt,
   bigIntsToPoint,
   pointToBigInts,
+  hexToPoint,
+  pointToHex,
+  addressBigintToHex
 };

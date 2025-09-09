@@ -16,7 +16,7 @@ class AbiEncoder {
     private static stringToHex(str: string): string {
         return Buffer.from(str, 'utf8').toString('hex');
     }
-
+ 
     // Pad hex string to 32 bytes (64 hex chars)
     private static padHex(hex: string, left: boolean = true): string {
         const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
@@ -31,6 +31,10 @@ class AbiEncoder {
             // Check if it's an address (40 hex chars)
             if (/^0x[a-fA-F0-9]{40}$/.test(value)) {
                 return 'address';
+            }
+            // Check if it's bytes32 (64 hex chars)
+            if (/^0x[a-fA-F0-9]{64}$/.test(value)) {
+                return 'bytes32';
             }
             // Check if it's bytes (hex string)
             if (/^0x[a-fA-F0-9]*$/.test(value)) {
@@ -94,6 +98,11 @@ class AbiEncoder {
             const length = this.padHex(this.numberToHex(hexString.length / 2));
             const paddedString = this.padHex(hexString, false);
             return length + paddedString;
+        }
+
+        if (type === 'bytes32') {
+            const cleanBytes = value.startsWith('0x') ? value.slice(2) : value;
+            return this.padHex(cleanBytes);
         }
 
         if (type === 'bytes') {
@@ -203,6 +212,9 @@ class AbiEncoder {
                     const itemType = this.detectType(item);
                     if (itemType === 'string') {
                         result += this.stringToHex(item);
+                    } else if (itemType === 'bytes32') {
+                        const cleanBytes = item.startsWith('0x') ? item.slice(2) : item;
+                        result += cleanBytes;
                     } else if (itemType === 'bytes') {
                         const cleanBytes = item.startsWith('0x') ? item.slice(2) : item;
                         result += cleanBytes;
@@ -217,6 +229,9 @@ class AbiEncoder {
                 }
             } else if (type === 'string') {
                 result += this.stringToHex(value);
+            } else if (type === 'bytes32') {
+                const cleanBytes = value.startsWith('0x') ? value.slice(2) : value;
+                result += cleanBytes;
             } else if (type === 'bytes') {
                 const cleanBytes = value.startsWith('0x') ? value.slice(2) : value;
                 result += cleanBytes;
@@ -368,7 +383,8 @@ function abiEncoderVerification() {
     );
 
     allPassed = allPassed && validateEncoding(abiCoder, 1, BigInt("1000000000000000000"), "a", "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203");
-    allPassed = allPassed && validateEncoding(abiCoder, 1, [BigInt("1000000000000000000"), 1n], ["a", "b"], "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203");
+    allPassed = allPassed && validateEncoding(abiCoder, [123], [BigInt("1000000000000000000"), 1n], ["a", "b"], "0x742d35cc6634c0532925a3b8d6ac68d2dc26e203");
+    allPassed = allPassed && validateEncoding(abiCoder, "0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1", "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d", 1000n);
 
     console.log(
         "\nOverall status:",

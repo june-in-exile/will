@@ -238,7 +238,9 @@
     "Iota": {
       "iota": 0
     },
-    "KeccakF1600": {},
+    "KeccakF1600": {
+      "keccak-f[1600]": 115200
+    },
     "ChiOptimized": {
       "optimized chi": 10240
     }

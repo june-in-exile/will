@@ -113,27 +113,6 @@ template Chi() {
 }
 
 /**
-* Keccak256 χ (chi) step: Non-linear transformation
-* 
-* Optimized by precomputing the non-linear transformation result
-*/
-template ChiOptimized() {
-    signal input {bit} stateArray[5][5][64];
-    signal output {bit} newStateArray[5][5][64];
-
-    // var row_map[32][5] = get_row_map_for_chi();
-
-    signal inRows[5][64][5];
-    signal outRows[5][64][5];
-    
-    for (var y = 0; y < 5; y++) {
-        for (var z = 0; z < 64; z++) {
-            (newStateArray[0][y][z], newStateArray[1][y][z], newStateArray[2][y][z], newStateArray[3][y][z], newStateArray[4][y][z]) <== ChiTable()(stateArray[0][y][z], stateArray[1][y][z], stateArray[2][y][z], stateArray[3][y][z], stateArray[4][y][z]);
-        }
-    }
-}
-
-/**
 * Keccak256 ι (iota) step: Round constant addition
 * 
 * XORs the round constant with the first lane A[0,0] to break symmetry.
