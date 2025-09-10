@@ -107,7 +107,7 @@ function bigIntToByte(val: bigint): Byte[] {
  */
 function byteToBigInt(bytes: Byte[]): bigint {
   const hex = byteToHex(bytes);
-  return BigInt('0x' + hex);
+  return BigInt("0x" + hex);
 }
 
 /**
@@ -188,11 +188,15 @@ function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
  */
 function splitBigInt(
   value: bigint,
-  options: number | { numParts?: number; bitWidth?: number; modulus?: bigint } = {}
+  options:
+    | number
+    | { numParts?: number; bitWidth?: number; modulus?: bigint } = {},
 ): bigint[] {
-  const { numParts = typeof options === 'number' ? options : 4,
+  const {
+    numParts = typeof options === "number" ? options : 4,
     bitWidth = 64,
-    modulus } = typeof options === 'number' ? {} : options;
+    modulus,
+  } = typeof options === "number" ? {} : options;
 
   const mask = (1n << BigInt(bitWidth)) - 1n;
 
@@ -266,7 +270,9 @@ function pointToBigInts(
 
 function pointToBigInts(
   point: Point,
-  componentsPerCoordinateOrOptions?: number | { componentsPerCoordinate?: number; bitWidth?: number; modulus?: bigint },
+  componentsPerCoordinateOrOptions?:
+    | number
+    | { componentsPerCoordinate?: number; bitWidth?: number; modulus?: bigint },
   bitWidth?: number,
   modulus?: bigint,
 ): bigint[][] {
@@ -275,14 +281,19 @@ function pointToBigInts(
   let actualBitWidth: number;
   let actualModulus: bigint | undefined;
 
-  if (typeof componentsPerCoordinateOrOptions === 'object' && componentsPerCoordinateOrOptions !== null) {
+  if (
+    typeof componentsPerCoordinateOrOptions === "object" &&
+    componentsPerCoordinateOrOptions !== null
+  ) {
     // New options form
-    actualComponentsPerCoordinate = componentsPerCoordinateOrOptions.componentsPerCoordinate ?? 4;
+    actualComponentsPerCoordinate =
+      componentsPerCoordinateOrOptions.componentsPerCoordinate ?? 4;
     actualBitWidth = componentsPerCoordinateOrOptions.bitWidth ?? 64;
     actualModulus = componentsPerCoordinateOrOptions.modulus;
   } else {
     // Legacy form
-    actualComponentsPerCoordinate = (componentsPerCoordinateOrOptions as number) ?? 4;
+    actualComponentsPerCoordinate =
+      (componentsPerCoordinateOrOptions as number) ?? 4;
     actualBitWidth = bitWidth ?? 64;
     actualModulus = modulus;
   }
@@ -308,12 +319,11 @@ function pointToBigInts(
   return [xComponents, yComponents];
 }
 
-
 /**
  * Convert from string to Point
  */
 function hexToPoint(publicKeyHex: string): Point {
-  const cleanHex = publicKeyHex.startsWith('0x')
+  const cleanHex = publicKeyHex.startsWith("0x")
     ? publicKeyHex.slice(2)
     : publicKeyHex;
 
@@ -331,24 +341,19 @@ function hexToPoint(publicKeyHex: string): Point {
   const y = BigInt("0x" + yHex);
 
   return {
-    x, y, isInfinity: false
-  }
+    x,
+    y,
+    isInfinity: false,
+  };
 }
 
 /**
  * Convert from Point to string
  */
 function pointToHex(point: Point): string {
-  const xHex = point.x.toString(16).padStart(64, '0');
-  const yHex = point.y.toString(16).padStart(64, '0');
+  const xHex = point.x.toString(16).padStart(64, "0");
+  const yHex = point.y.toString(16).padStart(64, "0");
   return "0x04" + xHex + yHex;
-}
-
-/**
- * Convert address from bigint to string
- */
-function addressBigintToHex(value: Address): string {
-  return '0x' + value.toString(16).padStart(40, '0');
 }
 
 export {
@@ -368,5 +373,4 @@ export {
   pointToBigInts,
   hexToPoint,
   pointToHex,
-  addressBigintToHex
 };

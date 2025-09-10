@@ -9,7 +9,7 @@ import {
   secp256k1PointOnCurve,
   secp256k1AddUnequal,
   secp256k1Double,
-  secp256k1ScalarMult
+  secp256k1ScalarMult,
 } from "./logic/index.js";
 
 describe("AddUnequalCubicConstraint Circuit", function () {
@@ -195,7 +195,10 @@ describe("Secp256k1PointOnTangent Circuit", function () {
       // Generate the reflection point for point doubling: y - y1 = slope * (x - x1), then negate y
       const deltaX = MathUtils.generateRandomScalar(CURVE.p);
       const x3BigInt = MathUtils.mod(p1.x + deltaX, CURVE.p);
-      const y3_unreflected = MathUtils.mod(tangentSlope * deltaX + p1.y, CURVE.p);
+      const y3_unreflected = MathUtils.mod(
+        tangentSlope * deltaX + p1.y,
+        CURVE.p,
+      );
       const y3BigInt = MathUtils.mod(-y3_unreflected, CURVE.p); // Reflection point (negate y)
 
       const x3 = splitBigInt(x3BigInt);
@@ -349,7 +352,9 @@ describe("Secp256k1ScalarMult Circuit", function () {
           templateParams: ["64", "4"],
         },
       );
-      circuit.setConstraint("point multiplication by scalar on secp256k1 curve");
+      circuit.setConstraint(
+        "point multiplication by scalar on secp256k1 curve",
+      );
     });
 
     afterAll(async function (): Promise<void> {

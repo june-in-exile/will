@@ -1,8 +1,5 @@
 import { WitnessTester } from "./util/index.js";
-import {
-  Keccak256Utils,
-  keccak256,
-} from "./logic/index.js";
+import { Keccak256Utils, keccak256 } from "./logic/index.js";
 import { Bit } from "./type/index.js";
 
 describe("Keccak256 Circuit", function () {

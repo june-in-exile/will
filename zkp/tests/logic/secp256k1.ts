@@ -83,5 +83,5 @@ export {
   secp256k1PointOnCurve,
   secp256k1AddUnequal,
   secp256k1Double,
-  secp256k1ScalarMult
+  secp256k1ScalarMult,
 };

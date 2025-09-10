@@ -12,12 +12,16 @@ export default async function () {
     globalThis.CONSTRAINT_COUNTS_PATH || "./constraintCounts.json";
 
   let prevConstraintCounts;
-  
+
   if (fs.existsSync(constraintsPath)) {
-    prevConstraintCounts = JSON.parse(fs.readFileSync(constraintsPath, "utf-8"));
+    prevConstraintCounts = JSON.parse(
+      fs.readFileSync(constraintsPath, "utf-8"),
+    );
   } else {
     fs.mkdirSync(path.dirname(constraintsPath), { recursive: true });
-    prevConstraintCounts = JSON.parse(fs.readFileSync("./tests/config/constraintCounts.json", "utf-8"));
+    prevConstraintCounts = JSON.parse(
+      fs.readFileSync("./tests/config/constraintCounts.json", "utf-8"),
+    );
   }
 
   fs.writeFileSync(

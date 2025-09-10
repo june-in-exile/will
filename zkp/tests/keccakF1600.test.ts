@@ -166,7 +166,7 @@ describe("KeccakF1600 Circuit", function () {
       );
       circuit.setConstraint("keccak-f[1600]");
     });
-    
+
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();

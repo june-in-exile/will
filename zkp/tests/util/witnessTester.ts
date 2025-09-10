@@ -173,10 +173,13 @@ class WitnessTester<
   async release(): Promise<void> {
     if (this.circomTester) {
       try {
-        const fs = await import('fs');
-        const path = await import('path');
+        const fs = await import("fs");
+        const path = await import("path");
 
-        if (this.circomTester.dir && typeof this.circomTester.dir === 'string') {
+        if (
+          this.circomTester.dir &&
+          typeof this.circomTester.dir === "string"
+        ) {
           let dirToClean = this.circomTester.dir;
 
           // Check if this is a nested temporary directory structure
@@ -185,7 +188,7 @@ class WitnessTester<
           const parentName = path.basename(parentDir);
 
           // If parent directory looks like a circom temp dir, clean that instead
-          if (parentName.startsWith('circom_')) {
+          if (parentName.startsWith("circom_")) {
             dirToClean = parentDir;
             console.log(`Cleaning up parent temp directory: ${dirToClean}`);
           } else {
@@ -198,7 +201,10 @@ class WitnessTester<
           }
         }
       } catch (error) {
-        console.warn('Circuit cleanup failed:', error instanceof Error ? error.message : 'Unknown error');
+        console.warn(
+          "Circuit cleanup failed:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
       }
     }
   }
@@ -527,7 +533,8 @@ class WitnessTester<
     description: string,
     testFileName?: string,
   ): Promise<void> {
-    const finalTestFileName = testFileName || WitnessTester.getCurrentTestFilename();
+    const finalTestFileName =
+      testFileName || WitnessTester.getCurrentTestFilename();
     const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
     console.info(`${description}: ${constraintCount}`);

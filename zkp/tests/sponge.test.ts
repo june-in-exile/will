@@ -1,10 +1,5 @@
 import { WitnessTester } from "./util/index.js";
-import {
-  Keccak256,
-  Keccak256Utils,
-  absorb,
-  squeeze,
-} from "./logic/index.js";
+import { Keccak256, Keccak256Utils, absorb, squeeze } from "./logic/index.js";
 import { Bit } from "./type/index.js";
 
 describe("Padding Circuit", function () {

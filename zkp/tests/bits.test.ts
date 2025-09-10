@@ -341,7 +341,7 @@ describe("ShiftRight Circuit", function () {
       );
       circuit.setConstraint("8-bit 2-offset shift right");
     });
-    
+
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();

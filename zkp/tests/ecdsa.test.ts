@@ -99,7 +99,7 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
     });
 
     it("should verify random signature with fixed message hash", async function (): Promise<void> {
-      const messages = ["", "a", "Hello, ECDSA!", "1234567890ABCDEF"]
+      const messages = ["", "a", "Hello, ECDSA!", "1234567890ABCDEF"];
       for (const message in messages) {
         const messageHash = ECDSAUtils.hashMessage(message);
         const msghash = splitBigInt(messageHash);

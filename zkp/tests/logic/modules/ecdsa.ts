@@ -140,10 +140,11 @@ class EllipticCurve {
   static pointMultiply(k: bigint, p: Point): Point {
     if (k === 0n) return { x: 0n, y: 0n, isInfinity: true };
     if (k < 0n) {
-      return this.pointMultiply(
-        -k,
-        { x: p.x, y: MathUtils.mod(-p.y, CURVE.p), isInfinity: p.isInfinity }
-      );
+      return this.pointMultiply(-k, {
+        x: p.x,
+        y: MathUtils.mod(-p.y, CURVE.p),
+        isInfinity: p.isInfinity,
+      });
     }
 
     if (k === 1n) return p;
@@ -173,11 +174,11 @@ class EllipticCurve {
   /**
    * Verify the cubic constraint for elliptic curve point addition:
    * x₁ + x₂ + x₃ - λ² = 0 mod p, where the slope λ = (y₂ - y₁) / (x₂ - x₁)
-   * 
+   *
    * This is mathematically equivalent to the expanded form:
    * x₁³ + x₂³ - x₁²x₂ - x₁x₂² + x₂²x₃ + x₁²x₃ - 2x₁x₂x₃ - y₁² + 2y₁y₂ - y₂² = 0 mod p
-   * 
-   * This constraint ensures that the three points (x₁,y₁), (x₂,y₂), (x₃,y₃) 
+   *
+   * This constraint ensures that the three points (x₁,y₁), (x₂,y₂), (x₃,y₃)
    * satisfy the elliptic curve addition relationship algebraically.
    */
   static verifyCubicConstraint(p1: Point, p2: Point, p3: Point): boolean {
@@ -238,7 +239,7 @@ class EllipticCurve {
   /**
    * Verify if three points (x1, y1), (x2, y2), (x3, -y3) are co-linear
    * Uses the cross product method: (P2-P1) × (P3-P1) = 0
-   * 
+   *
    * This is mathmatically equivalent to the expanded form::
    * x₃y₂ + x₂y₃ + x₂y₁ - x₃y₁ - x₁y₂ - x₁y₃ = 0 mod p
    */
@@ -283,7 +284,7 @@ class EllipticCurve {
   /**
    * Verify if a point is on the tangent line at a given curve point
    * Uses the tangent constraint formula: 2y₁² + 2y₁y₃ - 3x₁³ + 3x₁²x₃ = 0 mod p
-   * 
+   *
    * This constraint ensures that point (x₃,y₃) lies on the tangent line at curve point (x₁,y₁)
    */
   static pointOnTangent(curvePoint: Point, testPoint: Point): boolean {
@@ -358,7 +359,6 @@ class EllipticCurve {
  * This class focuses on ECDSA-specific utilities, with mathematical operations delegated to MathUtils
  */
 class ECDSAUtils {
-
   /**
    * Convert BigInt to hex string with padding
    */
@@ -776,7 +776,10 @@ class ECDSAVerification {
 
       // Create the reflection point for point doubling: y - Gy = slope * (x - Gx), then negate y
       const testX = MathUtils.mod(G.x + 1n, CURVE.p);
-      const testY_unreflected = MathUtils.mod(tangentSlope * (testX - G.x) + G.y, CURVE.p);
+      const testY_unreflected = MathUtils.mod(
+        tangentSlope * (testX - G.x) + G.y,
+        CURVE.p,
+      );
       const testY = MathUtils.mod(-testY_unreflected, CURVE.p); // Reflection point (negate y)
       const tangentPoint = { x: testX, y: testY, isInfinity: false };
 
@@ -829,15 +832,27 @@ class ECDSAVerification {
       const p2_cubic = keyPair2.publicKey;
       const p3_cubic = EllipticCurve.pointAdd(p1_cubic, p2_cubic);
 
-      const validCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, p3_cubic);
+      const validCubicTest = EllipticCurve.verifyCubicConstraint(
+        p1_cubic,
+        p2_cubic,
+        p3_cubic,
+      );
       console.log(
         `    Valid EC addition cubic constraint: ${validCubicTest ? "✅" : "❌"}`,
       );
       allPassed = allPassed && validCubicTest;
 
       // Test 2: Verify cubic constraint fails for invalid point addition
-      const invalidP3 = { x: MathUtils.mod(p3_cubic.x + 1n, CURVE.p), y: p3_cubic.y, isInfinity: false };
-      const invalidCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, invalidP3);
+      const invalidP3 = {
+        x: MathUtils.mod(p3_cubic.x + 1n, CURVE.p),
+        y: p3_cubic.y,
+        isInfinity: false,
+      };
+      const invalidCubicTest = EllipticCurve.verifyCubicConstraint(
+        p1_cubic,
+        p2_cubic,
+        invalidP3,
+      );
       console.log(
         `    Invalid EC addition constraint rejected: ${!invalidCubicTest ? "✅" : "❌"}`,
       );
@@ -845,7 +860,11 @@ class ECDSAVerification {
 
       // Test 3: Test with point doubling case (P1 = P2)
       const doublingResult = EllipticCurve.pointDouble(p1_cubic);
-      const doublingCubicTest = EllipticCurve.verifyCubicConstraint(p1_cubic, p1_cubic, doublingResult);
+      const doublingCubicTest = EllipticCurve.verifyCubicConstraint(
+        p1_cubic,
+        p1_cubic,
+        doublingResult,
+      );
       console.log(
         `    Point doubling cubic constraint: ${doublingCubicTest ? "✅" : "❌"}`,
       );
@@ -858,28 +877,49 @@ class ECDSAVerification {
       const kGPlusKG = EllipticCurve.pointAdd(kG, kG);
 
       // Verify that 2*kG = kG + kG satisfies cubic constraint
-      const generatorCubicTest = EllipticCurve.verifyCubicConstraint(kG, kG, twoKG);
+      const generatorCubicTest = EllipticCurve.verifyCubicConstraint(
+        kG,
+        kG,
+        twoKG,
+      );
       console.log(
         `    Generator point operations cubic: ${generatorCubicTest ? "✅" : "❌"}`,
       );
       allPassed = allPassed && generatorCubicTest;
 
       // Verify the computed addition matches doubling
-      const additionMatchesDoubling = twoKG.x === kGPlusKG.x && twoKG.y === kGPlusKG.y;
+      const additionMatchesDoubling =
+        twoKG.x === kGPlusKG.x && twoKG.y === kGPlusKG.y;
       console.log(
         `    Point doubling consistency: ${additionMatchesDoubling ? "✅" : "❌"}`,
       );
       allPassed = allPassed && additionMatchesDoubling;
 
       // Test 5: Handle infinity points in cubic constraint
-      const infinityCubicTest1 = EllipticCurve.verifyCubicConstraint(infinityPoint, p1_cubic, p2_cubic);
-      const infinityCubicTest2 = EllipticCurve.verifyCubicConstraint(p1_cubic, infinityPoint, p2_cubic);
-      const infinityCubicTest3 = EllipticCurve.verifyCubicConstraint(p1_cubic, p2_cubic, infinityPoint);
+      const infinityCubicTest1 = EllipticCurve.verifyCubicConstraint(
+        infinityPoint,
+        p1_cubic,
+        p2_cubic,
+      );
+      const infinityCubicTest2 = EllipticCurve.verifyCubicConstraint(
+        p1_cubic,
+        infinityPoint,
+        p2_cubic,
+      );
+      const infinityCubicTest3 = EllipticCurve.verifyCubicConstraint(
+        p1_cubic,
+        p2_cubic,
+        infinityPoint,
+      );
 
       console.log(
         `    Infinity points in cubic handled: ${!infinityCubicTest1 && !infinityCubicTest2 && !infinityCubicTest3 ? "✅" : "❌"}`,
       );
-      allPassed = allPassed && !infinityCubicTest1 && !infinityCubicTest2 && !infinityCubicTest3;
+      allPassed =
+        allPassed &&
+        !infinityCubicTest1 &&
+        !infinityCubicTest2 &&
+        !infinityCubicTest3;
     } catch (err) {
       console.log("❌ Error in elliptic curve verification test:", String(err));
       allPassed = false;
@@ -1514,4 +1554,11 @@ if (
   ECDSAVerification.runAllTests().catch(console.error);
 }
 
-export { CURVE, MathUtils, ECDSA, ECDSAUtils, ECDSAVerification, EllipticCurve };
+export {
+  CURVE,
+  MathUtils,
+  ECDSA,
+  ECDSAUtils,
+  ECDSAVerification,
+  EllipticCurve,
+};
