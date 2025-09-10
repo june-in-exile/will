@@ -1,4 +1,4 @@
-import { concat, SigningKey, computeAddress } from "ethers";
+import { concat, SigningKey } from "ethers";
 import { AbiEncoder, Keccak256 } from "./index.js";
 import {
   Bit,
@@ -15,7 +15,6 @@ import {
   byteToBigInt,
   concatBigInts,
   splitBigInt,
-  pointToHex,
   hexToPoint,
   hexToByte,
 } from "../util/index.js";
@@ -107,8 +106,12 @@ function recoverPublicKey(
 }
 
 function publicKeyToAddress(publicKey: Point): Address {
-  const keyStr = pointToHex(publicKey);
-  const signer = computeAddress(keyStr);
+  const xHex = AbiEncoder.numberToPaddedHex(publicKey.x);
+  const yHex = AbiEncoder.numberToPaddedHex(publicKey.y);
+
+  const publicKeyHash = Keccak256.hash("0x" + xHex + yHex);
+  const signer = '0x' + publicKeyHash.slice(-40);
+
   return BigInt(signer);
 }
 

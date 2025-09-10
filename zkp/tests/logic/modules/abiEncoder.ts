@@ -1,6 +1,3 @@
-// import { Keccak256, ECDSAUtils } from "./index.js";
-// import { Point } from "../../type/index.js";
-// import { concatBigInts } from "../../util/conversion.js";
 import { AbiCoder, solidityPacked } from "ethers";
 import chalk from "chalk";
 
@@ -11,10 +8,16 @@ import chalk from "chalk";
 class AbiEncoder {
     static readonly supportedTypes = ["bytes", "bytes32", "address", "uint256"];
 
-    // Pad hex string to 32 bytes (64 hex chars)
-    private static padHex(hex: string): string {
+    // Pad hex string to given bytes (default: 32 bytes = 64 hex chars)
+    static padHex(hex: string, bytes: number = 32): string {
         const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
-        return cleanHex.padStart(64, "0");
+        return cleanHex.padStart(bytes * 2, "0");
+    }
+
+    // Convert number to hex string with padding
+    static numberToPaddedHex(value: bigint, bytes: number = 32): string {
+        const hex = value.toString(16);
+        return this.padHex(hex, bytes);
     }
 
     static encode(types: string[], values: any[], packed: boolean = false): string {
@@ -34,7 +37,7 @@ class AbiEncoder {
             let hex;
 
             if (type === "uint256") {
-                hex = this.padHex(BigInt(value).toString(16));
+                hex = this.numberToPaddedHex(value);
             } else {
                 hex = value.startsWith("0x") ? value.slice(2) : value;
             }
@@ -47,54 +50,6 @@ class AbiEncoder {
         }
         return result;
     }
-
-    // static ecrecover(
-    //     messageHash: bigint[],
-    //     v: number,
-    //     r: bigint[],
-    //     s: bigint[],
-    // ): bigint {
-    //     try {
-    //         // Calculate recovery ID
-    //         let recoveryId = v;
-    //         if (v === 27 || v === 28) {
-    //             recoveryId = v - 27;
-    //         } else if (v > 28) {
-    //             // EIP-155: v = recovery_id + 35 + 2 * chain_id
-    //             recoveryId = (v - 35) % 2;
-    //         }
-
-    //         const publicKey = ECDSAUtils.recoverPublicKey(
-    //             concatBigInts(messageHash),
-    //             { r: concatBigInts(r), s: concatBigInts(s) },
-    //             recoveryId,
-    //         );
-
-    //         if (!publicKey || publicKey.isInfinity) {
-    //             return 0n;
-    //         }
-
-    //         // Convert public key to address
-    //         const address = this.publicKeyToAddress(publicKey);
-    //         return address;
-    //     } catch {
-    //         return 0n;
-    //     }
-    // }
-
-    // private static publicKeyToAddress(publicKey: Point): bigint {
-    //     // Convert coordinates to hex (remove 0x prefix, pad to 64 chars)
-    //     const xHex = publicKey.x.toString(16).padStart(64, "0");
-    //     const yHex = publicKey.y.toString(16).padStart(64, "0");
-
-    //     // Concatenate x and y coordinates (uncompressed format without 0x04 prefix)
-    //     const publicKeyHex = xHex + yHex;
-
-    //     // Hash with keccak256 and take last 20 bytes
-    //     const publicKeyHash = Keccak256.hash(publicKeyHex);
-
-    //     return BigInt("0x" + publicKeyHash.slice(-40));
-    // }
 }
 
 function truncateHex(hex: string) {

@@ -1,4 +1,4 @@
-import { Bit, Byte, Byte4, Word, Point, Address } from "../type/index.js";
+import { Bit, Byte, Byte4, Word, Point } from "../type/index.js";
 import { assert } from "console";
 
 /**
@@ -347,15 +347,6 @@ function hexToPoint(publicKeyHex: string): Point {
   };
 }
 
-/**
- * Convert from Point to string
- */
-function pointToHex(point: Point): string {
-  const xHex = point.x.toString(16).padStart(64, "0");
-  const yHex = point.y.toString(16).padStart(64, "0");
-  return "0x04" + xHex + yHex;
-}
-
 export {
   byteToWord,
   wordToByte,
@@ -372,5 +363,4 @@ export {
   bigIntsToPoint,
   pointToBigInts,
   hexToPoint,
-  pointToHex,
 };
