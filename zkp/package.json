@@ -35,7 +35,6 @@
     "circom_tester": "0.0.24",
     "eslint": "^8.57.1",
     "prettier": "^3.0.0",
-    "snarkjs": "^0.7.5",
     "ts-node": "^10.9.0",
     "typescript": "^5.8.3",
     "vitest": "^2.1.8"
@@ -43,6 +42,7 @@
   "dependencies": {
     "circomkit": "^0.3.3",
     "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.5",
     "keccak256-circom": "git+https://github.com/vocdoni/keccak256-circom"
   }
 }
