@@ -1,7 +1,6 @@
 pragma circom 2.2.2;
 
 include "circomlib/circuits/gates.circom";
-include "circomlib/circuits/bitify.circom";
 include "../arithmetic.circom";
 include "../bits.circom";
 

@@ -181,7 +181,3 @@ contracts/lib/
 
 # TODO
 *.todo
-
-# debugger
-contracts/*/PermitSignatureDebugger.*
-zkp/tests/logic/permitVerify.backup.ts

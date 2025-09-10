@@ -43,7 +43,7 @@ function hashTypedData(dataHash: Uint256, chainId: number = 421614): Uint256 {
         DOMAIN_SEPARATOR = "0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28";
     }
     const eip712Digest = Keccak256.hash(AbiEncoder.encodePacked("0x1901", DOMAIN_SEPARATOR, concatBigInts(dataHash)));
-    return splitBigInt(BigInt(eip712Digest)) ;
+    return splitBigInt(BigInt(eip712Digest));
 }
 
 function decodeSignature(signature: Signature): {

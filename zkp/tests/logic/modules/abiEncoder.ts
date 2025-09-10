@@ -16,7 +16,7 @@ class AbiEncoder {
     private static stringToHex(str: string): string {
         return Buffer.from(str, 'utf8').toString('hex');
     }
- 
+
     // Pad hex string to 32 bytes (64 hex chars)
     private static padHex(hex: string, left: boolean = true): string {
         const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
