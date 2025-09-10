@@ -151,8 +151,10 @@ class WitnessTester<
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
     try {
+      const fileName = WitnessTester.getCurrentTestFilename();
       const circomTester = await construct_wasm(
         circuitPath,
+        fileName,
         templateName,
         options,
       );

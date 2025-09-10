@@ -52,6 +52,7 @@ async function getCircuitPackagePath(
  */
 async function construct_wasm(
   circuitPath: string,
+  fileName: string,
   templateName: string,
   options?: CompilationOptions,
 ): Promise<CircomTester> {
@@ -75,6 +76,7 @@ async function construct_wasm(
 
     const wasm_tester = await circom_tester.wasm(testCircuitPath, {
       include: [...includeLibPaths],
+      output: `${globalThis.CIRCOM_TESTER_OUTPUT_DIR}/${fileName}`,
       templateName: `Untagged${templateName}`,
       ...(options?.templateParams && {
         templateParams: options.templateParams,
