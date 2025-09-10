@@ -29,10 +29,14 @@ function readWill<T>(type: WillType): T {
     const fileContent = readFileSync(targetPath, "utf8");
     const will = JSON.parse(fileContent);
 
-    if (will.salt && typeof will.salt === 'string') {
+    if (will.salt && typeof will.salt === "string") {
       will.salt = BigInt(will.salt);
     }
-    if (will.permit2 && will.permit2.nonce && typeof will.permit2.nonce === 'string') {
+    if (
+      will.permit2 &&
+      will.permit2.nonce &&
+      typeof will.permit2.nonce === "string"
+    ) {
       will.permit2.nonce = BigInt(will.permit2.nonce);
     }
 

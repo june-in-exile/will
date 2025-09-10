@@ -119,7 +119,9 @@ function validateAddressedWill(
   }
 
   if (typeof willData.salt !== "bigint" || willData.salt < 0) {
-    throw new Error(`Invalid salt (${willData.salt}): salt must be a non-negative bigint`);
+    throw new Error(
+      `Invalid salt (${willData.salt}): salt must be a non-negative bigint`,
+    );
   }
 
   if (!validateEthereumAddress(willData.will)) {
@@ -149,7 +151,9 @@ function validateSignedWill(
   }
 
   if (typeof signature.nonce !== "bigint" || signature.nonce < 0) {
-    throw new Error(`Invalid nonce (${signature.nonce}): nonce must be a non-negative bigint`);
+    throw new Error(
+      `Invalid nonce (${signature.nonce}): nonce must be a non-negative bigint`,
+    );
   }
 
   if (typeof signature.deadline !== "number" || signature.deadline <= 0) {

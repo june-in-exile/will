@@ -41,11 +41,11 @@ interface EncryptedWill {
   timestamp: number;
 }
 
-interface DownloadedWill extends EncryptedWill { }
+interface DownloadedWill extends EncryptedWill {}
 
-interface DecryptedWill extends SerializedWill { }
+interface DecryptedWill extends SerializedWill {}
 
-interface DeserializedWill extends SignedWill { }
+interface DeserializedWill extends SignedWill {}
 
 type WillType = (typeof WILL_TYPE)[keyof typeof WILL_TYPE];
 
@@ -64,8 +64,8 @@ type WillFields<
   T extends WillType,
   K extends readonly (keyof WillTypeToWillMap[T])[],
 > = {
-    [P in K[number]]: WillTypeToWillMap[T][P];
-  };
+  [P in K[number]]: WillTypeToWillMap[T][P];
+};
 
 export type {
   Will,

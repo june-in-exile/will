@@ -196,7 +196,7 @@ interface Permit2Config {
   maxNonceBytes: number;
 }
 
-interface SerializationConfig { 
+interface SerializationConfig {
   maxAmountBytes: number;
 }
 
@@ -448,7 +448,10 @@ export const PATHS_CONFIG: PathsConfig = {
     encrypted: resolve(modulePath, "../apps/backend/will/6_encrypted.json"),
     downloaded: resolve(modulePath, "../apps/backend/will/7_downloaded.json"),
     decrypted: resolve(modulePath, "../apps/backend/will/8_decrypted.json"),
-    deserialized: resolve(modulePath, "../apps/backend/will/9_deserialized.json"),
+    deserialized: resolve(
+      modulePath,
+      "../apps/backend/will/9_deserialized.json",
+    ),
   },
 
   // ZKP files

@@ -1,11 +1,16 @@
 import { PERMIT2_CONFIG } from "@config";
 import chalk from "chalk";
 
-function generateNonce(bytes: number = PERMIT2_CONFIG.maxNonceBytes, timestamp: number = Date.now()): bigint {
+function generateNonce(
+  bytes: number = PERMIT2_CONFIG.maxNonceBytes,
+  timestamp: number = Date.now(),
+): bigint {
   try {
     console.log(chalk.blue(`Generating nonce...`));
     if (bytes > PERMIT2_CONFIG.maxNonceBytes) {
-      throw new Error(`Nonce cannnot exceed ${PERMIT2_CONFIG.maxNonceBytes} bytes`);
+      throw new Error(
+        `Nonce cannnot exceed ${PERMIT2_CONFIG.maxNonceBytes} bytes`,
+      );
     }
     if (bytes < 4) {
       throw new Error(`Nonce must be at least 4 bytes to include timestamp`);
@@ -17,10 +22,10 @@ function generateNonce(bytes: number = PERMIT2_CONFIG.maxNonceBytes, timestamp: 
     // Convert uint32 timestamp to 4 bytes (big-endian)
     const timestampUint32 = timestamp >>> 0; // Convert to uint32
     const timestampBytes = new Uint8Array(4);
-    timestampBytes[0] = (timestampUint32 >>> 24) & 0xFF;
-    timestampBytes[1] = (timestampUint32 >>> 16) & 0xFF;
-    timestampBytes[2] = (timestampUint32 >>> 8) & 0xFF;
-    timestampBytes[3] = timestampUint32 & 0xFF;
+    timestampBytes[0] = (timestampUint32 >>> 24) & 0xff;
+    timestampBytes[1] = (timestampUint32 >>> 16) & 0xff;
+    timestampBytes[2] = (timestampUint32 >>> 8) & 0xff;
+    timestampBytes[3] = timestampUint32 & 0xff;
 
     // Combine random bytes + timestamp bytes
     let nonce = 0n;

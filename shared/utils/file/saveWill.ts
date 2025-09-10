@@ -19,7 +19,7 @@ function saveWill(willType: WillType, data: Will): void {
     } else {
       // For JSON data
       const replacer = (_key: string, value: any) => {
-        return typeof value === 'bigint' ? value.toString() : value;
+        return typeof value === "bigint" ? value.toString() : value;
       };
       writeFileSync(filePath, JSON.stringify(data, replacer, 4));
     }

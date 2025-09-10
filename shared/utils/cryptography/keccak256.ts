@@ -76,10 +76,7 @@ function validateEncoding(message: string, encoding: string = "utf8"): Buffer {
 /**
  * Keccak256 hash function
  */
-function keccak256(
-  input: HashableInput,
-  encoding: string = "utf8",
-): string {
+function keccak256(input: HashableInput, encoding: string = "utf8"): string {
   try {
     // Validate and normalize input
     const message = validateInput(input);
@@ -168,21 +165,20 @@ function showUsage(): void {
 
   console.log(chalk.white("\nParameters:"));
   console.log(
-    chalk.cyan("  --input") + chalk.gray("       Input text to hash [required]"),
+    chalk.cyan("  --input") +
+      chalk.gray("       Input text to hash [required]"),
   );
   console.log(
     chalk.cyan("  --encoding") +
-    chalk.gray(
-      "    Text encoding (utf8 | ascii | base64 | hex) [default: utf8]",
-    ),
+      chalk.gray(
+        "    Text encoding (utf8 | ascii | base64 | hex) [default: utf8]",
+      ),
   );
 
   console.log(chalk.red("\nImportant:"));
   console.log(chalk.red("• --input parameter is required"));
   console.log(
-    chalk.red(
-      `• Maximum input size: ${HASH_CONFIG.maxInputSize} bytes`,
-    ),
+    chalk.red(`• Maximum input size: ${HASH_CONFIG.maxInputSize} bytes`),
   );
 }
 
@@ -207,7 +203,9 @@ async function main(): Promise<void> {
     const hash = keccak256(input, encoding);
 
     // Display results
-    console.log(chalk.green.bold("\n✅ Keccak256 hash completed successfully!\n"));
+    console.log(
+      chalk.green.bold("\n✅ Keccak256 hash completed successfully!\n"),
+    );
 
     console.log(chalk.cyan("Input:"), chalk.white(String(input)));
     console.log(chalk.cyan("Encoding:"), chalk.white(encoding || "utf8"));
@@ -251,4 +249,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export { keccak256 }
+export { keccak256 };

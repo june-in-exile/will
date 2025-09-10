@@ -4,7 +4,7 @@ import { WILL_TYPE, ERC20_ABI } from "@shared/constants/index.js";
 import {
   validateEnvironment,
   presetValidations,
-  validateNetwork
+  validateNetwork,
 } from "@shared/utils/validation/index.js";
 import { extractUniqueTokens } from "@shared/utils/transform/blockchain.js";
 import { readWillFields } from "@shared/utils/file/index.js";

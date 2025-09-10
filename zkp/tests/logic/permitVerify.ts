@@ -71,7 +71,7 @@ function hashTypedData(dataHash: Uint256, chainId: number = 421614): Uint256 {
     AbiEncoder.encode(
       ["bytes", "bytes32", "uint256"],
       ["0x1901", DOMAIN_SEPARATOR, concatBigInts(dataHash)],
-      true
+      true,
     ),
   );
   return splitBigInt(BigInt(eip712Digest));
@@ -110,7 +110,7 @@ function publicKeyToAddress(publicKey: Point): Address {
   const yHex = AbiEncoder.numberToPaddedHex(publicKey.y);
 
   const publicKeyHash = Keccak256.hash("0x" + xHex + yHex);
-  const signer = '0x' + publicKeyHash.slice(-40);
+  const signer = "0x" + publicKeyHash.slice(-40);
 
   return BigInt(signer);
 }

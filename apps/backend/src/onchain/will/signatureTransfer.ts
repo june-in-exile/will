@@ -175,7 +175,7 @@ function compareBalanceSnapshots(
         afterBalance.address.toLowerCase() === willInfo.testator.toLowerCase()
           ? "Testator"
           : afterBalance.address.toLowerCase() ===
-            willInfo.executor.toLowerCase()
+              willInfo.executor.toLowerCase()
             ? "Executor"
             : "Beneficiary";
 

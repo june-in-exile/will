@@ -6,7 +6,11 @@ import {
   type EncryptedWill,
 } from "@shared/types/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
-import { generateKey, generateInitializationVector, encrypt } from "@shared/utils/cryptography/index.js";
+import {
+  generateKey,
+  generateInitializationVector,
+  encrypt,
+} from "@shared/utils/cryptography/index.js";
 import { readWill, saveWill } from "@shared/utils/file/index.js";
 import preview from "@shared/utils/transform/preview.js";
 import chalk from "chalk";
