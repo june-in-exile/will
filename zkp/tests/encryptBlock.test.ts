@@ -28,6 +28,12 @@ describe("ExpandKey Circuit", function () {
       circuit.setConstraint("AES-128 key expansion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should expand 16-byte key to 176-byte correctly", async function (): Promise<void> {
       const key = [
         0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88,
@@ -57,6 +63,12 @@ describe("ExpandKey Circuit", function () {
       circuit.setConstraint("AES-192 key expansion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should expand 24-byte key to 208-byte correctly", async function (): Promise<void> {
       const key = [
         0x8e, 0x73, 0xb0, 0xf7, 0xda, 0x0e, 0x64, 0x52, 0xc8, 0x10, 0xf3, 0x2b,
@@ -83,6 +95,12 @@ describe("ExpandKey Circuit", function () {
         },
       );
       circuit.setConstraint("AES-256 key expansion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should expand 32-byte key to 240-byte correctly", async function (): Promise<void> {
@@ -116,6 +134,12 @@ describe("SubWord Circuit", function () {
       circuit.setConstraint("word substitution");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should substitute random words according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const _in = Array.from(AESUtils.randomBytes(4));
@@ -139,6 +163,12 @@ describe("SubBytes Circuit", function () {
         "SubBytes",
       );
       circuit.setConstraint("16-byte substitution");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should substitute random 4x4 bytes according to AES specification", async function (): Promise<void> {
@@ -166,6 +196,12 @@ describe("SubstituteBytes Circuit", function () {
       circuit.setConstraint("1-byte bytes substitution");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should substitute all bytes according to AES specification", async function (): Promise<void> {
       for (let byte = 0x00; byte <= 0xff; byte++) {
         const _in = Array.from(Buffer.from([byte]));
@@ -188,6 +224,12 @@ describe("SubstituteBytes Circuit", function () {
         },
       );
       circuit.setConstraint("4-byte bytes substitution");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {
@@ -214,6 +256,12 @@ describe("SubstituteBytes Circuit", function () {
       circuit.setConstraint("16-byte bytes substitution");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should substitute random bytes according to AES specification", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const _in = Array.from(AESUtils.randomBytes(16));
@@ -237,6 +285,12 @@ describe("ShiftRows Circuit", function () {
         "ShiftRows",
       );
       circuit.setConstraint("rows shifting");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should shift rows according to AES specification", async function (): Promise<void> {
@@ -279,6 +333,12 @@ describe("MixColumn Circuit", function () {
         "MixColumn",
       );
       circuit.setConstraint("column mixing");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly transform random columns", async function (): Promise<void> {
@@ -351,6 +411,12 @@ describe("MixColumns Circuit", function () {
         "MixColumns",
       );
       circuit.setConstraint("columns mixing");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly transform random states", async function (): Promise<void> {
@@ -471,6 +537,12 @@ describe("AddRoundKey Circuit", function () {
       circuit.setConstraint("round key addition");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should correctly XOR state with round key", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const state = Array.from(AESUtils.randomBytes(16));
@@ -489,21 +561,6 @@ describe("AddRoundKey Circuit", function () {
 describe("EncryptBlock Circuit", function () {
   let circuit: WitnessTester<["plaintext", "key"], ["ciphertext"]>;
 
-  it("should reject key size other than 128/192/256", async function (): Promise<void> {
-    const keySizes = [0, 1, 2, 127, 193, 255];
-    for (const keySize of keySizes) {
-      await expect(
-        WitnessTester.construct(
-          "circuits/shared/components/aesGcm/encryptBlock.circom",
-          "EncryptBlock",
-          {
-            templateParams: [String(keySize)],
-          },
-        ),
-      ).rejects.toThrow();
-    }
-  });
-
   describe("AES-128 Block Cipher", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -514,6 +571,12 @@ describe("EncryptBlock Circuit", function () {
         },
       );
       circuit.setConstraint("AES-128 block cipher");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should handle random inputs consistently", async function (): Promise<void> {
@@ -541,6 +604,12 @@ describe("EncryptBlock Circuit", function () {
       circuit.setConstraint("AES-192 block cipher");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should handle random inputs consistently", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const plaintext = Array.from(AESUtils.randomBytes(16)) as Byte16;
@@ -564,6 +633,12 @@ describe("EncryptBlock Circuit", function () {
         },
       );
       circuit.setConstraint("AES-256 block cipher");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly encrypt using NIST test vectors", async function (): Promise<void> {

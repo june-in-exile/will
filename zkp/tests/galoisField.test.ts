@@ -13,6 +13,12 @@ describe("GF8Mul2 Circuit", function () {
       circuit.setConstraint("GF(2^8) multiplication by 2");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should correctly multiply by 2 for random values", async function (): Promise<void> {
       for (let i = 0; i < 3; i++) {
         const input = Math.floor(Math.random() * 256);
@@ -64,6 +70,12 @@ describe("GF8Mul3 Circuit", function () {
         "GF8Mul3",
       );
       circuit.setConstraint("GF(2^8) multiplication by 3");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly multiply by 3 for random values", async function (): Promise<void> {
@@ -141,6 +153,15 @@ describe("GF128Multiply Circuit", function () {
     );
     circuit.setConstraint("GF(2^128) multiplication");
     circuitOptimized.setConstraint("optimized GF(2^128) multiplication");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
+    if (circuitOptimized) {
+      await circuitOptimized.release();
+    }
   });
 
   it("should correctly multiply by zero and yield zero", async function (): Promise<void> {
@@ -221,6 +242,15 @@ describe("GHash Circuit", function () {
       circuitOptimized.setConstraint("optimized 1-block GHASH");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
+    });
+
     it("should compute GHASH for simple sequential data", async function (): Promise<void> {
       const data = Array.from({ length: 16 }, (_, i) => i + 1);
       const hashKey = HASH_KEY;
@@ -274,6 +304,15 @@ describe("GHash Circuit", function () {
       );
       circuit.setConstraint("2-block GHASH");
       circuitOptimized.setConstraint("optimized 2-block GHASH");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should compute GHASH for sequential data across two blocks", async function (): Promise<void> {
@@ -331,6 +370,15 @@ describe("GHash Circuit", function () {
       );
       circuit.setConstraint("4-block GHASH");
       circuitOptimized.setConstraint("optimized 4-block GHASH");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should compute GHASH for random data and key", async function (): Promise<void> {

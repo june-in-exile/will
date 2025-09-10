@@ -26,6 +26,12 @@ describe("AddUnequalCubicConstraint Circuit", function () {
       );
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should accept valid point addition", async function (): Promise<void> {
       const p1 = EllipticCurve.generateRandomPoint();
       const x1 = splitBigInt(p1.x);
@@ -100,6 +106,12 @@ describe("Secp256k1PointOnLine Circuit", function () {
       circuit.setConstraint("check 3 points are collinear");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should accept 3 collinear random points", async function (): Promise<void> {
       const slope = MathUtils.generateRandomScalar(CURVE.p);
 
@@ -159,6 +171,12 @@ describe("Secp256k1PointOnTangent Circuit", function () {
         "Secp256k1PointOnTangent",
       );
       circuit.setConstraint("check 2 points on the same tangent line");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should accept 2 points on the same tangent line", async function (): Promise<void> {
@@ -222,6 +240,12 @@ describe("Secp256k1PointOnCurve Circuit", function () {
       circuit.setConstraint("check point is on curve");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should accept point on curve", async function (): Promise<void> {
       const p = EllipticCurve.generateRandomPoint();
       const x = splitBigInt(p.x);
@@ -263,6 +287,12 @@ describe("Secp256k1AddUnequal Circuit", function () {
       circuit.setConstraint("point addition on secp256k1 curve");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should add two random point correctly", async function (): Promise<void> {
       const p1 = EllipticCurve.generateRandomPoint();
       const p2 = EllipticCurve.generateRandomPoint();
@@ -291,6 +321,12 @@ describe("Secp256k1Double Circuit", function () {
       circuit.setConstraint("point doubling on secp256k1 curve");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should double a random point correctly", async function (): Promise<void> {
       const p = EllipticCurve.generateRandomPoint();
       const _in = pointToBigInts(p);
@@ -314,6 +350,12 @@ describe("Secp256k1ScalarMult Circuit", function () {
         },
       );
       circuit.setConstraint("point multiplication by scalar on secp256k1 curve");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should multiply a random point by 2 correctly", async function (): Promise<void> {

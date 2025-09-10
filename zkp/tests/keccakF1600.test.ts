@@ -29,6 +29,12 @@ describe("Theta Circuit", function () {
       circuit.setConstraint("theta");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate correctly", async function (): Promise<void> {
       await circuit.expectPass(
         { stateArray: stateArrayOriginal },
@@ -48,6 +54,12 @@ describe("Rho Circuit", function () {
         "Rho",
       );
       circuit.setConstraint("rho");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate correctly", async function (): Promise<void> {
@@ -71,6 +83,12 @@ describe("Pi Circuit", function () {
       circuit.setConstraint("pi");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate correctly", async function (): Promise<void> {
       await circuit.expectPass(
         { stateArray: Keccak256Utils.lanesToStateArray(lanesAfterRho) },
@@ -90,6 +108,12 @@ describe("Chi Circuit", function () {
         "Chi",
       );
       circuit.setConstraint("chi");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate correctly", async function (): Promise<void> {
@@ -116,6 +140,12 @@ describe("Iota Circuit", function () {
       circuit.setConstraint("iota");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate correctly", async function (): Promise<void> {
       await circuit.expectPass(
         { stateArray: Keccak256Utils.lanesToStateArray(lanesAfterChi) },
@@ -135,6 +165,12 @@ describe("KeccakF1600 Circuit", function () {
         "KeccakF1600",
       );
       circuit.setConstraint("keccak-f[1600]");
+    });
+    
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate ι(χ(π(ρ(θ(A)))) for 24 rounds", async function (): Promise<void> {

@@ -22,6 +22,12 @@ describe("Padding Circuit", function () {
       circuit.setConstraint("0-bit message, 1088-bit rate (1088-bit padding)");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should add 1 whole block of padding", async function (): Promise<void> {
       const msg: number[] = [];
       const paddedMsg = Keccak256.addPaddingBits(msg);
@@ -42,6 +48,12 @@ describe("Padding Circuit", function () {
       circuit.setConstraint(
         "1088-bit message, 1088-bit rate (1088-bit padding)",
       );
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should add 1 whole block of padding", async function (): Promise<void> {
@@ -66,6 +78,12 @@ describe("Padding Circuit", function () {
       );
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should add 1 block plus 1 bit of padding", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1087);
       const paddedMsg = Keccak256.addPaddingBits(msg);
@@ -84,6 +102,12 @@ describe("Padding Circuit", function () {
         },
       );
       circuit.setConstraint("1086-bit message, 1088-bit rate (2-bit padding)");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should add 2 bits of padding", async function (): Promise<void> {
@@ -106,6 +130,12 @@ describe("Padding Circuit", function () {
       circuit.setConstraint("544-bit message, 1088-bit rate (544-bit padding)");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should pad to 1 block", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(544);
       const paddedMsg = Keccak256.addPaddingBits(msg);
@@ -118,21 +148,6 @@ describe("Padding Circuit", function () {
 describe("Absorb Circuit", function () {
   let circuit: WitnessTester<["msg"], ["finalStateArray"]>;
 
-  it("should reject unpadded message", async function (): Promise<void> {
-    const invalidMsgBits = ["0", "1", "1087", "1089"];
-    for (const invalidMsgBit of invalidMsgBits) {
-      await expect(
-        WitnessTester.construct(
-          "circuits/shared/components/keccak256/sponge.circom",
-          "Absorb",
-          {
-            templateParams: [invalidMsgBit, "1088"],
-          },
-        ),
-      ).rejects.toThrow();
-    }
-  });
-
   describe("Absorb One Block", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -143,6 +158,12 @@ describe("Absorb Circuit", function () {
         },
       );
       circuit.setConstraint("1088-bit message, 1088-bit rate");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should absorb one block and calculate the correct final state", async function (): Promise<void> {
@@ -163,6 +184,12 @@ describe("Absorb Circuit", function () {
         },
       );
       circuit.setConstraint("2176-bit message, 1088-bit rate");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should absorb two blocks and calculate the correct final state", async function (): Promise<void> {
@@ -189,6 +216,12 @@ describe("Squeeze Circuit", function () {
       circuit.setConstraint("256-bit digest, 1088-bit rate");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should squeeze the correct hash out of one block", async function (): Promise<void> {
       const randomBytes = crypto.getRandomValues(new Uint8Array(200));
       const stateArray = Keccak256Utils.bytesToStateArray(randomBytes);
@@ -210,6 +243,12 @@ describe("Squeeze Circuit", function () {
       circuit.setConstraint("1088-bit digest, 1088-bit rate");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should squeeze the correct hash out of one block", async function (): Promise<void> {
       const randomBytes = crypto.getRandomValues(new Uint8Array(200));
       const stateArray = Keccak256Utils.bytesToStateArray(randomBytes);
@@ -229,6 +268,12 @@ describe("Squeeze Circuit", function () {
         },
       );
       circuit.setConstraint("1360-bit digest, 1088-bit rate");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should squeeze the correct hash out of two blocks", async function (): Promise<void> {

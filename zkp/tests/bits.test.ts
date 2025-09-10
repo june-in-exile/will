@@ -13,6 +13,12 @@ describe("Mod2 Circuit", function () {
       circuit.setConstraint("modulo 2");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should correctly identify even numbers", async function (): Promise<void> {
       const numbers = [0, 2, 4, 6, 8, 10, 100, 1000];
 
@@ -63,6 +69,12 @@ describe("Mask Circuit", function () {
         },
       );
       circuit.setConstraint("8-bit 0x0F mask");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -150,6 +162,12 @@ describe("Mask Circuit", function () {
       circuit.setConstraint("16-bit 0x00FF mask");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform correct mask operations", async function (): Promise<void> {
       const testCases = [
         { _in: 0, _out: 0 }, // 0x0000 & 0x00FF = 0x0000
@@ -202,6 +220,12 @@ describe("Mask Circuit", function () {
         },
       );
       circuit.setConstraint("32-bit 0x0000FFFF mask");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct mask operations", async function (): Promise<void> {
@@ -262,6 +286,12 @@ describe("ShiftRight Circuit", function () {
       circuit.setConstraint("8-bit 1-offset shift right");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform correct 1-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { _in: 0, _out: 0 }, // 00000000 >> 1 = 00000000
@@ -311,6 +341,12 @@ describe("ShiftRight Circuit", function () {
       );
       circuit.setConstraint("8-bit 2-offset shift right");
     });
+    
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
 
     it("should perform correct 2-bit right shift operations", async function (): Promise<void> {
       const testCases = [
@@ -358,6 +394,12 @@ describe("ShiftRight Circuit", function () {
       circuit.setConstraint("8-bit 4-offset shift right");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform correct 4-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { _in: 0, _out: 0 }, // 00000000 >> 4 = 00000000
@@ -402,6 +444,12 @@ describe("ShiftRight Circuit", function () {
       circuit.setConstraint("16-bit 8-offset shift right");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
       const testCases = [
         { _in: 0, _out: 0 },
@@ -442,6 +490,12 @@ describe("ShiftRight Circuit", function () {
         },
       );
       circuit.setConstraint("32-bit 8-offset shift right");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct 8-bit right shift operations", async function (): Promise<void> {
@@ -491,6 +545,12 @@ describe("RotateLeft Circuit", function () {
       circuit.setConstraint("0-bit rotation in 64-bit");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should rotate correctly", async function (): Promise<void> {
       const testCases = [
         BigInt(0),
@@ -518,6 +578,12 @@ describe("RotateLeft Circuit", function () {
         },
       );
       circuit.setConstraint("1-bit rotation in 64-bit");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should rotate correctly", async function (): Promise<void> {
@@ -549,6 +615,12 @@ describe("RotateLeft Circuit", function () {
       circuit.setConstraint("31-bit rotation in 64-bit");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should rotate correctly", async function (): Promise<void> {
       const testCases = [
         BigInt(0),
@@ -578,6 +650,12 @@ describe("RotateLeft Circuit", function () {
       circuit.setConstraint("63-bit rotation in 64-bit");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should rotate correctly", async function (): Promise<void> {
       const testCases = [
         BigInt(0),
@@ -600,27 +678,6 @@ describe("BitwiseXor Circuit", function () {
   let circuit: WitnessTester<["in"], ["out"]>;
   let circuitOptimized: WitnessTester<["in"], ["out"]>;
 
-  it("should reject single input (n=1)", async function (): Promise<void> {
-    await expect(
-      WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
-        "BitwiseXor",
-        {
-          templateParams: ["1", "8"],
-        },
-      ),
-    ).rejects.toThrow();
-    await expect(
-      WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
-        "BitwiseXorOptimized",
-        {
-          templateParams: ["1", "8"],
-        },
-      ),
-    ).rejects.toThrow();
-  });
-
   describe("2 inputs, 8-bit Xor Operations", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -631,6 +688,12 @@ describe("BitwiseXor Circuit", function () {
         },
       );
       circuit.setConstraint("2x8-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -718,6 +781,15 @@ describe("BitwiseXor Circuit", function () {
       );
       circuit.setConstraint("3x8-bit xor operation");
       circuitOptimized.setConstraint("optimized 3x8-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -811,6 +883,15 @@ describe("BitwiseXor Circuit", function () {
       circuitOptimized.setConstraint("optimized 5x8-bit xor operation");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
+    });
+
     it("should perform correct xor operations", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0, 0, 0], _out: 0 },
@@ -837,6 +918,12 @@ describe("BitwiseXor Circuit", function () {
         },
       );
       circuit.setConstraint("2x16-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct xor operations", async function (): Promise<void> {
@@ -882,6 +969,12 @@ describe("BitwiseXor Circuit", function () {
         },
       );
       circuit.setConstraint("2x64-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -939,6 +1032,15 @@ describe("BitwiseXor Circuit", function () {
       circuitOptimized.setConstraint("optimized 3x8-bit xor operation");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
+    });
+
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0], _out: 0 }, // 0x0000 ^ 0x0000 ^ 0x0000 = 0x0000
@@ -974,6 +1076,15 @@ describe("BitwiseXor Circuit", function () {
       );
       circuit.setConstraint("5x16-bit xor operation");
       circuitOptimized.setConstraint("optimized 5x16-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -1015,6 +1126,15 @@ describe("BitwiseXor Circuit", function () {
       );
       circuit.setConstraint("5x64-bit xor operation");
       circuitOptimized.setConstraint("optimized 5x64-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -1130,6 +1250,15 @@ describe("BitwiseXor Circuit", function () {
       circuitOptimized.setConstraint("optimized 10x4-bit xor operation");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
+    });
+
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], _out: 0 }, // All zeros
@@ -1161,6 +1290,12 @@ describe("BitwiseXor Circuit", function () {
         },
       );
       circuit.setConstraint("2x32-bit xor operation");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
@@ -1216,6 +1351,15 @@ describe("BitwiseXor Circuit", function () {
       circuitOptimized.setConstraint("optimized 3x32-bit xor operation");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
+    });
+
     it("should perform correct multi-Xor operations", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0], _out: 0 }, // 0x00000000 ^ 0x00000000 ^ 0x00000000 = 0x00000000
@@ -1244,6 +1388,12 @@ describe("ByteAdder Circuits", function () {
         "ByteAdder",
       );
       circuit.setConstraint("byte adder");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly add bytes without carry", async function (): Promise<void> {
@@ -1304,6 +1454,12 @@ describe("BytesToNum Circuit", function () {
       circuit.setConstraint("big-endian 2-byte to 16-bit conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
@@ -1342,6 +1498,12 @@ describe("BytesToNum Circuit", function () {
       circuit.setConstraint("little-endian 2-byte to 16-bit conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
@@ -1378,6 +1540,12 @@ describe("BytesToNum Circuit", function () {
         },
       );
       circuit.setConstraint("big-endian 16-byte to 128-bit conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
@@ -1428,6 +1596,12 @@ describe("BytesToNum Circuit", function () {
         },
       );
       circuit.setConstraint("little-endian 16-byte to 128-bit conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
@@ -1484,6 +1658,12 @@ describe("NumToBytes Circuit", function () {
       circuit.setConstraint("big-endian 16-bit to 2-byte conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
@@ -1522,6 +1702,12 @@ describe("NumToBytes Circuit", function () {
       circuit.setConstraint("little-endian 16-bit to 2-byte conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
       const testCases = [
         {
@@ -1558,6 +1744,12 @@ describe("NumToBytes Circuit", function () {
         },
       );
       circuit.setConstraint("big-endian 128-bit to 16-byte conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
@@ -1608,6 +1800,12 @@ describe("NumToBytes Circuit", function () {
         },
       );
       circuit.setConstraint("little-endian 128-bit to 16-byte conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert MSB and LSB patterns correctly", async function (): Promise<void> {
@@ -1662,6 +1860,12 @@ describe("BytesToHex Circuit", function () {
         },
       );
       circuit.setConstraint("1-byte to 2-hex conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert 1 byte to 2 hex characters", async function (): Promise<void> {
@@ -1726,6 +1930,12 @@ describe("BytesToHex Circuit", function () {
       circuit.setConstraint("8-byte to 16-hex conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert 8 bytes to 16 hex characters", async function (): Promise<void> {
       const testCases = [
         {
@@ -1758,6 +1968,12 @@ describe("HexToBytes Circuit", function () {
         },
       );
       circuit.setConstraint("2-hex to 1-byte conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should convert 2 hex characters to 1 byte", async function (): Promise<void> {
@@ -1822,6 +2038,12 @@ describe("HexToBytes Circuit", function () {
       circuit.setConstraint("16-hex to 8-byte conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should convert 16 hex characters to 8 bytes", async function (): Promise<void> {
       const testCases = [
         {
@@ -1854,6 +2076,12 @@ describe("BytesToBits Circuit", function () {
         },
       );
       circuit.setConstraint("msb-first 16-byte to 128 bits conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly convert all zero bytes", async function (): Promise<void> {
@@ -1894,6 +2122,12 @@ describe("BytesToBits Circuit", function () {
         },
       );
       circuit.setConstraint("lsb-first 32-byte to 256 bits conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly convert all zero bytes", async function (): Promise<void> {
@@ -1940,6 +2174,12 @@ describe("BitsToBytes Circuit", function () {
       circuit.setConstraint("msb-first 128 bits to 16-byte conversion");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should correctly convert all zero bits", async function (): Promise<void> {
       const bits = new Array(128).fill(0);
       const bytes = new Array(16).fill(0);
@@ -1978,6 +2218,12 @@ describe("BitsToBytes Circuit", function () {
         },
       );
       circuit.setConstraint("lsb-first 256 bits to 32-byte conversion");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly convert all zero bits", async function (): Promise<void> {

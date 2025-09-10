@@ -17,6 +17,12 @@ describe("ECDSAPrivToPub Circuit", function () {
       circuit.setConstraint("calculate ecdsa public key from private key");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate the correct public key", async function (): Promise<void> {
       const keyPair = ECDSA.generateKeyPair();
       const privkey = splitBigInt(keyPair.privateKey);
@@ -42,6 +48,12 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
       circuit.setConstraint(
         "256-bit message hash signature verification w/o checking public key",
       );
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should verify fixed signature", async function (): Promise<void> {
@@ -106,19 +118,19 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
     });
 
     it("should verify random signature with random message hash", async function (): Promise<void> {
-      for (let i = 0; i < 3; i++) { 
+      for (let i = 0; i < 3; i++) {
         const messageHash = MathUtils.generateRandomScalar();
         const msghash = splitBigInt(messageHash);
-        
+
         const keyPair = ECDSA.generateKeyPair();
         const pubkey = pointToBigInts(keyPair.publicKey);
-        
+
         const signature = ECDSA.sign(messageHash, keyPair.privateKey);
         const r = splitBigInt(signature.r);
         const s = splitBigInt(signature.s);
-        
+
         const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
-        
+
         await circuit.expectPass({ r, s, msghash, pubkey }, { result });
       }
     });

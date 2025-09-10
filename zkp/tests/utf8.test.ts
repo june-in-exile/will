@@ -61,6 +61,12 @@ describe("Utf8ByteLength Circuit", function (): void {
     circuit.setConstraint("utf8 length (in bytes) calculation");
   });
 
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
+  });
+
   describe("Byte Length Calculation for UTF8 Encoding", function (): void {
     it("should correctly calculate byte length of 1-byte utf8", async () => {
       for (const { codepoint } of testCases1Byte) {
@@ -97,6 +103,12 @@ describe("Utf8Encoder Circuit", function (): void {
       "Utf8Encoder",
     );
     circuit.setConstraint("utf8 encoder");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
   });
 
   describe("Individual Character Encoding", function (): void {
@@ -151,6 +163,12 @@ describe("Utf8StringEncoder Circuit", function (): void {
         },
       );
       circuit.setConstraint("3-character utf8 string encoder");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly encode pure ASCII strings", async () => {
@@ -211,6 +229,12 @@ describe("Utf8StringEncoder Circuit", function (): void {
         },
       );
       circuit.setConstraint("15-character utf8 string encoder");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly encode pure ASCII strings", async () => {

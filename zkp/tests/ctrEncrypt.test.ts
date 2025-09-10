@@ -18,6 +18,12 @@ describe("CtrEncrypt Circuits", function () {
         circuit.setConstraint("AES-128-CTR 3-byte encryption");
       });
 
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
+      });
+
       it("should work with known test vectors", async function (): Promise<void> {
         const plaintext = [72, 105, 33] as Byte[]; // Hi!
         const key = [
@@ -69,6 +75,12 @@ describe("CtrEncrypt Circuits", function () {
         circuit.setConstraint("AES-128-CTR 1-block encryption");
       });
 
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
+      });
+
       it("should work with known test vectors", async function (): Promise<void> {
         const plaintext = [
           72, 105, 33, 32, 72, 111, 119, 32, 97, 114, 101, 32, 121, 111, 117,
@@ -98,7 +110,7 @@ describe("CtrEncrypt Circuits", function () {
       });
     });
 
-    describe.skip("47 Bytes (With 1-byte Padding)", function () {
+    describe("47 Bytes (With 1-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
           "circuits/shared/components/aesGcm/ctrEncrypt.circom",
@@ -108,6 +120,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-128-CTR 47-byte encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -137,6 +155,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-128-CTR 4-block encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {
@@ -199,7 +223,7 @@ describe("CtrEncrypt Circuits", function () {
   });
 
   describe("AES-192-CTR Encrypt Circuit", function () {
-    describe.skip("30 Bytes (With 2-byte Padding)", function () {
+    describe("30 Bytes (With 2-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
           "circuits/shared/components/aesGcm/ctrEncrypt.circom",
@@ -209,6 +233,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-192-CTR 30-byte encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -240,6 +270,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-192-CTR 4-block encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {
@@ -284,7 +320,7 @@ describe("CtrEncrypt Circuits", function () {
   });
 
   describe("AES-256-CTR Encrypt Circuit", function () {
-    describe.skip("17 Bytes (With 15-byte Padding)", function () {
+    describe("17 Bytes (With 15-byte Padding)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
           "circuits/shared/components/aesGcm/ctrEncrypt.circom",
@@ -294,6 +330,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-256-CTR 17-byte encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with random test vectors", async function (): Promise<void> {
@@ -327,6 +369,12 @@ describe("CtrEncrypt Circuits", function () {
           },
         );
         circuit.setConstraint("AES-256-CTR 4-block encryption");
+      });
+
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
       });
 
       it("should work with GCM standard test vectors", async function (): Promise<void> {

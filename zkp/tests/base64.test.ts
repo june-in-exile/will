@@ -12,6 +12,12 @@ describe("Base64Char Circuit", function () {
     circuit.setConstraint("base64 character");
   });
 
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
+  });
+
   describe("Complete Base64 Character Set", function (): void {
     it("should handle all valid Base64 characters", async function (): Promise<void> {
       const base64Chars: string =
@@ -74,6 +80,12 @@ describe("Base64CharExcludingPadding Circuit", function () {
       "Base64CharExcludingPadding",
     );
     circuit.setConstraint("base64 character excluding padding");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -145,6 +157,12 @@ describe("Base64CharWithPaddingDetector Circuit", function () {
       "Base64CharWithPaddingDetector",
     );
     circuit.setConstraint("base64 character with padding detector");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
   });
 
   describe("Complete Base64 Character Set", function (): void {
@@ -219,6 +237,12 @@ describe("Base64GroupDecoder Circuit", function () {
       "Base64GroupDecoder",
     );
     circuit.setConstraint("base64 group decoder");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
   });
 
   describe("Valid Padding", function (): void {
@@ -345,6 +369,12 @@ describe("Base64GroupDecoderWithoutPadding Circuit", function () {
     circuit.setConstraint("base64 group decoder without padding");
   });
 
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
+  });
+
   describe("No Padding", function (): void {
     it("should accpet no padding", async function (): Promise<void> {
       const testCases = [
@@ -405,6 +435,12 @@ describe("Base64GroupDecoderWithPadding Circuit", function () {
       "Base64GroupDecoderWithPadding",
     );
     circuit.setConstraint("base64 group decoder with padding");
+  });
+
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
   });
 
   describe("Valid Padding", function (): void {
@@ -534,6 +570,12 @@ describe("Base64Decoder Circuit", function () {
       circuit.setConstraint("4-byte base64 decoder");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should decode no-padding 'TWFu' into 'Man'", async function (): Promise<void> {
       const asciis = [84, 87, 70, 117];
       const bytes = [77, 97, 110];
@@ -604,6 +646,12 @@ describe("Base64Decoder Circuit", function () {
       circuit.setConstraint("8-byte base64 decoder");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should decode no-padding 'Tm8gd2F5' into 'No way'", async function (): Promise<void> {
       const asciis = [84, 109, 56, 103, 100, 50, 70, 53];
       const bytes = [78, 111, 32, 119, 97, 121];
@@ -646,6 +694,12 @@ describe("Base64Decoder Circuit", function () {
         },
       );
       circuit.setConstraint("360-byte base64 decoder");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should decode a real world case", async function (): Promise<void> {

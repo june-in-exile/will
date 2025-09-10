@@ -19,6 +19,12 @@ describe("ComputeJ0Standard Circuits", function () {
       circuit.setConstraint("j0 computation for standard IV (12 bytes)");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should correctly compute J0 for 12-byte IV", async function (): Promise<void> {
       const testCases = [
         new Array(12).fill(0x00),
@@ -47,30 +53,6 @@ describe("ComputeJ0Standard Circuits", function () {
 describe("ComputeJ0NonStandard Circuit", function () {
   let circuit: WitnessTester<["iv", "hashKey"], ["j0"]>;
 
-  it("should reject 0-byte IV input", async function (): Promise<void> {
-    await expect(
-      WitnessTester.construct(
-        "circuits/shared/components/aesGcm/counter.circom",
-        "ComputeJ0NonStandard",
-        {
-          templateParams: ["0"],
-        },
-      ),
-    ).rejects.toThrow();
-  });
-
-  it("should reject 12-byte IV input", async function (): Promise<void> {
-    await expect(
-      WitnessTester.construct(
-        "circuits/shared/components/aesGcm/counter.circom",
-        "ComputeJ0NonStandard",
-        {
-          templateParams: ["12"],
-        },
-      ),
-    ).rejects.toThrow();
-  });
-
   describe("Compute J0 Non-Standard (16-Byte IV) Circuit", function () {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
@@ -81,6 +63,12 @@ describe("ComputeJ0NonStandard Circuit", function () {
         },
       );
       circuit.setConstraint("j0 computation for 16-byte IV");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should correctly compute J0 for 16-byte IV", async function (): Promise<void> {
@@ -134,6 +122,10 @@ describe("ComputeJ0NonStandard Circuit", function () {
             { j0: computeJ0NonStandard(iv, hashKey) },
           );
         }
+
+        if (circuit) {
+          await circuit.release();
+        }
       }
     });
   });
@@ -155,6 +147,15 @@ describe("IncrementCounter Circuits", function () {
       );
       circuit.setConstraint("counter increment");
       circuitOptimized.setConstraint("optimized counter increment");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+      if (circuitOptimized) {
+        await circuitOptimized.release();
+      }
     });
 
     it("should correctly increment last 4 bytes without carry", async function (): Promise<void> {

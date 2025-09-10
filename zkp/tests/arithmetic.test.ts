@@ -15,6 +15,12 @@ describe("Divide Circuit", function () {
       circuit.setConstraint("division");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate 8-by-6-bit division correctly", async function (): Promise<void> {
       const testCases = [
         { dividend: 0, divisor: 1 },
@@ -100,6 +106,12 @@ describe("MultiplyTwoArray Circuit", function () {
       circuit.setConstraint("1-element array multiplication");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         { a: [0], b: [0], c: [0] },
@@ -151,6 +163,12 @@ describe("MultiplyTwoArray Circuit", function () {
         },
       );
       circuit.setConstraint("3-element array multiplication");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -205,6 +223,12 @@ describe("MultiplyTwoArray Circuit", function () {
       circuit.setConstraint("5-element array multiplication");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
       const testCases = [
         {
@@ -245,6 +269,12 @@ describe("MultiplyTwoArray Circuit", function () {
         },
       );
       circuit.setConstraint("10-element array multiplication");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform element-wise multiplication correctly", async function (): Promise<void> {
@@ -288,6 +318,12 @@ describe("Sum Circuit", function () {
       circuit.setConstraint("sum 3 elements");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform 3-element summation correctly", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0], _out: 0 },
@@ -315,6 +351,12 @@ describe("Sum Circuit", function () {
       circuit.setConstraint("sum 5 elements");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should perform 5-element summation correctly", async function (): Promise<void> {
       const testCases = [
         { _in: [0, 0, 0, 0, 0], _out: 0 },
@@ -340,6 +382,12 @@ describe("Sum Circuit", function () {
         },
       );
       circuit.setConstraint("sum 10 elements");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should perform 10-element summation correctly", async function (): Promise<void> {

@@ -11,6 +11,12 @@ describe("Multiplier2 Circuit", function () {
     circuit.setConstraint("multiplication");
   });
 
+  afterAll(async function (): Promise<void> {
+    if (circuit) {
+      await circuit.release();
+    }
+  });
+
   describe("Basic Multiplication", function (): void {
     const testCases = [
       { a: 3, b: 11, c: 33 },

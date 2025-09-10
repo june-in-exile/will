@@ -30,7 +30,6 @@ export default defineConfig({
       no_asm: false,
       no_init: false,
     }),
-    CIRCOM_TESTER_OUTPUT_DIR: '"./circuits/test"',
     CONSTRAINT_COUNTS_PATH: '"./constraintCounts.json"',
   },
 });

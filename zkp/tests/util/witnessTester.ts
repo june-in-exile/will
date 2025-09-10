@@ -1,4 +1,4 @@
-// Modified from https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
+// Modified from circomkit: https://github.com/erhant/circomkit/blob/main/src/testers/witnessTester.ts
 
 import { construct_wasm } from "./construction.js";
 import { AssertionError } from "assert";
@@ -151,10 +151,8 @@ class WitnessTester<
     options?: CompilationOptions,
   ): Promise<WitnessTester> {
     try {
-      const fileName = WitnessTester.getCurrentTestFilename();
       const circomTester = await construct_wasm(
         circuitPath,
-        fileName,
         templateName,
         options,
       );
@@ -163,6 +161,43 @@ class WitnessTester<
       throw new Error(
         `Failed to construct witness tester: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+    }
+  }
+
+  /**
+   * Release resources and clean up temporary files.
+   * This method should be called when the circuit is no longer needed.
+   */
+  async release(): Promise<void> {
+    if (this.circomTester) {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+
+        if (this.circomTester.dir && typeof this.circomTester.dir === 'string') {
+          let dirToClean = this.circomTester.dir;
+
+          // Check if this is a nested temporary directory structure
+          // Look for the pattern: /tmp/circom_*/circuit_name/
+          const parentDir = path.dirname(dirToClean);
+          const parentName = path.basename(parentDir);
+
+          // If parent directory looks like a circom temp dir, clean that instead
+          if (parentName.startsWith('circom_')) {
+            dirToClean = parentDir;
+            console.log(`Cleaning up parent temp directory: ${dirToClean}`);
+          } else {
+            console.log(`Cleaning up circuit directory: ${dirToClean}`);
+          }
+
+          if (fs.existsSync(dirToClean)) {
+            await fs.promises.rmdir(dirToClean, { recursive: true });
+            console.log(`Successfully cleaned up: ${dirToClean}`);
+          }
+        }
+      } catch (error) {
+        console.warn('Circuit cleanup failed:', error instanceof Error ? error.message : 'Unknown error');
+      }
     }
   }
 

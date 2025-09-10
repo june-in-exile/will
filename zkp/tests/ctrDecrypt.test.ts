@@ -18,6 +18,12 @@ describe("CtrDecrypt Circuits", function () {
         circuit.setConstraint("AES-256-CTR 4-block decryption");
       });
 
+      afterAll(async function (): Promise<void> {
+        if (circuit) {
+          await circuit.release();
+        }
+      });
+
       it("should work with GCM standard test vectors", async function (): Promise<void> {
         // NIST SP 800-38A F.5.5 CTR-AES256.Encrypt Block #1-#4
         const plaintext = [

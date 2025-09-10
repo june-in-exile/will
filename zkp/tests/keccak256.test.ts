@@ -23,6 +23,12 @@ describe("Keccak256 Circuit", function () {
       circuit.setConstraint("1-bit massage");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate the correct hash", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1) as Bit[];
       const digest = keccak256(msg);
@@ -41,6 +47,12 @@ describe("Keccak256 Circuit", function () {
         },
       );
       circuit.setConstraint("256-bit massage");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
@@ -63,6 +75,12 @@ describe("Keccak256 Circuit", function () {
       circuit.setConstraint("512-bit massage");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate the correct hash", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(512) as Bit[];
       const digest = keccak256(msg);
@@ -81,6 +99,12 @@ describe("Keccak256 Circuit", function () {
         },
       );
       circuit.setConstraint("1080-bit massage");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
@@ -103,6 +127,12 @@ describe("Keccak256 Circuit", function () {
       circuit.setConstraint("1086-bit massage");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate the correct hash", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1086) as Bit[];
       const digest = keccak256(msg);
@@ -121,6 +151,12 @@ describe("Keccak256 Circuit", function () {
         },
       );
       circuit.setConstraint("1087-bit massage");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {
@@ -143,6 +179,12 @@ describe("Keccak256 Circuit", function () {
       circuit.setConstraint("1088-bit massage");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should calculate the correct hash", async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
       const digest = keccak256(msg);
@@ -161,6 +203,12 @@ describe("Keccak256 Circuit", function () {
         },
       );
       circuit.setConstraint("1360-bit massage");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should calculate the correct hash", async function (): Promise<void> {

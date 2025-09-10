@@ -15,6 +15,12 @@ describe("InRange Circuit", function () {
       circuit.setConstraint("4-bit in-range check");
     });
 
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
+    });
+
     it("should validate full range [0, 15]", async function (): Promise<void> {
       for (let value = 0; value <= 15; value++) {
         await circuit.expectPass({ in: value, min: 0, max: 15 }, { out: 1 });
@@ -60,6 +66,12 @@ describe("InRange Circuit", function () {
         },
       );
       circuit.setConstraint("8-bit in-range check");
+    });
+
+    afterAll(async function (): Promise<void> {
+      if (circuit) {
+        await circuit.release();
+      }
     });
 
     it("should validate full range [0, 255]", async function (): Promise<void> {
