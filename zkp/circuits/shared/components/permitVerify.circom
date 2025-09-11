@@ -32,7 +32,7 @@ include "./bus.circom";
 template HashPermit(numPermission) {
     input PermitTransferFrom(numPermission) permit;
     signal input {address} spender;
-    signal output {byte} permitDigest[32];
+    signal output {bit} permitDigest[256];
 
     // 0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1
     var TOKEN_PERMISSIONS_TYPEHASH[256] = [
@@ -84,6 +84,7 @@ template HashPermit(numPermission) {
 
     for (var i = 0; i < numPermission; i++) {
         // Converts token address and amount from number to bytes (big-endian), and then to bits (LSB-first)
+        // @note This is not the same as Num2Bits(256)(value)
         bitsTokens[i] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.permitted[i].token));
         bitsAmounts[i] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.permitted[i].amount));
 
@@ -111,6 +112,7 @@ template HashPermit(numPermission) {
     signal {bit} bitsPermissionsDigest[256] <== Keccak256(concatedPermissionBits)(bitsConcatedPermission);
 
     // Converts spender, nonce and deadline from number to bytes (big-endian), and then to bits (LSB-first)
+    // @note This is not the same as Num2Bits(256)(value)
     signal {bit} bitsSpender[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(spender));
     signal {bit} bitsNonce[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.nonce));
     signal {bit} bitsDeadline[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.deadline));
@@ -127,8 +129,7 @@ template HashPermit(numPermission) {
     }
 
     // Hashes batch permit
-    signal {bit} bitsPermitDigest[256] <== Keccak256(batchPermitBits)(bitsBatchPermit);
-    permitDigest <== BitsToBytes(32, 1)(bitsPermitDigest);
+    permitDigest <== Keccak256(batchPermitBits)(bitsBatchPermit);
 }
 
 
@@ -194,14 +195,12 @@ function EIP712_DOMAIN_SEPARATOR(chainId) {
  * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
  */
 template HashTypedData(chainId) {
-    signal input {byte} permitDigest[32];
-    signal output {byte} typedPermitDigest[32];
+    signal input {bit} permitDigest[256];
+    signal output {bit} typedPermitDigest[256];
 
     // abi.encodePacked("0x1901", DOMAIN_SEPARATOR, permitDigest)
-    
     var BITS_PREFIX[2 * 8] = [1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0];
     var BITS_DOMAIN_SEPARATOR[32 * 8] = EIP712_DOMAIN_SEPARATOR(chainId);
-    signal {bit} bitsPermitDigest[32 * 8] <== BytesToBits(32, 1)(permitDigest);
 
     var totalBits = (2 + 32 + 32) * 8;
     signal {bit} encodedDigest[totalBits];
@@ -216,12 +215,11 @@ template HashTypedData(chainId) {
         bitIdx++;
     }
     for (var i = 0; i < 32 * 8; i++) {
-        encodedDigest[bitIdx] <== bitsPermitDigest[i];
+        encodedDigest[bitIdx] <== permitDigest[i];
         bitIdx++;
     }
     assert(bitIdx == totalBits);
 
     // keccak256(encodedValue)
-    signal {bit} bitsTypedPermitDigest[256] <== Keccak256(totalBits)(encodedDigest);
-    typedPermitDigest <== BitsToBytes(32, 1)(bitsTypedPermitDigest);
+    typedPermitDigest <== Keccak256(totalBits)(encodedDigest);
 }

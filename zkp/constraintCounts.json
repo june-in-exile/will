@@ -295,8 +295,8 @@
       "permit with 2 estates": 577984
     },
     "HashTypedData": {
-      "arbitrum sepolia": 115456,
-      "mainnet": 115456
+      "arbitrum sepolia": 115200,
+      "mainnet": 115200
     }
   },
   "range": {

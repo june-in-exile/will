@@ -1,8 +1,8 @@
-import { Byte, Address, Byte32, PermitTransferFrom } from "../type/index.js";
-import { byteToHex, hexToByte } from "../util/index.js";
+import { Bit, Uint256, Address, Signature, PermitTransferFrom } from "../type/index.js";
+import { byteToHex, hexToByte, splitBigInt, byteToBit, bitToByte } from "../util/index.js";
 import { Permit2 } from "./index.js";
 
-function hashPermit(permit: PermitTransferFrom, spender: Address): Byte32 {
+function hashPermit(permit: PermitTransferFrom, spender: Address): Bit[] {
   const permitted = permit.permitted.map((tokenPermission) => ({
     token: "0x" + tokenPermission.token.toString(16),
     amount: tokenPermission.amount,
@@ -18,20 +18,24 @@ function hashPermit(permit: PermitTransferFrom, spender: Address): Byte32 {
     },
     spender.toString(16),
   );
-  const digestBytes: Byte[] = hexToByte(digest);
-  if (digestBytes.length !== 32) {
-    throw new Error("Invalid digest length");
-  }
-  return digestBytes as Byte32;
+  return byteToBit(hexToByte(digest));
 }
 
-function hashTypedData(permitDigest: Byte32, chainId: number = 421614): Byte32 {
-  const hexTypedPermitDigest = Permit2.hashTypedData('0x' + byteToHex(permitDigest), chainId);
-  const typedPermitDigest = hexToByte(hexTypedPermitDigest);
-  if (typedPermitDigest.length !== 32) {
-    throw new Error("Invalid digest length");
-  }
-  return typedPermitDigest as Byte32;
+function hashTypedData(permitDigest: Bit[], chainId: number = 421614): Bit[] {
+  const hexPermitDigest = '0x' + byteToHex(bitToByte(permitDigest));
+  const typedPermitDigest = Permit2.hashTypedData(hexPermitDigest, chainId);
+  return byteToBit(hexToByte(typedPermitDigest));
 }
 
-export { hashPermit, hashTypedData };
+function recoverPublicKey(signature: Signature, digest: Bit[]): Uint256[] {
+  const { r, s, v } = Permit2.decodeSignature(byteToHex(signature));
+  const recoveredPublicKey = Permit2.recoverPublicKey(
+    byteToHex(bitToByte(digest)),
+    r,
+    s,
+    v,
+  );
+  return [splitBigInt(recoveredPublicKey.x), splitBigInt(recoveredPublicKey.y)]
+}
+
+export { hashPermit, hashTypedData, recoverPublicKey };

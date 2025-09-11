@@ -462,7 +462,7 @@ class Keccak256 {
         if (/^[0-9a-fA-F]*$/.test(cleanHex) && cleanHex.length % 2 === 0) {
           const bytes = new Uint8Array(cleanHex.length / 2);
           for (let i = 0; i < cleanHex.length; i += 2) {
-            bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+            bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16);
           }
           return bytes;
         } else {

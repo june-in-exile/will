@@ -1,6 +1,6 @@
-import { flattenPermitTransferFrom, WitnessTester } from "./util/index.js";
+import { byteToBit, flattenPermitTransferFrom, WitnessTester } from "./util/index.js";
 import { hashPermit, hashTypedData } from "./logic/index.js";
-import { Address, Byte32, PermitTransferFrom } from "./type/index.js";
+import { Bit, Address, PermitTransferFrom } from "./type/index.js";
 
 describe("HashPermit Circuit", function () {
   let circuit: WitnessTester<["permit", "spender"], ["permitDigest"]>;
@@ -124,11 +124,11 @@ describe("HashTypedData Circuit", function () {
     });
 
     it("should produce arbitrum sepolia eip712 typed digest", async function (): Promise<void> {
-      const permitDigest: Byte32 = [
+      const permitDigest: Bit[] = byteToBit([
         204, 139, 10, 23, 198, 237, 70, 122, 65, 124, 47, 49, 209, 170, 99, 40,
         181, 74, 207, 144, 241, 114, 19, 110, 89, 82, 145, 158, 190, 100, 178,
         116,
-      ];
+      ]);
 
       const typedPermitDigest = hashTypedData(permitDigest, 421614);
 
@@ -160,11 +160,11 @@ describe("HashTypedData Circuit", function () {
     });
 
     it("should produce mainnet eip712 typed digest", async function (): Promise<void> {
-      const permitDigest: Byte32 = [
+      const permitDigest: Bit[] = byteToBit([
         204, 139, 10, 23, 198, 237, 70, 122, 65, 124, 47, 49, 209, 170, 99, 40,
         181, 74, 207, 144, 241, 114, 19, 110, 89, 82, 145, 158, 190, 100, 178,
         116,
-      ];
+      ]);
 
       const typedPermitDigest = hashTypedData(permitDigest, 1);
 
