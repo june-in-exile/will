@@ -1,4 +1,5 @@
 export * from "./modules/index.js";
+export * from "./abiEncoder.js";
 export * from "./counter.js";
 export * from "./ctrDecrypt.js";
 export * from "./ctrEncrypt.js";

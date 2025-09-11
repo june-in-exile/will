@@ -64,7 +64,7 @@ function wordToBuffer(words: Word[]): Buffer {
 /**
  * Convert hex string to bytes
  */
-function hexToByte(hex: string): Byte[] {
+function hexToByte(hex: string, numBytes?: number): Byte[] {
   const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
 
   if (cleanHex.length % 2 !== 0) {
@@ -75,7 +75,20 @@ function hexToByte(hex: string): Byte[] {
   for (let i = 0; i < cleanHex.length; i += 2) {
     bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16);
   }
-  return bytes as Byte[];
+  
+  const result = bytes as Byte[];
+  
+  if (numBytes) {
+    if (result.length > numBytes) {
+      throw new Error(`Hex string requires ${result.length} bytes but only ${numBytes} bytes allowed`);
+    }
+    // Pad with zeros at the beginning if needed
+    const paddedBytes = new Array(numBytes).fill(0) as Byte[];
+    paddedBytes.splice(-result.length, result.length, ...result);
+    return paddedBytes;
+  }
+  
+  return result;
 }
 
 /**
@@ -88,18 +101,21 @@ function byteToHex(bytes: Byte[]): string {
 /**
  * Convert bigint to bytes
  */
-function bigIntToByte(val: bigint): Byte[] {
+function bigIntToByte(val: bigint, numBytes?: number): Byte[] {
   if (val < 0n) {
     throw new Error("BigInt value must be non-negative");
   }
 
   if (val === 0n) {
+    if (numBytes) {
+      return new Array(numBytes).fill(0) as Byte[];
+    }
     return [0] as Byte[];
   }
 
   const hex = val.toString(16);
   const paddedHex = hex.length % 2 === 0 ? hex : "0" + hex;
-  return hexToByte(paddedHex);
+  return hexToByte(paddedHex, numBytes);
 }
 
 /**

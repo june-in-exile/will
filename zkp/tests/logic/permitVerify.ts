@@ -1,4 +1,4 @@
-import { concat, SigningKey } from "ethers";
+import { SigningKey } from "ethers";
 import { AbiEncoder, Keccak256 } from "./index.js";
 import {
   Bit,
@@ -28,7 +28,7 @@ function hashPermit(
   estates: Estate[],
   nonce: Nonce,
   deadline: Timestamp,
-  will: Address,
+  spender: Address,
 ): Uint256 {
   const tokenPermissionDigests: string[] = [];
   for (let i = 0; i < estates.length; i++) {
@@ -39,15 +39,15 @@ function hashPermit(
     tokenPermissionDigests[i] = Keccak256.hash(tokenPermission);
   }
 
-  const concatedPermissions = concat(tokenPermissionDigests);
-  const hashedPermissions = Keccak256.hash(concatedPermissions);
+  const concatedTokenPermissionDigests = AbiEncoder.encode(Array(estates.length).fill("bytes32"), tokenPermissionDigests)
+  const permissionDigest = Keccak256.hash(concatedTokenPermissionDigests);
 
   const permitBatchTransferFrom = AbiEncoder.encode(
     ["bytes32", "bytes32", "uint256", "uint256", "uint256"],
     [
       _PERMIT_BATCH_TRANSFER_FROM_TYPEHASH,
-      hashedPermissions,
-      will,
+      permissionDigest,
+      spender,
       nonce,
       deadline,
     ],
@@ -165,10 +165,9 @@ const signature = hexToByte(
   "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
 ) as Signature;
 
-console.log(
-  "Result:",
-  verifyPermit(testator, estates, nonce, deadline, will, signature),
-);
+if (verifyPermit(testator, estates, nonce, deadline, will, signature) != 1) { 
+  throw new Error("Invalid permit");
+}
 
 export {
   hashPermit,

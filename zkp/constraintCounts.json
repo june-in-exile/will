@@ -350,5 +350,11 @@
       "512-bit massage": 151424,
       "1080-bit massage": 152560
     }
+  },
+  "abiEncoder": {
+    "AbiEncode": {
+      "abi.encode(TOKEN_PERMISSIONS_TYPEHASH, token, amount)": 0,
+      "abi.encode(PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, permissionDigest, spender, nonce, deadline)": 0
+    }
   }
 }

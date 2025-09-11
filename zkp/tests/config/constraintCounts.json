@@ -1,4 +1,5 @@
 {
+  "abiEncoder": { "AbiEncode": {} },
   "arithmetic": { "Divide": {}, "MultiplyTwoArray": {}, "Sum": {} },
   "base64": {
     "Base64Char": {},

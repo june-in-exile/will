@@ -11,7 +11,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1 bit", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1"],
@@ -37,7 +37,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 256 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["256"],
@@ -63,7 +63,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 512 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["512"],
@@ -89,7 +89,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1080 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1080"],
@@ -115,7 +115,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1086 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1086"],
@@ -141,7 +141,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1087 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1087"],
@@ -167,7 +167,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1088 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1088"],
@@ -193,7 +193,7 @@ describe("Keccak256 Circuit", function () {
   describe("Hash 1360 bits", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/keccak256/sponge.circom",
+        "circuits/shared/components/keccak256/keccak256.circom",
         "Keccak256",
         {
           templateParams: ["1360"],

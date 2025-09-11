@@ -1,6 +1,6 @@
-import("./keccak256.js").then(({ Keccak256Verification }) => {
-  console.log("\n=== Running Keccak256 Tests ===");
-  Keccak256Verification.runAllTests();
+import("./abiEncoder.js").then(({ AbiEncoderVerification }) => {
+  console.log("\n=== Running AbiEncoder Tests ===");
+  AbiEncoderVerification.runAllTests();
 });
 
 import("./aesGcm.js").then(({ AESVerification }) => {
@@ -11,4 +11,9 @@ import("./aesGcm.js").then(({ AESVerification }) => {
 import("./ecdsa.js").then(({ ECDSAVerification }) => {
   console.log("\n=== Running ECDSA Tests ===");
   ECDSAVerification.runAllTests();
+});
+
+import("./keccak256.js").then(({ Keccak256Verification }) => {
+  console.log("\n=== Running Keccak256 Tests ===");
+  Keccak256Verification.runAllTests();
 });
