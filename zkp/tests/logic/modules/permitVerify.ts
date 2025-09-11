@@ -47,7 +47,7 @@ class Permit2 {
     return Keccak256.hash(betchPermit);
   }
 
-  static hashTypedData(dataHash: string, chainId: number = 421614): string {
+  static hashTypedData(permitDigest: string, chainId: number = 421614): string {
     let DOMAIN_SEPARATOR;
     if (chainId == 421614) {
       // Arbitrum Sepolia
@@ -58,14 +58,14 @@ class Permit2 {
       DOMAIN_SEPARATOR =
         "0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28";
     }
-    const eip712Digest = Keccak256.hash(
+    const typedPermitDigest = Keccak256.hash(
       AbiEncoder.encode(
         ["bytes", "bytes32", "uint256"],
-        ["0x1901", DOMAIN_SEPARATOR, BigInt(dataHash)],
+        ["0x1901", DOMAIN_SEPARATOR, BigInt(permitDigest)],
         true,
       ),
     );
-    return eip712Digest;
+    return typedPermitDigest;
   }
 
   static decodeSignature(signature: string): {
@@ -85,7 +85,7 @@ class Permit2 {
   }
 
   static recoverPublicKey(
-    msghash: string,
+    msgDigest: string,
     r: bigint,
     s: bigint,
     v: number,
@@ -95,7 +95,7 @@ class Permit2 {
       (r.toString(16).padStart(64, "0") +
         s.toString(16).padStart(64, "0") +
         v.toString(16).padStart(2, "0"));
-    const recoveredPublicKey = SigningKey.recoverPublicKey(msghash, signature);
+    const recoveredPublicKey = SigningKey.recoverPublicKey(msgDigest, signature);
     return hexToPoint(recoveredPublicKey);
   }
 

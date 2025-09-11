@@ -4,8 +4,9 @@ import {
   Address,
   Nonce,
   Timestamp,
+  Byte32,
 } from "../type/index.js";
-import { hexToByte } from "../util/conversion.js";
+import { byteToHex, hexToByte } from "../util/index.js";
 import { Permit2 } from "./index.js";
 
 function hashPermit(
@@ -13,7 +14,7 @@ function hashPermit(
   nonce: Nonce,
   deadline: Timestamp,
   spender: Address,
-): Byte[] {
+): Byte32 {
   const digest = Permit2.hashPermit(
     tokenPermissions.map((tokenPermission) => ({
       token: "0x" + tokenPermission.token.toString(16),
@@ -23,7 +24,20 @@ function hashPermit(
     deadline,
     spender.toString(16),
   );
-  return hexToByte(digest);
+  const digestBytes: Byte[] = hexToByte(digest);
+  if (digestBytes.length !== 32) {
+    throw new Error("Invalid digest length");
+  }
+  return digestBytes as Byte32;
 }
 
-export { hashPermit };
+function hashTypedData(permitDigest: Byte32): Byte32 {
+  const typedPermitDigest = Permit2.hashTypedData(byteToHex(permitDigest));
+  const hexTypedPermitDigest = hexToByte(typedPermitDigest);
+  if (hexTypedPermitDigest.length !== 32) {
+    throw new Error("Invalid digest length");
+  }
+  return hexTypedPermitDigest as Byte32;
+}
+
+export { hashPermit, hashTypedData };

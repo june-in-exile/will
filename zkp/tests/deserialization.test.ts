@@ -111,7 +111,7 @@ describe("Deserialize Circuits", function () {
       }
     });
 
-    it.only("should reject the serialized bytes in invalid formats", async function (): Promise<void> {
+    it("should reject the serialized bytes in invalid formats", async function (): Promise<void> {
       const validSerializedBytes: Byte[] = hexToByte(
         "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40709090f298f23a5c179aee70b7f4ad6ec3784f273e414889c99c4d1f7710d8f51555c060bdD2ac0D37F1460f6B556b05BEc6149767081bdc013ef6355b4ce401235f874d6a9e7b0f6a530998e973a4c19078304df656de49a06ecc74988b94410ec605295db015dd2823d3fe682f8f1b6437c982d46cba08d1761a9721303da16185fcef17123e751b",
       );
