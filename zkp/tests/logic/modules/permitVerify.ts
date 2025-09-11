@@ -55,31 +55,17 @@ class Permit2 {
       // Arbitrum Sepolia
       DOMAIN_SEPARATOR =
         "0x97caedc57dcfc2ae625d68b894a8a814d7be09e29aa5321eebada2423410d9d0";
-      // [
-      //   151, 202, 237, 197, 125, 207, 194,
-      //   174, 98, 93, 104, 184, 148, 168,
-      //   168, 20, 215, 190, 9, 226, 154,
-      //   165, 50, 30, 235, 173, 162, 66,
-      //   52, 16, 217, 208
-      // ]
     } else {
       // Mainnet
       DOMAIN_SEPARATOR =
         "0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28";
-      // [
-      //   134, 106, 90, 186, 33, 150, 106, 249,
-      //   93, 108, 122, 183, 142, 178, 178, 252,
-      //   145, 57, 21, 194, 139, 227, 185, 170,
-      //   7, 204, 4, 255, 144, 62, 63, 40
-      // ]
     }
-    const typedPermitDigest = Keccak256.hash(
-      AbiEncoder.encode(
-        ["bytes", "bytes32", "uint256"],
-        ["0x1901", DOMAIN_SEPARATOR, BigInt(permitDigest)],
-        true,
-      ),
+    const typedDigest = AbiEncoder.encode(
+      ["bytes", "bytes32", "uint256"],
+      ["0x1901", DOMAIN_SEPARATOR, BigInt(permitDigest)],
+      true,
     );
+    const typedPermitDigest = Keccak256.hash(typedDigest);
     return typedPermitDigest;
   }
 

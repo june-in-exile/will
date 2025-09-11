@@ -291,8 +291,16 @@
   },
   "permitVerify": {
     "HashPermit": {
-      "permit with 1 estates": 463040,
-      "permit with 2 estates": 579008
+      "_permit with 1 estates": 463040,
+      "_permit with 2 estates": 579008,
+      "permit with 1 estates_": 462784,
+      "permit with 2 estates_": 578496,
+      "permit with 1 estates": 462272,
+      "permit with 2 estates": 577984
+    },
+    "HashTypedData": {
+      "arbitrum sepolia": 115456,
+      "mainnet": 115456
     }
   },
   "range": {

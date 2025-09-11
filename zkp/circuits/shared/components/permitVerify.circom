@@ -34,41 +34,68 @@ template HashPermit(numPermission) {
     signal input {address} spender;
     signal output {byte} permitDigest[32];
 
-    var TOKEN_PERMISSIONS_TYPEHASH[32] = [
-        97, 131,  88, 172,  61, 184, 220,  39,
-        79,  12, 216, 130, 157, 167, 226,  52,
-        189,  72, 205, 115, 196, 167,  64, 174,
-        222,  26, 222, 201, 132, 109,   6, 161
+    // 0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1
+    var TOKEN_PERMISSIONS_TYPEHASH[256] = [
+        1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1,
+        1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1,
+        0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0,
+        1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1,
+        1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1,
+        0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0,
+        1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0,
+        1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0,
+        0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1,
+        0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1,
+        0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0,
+        0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1
     ];
 
-    var PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[32] = [
-        252, 243, 95,  90, 198, 162, 194, 136,
-        104, 220, 68, 195,   2,  22, 100, 112,
-        38,  98, 57,  25,  95,   2, 176, 238,
-        64, 131, 52, 130, 147,  51, 183, 102
+    // 0xfcf35f5ac6a2c28868dc44c302166470266239195f02b0ee408334829333b766
+    var PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[256] = [
+        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0,
+        0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 
+        0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1,
+        0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1,
+        0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1,
+        0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0,
+        0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+        0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0,
+        1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0,
+        1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1,
+        0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1,
+        0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+        1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0,
+        1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0
     ];
 
-    signal {byte} bytesTokens[numPermission][32];
-    signal {byte} bytesAmounts[numPermission][32];
-    signal {byte} bytesTokenPermissions[numPermission][3][32];
+    signal {bit} bitsTokens[numPermission][256];
+    signal {bit} bitsAmounts[numPermission][256];
 
-    var tokenPermissionBytes = 3 * 32;
-    signal {byte} bytesTokenPermissionsEncoded[numPermission][tokenPermissionBytes];
-    signal {bit} bitsTokenPermissions[numPermission][tokenPermissionBytes * 8];
+    signal {bit} bitsTokenPermissions[numPermission][3 * 256];
     signal {bit} bitsTokenPermissionDigests[numPermission][256];
 
+    var tokenPermissionBits = 3 * 256;
+
     for (var i = 0; i < numPermission; i++) {
-        // Converts token address and amount from number to bytes (big-endian)
-        bytesTokens[i] <== NumToBytes(32, 0)(permit.permitted[i].token);
-        bytesAmounts[i] <== NumToBytes(32, 0)(permit.permitted[i].amount);
-        
+        // Converts token address and amount from number to bytes (big-endian), and then to bits (LSB-first)
+        bitsTokens[i] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.permitted[i].token));
+        bitsAmounts[i] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.permitted[i].amount));
+
         // Gets token permission by encoding TOKEN_PERMISSIONS_TYPEHASH, permitted[i].token, permitted[i].amount
-        bytesTokenPermissions[i] <== [TOKEN_PERMISSIONS_TYPEHASH, bytesTokens[i], bytesAmounts[i]];
-        bytesTokenPermissionsEncoded[i] <== AbiEncode(3)(bytesTokenPermissions[i]);
+        for (var j = 0; j < 256; j++) {
+            bitsTokenPermissions[i][j] <== TOKEN_PERMISSIONS_TYPEHASH[j];
+            bitsTokenPermissions[i][j + 256] <== bitsTokens[i][j];
+            bitsTokenPermissions[i][j + 512] <== bitsAmounts[i][j];
+        }
         
         // Hashes token permission
-        bitsTokenPermissions[i] <== BytesToBits(tokenPermissionBytes, 1)(bytesTokenPermissionsEncoded[i]);
-        bitsTokenPermissionDigests[i] <== Keccak256(tokenPermissionBytes * 8)(bitsTokenPermissions[i]);
+        bitsTokenPermissionDigests[i] <== Keccak256(tokenPermissionBits)(bitsTokenPermissions[i]);
     }
 
     // Concats token permission digests
@@ -83,22 +110,24 @@ template HashPermit(numPermission) {
     // Hashes concated token permission digests
     signal {bit} bitsPermissionsDigest[256] <== Keccak256(concatedPermissionBits)(bitsConcatedPermission);
 
-    // Converts permission digest from bits to bytes (LSB-first)
-    signal {byte} bytesPermissionsDigest[32] <== BitsToBytes(32, 1)(bitsPermissionsDigest);
-
-    // Converts spender, nonce and deadline from number to bytes (big-endian)
-    signal {byte} bytesSpender[32] <== NumToBytes(32, 0)(spender);
-    signal {byte} bytesNonce[32] <== NumToBytes(32, 0)(permit.nonce);
-    signal {byte} bytesDeadline[32] <== NumToBytes(32, 0)(permit.deadline);
-    signal {byte} bytesBatchPermit[5][32] <== [PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, bytesPermissionsDigest, bytesSpender, bytesNonce, bytesDeadline];
+    // Converts spender, nonce and deadline from number to bytes (big-endian), and then to bits (LSB-first)
+    signal {bit} bitsSpender[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(spender));
+    signal {bit} bitsNonce[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.nonce));
+    signal {bit} bitsDeadline[256] <== BytesToBits(32, 1)(NumToBytes(32, 0)(permit.deadline));
 
     // Gets batch permit by encoding PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, digest of concated token permission digests, spender, nonce, deadline
-    var batchPermitBytes = 5 * 32;
-    signal {byte} bytesBatchPermitEncoded[batchPermitBytes] <== AbiEncode(5)(bytesBatchPermit);
+    var batchPermitBits = 5 * 256;
+    signal {bit} bitsBatchPermit[batchPermitBits];
+    for (var i = 0; i < 256; i++) {
+        bitsBatchPermit[i] <== PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[i];
+        bitsBatchPermit[i + 256] <== bitsPermissionsDigest[i];
+        bitsBatchPermit[i + 512] <== bitsSpender[i];
+        bitsBatchPermit[i + 768] <== bitsNonce[i];
+        bitsBatchPermit[i + 1024] <== bitsDeadline[i];
+    }
 
     // Hashes batch permit
-    signal {bit} bitsBatchPermit[batchPermitBytes * 8] <== BytesToBits(batchPermitBytes, 1)(bytesBatchPermitEncoded);
-    signal {bit} bitsPermitDigest[256] <== Keccak256(batchPermitBytes * 8)(bitsBatchPermit);
+    signal {bit} bitsPermitDigest[256] <== Keccak256(batchPermitBits)(bitsBatchPermit);
     permitDigest <== BitsToBytes(32, 1)(bitsPermitDigest);
 }
 
@@ -110,20 +139,44 @@ template HashPermit(numPermission) {
  *
  * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
  */
-function get_domain_separator(chainId) {
-    var ARBITRUM_SEPOLIA[32] = [
-        151, 202, 237, 197, 125, 207, 194, 174,
-        98, 93, 104, 184, 148, 168, 168, 20,
-        215, 190, 9, 226, 154, 165, 50, 30,
-        235, 173, 162, 66, 52, 16, 217, 208
+function EIP712_DOMAIN_SEPARATOR(chainId) {
+    var ARBITRUM_SEPOLIA[256] = [
+        1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1,
+        1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1,
+        1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1,
+        0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1,
+        0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0,
+        0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,
+        0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1,
+        0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0,
+        1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1,
+        1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1,
+        0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1,
+        0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+        1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1,
+        0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0,
+        0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+        1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1
     ];
     // 0x97caedc57dcfc2ae625d68b894a8a814d7be09e29aa5321eebada2423410d9d0
 
-    var MAINNET[32] = [
-        134, 106, 90, 186, 33, 150, 106, 249,
-        93, 108, 122, 183, 142, 178, 178, 252,
-        145, 57, 21, 194, 139, 227, 185, 170,
-        7, 204, 4, 255, 144, 62, 63, 40
+    var MAINNET[256] = [
+        0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0,
+        0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1,
+        1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1,
+        0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1,
+        1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0,
+        0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1,
+        0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1,
+        0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1,
+        1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0,
+        1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
+        1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1,
+        1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
+        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,
+        0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0,
+        1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0
     ];
     // 0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28
 
@@ -144,8 +197,31 @@ template HashTypedData(chainId) {
     signal input {byte} permitDigest[32];
     signal output {byte} typedPermitDigest[32];
 
-    var DOMAIN_SEPARATOR = get_domain_separator(chainId);
-
+    // abi.encodePacked("0x1901", DOMAIN_SEPARATOR, permitDigest)
     
+    var BITS_PREFIX[2 * 8] = [1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0];
+    var BITS_DOMAIN_SEPARATOR[32 * 8] = EIP712_DOMAIN_SEPARATOR(chainId);
+    signal {bit} bitsPermitDigest[32 * 8] <== BytesToBits(32, 1)(permitDigest);
 
+    var totalBits = (2 + 32 + 32) * 8;
+    signal {bit} encodedDigest[totalBits];
+
+    var bitIdx = 0;
+    for (var i = 0; i < 2 * 8; i++) {
+        encodedDigest[bitIdx] <== BITS_PREFIX[i];
+        bitIdx++;
+    }
+    for (var i = 0; i < 32 * 8; i++) {
+        encodedDigest[bitIdx] <== BITS_DOMAIN_SEPARATOR[i];
+        bitIdx++;
+    }
+    for (var i = 0; i < 32 * 8; i++) {
+        encodedDigest[bitIdx] <== bitsPermitDigest[i];
+        bitIdx++;
+    }
+    assert(bitIdx == totalBits);
+
+    // keccak256(encodedValue)
+    signal {bit} bitsTypedPermitDigest[256] <== Keccak256(totalBits)(encodedDigest);
+    typedPermitDigest <== BitsToBytes(32, 1)(bitsTypedPermitDigest);
 }

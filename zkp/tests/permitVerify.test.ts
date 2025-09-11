@@ -130,7 +130,7 @@ describe("HashTypedData Circuit", function () {
         116,
       ];
 
-      const typedPermitDigest = hashTypedData(permitDigest);
+      const typedPermitDigest = hashTypedData(permitDigest, 421614);
 
       await circuit.expectPass(
         {
@@ -166,7 +166,7 @@ describe("HashTypedData Circuit", function () {
         116,
       ];
 
-      const typedPermitDigest = hashTypedData(permitDigest);
+      const typedPermitDigest = hashTypedData(permitDigest, 1);
 
       await circuit.expectPass(
         {

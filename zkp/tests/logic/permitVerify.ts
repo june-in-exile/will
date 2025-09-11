@@ -25,8 +25,8 @@ function hashPermit(permit: PermitTransferFrom, spender: Address): Byte32 {
   return digestBytes as Byte32;
 }
 
-function hashTypedData(permitDigest: Byte32): Byte32 {
-  const hexTypedPermitDigest = Permit2.hashTypedData(byteToHex(permitDigest));
+function hashTypedData(permitDigest: Byte32, chainId: number = 421614): Byte32 {
+  const hexTypedPermitDigest = Permit2.hashTypedData('0x' + byteToHex(permitDigest), chainId);
   const typedPermitDigest = hexToByte(hexTypedPermitDigest);
   if (typedPermitDigest.length !== 32) {
     throw new Error("Invalid digest length");
