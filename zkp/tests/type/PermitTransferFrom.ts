@@ -1,7 +1,7 @@
 import { Nonce, Timestamp, TokenPermission } from "./index.js";
 
 type PermitTransferFrom = {
-  permitted: TokenPermission;
+  permitted: TokenPermission[];
   nonce: Nonce;
   deadline: Timestamp;
 };

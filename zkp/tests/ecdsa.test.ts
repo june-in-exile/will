@@ -33,7 +33,7 @@ describe("ECDSAPrivToPub Circuit", function () {
   });
 });
 
-describe.skip("ECDSAVerifyNoPubkeyCheck Circuit", function () {
+describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
   let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
 
   describe("256-Bit Message Hash Signature Verification Without Checking Public Key", function (): void {

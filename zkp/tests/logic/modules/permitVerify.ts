@@ -10,26 +10,28 @@ class Permit2 {
     "0xfcf35f5ac6a2c28868dc44c302166470266239195f02b0ee408334829333b766";
 
   static hashPermit(
-    tokenPermissions: { token: string; amount: bigint }[],
-    nonce: bigint,
-    deadline: number,
+    permit: {
+      permitted: { token: string; amount: bigint }[];
+      nonce: bigint;
+      deadline: number;
+    },
     spender: string,
   ): string {
     const tokenPermissionDigests: string[] = [];
-    for (let i = 0; i < tokenPermissions.length; i++) {
+    for (let i = 0; i < permit.permitted.length; i++) {
       const tokenPermission = AbiEncoder.encode(
         ["bytes32", "address", "uint256"],
         [
           this.TOKEN_PERMISSIONS_TYPEHASH,
-          tokenPermissions[i].token,
-          tokenPermissions[i].amount,
+          permit.permitted[i].token,
+          permit.permitted[i].amount,
         ],
       );
       tokenPermissionDigests[i] = Keccak256.hash(tokenPermission);
     }
 
     const concatedTokenPermissionDigests = AbiEncoder.encode(
-      Array(tokenPermissions.length).fill("bytes32"),
+      Array(permit.permitted.length).fill("bytes32"),
       tokenPermissionDigests,
     );
     const permissionDigest = Keccak256.hash(concatedTokenPermissionDigests);
@@ -40,8 +42,8 @@ class Permit2 {
         this.PERMIT_BATCH_TRANSFER_FROM_TYPEHASH,
         permissionDigest,
         spender,
-        nonce,
-        deadline,
+        permit.nonce,
+        permit.deadline,
       ],
     );
     return Keccak256.hash(betchPermit);
@@ -95,7 +97,10 @@ class Permit2 {
       (r.toString(16).padStart(64, "0") +
         s.toString(16).padStart(64, "0") +
         v.toString(16).padStart(2, "0"));
-    const recoveredPublicKey = SigningKey.recoverPublicKey(msgDigest, signature);
+    const recoveredPublicKey = SigningKey.recoverPublicKey(
+      msgDigest,
+      signature,
+    );
     return hexToPoint(recoveredPublicKey);
   }
 
@@ -133,14 +138,16 @@ class Permit2 {
     spender: string,
     signature: string,
   ): boolean {
-    const tokenPermissions = estates.map((estate) => ({
+    const permitted = estates.map((estate) => ({
       token: estate.token,
       amount: estate.amount,
     }));
     const permitDigest = this.hashPermit(
-      tokenPermissions,
-      nonce,
-      deadline,
+      {
+        permitted,
+        nonce,
+        deadline,
+      },
       spender,
     );
     const typedPermitDigest = this.hashTypedData(permitDigest);

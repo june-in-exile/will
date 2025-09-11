@@ -1,8 +1,10 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = 
+CIRCUIT = permitVerify
+# CIRCUIT = encryptBlock
 CIRCUIT ?= multiplier2
 
-TEMPLATE = 
+TEMPLATE = HashPermit
+# TEMPLATE = ExpandKey
 TEMPLATE ?= Multiplier2
 
 # Directory structure

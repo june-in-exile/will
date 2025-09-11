@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import packageJson from "../../package.json" with { type: "json" };
 
 interface Signal {
   name: string;
@@ -68,7 +69,6 @@ async function generateUntaggedTemplate(
   if (!template) {
     throw new Error(`Template "${templateName}" not found in ${circuitPath}`);
   }
-
   const usedBusTypes = findUsedBusTypes(template);
   const busDefinitions = await collectBusDefinitions(
     circuitPath,
@@ -406,6 +406,22 @@ function parseSignalsInOrder(
       });
       continue;
     }
+
+    // Pattern 4: input/output BusType(args) name[array]
+    const busSignalMatch4 = trimmedLine.match(
+      new RegExp(
+        `\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(([^)]+)\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
+      ),
+    );
+
+    if (busSignalMatch4) {
+      signals.push({
+        name: busSignalMatch4[3],
+        busType: `${busSignalMatch4[1]}(${busSignalMatch4[2]})`,
+        arraySize: busSignalMatch4[4],
+      });
+      continue;
+    }
   }
 
   return signals;
@@ -445,8 +461,8 @@ function generateUntaggedInputSignals(inputs: Signal[]): string {
         const arrayPart = signal.arraySize || "";
         if (signal.busType) {
           const untaggedBusType = signal.busType.replace(
-            /(\w+)\(\)/,
-            "Untagged$1()",
+            /(\w+)(\([^)]*\))/,
+            "Untagged$1$2",
           );
           return `    input ${untaggedBusType} ${signal.name}${arrayPart};`;
         } else {
@@ -508,6 +524,7 @@ function generateBusInputIntermediateSignals(inputs: Signal[]): string {
  * @param busDefinition - Bus definition containing all properties
  * @param indexing - Array indexing string (e.g., "[i][j]")
  * @param indent - Indentation string
+ * @param busDefinitions - All bus definitions for recursive lookup
  * @returns Generated assignment code for all bus properties
  */
 function generateBusPropertyAssignments(
@@ -515,12 +532,62 @@ function generateBusPropertyAssignments(
   busDefinition: BusDefinition,
   indexing: string = "",
   indent: string = "    ",
+  busDefinitions: BusDefinition[] = [],
 ): string {
-  return busDefinition.signals
-    .map((signal) => {
-      return `${indent}_${busName}${indexing}.${signal.name} <== ${busName}${indexing}.${signal.name};`;
-    })
-    .join("\n");
+  const assignments: string[] = [];
+
+  for (const signal of busDefinition.signals) {
+    if (signal.busType) {
+      // This is a nested bus signal
+      const nestedBusTypeName = signal.busType.replace(/\([^)]*\)$/, "");
+      const nestedBusDefinition = busDefinitions.find(
+        (bus) =>
+          bus.name === `Untagged${nestedBusTypeName}` ||
+          bus.name === nestedBusTypeName,
+      );
+
+      if (nestedBusDefinition) {
+        if (signal.arraySize) {
+          // Handle array of nested bus signals
+          const dimensions = extractArrayDimensions(signal.arraySize);
+          assignments.push(
+            generateNestedLoopBusAssignmentForField(
+              busName,
+              signal.name,
+              dimensions,
+              nestedBusDefinition,
+              indexing,
+              indent,
+              busDefinitions,
+            ),
+          );
+        } else {
+          // Handle single nested bus signal
+          assignments.push(
+            generateBusPropertyAssignments(
+              `${busName}${indexing}.${signal.name}`,
+              nestedBusDefinition,
+              "",
+              indent,
+              busDefinitions,
+            ),
+          );
+        }
+      } else {
+        // Fallback to simple assignment if nested bus definition not found
+        assignments.push(
+          `${indent}_${busName}${indexing}.${signal.name} <== ${busName}${indexing}.${signal.name};`,
+        );
+      }
+    } else {
+      // Simple signal assignment
+      assignments.push(
+        `${indent}_${busName}${indexing}.${signal.name} <== ${busName}${indexing}.${signal.name};`,
+      );
+    }
+  }
+
+  return assignments.join("\n");
 }
 
 /**
@@ -538,7 +605,7 @@ function generateBusSignalAssignments(
 
   const assignments = busInputs
     .map((input) => {
-      const busTypeName = input.busType?.replace(/\(\)$/, "") || "";
+      const busTypeName = input.busType?.replace(/\([^)]*\)$/, "") || "";
       const busDefinition = busDefinitions.find(
         (bus) =>
           bus.name === `Untagged${busTypeName}` || bus.name === busTypeName,
@@ -554,9 +621,16 @@ function generateBusSignalAssignments(
           input.name,
           dimensions,
           busDefinition,
+          busDefinitions,
         );
       } else {
-        return generateBusPropertyAssignments(input.name, busDefinition);
+        return generateBusPropertyAssignments(
+          input.name,
+          busDefinition,
+          "",
+          "    ",
+          busDefinitions,
+        );
       }
     })
     .join("\n");
@@ -579,12 +653,14 @@ function extractArrayDimensions(arraySize: string): string[] {
  * @param name - Signal name
  * @param dimensions - Array dimensions
  * @param busDefinition - Bus definition containing all properties
+ * @param busDefinitions - All bus definitions for recursive lookup
  * @returns Generated nested loop assignment code
  */
 function generateNestedLoopBusAssignment(
   name: string,
   dimensions: string[],
   busDefinition: BusDefinition,
+  busDefinitions: BusDefinition[] = [],
 ): string {
   if (dimensions.length === 0) return "";
 
@@ -605,6 +681,60 @@ function generateNestedLoopBusAssignment(
     busDefinition,
     indexing,
     indent,
+    busDefinitions,
+  );
+  content += "\n";
+
+  // Close the loops
+  for (let i = dimensions.length - 1; i >= 0; i--) {
+    indent = indent.slice(0, -4);
+    content += `${indent}}\n`;
+  }
+
+  return content;
+}
+
+/**
+ * Generate nested loop assignments for a specific field within a bus
+ * @param parentBusName - Name of the parent bus signal
+ * @param fieldName - Name of the field within the bus
+ * @param dimensions - Array dimensions for the field
+ * @param fieldBusDefinition - Bus definition for the field
+ * @param parentIndexing - Parent indexing string
+ * @param baseIndent - Base indentation
+ * @param busDefinitions - All bus definitions for recursive lookup
+ * @returns Generated nested loop assignment code
+ */
+function generateNestedLoopBusAssignmentForField(
+  parentBusName: string,
+  fieldName: string,
+  dimensions: string[],
+  fieldBusDefinition: BusDefinition,
+  parentIndexing: string = "",
+  baseIndent: string = "    ",
+  busDefinitions: BusDefinition[] = [],
+): string {
+  if (dimensions.length === 0) return "";
+
+  let content = "";
+  let indent = baseIndent;
+  const indexVars = dimensions.map((_, i) => String.fromCharCode(105 + i)); // i, j, k, l...
+
+  // Generate nested for loops
+  dimensions.forEach((dimension, i) => {
+    content += `${indent}for (var ${indexVars[i]} = 0; ${indexVars[i]} < ${dimension}; ${indexVars[i]}++) {\n`;
+    indent += "    ";
+  });
+
+  // Generate assignments for all properties of the nested bus
+  const fieldIndexing = indexVars.map((v) => `[${v}]`).join("");
+  const fullFieldPath = `${parentBusName}${parentIndexing}.${fieldName}${fieldIndexing}`;
+  content += generateBusPropertyAssignments(
+    fullFieldPath,
+    fieldBusDefinition,
+    "",
+    indent,
+    busDefinitions,
   );
   content += "\n";
 
@@ -808,7 +938,7 @@ function findUsedBusTypes(template: Template): Set<string> {
   const busTypes = new Set<string>();
   [...template.inputs, ...template.outputs].forEach((signal) => {
     if (signal.busType) {
-      const busName = signal.busType.replace(/\(\)$/, "");
+      const busName = signal.busType.replace(/\([^)]*\)$/, "");
       busTypes.add(busName);
     }
   });
@@ -886,13 +1016,13 @@ async function searchBusInIncludes(
   const circuitDir = path.dirname(circuitPath);
   let match;
 
+  const includeLib = Object.keys(packageJson.dependencies || {}).filter(
+    (dep) => dep.includes("circom") || dep === "circomlib",
+  );
+
   while ((match = includeRegex.exec(content)) !== null) {
     const includePath = match[1];
-    if (
-      includePath.startsWith("circomlib/") ||
-      includePath.startsWith("keccak256-circom/")
-    )
-      continue;
+    if (includeLib.some((lib) => includePath.startsWith(`${lib}/`))) continue;
 
     try {
       const resolvedPath = path.resolve(circuitDir, includePath);
@@ -925,7 +1055,11 @@ function parseBusDefinition(
   content: string,
   busName: string,
 ): BusDefinition | null {
-  const busStartRegex = new RegExp(`bus\\s+${busName}\\s*\\(\\)\\s*{`, "gm");
+  const cleanBusName = busName.replace(/\([^)]*\)$/, "");
+  const busStartRegex = new RegExp(
+    `bus\\s+${cleanBusName}\\s*\\([^)]*\\)\\s*{`,
+    "gm",
+  );
   const match = busStartRegex.exec(content);
   if (!match) return null;
 
@@ -1028,9 +1162,16 @@ function generateUntaggedBusDefinitions(
         const signalDeclarations = bus.signals
           .map((signal) => {
             const arrayPart = signal.arraySize || "";
-            return signal.busType
-              ? `    ${signal.busType} ${signal.name}${arrayPart};`
-              : `    signal ${signal.name}${arrayPart};`;
+            if (signal.busType) {
+              // Convert nested bus type to untagged version
+              const untaggedBusType = signal.busType.replace(
+                /(\w+)\(\)/,
+                "Untagged$1()",
+              );
+              return `    ${untaggedBusType} ${signal.name}${arrayPart};`;
+            } else {
+              return `    signal ${signal.name}${arrayPart};`;
+            }
           })
           .join("\n");
 

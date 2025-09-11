@@ -1,36 +1,15 @@
 pragma circom 2.2.2;
 
-include "./abiEncoder/abiEncoder.circom";
-include "./keccak256/keccak256.circom";
-include "./bits.circom";
-include "./bus.circom";
+include "../shared/components/abiEncoder/abiEncoder.circom";
+include "../shared/components/keccak256/keccak256.circom";
+include "../shared/components/bits.circom";
+include "../shared/components/bus.circom";
 
-/*
- * Verifies the permit2 signature contained in the will
- * 
- * The imeplementation corresponds to the contracts deployed
- * at Mainnet 0x000000000022d473030f116ddee9f6b43ac78ba3
- * (SignatureTransfer.sol, ./libraries/PermitHash.sol, etc.)
- */
-// template VerifyPermit2Signature() {
-//     signal input {address} testator;   // 20 byte unsigned integer
-//     input TokenPermission() permitted[numPermission];
-//     signal input {address} will;       // 20 byte unsigned integer
-//     signal input {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-//     signal input {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-//     signal input {byte} signature[signatureBytesLength]; // 65 byte
-//     signal output {bit} validSignature;
-
-// }
-
-/*
- * Permit is composed of permitted.tokens, permitted.amounts, nonce, deadline. Spender in our case is will contract.
- * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol#L66
- *
- * @param numPermission - number of token permissions
- */
 template HashPermit(numPermission) {
     input PermitTransferFrom(numPermission) permit;
+    // input TokenPermission() permitted[numPermission];
+    // input Word() key;
+    // input Utf8() utf8;
     signal input {address} spender;
     signal output {byte} permitDigest[32];
 
@@ -103,13 +82,39 @@ template HashPermit(numPermission) {
 }
 
 
-/*
- * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/EIP712.sol#L38
- *
- * @param numPermission - number of token permissions
- */
-template HashTypedData(chainId) {
-    signal input {byte} permitDigest[32];
-    signal output {byte} typedPermitDigest[32];
-
+// Auto updated: 2025-09-11T20:28:34.330Z
+bus UntaggedPermitTransferFrom() {
+    UntaggedTokenPermission() permitted[numPermission];
+    signal nonce;
+    signal deadline;
 }
+
+bus UntaggedTokenPermission() {
+    signal token;
+    signal amount;
+}
+
+template UntaggedHashPermit(numPermission) {
+    input UntaggedPermitTransferFrom(numPermission) permit;
+    signal input spender;
+    signal output {byte} permitDigest[32];
+
+    signal {address} _spender <== spender;
+
+    PermitTransferFrom(numPermission) _permit;
+
+    for (var i = 0; i < numPermission; i++) {
+        _permit.permitted[i].token <== permit.permitted[i].token;
+        _permit.permitted[i].amount <== permit.permitted[i].amount;
+    }
+
+    _permit.nonce <== permit.nonce;
+    _permit.deadline <== permit.deadline;
+
+    component hashpermitComponent = HashPermit(numPermission);
+    hashpermitComponent.permit <== _permit;
+    hashpermitComponent.spender <== _spender;
+    permitDigest <== hashpermitComponent.permitDigest;
+}
+
+component main = UntaggedHashPermit(numPermission);

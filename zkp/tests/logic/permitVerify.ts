@@ -1,27 +1,21 @@
-import {
-  Byte,
-  TokenPermission,
-  Address,
-  Nonce,
-  Timestamp,
-  Byte32,
-} from "../type/index.js";
+import { Byte, Address, Byte32, PermitTransferFrom } from "../type/index.js";
 import { byteToHex, hexToByte } from "../util/index.js";
 import { Permit2 } from "./index.js";
 
-function hashPermit(
-  tokenPermissions: TokenPermission[],
-  nonce: Nonce,
-  deadline: Timestamp,
-  spender: Address,
-): Byte32 {
+function hashPermit(permit: PermitTransferFrom, spender: Address): Byte32 {
+  const permitted = permit.permitted.map((tokenPermission) => ({
+    token: "0x" + tokenPermission.token.toString(16),
+    amount: tokenPermission.amount,
+  }));
+  const nonce = permit.nonce;
+  const deadline = permit.deadline;
+
   const digest = Permit2.hashPermit(
-    tokenPermissions.map((tokenPermission) => ({
-      token: "0x" + tokenPermission.token.toString(16),
-      amount: tokenPermission.amount,
-    })),
-    nonce,
-    deadline,
+    {
+      permitted,
+      nonce,
+      deadline,
+    },
     spender.toString(16),
   );
   const digestBytes: Byte[] = hexToByte(digest);

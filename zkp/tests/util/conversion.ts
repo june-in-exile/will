@@ -1,4 +1,13 @@
-import { Bit, Byte, Byte4, Word, Point, Estate, TokenPermission } from "../type/index.js";
+import {
+  Bit,
+  Byte,
+  Byte4,
+  Word,
+  Point,
+  Estate,
+  TokenPermission,
+  PermitTransferFrom,
+} from "../type/index.js";
 import { assert } from "console";
 
 /**
@@ -379,11 +388,24 @@ function flattenEstates(estates: Estate[]): bigint[] {
 /**
  * Flatten TokenPermissions for input to circom_tester
  */
-function flattenTokenPermissions(tokenPermissions: TokenPermission[]): bigint[] {
+function flattenTokenPermissions(
+  tokenPermissions: TokenPermission[],
+): bigint[] {
   return tokenPermissions.flatMap((permission) => [
     permission.token,
     permission.amount,
   ]);
+}
+
+/**
+ * Flatten PermitTransferFrom for input to circom_tester
+ */
+function flattenPermitTransferFrom(permit: PermitTransferFrom): bigint[] {
+  return [
+    ...permit.permitted.flatMap((p) => [p.token, p.amount]),
+    permit.nonce,
+    BigInt(permit.deadline),
+  ];
 }
 
 export {
@@ -404,4 +426,5 @@ export {
   hexToPoint,
   flattenEstates,
   flattenTokenPermissions,
+  flattenPermitTransferFrom,
 };
