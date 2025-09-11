@@ -1,4 +1,4 @@
-import { Bit, Byte, Byte4, Word, Point, Estate } from "../type/index.js";
+import { Bit, Byte, Byte4, Word, Point, Estate, TokenPermission } from "../type/index.js";
 import { assert } from "console";
 
 /**
@@ -369,10 +369,20 @@ function hexToPoint(publicKeyHex: string): Point {
  * Flatten Estate for input to circom_tester
  */
 function flattenEstates(estates: Estate[]): bigint[] {
-  return estates.flatMap(estate => [
+  return estates.flatMap((estate) => [
     estate.beneficiary,
     estate.token,
-    estate.amount
+    estate.amount,
+  ]);
+}
+
+/**
+ * Flatten TokenPermissions for input to circom_tester
+ */
+function flattenTokenPermissions(tokenPermissions: TokenPermission[]): bigint[] {
+  return tokenPermissions.flatMap((permission) => [
+    permission.token,
+    permission.amount,
   ]);
 }
 
@@ -393,4 +403,5 @@ export {
   pointToBigInts,
   hexToPoint,
   flattenEstates,
+  flattenTokenPermissions,
 };

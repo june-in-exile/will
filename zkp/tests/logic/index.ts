@@ -8,6 +8,7 @@ export * from "./encryptBlock.js";
 export * from "./gcmDecrypt.js";
 export * from "./gcmEncrypt.js";
 export * from "./keccak256.js";
+export * from "./permitVerify.js";
 export * from "./secp256k1.js";
 export * from "./sponge.js";
 export * from "./utf8.js";

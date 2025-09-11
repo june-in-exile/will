@@ -41,7 +41,7 @@ class AbiEncoder {
       }
 
       let hex;
-
+      
       if (type === "uint256") {
         hex = this.numberToPaddedHex(value);
       } else {

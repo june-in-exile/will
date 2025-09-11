@@ -99,7 +99,6 @@ template Chi() {
 
     signal {bit} notNext[5][5][64];
     signal {bit} andTerm[5][5][64];
-    signal sum[5][5][64];
     for (var x = 0; x < 5; x++) {
         for (var y = 0; y < 5; y++) {
             for (var z = 0; z < 64; z++) {

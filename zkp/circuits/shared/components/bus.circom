@@ -14,3 +14,14 @@ bus Estate() {
     signal {address} token;
     signal amount;
 }
+
+bus TokenPermission() {
+    signal {address} token;
+    signal amount;
+}
+
+bus PermitTransferFrom(numPermission) {
+    TokenPermission() permitted[numPermission];
+    signal {uint128} nonce;
+    signal {uint32} deadline;
+}

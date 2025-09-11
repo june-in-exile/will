@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-# CIRCUIT = 
+CIRCUIT = 
 CIRCUIT ?= multiplier2
 
-# TEMPLATE = 
+TEMPLATE = 
 TEMPLATE ?= Multiplier2
 
 # Directory structure

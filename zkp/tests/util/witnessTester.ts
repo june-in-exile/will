@@ -4,7 +4,7 @@ import { construct_wasm } from "./construction.js";
 import { AssertionError } from "assert";
 import path from "path";
 import fs from "fs";
-import { createInterface } from 'readline';
+import { createInterface } from "readline";
 
 type Constraints = {
   [testFileName: string]: {
@@ -607,7 +607,7 @@ class WitnessTester<
 
   /**
    * @note https://github.com/iden3/circom_tester/issues/36
-   * 
+   *
    * Assert the output of a given witness.
    * @param actualOut expected witness
    * @param expectedOut computed output signals
@@ -616,6 +616,7 @@ class WitnessTester<
     actualOut: WitnessType,
     expectedOut: CircuitInputOutput<OUT>,
   ): Promise<void> {
+    // return this.circomTester.assertOut(actualOut, expectedOut);
     if (!this.symbols) await this.loadSymbols();
 
     const checkObject = (prefix: string, eOut: any) => {
@@ -638,11 +639,11 @@ class WitnessTester<
         const be = eOut.toString();
         if (ba !== be) {
           throw new Error(
-            `Assertion failed for ${prefix}: expected ${be}, got ${ba}`
+            `Assertion failed for ${prefix}: expected ${be}, got ${ba}`,
           );
         }
       }
-    }
+    };
 
     checkObject("main", expectedOut);
   }
@@ -663,16 +664,17 @@ class WitnessTester<
    * 2.  variable index
    * 3.  component index
    * 4.  symbol name
-   * 
+   *
    * @note https://github.com/iden3/circom_tester/issues/36
    */
   private async loadSymbols(): Promise<void> {
+    // await this.circomTester.loadSymbols();
     if (this.circomTester.symbols) return;
 
     this.circomTester.symbols = {};
     const fileStream = fs.createReadStream(
       path.join(this.circomTester.dir, this.circomTester.baseName + ".sym"),
-      { encoding: "utf8" }
+      { encoding: "utf8" },
     );
     const rl = createInterface({
       input: fileStream,

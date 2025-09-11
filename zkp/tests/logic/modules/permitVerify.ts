@@ -10,27 +10,31 @@ class Permit2 {
     "0xfcf35f5ac6a2c28868dc44c302166470266239195f02b0ee408334829333b766";
 
   static hashPermit(
-    estates: { beneficiary: string; token: string; amount: bigint }[],
+    tokenPermissions: { token: string; amount: bigint }[],
     nonce: bigint,
     deadline: number,
     spender: string,
   ): string {
     const tokenPermissionDigests: string[] = [];
-    for (let i = 0; i < estates.length; i++) {
+    for (let i = 0; i < tokenPermissions.length; i++) {
       const tokenPermission = AbiEncoder.encode(
         ["bytes32", "address", "uint256"],
-        [this.TOKEN_PERMISSIONS_TYPEHASH, estates[i].token, estates[i].amount],
+        [
+          this.TOKEN_PERMISSIONS_TYPEHASH,
+          tokenPermissions[i].token,
+          tokenPermissions[i].amount,
+        ],
       );
       tokenPermissionDigests[i] = Keccak256.hash(tokenPermission);
     }
 
     const concatedTokenPermissionDigests = AbiEncoder.encode(
-      Array(estates.length).fill("bytes32"),
+      Array(tokenPermissions.length).fill("bytes32"),
       tokenPermissionDigests,
     );
     const permissionDigest = Keccak256.hash(concatedTokenPermissionDigests);
 
-    const permitBatchTransferFrom = AbiEncoder.encode(
+    const betchPermit = AbiEncoder.encode(
       ["bytes32", "bytes32", "address", "uint256", "uint256"],
       [
         this.PERMIT_BATCH_TRANSFER_FROM_TYPEHASH,
@@ -40,7 +44,7 @@ class Permit2 {
         deadline,
       ],
     );
-    return Keccak256.hash(permitBatchTransferFrom);
+    return Keccak256.hash(betchPermit);
   }
 
   static hashTypedData(dataHash: string, chainId: number = 421614): string {
@@ -123,13 +127,22 @@ class Permit2 {
 
   static verifyPermit(
     testator: string,
-    estates: { beneficiary: string; token: string; amount: bigint }[],
+    estates: { token: string; amount: bigint }[],
     nonce: bigint,
     deadline: number,
     spender: string,
     signature: string,
   ): boolean {
-    const permitDigest = this.hashPermit(estates, nonce, deadline, spender);
+    const tokenPermissions = estates.map((estate) => ({
+      token: estate.token,
+      amount: estate.amount,
+    }));
+    const permitDigest = this.hashPermit(
+      tokenPermissions,
+      nonce,
+      deadline,
+      spender,
+    );
     const typedPermitDigest = this.hashTypedData(permitDigest);
     return this.recoverSigner(signature, typedPermitDigest, testator);
   }
@@ -140,14 +153,12 @@ class Permit2Verification {
     console.log(chalk.cyan("\n=== Permit verification testing ==="));
 
     const testator = "0x871F339373430f7F0FCfa092C3449B884984E41a";
-    const estates: { beneficiary: string; token: string; amount: bigint }[] = [
+    const permitted: { token: string; amount: bigint }[] = [
       {
-        beneficiary: "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
         token: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
         amount: 1000n,
       },
       {
-        beneficiary: "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
         token: "0xb1D4538B4571d411F07960EF2838Ce337FE1E80E",
         amount: 5000000n,
       },
@@ -160,7 +171,7 @@ class Permit2Verification {
 
     const isValid = Permit2.verifyPermit(
       testator,
-      estates,
+      permitted,
       nonce,
       deadline,
       will,
@@ -170,9 +181,8 @@ class Permit2Verification {
     console.log(chalk.yellow("\nInput parameters:"));
     console.log(chalk.gray("testator:"), testator);
     console.log(chalk.gray("estates:"));
-    estates.forEach((estate, index) => {
+    permitted.forEach((estate, index) => {
       console.log(chalk.gray(`  [${index}]:`));
-      console.log(chalk.gray("    beneficiary:"), estate.beneficiary);
       console.log(chalk.gray("    token:"), estate.token);
       console.log(chalk.gray("    amount:"), estate.amount.toString());
     });
