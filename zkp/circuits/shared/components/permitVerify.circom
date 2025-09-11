@@ -1,7 +1,7 @@
 pragma circom 2.2.2;
 
-include "./abiEncoder/abiEncoder.circom"
-include "./keccak256/keccak256.circom"
+include "./abiEncoder/abiEncoder.circom";
+include "./keccak256/keccak256.circom";
 include "./bits.circom";
 include "./bus.circom";
 
@@ -33,19 +33,19 @@ template HashPermit(estateCount) {
     signal input {address} spender;       // 20 byte unsigned integer
     signal output {bit} permitDigest[256];
 
-    var TOKEN_PERMISSIONS_TYPEHASH = [
+    var TOKEN_PERMISSIONS_TYPEHASH[32] = [
         97, 131,  88, 172,  61, 184, 220,  39,
         79,  12, 216, 130, 157, 167, 226,  52,
         189,  72, 205, 115, 196, 167,  64, 174,
         222,  26, 222, 201, 132, 109,   6, 161
     ];
 
-    var PERMIT_BATCH_TRANSFER_FROM_TYPEHASH = [
+    var PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[32] = [
         252, 243, 95,  90, 198, 162, 194, 136,
         104, 220, 68, 195,   2,  22, 100, 112,
         38,  98, 57,  25,  95,   2, 176, 238,
         64, 131, 52, 130, 147,  51, 183, 102
-    ]
+    ];
 
     var tokenPermissionBytes = 32 * 3;
 
@@ -69,7 +69,7 @@ template HashPermit(estateCount) {
     }
 
     // Concats token permission digests
-    concatedPermissionBits = estateCount * 256;
+    var concatedPermissionBits = estateCount * 256;
     signal {bit} bitsConcatedPermission[concatedPermissionBits];
     for (var i = 0; i < estateCount; i++) {
         for (var j = 0; j < 256; j++) {
@@ -88,7 +88,7 @@ template HashPermit(estateCount) {
 
     var batchPermitBytes = 5 * 32;
     signal {byte} bytesBatchPermit[batchPermitBytes] <== AbiEncode(5)([PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, bytesPermissionsDigest, bytesSpender, bytesNonce, bytesDeadline]);
-    signal {bits} bitsBatchPermit[batchPermitBytes * 8] <== BytesToBits(batchPermitBytes, 1)(bytesBatchPermit);
+    signal {bit} bitsBatchPermit[batchPermitBytes * 8] <== BytesToBits(batchPermitBytes, 1)(bytesBatchPermit);
 
-    permitDigest[256] <== Keccak256(batchPermitBytes * 8)(bitsBatchPermit);
+    permitDigest <== Keccak256(batchPermitBytes * 8)(bitsBatchPermit);
 }

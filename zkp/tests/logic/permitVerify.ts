@@ -1,7 +1,6 @@
 import { SigningKey } from "ethers";
 import { AbiEncoder, Keccak256 } from "./index.js";
 import {
-  Bit,
   Byte,
   Uint256,
   Address,
@@ -18,6 +17,8 @@ import {
   hexToPoint,
   hexToByte,
 } from "../util/index.js";
+import { assert } from "console";
+import chalk from "chalk";
 
 const _TOKEN_PERMISSIONS_TYPEHASH =
   "0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1";
@@ -119,17 +120,11 @@ function verifySignature(
   signature: Signature,
   typedPermitDigest: Uint256,
   testator: Address,
-): Bit {
-  try {
-    const { r, s, v } = decodeSignature(signature);
-    const recoveredPublicKey = recoverPublicKey(typedPermitDigest, r, s, v);
-    const signer = publicKeyToAddress(recoveredPublicKey);
-    const isValid = signer === testator;
-    return isValid ? 1 : 0;
-  } catch (error) {
-    console.error("Failed to verify signature:", error);
-    return 0;
-  }
+): void {
+  const { r, s, v } = decodeSignature(signature);
+  const recoveredPublicKey = recoverPublicKey(typedPermitDigest, r, s, v);
+  const signer = publicKeyToAddress(recoveredPublicKey);
+  assert(signer === testator, `Invalid signer: ${signer}`);
 }
 
 function verifyPermit(
@@ -139,34 +134,39 @@ function verifyPermit(
   deadline: Timestamp,
   spender: Address,
   signature: Signature,
-): Bit {
+): void {
   const permitDigest = hashPermit(estates, nonce, deadline, spender);
   const typedPermitDigest = hashTypedData(permitDigest);
-  return verifySignature(signature, typedPermitDigest, testator) ? 1 : 0;
+  verifySignature(signature, typedPermitDigest, testator);
 }
 
-const testator: Address = BigInt("0x871F339373430f7F0FCfa092C3449B884984E41a");
-const estates: Estate[] = [
-  {
-    beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
-    token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
-    amount: 1000n,
-  },
-  {
-    beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
-    token: BigInt("0xb1D4538B4571d411F07960EF2838Ce337FE1E80E"),
-    amount: 5000000n,
-  },
-];
-const will: Address = BigInt("0x80515F00edB3D90891D6494b63a58Dc06543bEF0");
-const nonce: Nonce = 139895343447235933714306105636108089805n;
-const deadline: Timestamp = 1788798363;
-const signature = hexToByte(
-  "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
-) as Signature;
+if (
+  typeof process !== "undefined" &&
+  process.argv?.[1] &&
+  process.argv[1].endsWith("permitVerify.ts")
+) {
+  const testator: Address = BigInt("0x871F339373430f7F0FCfa092C3449B884984E41a");
+  const estates: Estate[] = [
+    {
+      beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
+      token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
+      amount: 1000n,
+    },
+    {
+      beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
+      token: BigInt("0xb1D4538B4571d411F07960EF2838Ce337FE1E80E"),
+      amount: 5000000n,
+    },
+  ];
+  const will: Address = BigInt("0x80515F00edB3D90891D6494b63a58Dc06543bEF0");
+  const nonce: Nonce = 139895343447235933714306105636108089805n;
+  const deadline: Timestamp = 1788798363;
+  const signature = hexToByte(
+    "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
+  ) as Signature;
 
-if (verifyPermit(testator, estates, nonce, deadline, will, signature) != 1) { 
-  throw new Error("Invalid permit");
+  verifyPermit(testator, estates, nonce, deadline, will, signature);
+  console.log(chalk.gray("Permit verification completed."));
 }
 
 export {

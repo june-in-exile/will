@@ -56,7 +56,7 @@ describe("AbiEncode Circuit", function () {
             }
         });
 
-        it.only("should encode batch permit correctly", async function (): Promise<void> {
+        it("should encode batch permit correctly", async function (): Promise<void> {
             const tokenPermissions = hexToByte('0x53fdab7265e432f9ca14c873ec6fa8dcbd18fdedcb42a1602cad79aa9e1b5ec9');
             const spender = bigIntToByte(732565455009656814900284710031916618803287670512n, 32);
             const nonce = bigIntToByte(139895343447235933714306105636108089805n, 32);
