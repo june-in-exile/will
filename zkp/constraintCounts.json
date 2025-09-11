@@ -356,5 +356,11 @@
       "abi.encode(TOKEN_PERMISSIONS_TYPEHASH, token, amount)": 0,
       "abi.encode(PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, permissionDigest, spender, nonce, deadline)": 0
     }
+  },
+  "permitVerify": {
+    "HashPermit": {
+      "permit with 2 estates": 579008,
+      "permit with 1 estates": 463040
+    }
   }
 }

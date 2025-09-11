@@ -6,11 +6,11 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:permitVerify": " pnpm exec tsx ./tests/logic/permitVerify.ts",
     "test:abiEncoder": "pnpm exec tsx ./tests/logic/modules/abiEncoder.ts",
     "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
     "test:aesgcm": "pnpm exec tsx ./tests/logic/modules/aesGcm.ts",
     "test:ecdsa": "pnpm exec tsx ./tests/logic/modules/ecdsa.ts",
+    "test:permitVerify": " pnpm exec tsx ./tests/logic/modules/permitVerify.ts",
     "test:all": "pnpm exec tsx ./tests/logic/modules/runTests.ts && vitest run --reporter=basic",
     "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",

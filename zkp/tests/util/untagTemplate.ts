@@ -529,24 +529,32 @@ function generateBusPropertyAssignments(
  * @param busDefinitions - Array of bus definitions for looking up properties
  * @returns Generated bus signal assignments
  */
-function generateBusSignalAssignments(inputs: Signal[], busDefinitions: BusDefinition[]): string {
+function generateBusSignalAssignments(
+  inputs: Signal[],
+  busDefinitions: BusDefinition[],
+): string {
   const busInputs = inputs.filter((input) => input.busType);
   if (busInputs.length === 0) return "";
 
   const assignments = busInputs
     .map((input) => {
       const busTypeName = input.busType?.replace(/\(\)$/, "") || "";
-      const busDefinition = busDefinitions.find(bus => 
-        bus.name === `Untagged${busTypeName}` || bus.name === busTypeName
+      const busDefinition = busDefinitions.find(
+        (bus) =>
+          bus.name === `Untagged${busTypeName}` || bus.name === busTypeName,
       );
-      
+
       if (!busDefinition) {
         throw new Error(`Bus definition not found for ${busTypeName}`);
       }
 
       if (input.arraySize) {
         const dimensions = extractArrayDimensions(input.arraySize);
-        return generateNestedLoopBusAssignment(input.name, dimensions, busDefinition);
+        return generateNestedLoopBusAssignment(
+          input.name,
+          dimensions,
+          busDefinition,
+        );
       } else {
         return generateBusPropertyAssignments(input.name, busDefinition);
       }
@@ -592,7 +600,12 @@ function generateNestedLoopBusAssignment(
 
   // Generate assignments for all bus properties
   const indexing = indexVars.map((v) => `[${v}]`).join("");
-  content += generateBusPropertyAssignments(name, busDefinition, indexing, indent);
+  content += generateBusPropertyAssignments(
+    name,
+    busDefinition,
+    indexing,
+    indent,
+  );
   content += "\n";
 
   // Close the loops

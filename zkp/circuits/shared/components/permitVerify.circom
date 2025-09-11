@@ -28,26 +28,26 @@ include "./bus.circom";
  */
 template HashPermit(estateCount) {
     input Estate() estates[estateCount];
-    signal input {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-    signal input {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-    signal input {address} spender;       // 20 byte unsigned integer
+    signal input {uint128} nonce;   // 16 byte (128 bit) unsigned integer
+    signal input {uint32} deadline; // 4 byte (32 bit) unsigned integer
+    signal input {address} spender; // 20 byte unsigned integer
     signal output {bit} permitDigest[256];
 
-    var TOKEN_PERMISSIONS_TYPEHASH[32] = [
+    signal {byte} TOKEN_PERMISSIONS_TYPEHASH[32] <== [
         97, 131,  88, 172,  61, 184, 220,  39,
         79,  12, 216, 130, 157, 167, 226,  52,
         189,  72, 205, 115, 196, 167,  64, 174,
         222,  26, 222, 201, 132, 109,   6, 161
     ];
 
-    var PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[32] = [
+    signal {byte} PERMIT_BATCH_TRANSFER_FROM_TYPEHASH[32] <== [
         252, 243, 95,  90, 198, 162, 194, 136,
         104, 220, 68, 195,   2,  22, 100, 112,
         38,  98, 57,  25,  95,   2, 176, 238,
         64, 131, 52, 130, 147,  51, 183, 102
     ];
 
-    var tokenPermissionBytes = 32 * 3;
+    var tokenPermissionBytes = 3 * 32;
 
     signal {byte} bytesTokens[estateCount][32];
     signal {byte} bytesAmounts[estateCount][32];
@@ -55,13 +55,19 @@ template HashPermit(estateCount) {
     signal {bit} bitsTokenPermissions[estateCount][tokenPermissionBytes * 8];
     signal {bit} bitsTokenPermissionDigests[estateCount][256];
 
+    component abiEncoders[estateCount + 1];
     for (var i = 0; i < estateCount; i++) {
         // Converts token address from number to bytes (big-endian)
         bytesTokens[i] <== NumToBytes(32, 0)(estates[i].token);
         // Converts amount from number to bytes (big-endian)
         bytesAmounts[i] <== NumToBytes(32, 0)(estates[i].amount);
         // Gets token permission by encoding TOKEN_PERMISSIONS_TYPEHASH, estates[i].token, estates[i].amount
-        bytesTokenPermissions[i] <== AbiEncode(3)([TOKEN_PERMISSIONS_TYPEHASH, bytesTokens[i], bytesAmounts[i]]);
+        // bytesTokenPermissions[i] <== AbiEncode(3)([TOKEN_PERMISSIONS_TYPEHASH, bytesTokens[i], bytesAmounts[i]]);
+        abiEncoders[i] = AbiEncode(3);
+        abiEncoders[i].values[0] <== TOKEN_PERMISSIONS_TYPEHASH;
+        abiEncoders[i].values[1] <== bytesTokens[i];
+        abiEncoders[i].values[2] <== bytesAmounts[i];
+        bytesTokenPermissions[i] <== abiEncoders[i].encodedValue;
         // Converts token permission to bits
         bitsTokenPermissions[i] <== BytesToBits(tokenPermissionBytes, 1)(bytesTokenPermissions[i]);
         // Hashes token permission
@@ -87,7 +93,16 @@ template HashPermit(estateCount) {
     signal {byte} bytesDeadline[32] <== NumToBytes(32, 0)(deadline);
 
     var batchPermitBytes = 5 * 32;
-    signal {byte} bytesBatchPermit[batchPermitBytes] <== AbiEncode(5)([PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, bytesPermissionsDigest, bytesSpender, bytesNonce, bytesDeadline]);
+
+    // signal {byte} bytesBatchPermit[batchPermitBytes] <== AbiEncode(5)([PERMIT_BATCH_TRANSFER_FROM_TYPEHASH, bytesPermissionsDigest, bytesSpender, bytesNonce, bytesDeadline]);
+    
+    abiEncoders[estateCount] = AbiEncode(5);
+    abiEncoders[estateCount].values[0] <== PERMIT_BATCH_TRANSFER_FROM_TYPEHASH;
+    abiEncoders[estateCount].values[1] <== bytesPermissionsDigest;
+    abiEncoders[estateCount].values[2] <== bytesSpender;
+    abiEncoders[estateCount].values[3] <== bytesNonce;
+    abiEncoders[estateCount].values[4] <== bytesDeadline;
+    signal {byte} bytesBatchPermit[batchPermitBytes] <== abiEncoders[estateCount].encodedValue;
     signal {bit} bitsBatchPermit[batchPermitBytes * 8] <== BytesToBits(batchPermitBytes, 1)(bytesBatchPermit);
 
     permitDigest <== Keccak256(batchPermitBytes * 8)(bitsBatchPermit);

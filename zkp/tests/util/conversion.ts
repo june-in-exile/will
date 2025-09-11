@@ -75,19 +75,21 @@ function hexToByte(hex: string, numBytes?: number): Byte[] {
   for (let i = 0; i < cleanHex.length; i += 2) {
     bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16);
   }
-  
+
   const result = bytes as Byte[];
-  
+
   if (numBytes) {
     if (result.length > numBytes) {
-      throw new Error(`Hex string requires ${result.length} bytes but only ${numBytes} bytes allowed`);
+      throw new Error(
+        `Hex string requires ${result.length} bytes but only ${numBytes} bytes allowed`,
+      );
     }
     // Pad with zeros at the beginning if needed
     const paddedBytes = new Array(numBytes).fill(0) as Byte[];
     paddedBytes.splice(-result.length, result.length, ...result);
     return paddedBytes;
   }
-  
+
   return result;
 }
 

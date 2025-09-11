@@ -47,6 +47,10 @@ type BusStructType =
  *
  * By default, signal names are not typed, but you can pass an array of signal names to make them type-safe,
  *   e.g. `CircuitSignals<['sig1', 'sig2']>`
+ *
+ * @note Input is assumed to be a map from signals to arrays of bigints
+ *   - incorrect: [{key1: value11, key2: value12}, {key1: value21, key2: value22}]
+ *   - correct: [value11, value12, value21, value22]
  */
 type CircuitInputOutput<T extends readonly string[] = []> = T extends []
   ? { [signal: string]: SignalValueType | BusStructType }
@@ -173,9 +177,6 @@ class WitnessTester<
   async release(): Promise<void> {
     if (this.circomTester) {
       try {
-        const fs = await import("fs");
-        const path = await import("path");
-
         if (
           this.circomTester.dir &&
           typeof this.circomTester.dir === "string"
