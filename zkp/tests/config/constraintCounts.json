@@ -69,7 +69,8 @@
   },
   "multiplier2": { "Multiplier2": {} },
   "permitVerify": {
-    "HashPermit": {}
+    "HashPermit": {},
+    "HashTypedData": {}
   },
   "range": { "InRange": {} },
   "secp256k1": {

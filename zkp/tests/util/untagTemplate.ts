@@ -19,6 +19,7 @@ interface Template {
 
 interface BusDefinition {
   name: string;
+  params?: string[];
   signals: Signal[];
 }
 
@@ -1057,11 +1058,16 @@ function parseBusDefinition(
 ): BusDefinition | null {
   const cleanBusName = busName.replace(/\([^)]*\)$/, "");
   const busStartRegex = new RegExp(
-    `bus\\s+${cleanBusName}\\s*\\([^)]*\\)\\s*{`,
+    `bus\\s+${cleanBusName}\\s*\\(([^)]*)\\)\\s*{`,
     "gm",
   );
   const match = busStartRegex.exec(content);
   if (!match) return null;
+
+  const paramsString = match[1].trim();
+  const params = paramsString
+    ? paramsString.split(',').map(p => p.trim()).filter(p => p.length > 0)
+    : [];
 
   const startIndex = match.index + match[0].length;
   let braceCount = 1;
@@ -1078,7 +1084,11 @@ function parseBusDefinition(
   const busBody = content.substring(startIndex, i - 1);
   const signals = parseBusSignals(busBody);
 
-  return { name: busName, signals };
+  return {
+    name: busName,
+    params: params.length > 0 ? params : undefined,
+    signals
+  };
 }
 
 /**
@@ -1137,6 +1147,7 @@ function parseBusSignals(busBody: string): Signal[] {
 function convertToUntaggedBus(busDefinition: BusDefinition): BusDefinition {
   return {
     name: `Untagged${busDefinition.name}`,
+    params: busDefinition.params,
     signals: busDefinition.signals.map((signal) => ({
       name: signal.name,
       arraySize: signal.arraySize,
@@ -1155,7 +1166,6 @@ function generateUntaggedBusDefinitions(
   busDefinitions: BusDefinition[],
 ): string {
   if (busDefinitions.length === 0) return "";
-
   return (
     busDefinitions
       .map((bus) => {
@@ -1163,10 +1173,9 @@ function generateUntaggedBusDefinitions(
           .map((signal) => {
             const arrayPart = signal.arraySize || "";
             if (signal.busType) {
-              // Convert nested bus type to untagged version
               const untaggedBusType = signal.busType.replace(
-                /(\w+)\(\)/,
-                "Untagged$1()",
+                /(\w+)(\([^)]*\))/,
+                "Untagged$1$2",
               );
               return `    ${untaggedBusType} ${signal.name}${arrayPart};`;
             } else {
@@ -1175,7 +1184,11 @@ function generateUntaggedBusDefinitions(
           })
           .join("\n");
 
-        return `bus ${bus.name}() {\n${signalDeclarations}\n}`;
+        const parameters = bus.params && bus.params.length > 0
+          ? `(${bus.params.join(', ')})`
+          : '()';
+
+        return `bus ${bus.name}${parameters} {\n${signalDeclarations}\n}`;
       })
       .join("\n\n") + "\n\n"
   );

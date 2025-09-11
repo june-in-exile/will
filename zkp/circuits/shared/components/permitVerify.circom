@@ -104,12 +104,48 @@ template HashPermit(numPermission) {
 
 
 /*
+ * The DOMAIN_SEPARATOR can be queried permit2 contract (fixed address: 0x000000000022d473030f116ddee9f6b43ac78ba3)
+ *   - Mainnet: https://etherscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
+ *   - Arbitrum Sepolia: https://sepolia.arbiscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
+ *
+ * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
+ */
+function get_domain_separator(chainId) {
+    var ARBITRUM_SEPOLIA[32] = [
+        151, 202, 237, 197, 125, 207, 194, 174,
+        98, 93, 104, 184, 148, 168, 168, 20,
+        215, 190, 9, 226, 154, 165, 50, 30,
+        235, 173, 162, 66, 52, 16, 217, 208
+    ];
+    // 0x97caedc57dcfc2ae625d68b894a8a814d7be09e29aa5321eebada2423410d9d0
+
+    var MAINNET[32] = [
+        134, 106, 90, 186, 33, 150, 106, 249,
+        93, 108, 122, 183, 142, 178, 178, 252,
+        145, 57, 21, 194, 139, 227, 185, 170,
+        7, 204, 4, 255, 144, 62, 63, 40
+    ];
+    // 0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28
+
+    if (chainId == 421614) {
+        return ARBITRUM_SEPOLIA;
+    }
+
+    return MAINNET;
+}
+
+
+/*
  * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/EIP712.sol#L38
  *
- * @param numPermission - number of token permissions
+ * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
  */
 template HashTypedData(chainId) {
     signal input {byte} permitDigest[32];
     signal output {byte} typedPermitDigest[32];
+
+    var DOMAIN_SEPARATOR = get_domain_separator(chainId);
+
+    
 
 }
