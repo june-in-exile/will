@@ -24,9 +24,8 @@ include "./bus.circom";
 // }
 
 /*
- * Permit is composed of permitted.tokens, permitted.amounts, nonce, deadline, and spender (will contract in our case)
- *
- * The solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol#L66
+ * Permit is composed of permitted.tokens, permitted.amounts, nonce, deadline. Spender in our case is will contract.
+ * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/libraries/PermitHash.sol#L66
  *
  * @param numPermission - number of token permissions
  */
@@ -104,3 +103,15 @@ template HashPermit(numPermission) {
     signal {bit} bitsPermitDigest[256] <== Keccak256(batchPermitBytes * 8)(bitsBatchPermit);
     permitDigest <== BitsToBytes(32, 1)(bitsPermitDigest);
 }
+
+
+/*
+ * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/EIP712.sol#L38
+ *
+ * @param numPermission - number of token permissions
+ */
+// template HashTypedData(chainId) {
+//     signal input {byte} permitDigest[32];
+//     signal output {byte} typedPermitDigest[32];
+
+// }

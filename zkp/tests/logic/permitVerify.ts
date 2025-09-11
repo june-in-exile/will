@@ -32,12 +32,12 @@ function hashPermit(
 }
 
 function hashTypedData(permitDigest: Byte32): Byte32 {
-  const typedPermitDigest = Permit2.hashTypedData(byteToHex(permitDigest));
-  const hexTypedPermitDigest = hexToByte(typedPermitDigest);
-  if (hexTypedPermitDigest.length !== 32) {
+  const hexTypedPermitDigest = Permit2.hashTypedData(byteToHex(permitDigest));
+  const typedPermitDigest = hexToByte(hexTypedPermitDigest);
+  if (typedPermitDigest.length !== 32) {
     throw new Error("Invalid digest length");
   }
-  return hexTypedPermitDigest as Byte32;
+  return typedPermitDigest as Byte32;
 }
 
 export { hashPermit, hashTypedData };
