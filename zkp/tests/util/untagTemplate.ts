@@ -287,7 +287,7 @@ function generateUntaggedTemplateContent(config: GenerationConfig): string {
   content += generateSignalDeclarations(template.outputs, "output");
   content += generateTaggedSignalHandling(template.inputs);
   content += generateBusInputIntermediateSignals(template.inputs);
-  content += generateBusSignalAssignments(template.inputs);
+  content += generateBusSignalAssignments(template.inputs, busDefinitions);
   content += generateTemplateInstantiation(template);
   content += `}\n`;
 
@@ -433,66 +433,6 @@ function extractTemplateBody(
   return braceCount === 0 ? content.substring(startIndex, i - 1) : null;
 }
 
-// /**
-//  * Parse signal declarations from template body
-//  * @param templateBody - Template body content
-//  * @param signalType - Type of signal to parse ("input" or "output")
-//  * @returns Array of parsed signals
-//  */
-// function parseSignals(
-//   templateBody: string,
-//   signalType: "input" | "output",
-// ): Signal[] {
-//   const signals: Signal[] = [];
-//   const regexPatterns = [
-//     // Normal signals: signal input/output {tag} name[array]
-//     new RegExp(
-//       `\\bsignal\\s+${signalType}\\b\\s*(?:{([^}]+)})?\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
-//       "g",
-//     ),
-//     // Bus signals pattern 1: input/output BusType() name[array]
-//     new RegExp(
-//       `\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
-//       "g",
-//     ),
-//     // Bus signals pattern 2: BusType() input/output name[array]
-//     new RegExp(
-//       `([a-zA-Z_][a-zA-Z0-9_]*)\\(\\)\\s+\\b${signalType}\\b\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*((?:\\[[^\\]]+\\])+))?`,
-//       "g",
-//     ),
-//   ];
-
-//   regexPatterns.forEach((regex, index) => {
-//     let match;
-//     while ((match = regex.exec(templateBody)) !== null) {
-//       if (index === 0) {
-//         // Normal signal
-//         signals.push({
-//           name: match[2],
-//           tag: match[1],
-//           arraySize: match[3],
-//         });
-//       } else if (index === 1) {
-//         // Bus signal pattern 1
-//         signals.push({
-//           name: match[2],
-//           busType: `${match[1]}()`,
-//           arraySize: match[3],
-//         });
-//       } else {
-//         // Bus signal pattern 2
-//         signals.push({
-//           name: match[2],
-//           busType: `${match[1]}()`,
-//           arraySize: match[3],
-//         });
-//       }
-//     }
-//   });
-
-//   return signals;
-// }
-
 /**
  * Generate untagged input signal declarations
  * @param inputs - Array of input signals
@@ -563,21 +503,52 @@ function generateBusInputIntermediateSignals(inputs: Signal[]): string {
 }
 
 /**
+ * Generate assignments for all properties of a bus signal
+ * @param busName - Name of the bus signal
+ * @param busDefinition - Bus definition containing all properties
+ * @param indexing - Array indexing string (e.g., "[i][j]")
+ * @param indent - Indentation string
+ * @returns Generated assignment code for all bus properties
+ */
+function generateBusPropertyAssignments(
+  busName: string,
+  busDefinition: BusDefinition,
+  indexing: string = "",
+  indent: string = "    ",
+): string {
+  return busDefinition.signals
+    .map((signal) => {
+      return `${indent}_${busName}${indexing}.${signal.name} <== ${busName}${indexing}.${signal.name};`;
+    })
+    .join("\n");
+}
+
+/**
  * Generate bus signal assignments
  * @param inputs - Array of input signals
+ * @param busDefinitions - Array of bus definitions for looking up properties
  * @returns Generated bus signal assignments
  */
-function generateBusSignalAssignments(inputs: Signal[]): string {
+function generateBusSignalAssignments(inputs: Signal[], busDefinitions: BusDefinition[]): string {
   const busInputs = inputs.filter((input) => input.busType);
   if (busInputs.length === 0) return "";
 
   const assignments = busInputs
     .map((input) => {
+      const busTypeName = input.busType?.replace(/\(\)$/, "") || "";
+      const busDefinition = busDefinitions.find(bus => 
+        bus.name === `Untagged${busTypeName}` || bus.name === busTypeName
+      );
+      
+      if (!busDefinition) {
+        throw new Error(`Bus definition not found for ${busTypeName}`);
+      }
+
       if (input.arraySize) {
         const dimensions = extractArrayDimensions(input.arraySize);
-        return generateNestedLoopAssignment(input.name, dimensions);
+        return generateNestedLoopBusAssignment(input.name, dimensions, busDefinition);
       } else {
-        return `    _${input.name}.bytes <== ${input.name}.bytes;`;
+        return generateBusPropertyAssignments(input.name, busDefinition);
       }
     })
     .join("\n");
@@ -596,14 +567,16 @@ function extractArrayDimensions(arraySize: string): string[] {
 }
 
 /**
- * Generate nested loop assignments for multi-dimensional arrays
+ * Generate nested loop assignments for multi-dimensional arrays with bus properties
  * @param name - Signal name
  * @param dimensions - Array dimensions
+ * @param busDefinition - Bus definition containing all properties
  * @returns Generated nested loop assignment code
  */
-function generateNestedLoopAssignment(
+function generateNestedLoopBusAssignment(
   name: string,
   dimensions: string[],
+  busDefinition: BusDefinition,
 ): string {
   if (dimensions.length === 0) return "";
 
@@ -617,9 +590,10 @@ function generateNestedLoopAssignment(
     indent += "    ";
   });
 
-  // Generate the assignment
+  // Generate assignments for all bus properties
   const indexing = indexVars.map((v) => `[${v}]`).join("");
-  content += `${indent}_${name}${indexing}.bytes <== ${name}${indexing}.bytes;\n`;
+  content += generateBusPropertyAssignments(name, busDefinition, indexing, indent);
+  content += "\n";
 
   // Close the loops
   for (let i = dimensions.length - 1; i >= 0; i--) {
@@ -629,6 +603,41 @@ function generateNestedLoopAssignment(
 
   return content;
 }
+
+// /**
+//  * Generate nested loop assignments for multi-dimensional arrays (legacy function for .bytes)
+//  * @param name - Signal name
+//  * @param dimensions - Array dimensions
+//  * @returns Generated nested loop assignment code
+//  */
+// function generateNestedLoopAssignment(
+//   name: string,
+//   dimensions: string[],
+// ): string {
+//   if (dimensions.length === 0) return "";
+
+//   let content = "";
+//   let indent = "    ";
+//   const indexVars = dimensions.map((_, i) => String.fromCharCode(105 + i)); // i, j, k, l...
+
+//   // Generate nested for loops
+//   dimensions.forEach((dimension, i) => {
+//     content += `${indent}for (var ${indexVars[i]} = 0; ${indexVars[i]} < ${dimension}; ${indexVars[i]}++) {\n`;
+//     indent += "    ";
+//   });
+
+//   // Generate the assignment
+//   const indexing = indexVars.map((v) => `[${v}]`).join("");
+//   content += `${indent}_${name}${indexing}.bytes <== ${name}${indexing}.bytes;\n`;
+
+//   // Close the loops
+//   for (let i = dimensions.length - 1; i >= 0; i--) {
+//     indent = indent.slice(0, -4);
+//     content += `${indent}}\n`;
+//   }
+
+//   return content;
+// }
 
 /**
  * Generate template instantiation code with correct parameter order

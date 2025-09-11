@@ -196,7 +196,7 @@ class WitnessTester<
           }
 
           if (fs.existsSync(dirToClean)) {
-            await fs.promises.rmdir(dirToClean, { recursive: true });
+            await fs.promises.rm(dirToClean, { recursive: true });
             console.log(`Successfully cleaned up: ${dirToClean}`);
           }
         }
