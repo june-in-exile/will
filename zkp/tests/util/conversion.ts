@@ -1,4 +1,4 @@
-import { Bit, Byte, Byte4, Word, Point } from "../type/index.js";
+import { Bit, Byte, Byte4, Word, Point, Estate } from "../type/index.js";
 import { assert } from "console";
 
 /**
@@ -365,6 +365,17 @@ function hexToPoint(publicKeyHex: string): Point {
   };
 }
 
+/**
+ * Flatten Estate for input to circom_tester
+ */
+function flattenEstates(estates: Estate[]): bigint[] {
+  return estates.flatMap(estate => [
+    estate.beneficiary,
+    estate.token,
+    estate.amount
+  ]);
+}
+
 export {
   byteToWord,
   wordToByte,
@@ -381,4 +392,5 @@ export {
   bigIntsToPoint,
   pointToBigInts,
   hexToPoint,
+  flattenEstates,
 };

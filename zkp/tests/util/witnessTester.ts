@@ -4,6 +4,7 @@ import { construct_wasm } from "./construction.js";
 import { AssertionError } from "assert";
 import path from "path";
 import fs from "fs";
+import { createInterface } from 'readline';
 
 type Constraints = {
   [testFileName: string]: {
@@ -605,15 +606,45 @@ class WitnessTester<
   }
 
   /**
+   * @note https://github.com/iden3/circom_tester/issues/36
+   * 
    * Assert the output of a given witness.
    * @param actualOut expected witness
    * @param expectedOut computed output signals
    */
-  private assertOut(
+  private async assertOut(
     actualOut: WitnessType,
     expectedOut: CircuitInputOutput<OUT>,
   ): Promise<void> {
-    return this.circomTester.assertOut(actualOut, expectedOut);
+    if (!this.symbols) await this.loadSymbols();
+
+    const checkObject = (prefix: string, eOut: any) => {
+      if (Array.isArray(eOut)) {
+        for (let i = 0; i < eOut.length; i++) {
+          checkObject(prefix + "[" + i + "]", eOut[i]);
+        }
+      } else if (
+        typeof eOut === "object" &&
+        eOut.constructor.name === "Object"
+      ) {
+        for (const k in eOut) {
+          checkObject(prefix + "." + k, eOut[k]);
+        }
+      } else {
+        if (typeof this.symbols![prefix] === "undefined") {
+          throw new Error("Output variable not defined: " + prefix);
+        }
+        const ba = actualOut[this.symbols![prefix].varIdx].toString();
+        const be = eOut.toString();
+        if (ba !== be) {
+          throw new Error(
+            `Assertion failed for ${prefix}: expected ${be}, got ${ba}`
+          );
+        }
+      }
+    }
+
+    checkObject("main", expectedOut);
   }
 
   /** Loads the list of R1CS constraints to `this.constraints`. */
@@ -628,15 +659,39 @@ class WitnessTester<
    *
    * Each line has 4 comma-separated values:
    *
-   * 1.  symbol name
-   * 2.  label index
-   * 3.  variable index
-   * 4.  component index
+   * 1.  label index
+   * 2.  variable index
+   * 3.  component index
+   * 4.  symbol name
+   * 
+   * @note https://github.com/iden3/circom_tester/issues/36
    */
   private async loadSymbols(): Promise<void> {
-    // no need to check if symbols are already defined
-    // that check happens within circomWasmTester
-    await this.circomTester.loadSymbols();
+    if (this.circomTester.symbols) return;
+
+    this.circomTester.symbols = {};
+    const fileStream = fs.createReadStream(
+      path.join(this.circomTester.dir, this.circomTester.baseName + ".sym"),
+      { encoding: "utf8" }
+    );
+    const rl = createInterface({
+      input: fileStream,
+      crlfDelay: Infinity,
+    });
+
+    for await (const line of rl) {
+      const arr = line.split(",");
+      if (arr.length !== 4) {
+        continue;
+      }
+
+      this.circomTester.symbols[arr[3]] = {
+        labelIdx: Number(arr[0]),
+        varIdx: Number(arr[1]),
+        componentIdx: Number(arr[2]),
+      };
+    }
+
     this.symbols = this.circomTester.symbols;
   }
 
