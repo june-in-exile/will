@@ -539,7 +539,7 @@ class WitnessTester<
       testFileName || WitnessTester.getCurrentTestFilename();
     const templateName = this.circomTester.templateName;
     const constraintCount = await this.getConstraintCount();
-    console.info(`${description}: ${constraintCount}`);
+    console.log(`${description}: ${constraintCount}`);
 
     let constraints: Constraints = {};
 

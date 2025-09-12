@@ -7,8 +7,8 @@ include "../shared/components/bus.circom";
 include "../shared/components/bits.circom";
 
 template RotWord() {
-    Word() input in;
-    Word() output out;
+    input Word() in;
+    output Word() out;
     
     for (var i = 0; i < 4; i++) {
         out.bytes[i] <== in.bytes[(i + 1) % 4];
@@ -16,9 +16,9 @@ template RotWord() {
 }
 
 template XorWord() {
-    Word() input a;
-    Word() input b;
-    Word() output c;
+    input Word() a;
+    input Word() b;
+    output Word() c;
     
     signal _a[4] <== a.bytes;
     signal _b[4] <== b.bytes;
@@ -29,7 +29,7 @@ template XorWord() {
 
 template RCon() {
     signal input round;
-    Word() output out;
+    output Word() out;
 
     var wIn = 1, nIn = 10;
 
@@ -82,8 +82,8 @@ template ExpandKey(keyBits) {
     }
     var expandedNk = 4 * (Nr + 1);
 
-    Word() input key[Nk];
-    Word() output roundKey[expandedNk];
+    input Word() key[Nk];
+    output Word() roundKey[expandedNk];
 
     for (var i = 0; i < Nk; i++) {
         roundKey[i] <== key[i];
@@ -149,8 +149,8 @@ template SBox() {
  * need to be processed through the S-Box transformation.
  */
 template SubWord() {
-    Word() input in;
-    Word() output out;
+    input Word() in;
+    output Word() out;
     
     out.bytes <== SubstituteBytes(4)(in.bytes);
 }
@@ -251,7 +251,7 @@ template MixColumns() {
 
 template AddRoundKey() {
     signal input {byte} state[16];
-    Word() input roundKey[4];
+    input Word() roundKey[4];
     signal output {byte} out[16];
 
     signal roundKeyBytes[16];
@@ -286,7 +286,7 @@ template EncryptBlock(keyBits) {
     var expandedNk = 4 * (Nr + 1);
     
     signal input {byte} plaintext[16];
-    Word() input key[Nk];
+    input Word() key[Nk];
     signal output {byte} ciphertext[16];
     
     // Expand the key
@@ -344,7 +344,7 @@ template UntaggedExpandKey(keyBits) {
     var expandedNk = 4 * (Nr + 1);
 
     input UntaggedWord() key[Nk];
-    Word() output roundKey[expandedNk];
+    output Word() roundKey[expandedNk];
 
     Word() _key[Nk];
 

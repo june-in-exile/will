@@ -1,5 +1,18 @@
-import { Bit, Uint256, Address, EcdsaSignature, PermitTransferFrom } from "../type/index.js";
-import { byteToHex, hexToByte, splitBigInt, byteToBit, bitToByte, concatBigInts } from "../util/index.js";
+import {
+  Bit,
+  Uint256,
+  Address,
+  EcdsaSignature,
+  PermitTransferFrom,
+} from "../type/index.js";
+import {
+  byteToHex,
+  hexToByte,
+  splitBigInt,
+  byteToBit,
+  bitToByte,
+  concatBigInts,
+} from "../util/index.js";
 import { Permit2 } from "./index.js";
 
 function hashPermit(permit: PermitTransferFrom, spender: Address): Bit[] {
@@ -22,7 +35,7 @@ function hashPermit(permit: PermitTransferFrom, spender: Address): Bit[] {
 }
 
 function hashTypedData(permitDigest: Bit[], chainId: number = 421614): Bit[] {
-  const hexPermitDigest = '0x' + byteToHex(bitToByte(permitDigest));
+  const hexPermitDigest = "0x" + byteToHex(bitToByte(permitDigest));
   const typedPermitDigest = Permit2.hashTypedData(hexPermitDigest, chainId);
   return byteToBit(hexToByte(typedPermitDigest));
 }
@@ -34,7 +47,7 @@ function recoverPublicKey(signature: EcdsaSignature, digest: Bit[]): Uint256[] {
     concatBigInts(signature.s),
     signature.v,
   );
-  return [splitBigInt(recoveredPublicKey.x), splitBigInt(recoveredPublicKey.y)]
+  return [splitBigInt(recoveredPublicKey.x), splitBigInt(recoveredPublicKey.y)];
 }
 
 export { hashPermit, hashTypedData, recoverPublicKey };

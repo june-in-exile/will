@@ -1,4 +1,8 @@
-import { WitnessTester, splitBigInt, pointToBigInts } from "./util/index.js";
+import {
+  WitnessTester,
+  splitBigInt,
+  ecdsaPointToBigInts,
+} from "./util/index.js";
 import { ECDSA, ECDSAUtils, MathUtils } from "./logic/index.js";
 import { ecdsaPrivToPub, ecdsaVerifyNoPubkeyCheck } from "./logic/ecdsa.js";
 
@@ -105,7 +109,7 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
         const msghash = splitBigInt(messageHash);
 
         const keyPair = ECDSA.generateKeyPair();
-        const pubkey = pointToBigInts(keyPair.publicKey);
+        const pubkey = ecdsaPointToBigInts(keyPair.publicKey);
 
         const signature = ECDSA.sign(messageHash, keyPair.privateKey);
         const r = splitBigInt(signature.r);
@@ -123,7 +127,7 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
         const msghash = splitBigInt(messageHash);
 
         const keyPair = ECDSA.generateKeyPair();
-        const pubkey = pointToBigInts(keyPair.publicKey);
+        const pubkey = ecdsaPointToBigInts(keyPair.publicKey);
 
         const signature = ECDSA.sign(messageHash, keyPair.privateKey);
         const r = splitBigInt(signature.r);

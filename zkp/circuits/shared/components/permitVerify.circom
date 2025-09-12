@@ -30,7 +30,7 @@ include "bus.circom";
  * @param numPermission - number of token permissions
  */
 template HashPermit(numPermission) {
-    PermitTransferFrom(numPermission) input permit;
+    input PermitTransferFrom(numPermission) permit;
     signal input {address} spender;
     signal output {bit} permitDigest[256];
 

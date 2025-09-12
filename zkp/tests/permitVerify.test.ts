@@ -1,4 +1,8 @@
-import { byteToBit, flattenPermitTransferFrom, WitnessTester } from "./util/index.js";
+import {
+  byteToBit,
+  flattenPermitTransferFrom,
+  WitnessTester,
+} from "./util/index.js";
 import { hashPermit, hashTypedData } from "./logic/index.js";
 import { Bit, Address, PermitTransferFrom } from "./type/index.js";
 

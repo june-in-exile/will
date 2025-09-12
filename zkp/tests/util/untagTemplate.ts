@@ -1066,7 +1066,10 @@ function parseBusDefinition(
 
   const paramsString = match[1].trim();
   const params = paramsString
-    ? paramsString.split(',').map(p => p.trim()).filter(p => p.length > 0)
+    ? paramsString
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0)
     : [];
 
   const startIndex = match.index + match[0].length;
@@ -1087,7 +1090,7 @@ function parseBusDefinition(
   return {
     name: busName,
     params: params.length > 0 ? params : undefined,
-    signals
+    signals,
   };
 }
 
@@ -1184,9 +1187,10 @@ function generateUntaggedBusDefinitions(
           })
           .join("\n");
 
-        const parameters = bus.params && bus.params.length > 0
-          ? `(${bus.params.join(', ')})`
-          : '()';
+        const parameters =
+          bus.params && bus.params.length > 0
+            ? `(${bus.params.join(", ")})`
+            : "()";
 
         return `bus ${bus.name}${parameters} {\n${signalDeclarations}\n}`;
       })

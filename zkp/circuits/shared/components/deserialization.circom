@@ -28,12 +28,12 @@ template Deserialize(bytesLength) {
 
     signal input {byte} serializedBytes[bytesLength];
     signal output {address} testator;       // 20-byte unsigned integer
-    Estate() output estates[estateCount];
+    output Estate() estates[estateCount];
     signal output {uint256} salt[4];        // 32-byte unsigned integer composed of 4 8-byte registers, little-endian
     signal output {address} will;           // 20-byte unsigned integer
     signal output {uint128} nonce;          // 16-byte unsigned integer
     signal output {uint32} deadline;        //  4-byte unsigned integer
-    EcdsaSignature() output signature;
+    output EcdsaSignature() signature;
 
     signal {byte} testatorBytes[testatorBytesLength];
     signal {byte} beneficiaryBytes[estateCount][beneficiaryBytesLength];

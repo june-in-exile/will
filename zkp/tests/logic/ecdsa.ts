@@ -1,15 +1,15 @@
 import { ECDSA, EllipticCurve } from "./index.js";
 import {
   concatBigInts,
-  pointToBigInts,
-  bigIntsToPoint,
+  ecdsaPointToBigInts,
+  bigIntsToEcdsaPoint,
 } from "../util/index.js";
-import { Bit, Uint256 } from "../type/index.js";
+import { Bit, Uint256, ConcatedEcdsaPoint } from "../type/index.js";
 
 function ecdsaPrivToPub(privkey: Uint256): Uint256[] {
   const privateKey = concatBigInts(privkey);
   const publicKey = EllipticCurve.pointMultiply(privateKey, ECDSA.G);
-  const pubkey = pointToBigInts(publicKey);
+  const pubkey = ecdsaPointToBigInts(publicKey);
   return pubkey;
 }
 
@@ -21,7 +21,7 @@ function ecdsaVerifyNoPubkeyCheck(
 ): Bit {
   const messageHash = concatBigInts(msghash);
   const signature = { r: concatBigInts(r), s: concatBigInts(s) };
-  const publicKey = bigIntsToPoint(pubkey);
+  const publicKey = bigIntsToEcdsaPoint(pubkey, true) as ConcatedEcdsaPoint;
 
   const result = ECDSA.verify(messageHash, signature, publicKey) ? 1 : 0;
 

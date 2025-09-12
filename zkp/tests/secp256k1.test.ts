@@ -1,4 +1,8 @@
-import { WitnessTester, pointToBigInts, splitBigInt } from "./util/index.js";
+import {
+  WitnessTester,
+  ecdsaPointToBigInts,
+  splitBigInt,
+} from "./util/index.js";
 import {
   CURVE,
   EllipticCurve,
@@ -300,8 +304,8 @@ describe("Secp256k1AddUnequal Circuit", function () {
       const p1 = EllipticCurve.generateRandomPoint();
       const p2 = EllipticCurve.generateRandomPoint();
 
-      const a = pointToBigInts(p1);
-      const b = pointToBigInts(p2);
+      const a = ecdsaPointToBigInts(p1);
+      const b = ecdsaPointToBigInts(p2);
       const out = secp256k1AddUnequal(a, b);
 
       await circuit.expectPass({ a, b }, { out });
@@ -332,7 +336,7 @@ describe("Secp256k1Double Circuit", function () {
 
     it("should double a random point correctly", async function (): Promise<void> {
       const p = EllipticCurve.generateRandomPoint();
-      const _in = pointToBigInts(p);
+      const _in = ecdsaPointToBigInts(p);
       const out = secp256k1Double(_in);
 
       await circuit.expectPass({ in: _in }, { out });
@@ -366,7 +370,7 @@ describe("Secp256k1ScalarMult Circuit", function () {
     it("should multiply a random point by 2 correctly", async function (): Promise<void> {
       const scalarBigInt = 2n;
       const scalar = splitBigInt(scalarBigInt);
-      const point = pointToBigInts(EllipticCurve.generateRandomPoint());
+      const point = ecdsaPointToBigInts(EllipticCurve.generateRandomPoint());
       const out = secp256k1ScalarMult(scalar, point);
 
       await circuit.expectPass({ scalar, point }, { out });
@@ -375,7 +379,7 @@ describe("Secp256k1ScalarMult Circuit", function () {
     it("should multiply a random point by a random scalar correctly", async function (): Promise<void> {
       const scalarBigInt = MathUtils.generateRandomScalar(CURVE.p);
       const scalar = splitBigInt(scalarBigInt);
-      const point = pointToBigInts(EllipticCurve.generateRandomPoint());
+      const point = ecdsaPointToBigInts(EllipticCurve.generateRandomPoint());
       const out = secp256k1ScalarMult(scalar, point);
 
       await circuit.expectPass({ scalar, point }, { out });

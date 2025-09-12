@@ -28,7 +28,7 @@ template GcmDecrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     }
 
     signal input {byte} ciphertext[textLengthBytes];
-    Word() input key[Nk];
+    input Word() key[Nk];
     signal input {byte} iv[ivLength];
     signal input {byte} authTag[16];
     signal input {byte} aad[aadLengthBytes];

@@ -1,9 +1,7 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = permitVerify
 # CIRCUIT = encryptBlock
 CIRCUIT ?= multiplier2
 
-TEMPLATE = HashPermit
 # TEMPLATE = ExpandKey
 TEMPLATE ?= Multiplier2
 

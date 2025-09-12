@@ -1,10 +1,10 @@
 import { EllipticCurve } from "./modules/ecdsa.js";
 import {
-  bigIntsToPoint,
+  bigIntsToEcdsaPoint,
   concatBigInts,
-  pointToBigInts,
+  ecdsaPointToBigInts,
 } from "../util/index.js";
-import { Uint256 } from "../type/uint.js";
+import { Uint256, ConcatedEcdsaPoint } from "../type/index.js";
 
 function addUnequalCubicConstraint(
   x1: Uint256,
@@ -55,25 +55,25 @@ function secp256k1PointOnCurve(x: Uint256, y: Uint256): boolean {
 }
 
 function secp256k1AddUnequal(a: Uint256[], b: Uint256[]): Uint256[] {
-  const p1 = bigIntsToPoint(a);
-  const p2 = bigIntsToPoint(b);
+  const p1 = bigIntsToEcdsaPoint(a, true) as ConcatedEcdsaPoint;
+  const p2 = bigIntsToEcdsaPoint(b, true) as ConcatedEcdsaPoint;
 
   const p3 = EllipticCurve.pointAdd(p1, p2);
-  const out = pointToBigInts(p3);
+  const out = ecdsaPointToBigInts(p3);
   return out;
 }
 
 function secp256k1Double(_in: Uint256[]): Uint256[] {
-  const pin = bigIntsToPoint(_in);
+  const pin = bigIntsToEcdsaPoint(_in, true) as ConcatedEcdsaPoint;
   const pout = EllipticCurve.pointDouble(pin);
-  return pointToBigInts(pout);
+  return ecdsaPointToBigInts(pout);
 }
 
 function secp256k1ScalarMult(scalar: Uint256, point: Uint256[]): Uint256[] {
-  const p = bigIntsToPoint(point);
+  const p = bigIntsToEcdsaPoint(point, true) as ConcatedEcdsaPoint;
   const scalarBigInt = concatBigInts(scalar);
   const out = EllipticCurve.pointMultiply(scalarBigInt, p);
-  return pointToBigInts(out);
+  return ecdsaPointToBigInts(out);
 }
 
 export {

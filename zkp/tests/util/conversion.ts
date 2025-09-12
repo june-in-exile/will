@@ -3,10 +3,12 @@ import {
   Byte,
   Byte4,
   Word,
-  Point,
+  EcdsaPoint,
+  ConcatedEcdsaPoint,
   Estate,
   TokenPermission,
   PermitTransferFrom,
+  Uint256,
 } from "../type/index.js";
 import { assert } from "console";
 
@@ -239,117 +241,63 @@ function splitBigInt(
 }
 
 /**
- * Converts pubkey format to Point
+ * Converts 2D bigint format to EcdsaPoint
  * @param pubkey - Array of [x_components, y_components] where each component is 4 BigInts
- * @returns Point with concatenated x and y coordinates
+ * @param concat - Concat the x_components, x_components in EcdsaPoint or keep them as bigint[]
  */
-function bigIntsToPoint(pubkey: bigint[][]): Point {
+function bigIntsToEcdsaPoint(
+  pubkey: bigint[][],
+  concat: boolean = true,
+): ConcatedEcdsaPoint | EcdsaPoint {
   if (pubkey.length !== 2) {
     throw new Error("Pubkey must have exactly 2 components [x, y]");
   }
 
-  const [xComponents, yComponents] = pubkey;
+  const [x, y] = pubkey;
 
-  if (xComponents.length !== 4 || yComponents.length !== 4) {
+  if (x.length !== 4 || y.length !== 4) {
     throw new Error("Each coordinate must have exactly 4 BigInt components");
   }
 
-  // Concatenate x components (4 * 64-bit = 256-bit)
-  const x = concatBigInts(xComponents, 64);
-
-  // Concatenate y components (4 * 64-bit = 256-bit)
-  const y = concatBigInts(yComponents, 64);
-
-  return {
-    x,
-    y,
-    isInfinity: false,
-  };
+  return concat
+    ? ({
+      x: concatBigInts(x) as bigint,
+      y: concatBigInts(y) as bigint,
+      isInfinity: false,
+    } as ConcatedEcdsaPoint)
+    : ({
+      x: x as Uint256,
+      y: y as Uint256,
+      isInfinity: false,
+    } as EcdsaPoint);
 }
 
 /**
- * Converts a Point back to pubkey format
- * This is the reverse operation of pubkeyToPoint
- *
- * @param point - Point with x, y coordinates
- * @param options - Configuration options
- * @returns Array of [x_components, y_components]
+ * Converts a EcdsaPoint back to 2D bigint format
+ * This is the reverse operation of bigIntsToEcdsaPoint
  */
-function pointToBigInts(
-  point: Point,
-  options?: {
-    componentsPerCoordinate?: number;
-    bitWidth?: number;
-    modulus?: bigint;
-  },
-): bigint[][];
-
-/**
- * Legacy overload for backward compatibility
- * @deprecated Use the options object form instead
- */
-// function pointToBigInts(
-//   point: Point,
-//   componentsPerCoordinate?: number,
-//   bitWidth?: number,
-//   modulus?: bigint,
-// ): bigint[][];
-
-function pointToBigInts(
-  point: Point,
-  componentsPerCoordinateOrOptions?:
-    | number
-    | { componentsPerCoordinate?: number; bitWidth?: number; modulus?: bigint },
-  bitWidth?: number,
-  modulus?: bigint,
+function ecdsaPointToBigInts(
+  point: ConcatedEcdsaPoint | EcdsaPoint,
 ): bigint[][] {
-  // Handle both new options form and legacy parameters
-  let actualComponentsPerCoordinate: number;
-  let actualBitWidth: number;
-  let actualModulus: bigint | undefined;
-
-  if (
-    typeof componentsPerCoordinateOrOptions === "object" &&
-    componentsPerCoordinateOrOptions !== null
-  ) {
-    // New options form
-    actualComponentsPerCoordinate =
-      componentsPerCoordinateOrOptions.componentsPerCoordinate ?? 4;
-    actualBitWidth = componentsPerCoordinateOrOptions.bitWidth ?? 64;
-    actualModulus = componentsPerCoordinateOrOptions.modulus;
-  } else {
-    // Legacy form
-    actualComponentsPerCoordinate =
-      (componentsPerCoordinateOrOptions as number) ?? 4;
-    actualBitWidth = bitWidth ?? 64;
-    actualModulus = modulus;
+  // ConcatedEcdsaPoint
+  if (typeof point.x == "bigint" && typeof point.y == "bigint") {
+    return [splitBigInt(point.x), splitBigInt(point.y)];
   }
 
-  // Handle point at infinity
-  if (point.isInfinity) {
-    const zeroComponents = new Array(actualComponentsPerCoordinate).fill(0n);
-    return [zeroComponents, zeroComponents];
+  // EcdsaPoint
+  const x = point.x as Uint256;
+  const y = point.y as Uint256;
+  if (x.length != 4 || y.length != 4) {
+    throw new Error("Invalid ECDSA point format");
   }
 
-  // Split coordinates into components, handling negative values with modulus
-  const xComponents = splitBigInt(point.x, {
-    numParts: actualComponentsPerCoordinate,
-    bitWidth: actualBitWidth,
-    modulus: actualModulus,
-  });
-  const yComponents = splitBigInt(point.y, {
-    numParts: actualComponentsPerCoordinate,
-    bitWidth: actualBitWidth,
-    modulus: actualModulus,
-  });
-
-  return [xComponents, yComponents];
+  return [x, y];
 }
 
 /**
  * Convert from string to Point
  */
-function hexToPoint(publicKeyHex: string): Point {
+function hexToPoint(publicKeyHex: string): ConcatedEcdsaPoint {
   const cleanHex = publicKeyHex.startsWith("0x")
     ? publicKeyHex.slice(2)
     : publicKeyHex;
@@ -361,15 +309,9 @@ function hexToPoint(publicKeyHex: string): Point {
 
   const coordData = cleanHex.slice(2);
 
-  const xHex = coordData.slice(0, 64);
-  const yHex = coordData.slice(64, 128);
-
-  const x = BigInt("0x" + xHex);
-  const y = BigInt("0x" + yHex);
-
   return {
-    x,
-    y,
+    x: BigInt("0x" + coordData.slice(0, 64)),
+    y: BigInt("0x" + coordData.slice(64, 128)),
     isInfinity: false,
   };
 }
@@ -421,8 +363,8 @@ export {
   bitToByte,
   concatBigInts,
   splitBigInt,
-  bigIntsToPoint,
-  pointToBigInts,
+  bigIntsToEcdsaPoint,
+  ecdsaPointToBigInts,
   hexToPoint,
   flattenEstates,
   flattenTokenPermissions,

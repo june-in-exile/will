@@ -21,7 +21,7 @@ template CtrDecrypt(keyBits, ciphertextBytes) {
     }
     
     signal input {byte} ciphertext[ciphertextBytes]; // Ciphertext data in bytes
-    Word() input key[Nk]; // AES key using Word bus structure
+    input Word() key[Nk]; // AES key using Word bus structure
     signal input {byte} iv[16]; // Initial counter value
     signal output {byte} plaintext[ciphertextBytes]; // Decrypted output
 

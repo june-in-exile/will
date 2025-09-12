@@ -1,5 +1,5 @@
+import { ConcatedEcdsaPoint } from "../../type/index.js";
 import { ethers } from "ethers";
-import { Point } from "../../type/index.js";
 import chalk from "chalk";
 
 /**
@@ -87,7 +87,10 @@ class EllipticCurve {
   /**
    * Elliptic curve point addition
    */
-  static pointAdd(p1: Point, p2: Point): Point {
+  static pointAdd(
+    p1: ConcatedEcdsaPoint,
+    p2: ConcatedEcdsaPoint,
+  ): ConcatedEcdsaPoint {
     if (p1.isInfinity) return p2;
     if (p2.isInfinity) return p1;
 
@@ -115,7 +118,7 @@ class EllipticCurve {
   /**
    * Elliptic curve point doubling
    */
-  static pointDouble(p: Point): Point {
+  static pointDouble(p: ConcatedEcdsaPoint): ConcatedEcdsaPoint {
     if (p.isInfinity) return p;
     if (p.y === 0n) {
       return { x: 0n, y: 0n, isInfinity: true };
@@ -137,7 +140,7 @@ class EllipticCurve {
   /**
    * Elliptic curve scalar multiplication using double-and-add
    */
-  static pointMultiply(k: bigint, p: Point): Point {
+  static pointMultiply(k: bigint, p: ConcatedEcdsaPoint): ConcatedEcdsaPoint {
     if (k === 0n) return { x: 0n, y: 0n, isInfinity: true };
     if (k < 0n) {
       return this.pointMultiply(-k, {
@@ -149,7 +152,7 @@ class EllipticCurve {
 
     if (k === 1n) return p;
 
-    let result: Point = { x: 0n, y: 0n, isInfinity: true };
+    let result: ConcatedEcdsaPoint = { x: 0n, y: 0n, isInfinity: true };
     let addend = p;
 
     while (k > 0n) {
@@ -166,7 +169,7 @@ class EllipticCurve {
   /**
    * Generate k * G where k is a random scalar
    */
-  static generateRandomPoint(): Point {
+  static generateRandomPoint(): ConcatedEcdsaPoint {
     const randomScalar = MathUtils.generateRandomScalar(CURVE.n);
     return this.pointMultiply(randomScalar, ECDSA.G);
   }
@@ -181,7 +184,11 @@ class EllipticCurve {
    * This constraint ensures that the three points (x₁,y₁), (x₂,y₂), (x₃,y₃)
    * satisfy the elliptic curve addition relationship algebraically.
    */
-  static verifyCubicConstraint(p1: Point, p2: Point, p3: Point): boolean {
+  static verifyCubicConstraint(
+    p1: ConcatedEcdsaPoint,
+    p2: ConcatedEcdsaPoint,
+    p3: ConcatedEcdsaPoint,
+  ): boolean {
     if (p1.isInfinity || p2.isInfinity || p3.isInfinity) {
       return false;
     }
@@ -243,7 +250,11 @@ class EllipticCurve {
    * This is mathmatically equivalent to the expanded form::
    * x₃y₂ + x₂y₃ + x₂y₁ - x₃y₁ - x₁y₂ - x₁y₃ = 0 mod p
    */
-  static pointOnLine(p1: Point, p2: Point, p3: Point): boolean {
+  static pointOnLine(
+    p1: ConcatedEcdsaPoint,
+    p2: ConcatedEcdsaPoint,
+    p3: ConcatedEcdsaPoint,
+  ): boolean {
     // Handle infinity points
     if (p1.isInfinity || p2.isInfinity || p3.isInfinity) {
       return false;
@@ -287,7 +298,10 @@ class EllipticCurve {
    *
    * This constraint ensures that point (x₃,y₃) lies on the tangent line at curve point (x₁,y₁)
    */
-  static pointOnTangent(curvePoint: Point, testPoint: Point): boolean {
+  static pointOnTangent(
+    curvePoint: ConcatedEcdsaPoint,
+    testPoint: ConcatedEcdsaPoint,
+  ): boolean {
     // Handle infinity points
     if (curvePoint.isInfinity || testPoint.isInfinity) {
       return false;
@@ -335,7 +349,7 @@ class EllipticCurve {
    * Verify if a point is on the secp256k1 elliptic curve
    * Curve equation: y² = x³ + 7 (mod p)
    */
-  static pointOnCurve(point: Point): boolean {
+  static pointOnCurve(point: ConcatedEcdsaPoint): boolean {
     // Infinity point is considered on the curve
     if (point.isInfinity) {
       return true;
@@ -465,7 +479,7 @@ class ECDSAUtils {
   static ourSignatureToEthersWithRecovery(
     signature: { r: bigint; s: bigint },
     messageHash: bigint,
-    expectedPublicKey: Point,
+    expectedPublicKey: ConcatedEcdsaPoint,
   ): string | null {
     // Normalize the signature to canonical form
     const normalizedSignature = this.normalizeSignature(signature);
@@ -505,7 +519,7 @@ class ECDSAUtils {
     messageHash: bigint,
     signature: { r: bigint; s: bigint },
     recoveryId: number,
-  ): Point | null {
+  ): ConcatedEcdsaPoint | null {
     try {
       const { r, s } = signature;
 
@@ -530,7 +544,7 @@ class ECDSAUtils {
         y = CURVE.p - y;
       }
 
-      const R: Point = { x, y, isInfinity: false };
+      const R: ConcatedEcdsaPoint = { x, y, isInfinity: false };
 
       // Verify R is on the curve
       if (!EllipticCurve.pointOnCurve(R)) {
@@ -568,13 +582,16 @@ class ECDSAUtils {
  * ECDSA Implementation
  */
 class ECDSA {
-  static G: Point = {
+  static G: ConcatedEcdsaPoint = {
     x: CURVE.Gx,
     y: CURVE.Gy,
     isInfinity: false,
   };
 
-  static generateKeyPair(): { privateKey: bigint; publicKey: Point } {
+  static generateKeyPair(): {
+    privateKey: bigint;
+    publicKey: ConcatedEcdsaPoint;
+  } {
     // Generate random private key
     const privateKey = MathUtils.generateRandomScalar(CURVE.n);
     const publicKey = EllipticCurve.pointMultiply(privateKey, this.G);
@@ -614,7 +631,7 @@ class ECDSA {
   static verify(
     messageHash: bigint,
     signature: { r: bigint; s: bigint },
-    publicKey: Point,
+    publicKey: ConcatedEcdsaPoint,
   ): boolean {
     const { r, s } = signature;
 
@@ -631,7 +648,7 @@ class ECDSA {
   private static verifyWithSignature(
     messageHash: bigint,
     signature: { r: bigint; s: bigint },
-    publicKey: Point,
+    publicKey: ConcatedEcdsaPoint,
   ): boolean {
     const { r, s } = signature;
 
