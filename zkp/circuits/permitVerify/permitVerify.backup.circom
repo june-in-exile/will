@@ -6,7 +6,7 @@ include "../shared/components/bits.circom";
 include "../shared/components/bus.circom";
 
 template HashPermit(numPermission) {
-    input TokenPermission() permitted[numPermission];
+    TokenPermission() input permitted[numPermission];
     signal input {uint128} nonce;
     signal input {uint32} deadline;
     signal input {address} spender;

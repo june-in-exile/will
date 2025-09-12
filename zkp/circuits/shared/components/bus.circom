@@ -15,6 +15,23 @@ bus Estate() {
     signal amount;
 }
 
+/*
+ * uint256 is composed of 4 64-bit registers, little-endian
+ */
+bus EcdsaPoint() {
+    signal {uint64} x[4];
+    signal {uint64} y[4];
+}
+
+/*
+ * uint256 is composed of 4 64-bit registers, little-endian
+ */
+bus EcdsaSignature() {
+    signal {uint64} r[4];
+    signal {uint64} s[4];
+    signal {byte} v;    
+}
+
 bus TokenPermission() {
     signal {address} token;
     signal amount;

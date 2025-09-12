@@ -191,7 +191,7 @@ function bitToByte(bits: Bit[]): Byte[] {
 }
 
 /**
- * Concatenates BigInts assuming LSB-First format (values[0] is least significant)
+ * Concatenates BigInts assuming little-endian
  */
 function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
   let result = 0n;
@@ -206,7 +206,7 @@ function concatBigInts(values: bigint[], bitWidth: number = 64): bigint {
 }
 
 /**
- * Splits a large BigInt into an array of smaller BigInts
+ * Splits a large BigInt into an array of smaller BigInts, little-endian
  * This is the reverse operation of concatBigInts
  *
  * @param value - The large BigInt to split
@@ -375,7 +375,7 @@ function hexToPoint(publicKeyHex: string): Point {
 }
 
 /**
- * Flatten Estate for input to circom_tester
+ * Flatten Estate for circom_tester
  */
 function flattenEstates(estates: Estate[]): bigint[] {
   return estates.flatMap((estate) => [
@@ -386,7 +386,7 @@ function flattenEstates(estates: Estate[]): bigint[] {
 }
 
 /**
- * Flatten TokenPermissions for input to circom_tester
+ * Flatten TokenPermissions for circom_tester
  */
 function flattenTokenPermissions(
   tokenPermissions: TokenPermission[],
@@ -398,7 +398,7 @@ function flattenTokenPermissions(
 }
 
 /**
- * Flatten PermitTransferFrom for input to circom_tester
+ * Flatten PermitTransferFrom for circom_tester
  */
 function flattenPermitTransferFrom(permit: PermitTransferFrom): bigint[] {
   return [

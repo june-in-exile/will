@@ -77,7 +77,7 @@
     "AddUnequalCubicConstraint": {},
     "Secp256k1PointOnLine": {},
     "Secp256k1PointOnTangent": {},
-    "Secp256k1PointOCurve": {},
+    "Secp256k1PointOnCurve": {},
     "Secp256k1AddUnequal": {},
     "Secp256k1Double": {},
     "Secp256k1ScalarMult": {}

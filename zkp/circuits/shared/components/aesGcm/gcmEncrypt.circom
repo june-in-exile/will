@@ -28,7 +28,7 @@ template GcmEncrypt(keyBits, ivLength, textLengthBytes, aadLengthBytes) {
     }
 
     signal input {byte} plaintext[textLengthBytes];
-    input Word() key[Nk];
+    Word() input key[Nk];
     signal input {byte} iv[ivLength];
     signal input {byte} aad[aadLengthBytes];
     signal output {byte} ciphertext[textLengthBytes];

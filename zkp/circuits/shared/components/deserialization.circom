@@ -1,15 +1,12 @@
 pragma circom 2.2.2;
 
-include "circomlib/circuits/comparators.circom";
-include "./base64.circom";
-include "./bits.circom";
-include "./bus.circom";
+include "bits.circom";
+include "bus.circom";
 
 /**
  * Deserialize circuit that converts serialized byte data into structured will components.
  * Takes serialized bytes containing testator address, estates (beneficiary, token, amount), 
- * will address, nonce, deadline, and signature. The salt field is skipped during processing 
- * as it's not needed for subsequent operations.
+ * salt, will address, nonce, deadline, and signature.
  *
  * @param bytesLength - the number of bytes in serialized input
  */
@@ -30,20 +27,24 @@ template Deserialize(bytesLength) {
     var estateCount = totalEstatesLength \ perEstateLength;
 
     signal input {byte} serializedBytes[bytesLength];
-    signal output {address} testator;   // 20 byte unsigned integer
-    output Estate() estates[estateCount];
-    signal output {address} will;       // 20 byte unsigned integer
-    signal output {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-    signal output {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-    signal output {byte} signature[signatureBytesLength]; // 65 byte
+    signal output {address} testator;       // 20-byte unsigned integer
+    Estate() output estates[estateCount];
+    signal output {uint256} salt[4];        // 32-byte unsigned integer composed of 4 8-byte registers, little-endian
+    signal output {address} will;           // 20-byte unsigned integer
+    signal output {uint128} nonce;          // 16-byte unsigned integer
+    signal output {uint32} deadline;        //  4-byte unsigned integer
+    EcdsaSignature() output signature;
 
     signal {byte} testatorBytes[testatorBytesLength];
     signal {byte} beneficiaryBytes[estateCount][beneficiaryBytesLength];
     signal {byte} tokenBytes[estateCount][tokenBytesLength];
     signal {byte} amountBytes[estateCount][amountBytesLength];
+    signal {byte} saltBytes[4][saltBytesLength\4];
     signal {byte} willBytes[willBytesLength];
     signal {byte} nonceBytes[nonceBytesLength];
     signal {byte} deadlineBytes[deadlineBytesLength];
+    signal {byte} rBytes[4][8];
+    signal {byte} sBytes[4][8];
 
     var byteIdx = 0;
 
@@ -78,8 +79,15 @@ template Deserialize(bytesLength) {
         estates[estateIdx].amount <== BytesToNum(amountBytesLength, 0)(amountBytes[estateIdx]);
     }
 
-    // skip salt
-    byteIdx += saltBytesLength;
+    // process salt
+    var quarterSaltBytesLength = saltBytesLength \ 4;
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < quarterSaltBytesLength; j++) {
+            saltBytes[3 - i][j] <== serializedBytes[byteIdx];
+            byteIdx++;
+        }
+        salt[3 - i] <== BytesToNum(quarterSaltBytesLength, 0)(saltBytes[3 - i]);
+    }
 
     // process will
     for (var i = 0; i < willBytesLength; i++) {
@@ -102,9 +110,25 @@ template Deserialize(bytesLength) {
     }
     deadline <== BytesToNum(deadlineBytesLength, 0)(deadlineBytes);
 
-    // process signature
-    for (var i = 0; i < signatureBytesLength; i++) {
-        signature[i] <== serializedBytes[byteIdx];
-        byteIdx++;
+    // process signature r
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 8; j++) {
+            rBytes[3 - i][j] <== serializedBytes[byteIdx];
+            byteIdx++;
+        }
+        signature.r[3 - i] <== BytesToNum(8, 0)(rBytes[3 - i]);
     }
+
+    // process signature s
+    for (var i = 0; i < 4; i++) {
+        for (var j = 0; j < 8; j++) {
+            sBytes[3 - i][j] <== serializedBytes[byteIdx];
+            byteIdx++;
+        }
+        signature.s[3 - i] <== BytesToNum(8, 0)(sBytes[3 - i]);
+    }
+
+    // process signature v
+    signature.v <== serializedBytes[byteIdx];
+    (signature.v - 27) * (signature.v - 28) === 0;
 }

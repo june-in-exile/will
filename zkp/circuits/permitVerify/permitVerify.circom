@@ -7,9 +7,6 @@ include "../shared/components/bus.circom";
 
 template HashPermit(numPermission) {
     input PermitTransferFrom(numPermission) permit;
-    // input TokenPermission() permitted[numPermission];
-    // input Word() key;
-    // input Utf8() utf8;
     signal input {address} spender;
     signal output {byte} permitDigest[32];
 

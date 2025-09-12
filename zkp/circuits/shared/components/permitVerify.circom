@@ -1,9 +1,9 @@
 pragma circom 2.2.2;
 
-include "./abiEncoder/abiEncoder.circom";
-include "./keccak256/keccak256.circom";
-include "./bits.circom";
-include "./bus.circom";
+include "abiEncoder/abiEncoder.circom";
+include "keccak256/keccak256.circom";
+include "bits.circom";
+include "bus.circom";
 
 /*
  * Verifies the permit2 signature contained in the will
@@ -30,7 +30,7 @@ include "./bus.circom";
  * @param numPermission - number of token permissions
  */
 template HashPermit(numPermission) {
-    input PermitTransferFrom(numPermission) permit;
+    PermitTransferFrom(numPermission) input permit;
     signal input {address} spender;
     signal output {bit} permitDigest[256];
 

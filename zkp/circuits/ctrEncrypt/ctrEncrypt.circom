@@ -30,7 +30,7 @@ template CtrEncrypt(keyBits, plaintextBytes) {
     }
     
     signal input {byte} plaintext[plaintextBytes]; // Plaintext data in bytes
-    input Word() key[Nk]; // AES key using Word bus structure
+    Word() input key[Nk]; // AES key using Word bus structure
     signal input {byte} iv[16]; // Initial counter value
     signal output {byte} ciphertext[plaintextBytes]; // Encrypted output
 
