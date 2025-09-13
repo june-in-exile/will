@@ -69,9 +69,8 @@
     "KeccakF1600": {}
   },
   "multiplier2": { "Multiplier2": {} },
-  "permitVerify": {
-    "HashPermit": {},
-    "HashTypedData": {}
+  "permitHash": {
+    "HashPermit": {}
   },
   "range": { "InRange": {} },
   "secp256k1": {
@@ -87,6 +86,9 @@
     "Padding": {},
     "Absorb": {},
     "Squeeze": {}
+  },
+  "typedDataHash": {
+    "HashTypedData": {}
   },
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
 }

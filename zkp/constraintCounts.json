@@ -371,5 +371,16 @@
       "512-bit massage": 151424,
       "1080-bit massage": 152560
     }
+  },
+  "typedDataHash": {
+    "HashTypedData": {
+      "arbitrum sepolia": 115200,
+      "mainnet": 115200
+    }
+  },
+  "permitHash": {
+    "HashPermit": {
+      "permit with 1 estates": 462272
+    }
   }
 }

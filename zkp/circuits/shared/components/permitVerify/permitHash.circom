@@ -1,27 +1,8 @@
 pragma circom 2.2.2;
 
-include "abiEncoder/abiEncoder.circom";
-include "keccak256/keccak256.circom";
-include "bits.circom";
-include "bus.circom";
-
-/*
- * Verifies the permit2 signature contained in the will
- * 
- * The imeplementation corresponds to the contracts deployed
- * at Mainnet 0x000000000022d473030f116ddee9f6b43ac78ba3
- * (SignatureTransfer.sol, ./libraries/PermitHash.sol, etc.)
- */
-// template VerifyPermit2Signature() {
-//     signal input {address} testator;   // 20 byte unsigned integer
-//     input TokenPermission() permitted[numPermission];
-//     signal input {address} will;       // 20 byte unsigned integer
-//     signal input {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-//     signal input {uint32} deadline;    // 4 byte (32 bit) unsigned integer
-//     signal input {byte} signature[signatureBytesLength]; // 65 byte
-//     signal output {bit} validSignature;
-
-// }
+include "../keccak256/keccak256.circom";
+include "../bits.circom";
+include "../bus.circom";
 
 /*
  * Permit is composed of permitted.tokens, permitted.amounts, nonce, deadline. Spender in our case is will contract.
@@ -130,96 +111,4 @@ template HashPermit(numPermission) {
 
     // Hashes batch permit
     permitDigest <== Keccak256(batchPermitBits)(bitsBatchPermit);
-}
-
-
-/*
- * The DOMAIN_SEPARATOR can be queried permit2 contract (fixed address: 0x000000000022d473030f116ddee9f6b43ac78ba3)
- *   - Mainnet: https://etherscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
- *   - Arbitrum Sepolia: https://sepolia.arbiscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
- *
- * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
- */
-function EIP712_DOMAIN_SEPARATOR(chainId) {
-    var ARBITRUM_SEPOLIA[256] = [
-        1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1,
-        1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1,
-        1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1,
-        0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1,
-        0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0,
-        0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,
-        0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1,
-        0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0,
-        1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1,
-        1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1,
-        0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1,
-        0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-        1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1,
-        0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0,
-        0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-        1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1
-    ];
-    // 0x97caedc57dcfc2ae625d68b894a8a814d7be09e29aa5321eebada2423410d9d0
-
-    var MAINNET[256] = [
-        0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0,
-        0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1,
-        1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1,
-        0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1,
-        1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0,
-        0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1,
-        0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1,
-        0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1,
-        1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0,
-        1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1,
-        1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1,
-        1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,
-        0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0,
-        1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0
-    ];
-    // 0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28
-
-    if (chainId == 421614) {
-        return ARBITRUM_SEPOLIA;
-    }
-
-    return MAINNET;
-}
-
-
-/*
- * Solidity implementation: https://github.com/Uniswap/permit2/blob/cc56ad0f3439c502c246fc5cfcc3db92bb8b7219/src/EIP712.sol#L38
- *
- * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
- */
-template HashTypedData(chainId) {
-    signal input {bit} permitDigest[256];
-    signal output {bit} typedPermitDigest[256];
-
-    // abi.encodePacked("0x1901", DOMAIN_SEPARATOR, permitDigest)
-    var BITS_PREFIX[2 * 8] = [1,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0];
-    var BITS_DOMAIN_SEPARATOR[32 * 8] = EIP712_DOMAIN_SEPARATOR(chainId);
-
-    var totalBits = (2 + 32 + 32) * 8;
-    signal {bit} encodedDigest[totalBits];
-
-    var bitIdx = 0;
-    for (var i = 0; i < 2 * 8; i++) {
-        encodedDigest[bitIdx] <== BITS_PREFIX[i];
-        bitIdx++;
-    }
-    for (var i = 0; i < 32 * 8; i++) {
-        encodedDigest[bitIdx] <== BITS_DOMAIN_SEPARATOR[i];
-        bitIdx++;
-    }
-    for (var i = 0; i < 32 * 8; i++) {
-        encodedDigest[bitIdx] <== permitDigest[i];
-        bitIdx++;
-    }
-    assert(bitIdx == totalBits);
-
-    // keccak256(encodedValue)
-    typedPermitDigest <== Keccak256(totalBits)(encodedDigest);
 }
