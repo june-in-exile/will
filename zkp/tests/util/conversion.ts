@@ -6,6 +6,7 @@ import {
   EcdsaPoint,
   ConcatedEcdsaPoint,
   Estate,
+  EcdsaSignature,
   TokenPermission,
   PermitTransferFrom,
   Uint256,
@@ -328,6 +329,13 @@ function flattenEstates(estates: Estate[]): bigint[] {
 }
 
 /**
+ * Flatten Estate for circom_tester
+ */
+function flattenEcdsaSignature(signature: EcdsaSignature): bigint[] {
+  return [...signature.r, ...signature.s, BigInt(signature.v)];
+}
+
+/**
  * Flatten TokenPermissions for circom_tester
  */
 function flattenTokenPermissions(
@@ -367,6 +375,7 @@ export {
   ecdsaPointToBigInts,
   hexToPoint,
   flattenEstates,
+  flattenEcdsaSignature,
   flattenTokenPermissions,
   flattenPermitTransferFrom,
 };
