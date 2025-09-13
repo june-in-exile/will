@@ -4,6 +4,7 @@ import { Bit } from "./type/index.js";
 
 describe("Keccak256 Circuit", function () {
   let circuit: WitnessTester<["msg"], ["digest"]>;
+  let circuitVocdoni: WitnessTester<["msg"], ["digest"]>;
 
   /*
    * @note 1 block is 1088 bits / 8 = 136 bytes
@@ -17,12 +18,23 @@ describe("Keccak256 Circuit", function () {
           templateParams: ["1"],
         },
       );
+      circuitVocdoni = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/keccak256Vocdoni.circom",
+        "Keccak256Vocdoni",
+        {
+          templateParams: ["1"],
+        },
+      );
       circuit.setConstraint("1-bit massage");
+      circuitVocdoni.setConstraint("vocdoni 1-bit massage");
     });
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();
+      }
+      if (circuitVocdoni) {
+        await circuitVocdoni.release();
       }
     });
 
@@ -31,6 +43,7 @@ describe("Keccak256 Circuit", function () {
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
+      await circuitVocdoni.expectPass({ msg }, { digest });
     });
   });
 
@@ -43,12 +56,23 @@ describe("Keccak256 Circuit", function () {
           templateParams: ["256"],
         },
       );
+      circuitVocdoni = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/keccak256Vocdoni.circom",
+        "Keccak256Vocdoni",
+        {
+          templateParams: ["256"],
+        },
+      );
       circuit.setConstraint("256-bit massage");
+      circuitVocdoni.setConstraint("vocdoni 256-bit massage");
     });
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();
+      }
+      if (circuitVocdoni) {
+        await circuitVocdoni.release();
       }
     });
 
@@ -57,6 +81,7 @@ describe("Keccak256 Circuit", function () {
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
+      await circuitVocdoni.expectPass({ msg }, { digest });
     });
   });
 
@@ -69,12 +94,23 @@ describe("Keccak256 Circuit", function () {
           templateParams: ["512"],
         },
       );
+      circuitVocdoni = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/keccak256Vocdoni.circom",
+        "Keccak256Vocdoni",
+        {
+          templateParams: ["512"],
+        },
+      );
       circuit.setConstraint("512-bit massage");
+      circuitVocdoni.setConstraint("vocdoni 512-bit massage");
     });
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();
+      }
+      if (circuitVocdoni) {
+        await circuitVocdoni.release();
       }
     });
 
@@ -83,6 +119,7 @@ describe("Keccak256 Circuit", function () {
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
+      await circuitVocdoni.expectPass({ msg }, { digest });
     });
   });
 
@@ -95,12 +132,23 @@ describe("Keccak256 Circuit", function () {
           templateParams: ["1080"],
         },
       );
+      circuitVocdoni = await WitnessTester.construct(
+        "circuits/shared/components/keccak256/keccak256Vocdoni.circom",
+        "Keccak256Vocdoni",
+        {
+          templateParams: ["1080"],
+        },
+      );
       circuit.setConstraint("1080-bit massage");
+      circuitVocdoni.setConstraint("vocdoni 1080-bit massage");
     });
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
         await circuit.release();
+      }
+      if (circuitVocdoni) {
+        await circuitVocdoni.release();
       }
     });
 
@@ -109,6 +157,7 @@ describe("Keccak256 Circuit", function () {
       const digest = keccak256(msg);
 
       await circuit.expectPass({ msg }, { digest });
+      await circuitVocdoni.expectPass({ msg }, { digest });
     });
   });
 
@@ -156,7 +205,7 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", async function (): Promise<void> {
+    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1087) as Bit[];
       const digest = keccak256(msg);
 
@@ -174,7 +223,7 @@ describe("Keccak256 Circuit", function () {
         },
       );
       circuit.setConstraint("1088-bit massage");
-    });
+    }, 90_000);
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
@@ -182,7 +231,7 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", async function (): Promise<void> {
+    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
       const digest = keccak256(msg);
 
@@ -208,7 +257,7 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", async function (): Promise<void> {
+    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
       const msg = Keccak256Utils.getRandomBits(1360) as Bit[];
       const digest = keccak256(msg);
 

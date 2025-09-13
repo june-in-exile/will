@@ -12,4 +12,3 @@ export * from "./permitVerify.js";
 export * from "./secp256k1.js";
 export * from "./sponge.js";
 export * from "./utf8.js";
-export * from "./vocdoniKeccak256.js";

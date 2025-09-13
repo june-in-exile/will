@@ -57,7 +57,8 @@
     "GcmEncrypt": {}
   },
   "keccak256": {
-    "Keccak256": {}
+    "Keccak256": {},
+    "Keccak256Vocdoni": {}
   },
   "keccakF1600": {
     "Theta": {},
@@ -87,6 +88,5 @@
     "Absorb": {},
     "Squeeze": {}
   },
-  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
-  "vocdoniKeccak256": { "VocdoniKeccak256": {} }
+  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
 }

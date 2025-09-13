@@ -10,7 +10,7 @@ include "../bits.circom";
  * Adds padding to message to make it a multiple of rate bits
  * 
  * @param msgBits - Message length in bits
- * @param rateBits - Rate in bits (1088 for Keccak256)
+ * @param rateBits - Rate (i.e., block size) in bits (1088 for Keccak256)
  */
 template Padding(msgBits, rateBits) {
     var numBlocks = ((msgBits + 2) - 1) \ rateBits + 1;

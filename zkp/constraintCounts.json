@@ -262,6 +262,12 @@
       "1087-bit massage": 230400,
       "1088-bit massage": 230400,
       "1360-bit massage": 230672
+    },
+    "Keccak256Vocdoni": {
+      "vocdoni 1-bit massage": 138170,
+      "vocdoni 256-bit massage": 150848,
+      "vocdoni 512-bit massage": 151424,
+      "vocdoni 1080-bit massage": 152560
     }
   },
   "keccakF1600": {
