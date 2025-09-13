@@ -421,7 +421,7 @@ describe("Mod2 Circuit", function () {
   describe("Modulo 2 Operations (Parity Check)", function (): void {
     beforeAll(async function (): Promise<void> {
       circuit = await WitnessTester.construct(
-        "circuits/shared/components/bits.circom",
+        "circuits/shared/components/arithmetic.circom",
         "Mod2",
       );
       circuit.setConstraint("modulo 2");

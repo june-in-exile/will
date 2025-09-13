@@ -1,0 +1,188 @@
+{
+  "abiEncoder": {
+    "AbiEncode": {}
+  },
+  "arithmetic": {
+    "Divide": {
+      "division": 1
+    },
+    "MultiplyTwoArray": {
+      "1-element array multiplication": 1,
+      "3-element array multiplication": 3,
+      "5-element array multiplication": 5,
+      "10-element array multiplication": 10
+    },
+    "Sum": {
+      "sum 3 elements": 0,
+      "sum 5 elements": 0,
+      "sum 10 elements": 0
+    },
+    "Mod2": {
+      "modulo 2": 1
+    }
+  },
+  "base64": {
+    "Base64Char": {},
+    "Base64CharExcludingPadding": {},
+    "Base64CharWithPaddingDetector": {},
+    "Base64GroupDecoder": {},
+    "Base64GroupDecoderWithoutPadding": {},
+    "Base64GroupDecoderWithPadding": {},
+    "Base64Decoder": {}
+  },
+  "bits": {
+    "Mask": {
+      "8-bit 0x0F mask": 24,
+      "16-bit 0x00FF mask": 48,
+      "32-bit 0x0000FFFF mask": 96
+    },
+    "ShiftRight": {
+      "8-bit 1-offset shift right": 8,
+      "8-bit 2-offset shift right": 8,
+      "8-bit 4-offset shift right": 8,
+      "16-bit 8-offset shift right": 16,
+      "32-bit 8-offset shift right": 32
+    },
+    "RotateLeft": {
+      "0-bit rotation in 64-bit": 0,
+      "1-bit rotation in 64-bit": 0,
+      "31-bit rotation in 64-bit": 0,
+      "63-bit rotation in 64-bit": 0
+    },
+    "BitwiseXor": {
+      "2x8-bit xor operation": 24,
+      "3x8-bit xor operation": 80,
+      "5x8-bit xor operation": 72,
+      "2x16-bit xor operation": 48,
+      "2x64-bit xor operation": 192,
+      "5x16-bit xor operation": 144,
+      "5x64-bit xor operation": 576,
+      "10x4-bit xor operation": 76,
+      "2x32-bit xor operation": 96,
+      "3x32-bit xor operation": 160
+    },
+    "ByteAdder": {
+      "byte adder": 34
+    },
+    "BytesToNum": {
+      "big-endian 2-byte to 16-bit conversion": 0,
+      "little-endian 2-byte to 16-bit conversion": 0,
+      "big-endian 16-byte to 128-bit conversion": 0,
+      "little-endian 16-byte to 128-bit conversion": 0
+    },
+    "NumToBytes": {
+      "big-endian 16-bit to 2-byte conversion": 0,
+      "little-endian 16-bit to 2-byte conversion": 0,
+      "big-endian 128-bit to 16-byte conversion": 0,
+      "little-endian 128-bit to 16-byte conversion": 0
+    },
+    "BytesToHex": {
+      "1-byte to 2-hex conversion": 0,
+      "8-byte to 16-hex conversion": 0
+    },
+    "HexToBytes": {
+      "2-hex to 1-byte conversion": 0,
+      "16-hex to 8-byte conversion": 0
+    },
+    "BytesToBits": {
+      "msb-first 16-byte to 128 bits conversion": 128,
+      "lsb-first 32-byte to 256 bits conversion": 256
+    },
+    "BitsToBytes": {
+      "msb-first 128 bits to 16-byte conversion": 0,
+      "lsb-first 256 bits to 32-byte conversion": 0
+    },
+    "BitwiseXorOptimized": {
+      "optimized 3x8-bit xor operation": 64,
+      "optimized 5x8-bit xor operation": 48,
+      "optimized 5x16-bit xor operation": 96,
+      "optimized 5x64-bit xor operation": 384,
+      "optimized 10x4-bit xor operation": 44,
+      "optimized 3x32-bit xor operation": 128
+    }
+  },
+  "counter": {
+    "ComputeJ0Standard": {},
+    "ComputeJ0NonStandard": {},
+    "IncrementCounter": {}
+  },
+  "ctrDecrypt": {
+    "CtrDecrypt": {}
+  },
+  "ctrEncrypt": {
+    "CtrEncrypt": {}
+  },
+  "deserialization": {
+    "Deserialize": {}
+  },
+  "ecdsa": {
+    "ECDSAPrivToPub": {},
+    "ECDSAVerifyNoPubkeyCheck": {}
+  },
+  "encryptBlock": {
+    "ExpandKey": {},
+    "SubWord": {},
+    "SubBytes": {},
+    "SubstituteBytes": {},
+    "ShiftRows": {},
+    "MixColumn": {},
+    "MixColumns": {},
+    "AddRoundKey": {},
+    "EncryptBlock": {}
+  },
+  "galoisField": {
+    "GF8Mul2": {},
+    "GF8Mul3": {},
+    "GF128Multiply": {},
+    "GHash": {}
+  },
+  "gcmDecrypt": {
+    "GcmDecrypt": {}
+  },
+  "gcmEncrypt": {
+    "GcmEncrypt": {}
+  },
+  "keccak256": {
+    "Keccak256": {},
+    "Keccak256Vocdoni": {}
+  },
+  "keccakF1600": {
+    "Theta": {},
+    "Rho": {},
+    "Pi": {},
+    "Chi": {},
+    "Iota": {},
+    "KeccakF1600": {}
+  },
+  "multiplier2": {
+    "Multiplier2": {}
+  },
+  "permitHash": {
+    "HashPermit": {}
+  },
+  "range": {
+    "InRange": {}
+  },
+  "secp256k1": {
+    "AddUnequalCubicConstraint": {},
+    "Secp256k1PointOnLine": {},
+    "Secp256k1PointOnTangent": {},
+    "Secp256k1PointOnCurve": {},
+    "Secp256k1AddUnequal": {},
+    "Secp256k1Double": {},
+    "Secp256k1ScalarMult": {}
+  },
+  "sponge": {
+    "Padding": {},
+    "Absorb": {},
+    "Squeeze": {}
+  },
+  "typedDataHash": {
+    "HashTypedData": {}
+  },
+  "utf8": {
+    "Utf8ByteLength": {},
+    "Utf8Encoder": {},
+    "Utf8StringEncoder": {}
+  }
+}

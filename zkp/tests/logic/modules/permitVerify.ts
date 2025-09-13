@@ -119,6 +119,11 @@ class Permit2 {
     testator: string,
   ): boolean {
     const { r, s, v } = this.decodeSignature(signature);
+    console.log("typedPermitDigest:", typedPermitDigest);
+    console.log("r:", r);
+    console.log("s:", s);
+    console.log("v:", v);
+
     const recoveredPublicKey = this.recoverPublicKey(
       typedPermitDigest,
       r,

@@ -292,9 +292,9 @@ template RecoverEcdsaPubkey(n, k) {
     assert(k >= 2);
     assert(k <= 100);
 
+    signal input msghash[k];
     signal input r[k];
     signal input s[k];
-    signal input msghash[k];
     signal input v;
 
     signal output pubkey[2][k];
