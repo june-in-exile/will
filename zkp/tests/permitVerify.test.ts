@@ -6,7 +6,7 @@ import {
 import { hashPermit, hashTypedData } from "./logic/index.js";
 import { Bit, Address, PermitTransferFrom } from "./type/index.js";
 
-describe("HashPermit Circuit", function () {
+describe("HashPermit Circuit", { timeout: 300_000 }, function () {
   let circuit: WitnessTester<["permit", "spender"], ["permitDigest"]>;
 
   describe("Hash Permit with 1 Estates", function (): void {

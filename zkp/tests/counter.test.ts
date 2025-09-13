@@ -100,7 +100,7 @@ describe("ComputeJ0NonStandard Circuit", function () {
   });
 
   describe("Varaible IV Lengths (Except for 12-Byte)", function () {
-    it("should correctly compute J0 for different IV lengths", async function (): Promise<void> {
+    it("should correctly compute J0 for different IV lengths", { timeout: 60_000 }, async function (): Promise<void> {
       const ivLengths = [1, 4, 7, 8, 15, 31, 32];
 
       for (const length of ivLengths) {

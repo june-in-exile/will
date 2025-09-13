@@ -30,7 +30,7 @@ describe("GcmDecrypt Circuits", function () {
           }
         });
 
-        it("should accept correct authTag", async function (): Promise<void> {
+        it("should accept correct authTag", { timeout: 15_000 }, async function (): Promise<void> {
           const ciphertext = [
             0x96, 0x9a, 0x3b, 0x49, 0x86, 0xc5, 0x48, 0x36, 0x6e, 0x36, 0xbf,
             0xa5, 0x71, 0xea, 0x8f, 0xbe,

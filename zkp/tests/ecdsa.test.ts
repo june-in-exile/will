@@ -37,7 +37,7 @@ describe("ECDSAPrivToPub Circuit", function () {
   });
 });
 
-describe("ECDSAVerifyNoPubkeyCheck Circuit", function () {
+describe("ECDSAVerifyNoPubkeyCheck Circuit", { timeout: 300_000 }, function () {
   let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
 
   describe("256-Bit Message Hash Signature Verification Without Checking Public Key", function (): void {

@@ -73,7 +73,7 @@ describe("GcmEncrypt Circuits", function () {
           }
         });
 
-        it("should work with custom test vector", async function (): Promise<void> {
+        it("should work with custom test vector", { timeout: 15_000 }, async function (): Promise<void> {
           const plaintext = [
             0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
             0x21,
@@ -159,7 +159,7 @@ describe("GcmEncrypt Circuits", function () {
           }
         });
 
-        it("should work with custom test vector with 1-block AAD", async function (): Promise<void> {
+        it("should work with custom test vector with 1-block AAD", { timeout: 15_000 }, async function (): Promise<void> {
           const plaintext = [
             0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09,
             0xc5, 0xaf, 0xf5, 0x26, 0x9a, 0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34,

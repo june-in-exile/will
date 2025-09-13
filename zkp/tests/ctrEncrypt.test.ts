@@ -163,7 +163,7 @@ describe("CtrEncrypt Circuits", function () {
         }
       });
 
-      it("should work with GCM standard test vectors", async function (): Promise<void> {
+      it("should work with CTR standard test vectors", async function (): Promise<void> {
         // NIST SP 800-38A F.5.1 CTR-AES128.Encrypt Block #1-#4
         const plaintext = [
           0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e,
@@ -278,7 +278,7 @@ describe("CtrEncrypt Circuits", function () {
         }
       });
 
-      it("should work with GCM standard test vectors", async function (): Promise<void> {
+      it("should work with CTR standard test vectors", { timeout: 15_000 }, async function (): Promise<void> {
         // NIST SP 800-38A F.5.3 CTR-AES192.Encrypt Block #1-#4
         const plaintext = [
           0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e,
@@ -377,7 +377,7 @@ describe("CtrEncrypt Circuits", function () {
         }
       });
 
-      it("should work with GCM standard test vectors", async function (): Promise<void> {
+      it("should work with CTR standard test vectors", { timeout: 15_000 }, async function (): Promise<void> {
         // NIST SP 800-38A F.5.5 CTR-AES256.Encrypt Block #1-#4
         const plaintext = [
           0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e,

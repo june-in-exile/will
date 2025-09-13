@@ -344,7 +344,7 @@ describe("Secp256k1Double Circuit", function () {
   });
 });
 
-describe("Secp256k1ScalarMult Circuit", function () {
+describe("Secp256k1ScalarMult Circuit", { timeout: 1200_000 }, function () {
   let circuit: WitnessTester<["scalar", "point"], ["out"]>;
 
   describe("Point Multiplication by Scalar on Secp256k1 Curve", function (): void {
