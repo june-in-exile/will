@@ -6,25 +6,6 @@ include "circomlib/circuits/gates.circom";
 include "arithmetic.circom";
 
 /**
-* @param in - The input number to check parity for
-* @return out - The result: 0 if even, 1 if odd
-* 
-* Example:
-*  signal parity <== Mod2()(7);   // Returns 1 (odd)
-*  signal parity <== Mod2()(8);   // Returns 0 (even)
-*/
-template Mod2() {
-    signal input in;
-    signal output {bit} out;
-    
-    signal quotient;
-    
-    (quotient, out) <== Divide()(in, 2);
-    
-    out * (out - 1) === 0;
-}
-
-/**
  * @param bits - The bit width of the input and mask
  * @param mask - The mask value to apply
  *

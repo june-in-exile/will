@@ -1,6 +1,6 @@
 {
   "abiEncoder": { "AbiEncode": {} },
-  "arithmetic": { "Divide": {}, "MultiplyTwoArray": {}, "Sum": {} },
+  "arithmetic": { "Divide": {}, "MultiplyTwoArray": {}, "Sum": {}, "Mod2": {} },
   "base64": {
     "Base64Char": {},
     "Base64CharExcludingPadding": {},
@@ -11,7 +11,6 @@
     "Base64Decoder": {}
   },
   "bits": {
-    "Mod2": {},
     "Mask": {},
     "ShiftRight": {},
     "RotateLeft": {},
