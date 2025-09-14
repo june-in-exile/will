@@ -1,7 +1,4 @@
-import {
-  byteToBit,
-  WitnessTester,
-} from "./util/index.js";
+import { byteToBit, WitnessTester } from "./util/index.js";
 import { hashTypedData } from "./logic/index.js";
 import { Bit } from "./type/index.js";
 

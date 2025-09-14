@@ -205,12 +205,16 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
-      const msg = Keccak256Utils.getRandomBits(1087) as Bit[];
-      const digest = keccak256(msg);
+    it(
+      "should calculate the correct hash",
+      { timeout: 15_000 },
+      async function (): Promise<void> {
+        const msg = Keccak256Utils.getRandomBits(1087) as Bit[];
+        const digest = keccak256(msg);
 
-      await circuit.expectPass({ msg }, { digest });
-    });
+        await circuit.expectPass({ msg }, { digest });
+      },
+    );
   });
 
   describe("Hash 1088 bits", function (): void {
@@ -231,12 +235,16 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
-      const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
-      const digest = keccak256(msg);
+    it(
+      "should calculate the correct hash",
+      { timeout: 15_000 },
+      async function (): Promise<void> {
+        const msg = Keccak256Utils.getRandomBits(1088) as Bit[];
+        const digest = keccak256(msg);
 
-      await circuit.expectPass({ msg }, { digest });
-    });
+        await circuit.expectPass({ msg }, { digest });
+      },
+    );
   });
 
   describe("Hash 1360 bits", function (): void {
@@ -257,11 +265,15 @@ describe("Keccak256 Circuit", function () {
       }
     });
 
-    it("should calculate the correct hash", { timeout: 15_000 }, async function (): Promise<void> {
-      const msg = Keccak256Utils.getRandomBits(1360) as Bit[];
-      const digest = keccak256(msg);
+    it(
+      "should calculate the correct hash",
+      { timeout: 15_000 },
+      async function (): Promise<void> {
+        const msg = Keccak256Utils.getRandomBits(1360) as Bit[];
+        const digest = keccak256(msg);
 
-      await circuit.expectPass({ msg }, { digest });
-    });
+        await circuit.expectPass({ msg }, { digest });
+      },
+    );
   });
 });

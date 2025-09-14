@@ -100,34 +100,38 @@ describe("ComputeJ0NonStandard Circuit", function () {
   });
 
   describe("Varaible IV Lengths (Except for 12-Byte)", function () {
-    it("should correctly compute J0 for different IV lengths", { timeout: 60_000 }, async function (): Promise<void> {
-      const ivLengths = [1, 4, 7, 8, 15, 31, 32];
+    it(
+      "should correctly compute J0 for different IV lengths",
+      { timeout: 60_000 },
+      async function (): Promise<void> {
+        const ivLengths = [1, 4, 7, 8, 15, 31, 32];
 
-      for (const length of ivLengths) {
-        const circuit = await WitnessTester.construct(
-          "circuits/shared/components/aesGcm/counter.circom",
-          "ComputeJ0NonStandard",
-          {
-            templateParams: [String(length)],
-          },
-        );
-        circuit.setConstraint(`j0 computation for ${length}-byte IV`);
-
-        for (let i = 0; i < 3; i++) {
-          const iv = Array.from(AESUtils.randomBytes(length)) as Byte[];
-          const hashKey = Array.from(AESUtils.randomBytes(16)) as Byte16;
-
-          await circuit.expectPass(
-            { iv, hashKey },
-            { j0: computeJ0NonStandard(iv, hashKey) },
+        for (const length of ivLengths) {
+          const circuit = await WitnessTester.construct(
+            "circuits/shared/components/aesGcm/counter.circom",
+            "ComputeJ0NonStandard",
+            {
+              templateParams: [String(length)],
+            },
           );
-        }
+          circuit.setConstraint(`j0 computation for ${length}-byte IV`);
 
-        if (circuit) {
-          await circuit.release();
+          for (let i = 0; i < 3; i++) {
+            const iv = Array.from(AESUtils.randomBytes(length)) as Byte[];
+            const hashKey = Array.from(AESUtils.randomBytes(16)) as Byte16;
+
+            await circuit.expectPass(
+              { iv, hashKey },
+              { j0: computeJ0NonStandard(iv, hashKey) },
+            );
+          }
+
+          if (circuit) {
+            await circuit.release();
+          }
         }
-      }
-    });
+      },
+    );
   });
 });
 

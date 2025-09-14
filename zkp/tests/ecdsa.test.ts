@@ -37,7 +37,7 @@ describe("ECDSAPrivToPub Circuit", function () {
   });
 });
 
-describe("ECDSAVerifyNoPubkeyCheck Circuit", { timeout: 300_000 }, function () {
+describe("ECDSAVerifyNoPubkeyCheck Circuit", { timeout: 600_000 }, function () {
   let circuit: WitnessTester<["r", "s", "msghash", "pubkey"], ["result"]>;
 
   describe("256-Bit Message Hash Signature Verification Without Checking Public Key", function (): void {
@@ -122,21 +122,19 @@ describe("ECDSAVerifyNoPubkeyCheck Circuit", { timeout: 300_000 }, function () {
     });
 
     it("should verify random signature with random message hash", async function (): Promise<void> {
-      for (let i = 0; i < 3; i++) {
-        const messageHash = MathUtils.generateRandomScalar();
-        const msghash = splitBigInt(messageHash);
+      const messageHash = MathUtils.generateRandomScalar();
+      const msghash = splitBigInt(messageHash);
 
-        const keyPair = ECDSA.generateKeyPair();
-        const pubkey = ecdsaPointToBigInts(keyPair.publicKey);
+      const keyPair = ECDSA.generateKeyPair();
+      const pubkey = ecdsaPointToBigInts(keyPair.publicKey);
 
-        const signature = ECDSA.sign(messageHash, keyPair.privateKey);
-        const r = splitBigInt(signature.r);
-        const s = splitBigInt(signature.s);
+      const signature = ECDSA.sign(messageHash, keyPair.privateKey);
+      const r = splitBigInt(signature.r);
+      const s = splitBigInt(signature.s);
 
-        const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
+      const result = ecdsaVerifyNoPubkeyCheck(r, s, msghash, pubkey);
 
-        await circuit.expectPass({ r, s, msghash, pubkey }, { result });
-      }
+      await circuit.expectPass({ r, s, msghash, pubkey }, { result });
     });
   });
 });

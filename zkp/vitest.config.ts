@@ -8,7 +8,7 @@ export default defineConfig({
     include: ["tests/**/*.{test,spec}.ts"],
     exclude: ["node_modules"],
     hookTimeout: 60_000, // 1 minute to compile circuit
-    testTimeout: 10_000,  // 10 seconds to calculate witness and verify
+    testTimeout: 10_000, // 10 seconds to calculate witness and verify
     slowTestThreshold: 5_000,
     setupFiles: ["./tests/config/setupFilesAfterEnv.ts"],
     globalSetup: ["./tests/config/globalSetup.ts"],

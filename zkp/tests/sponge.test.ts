@@ -187,12 +187,16 @@ describe("Absorb Circuit", function () {
       }
     });
 
-    it("should absorb two blocks and calculate the correct final state", { timeout: 30_000 }, async function (): Promise<void> {
-      const msg = Keccak256Utils.getRandomBits(2176) as Bit[];
-      const finalStateArray = absorb(msg);
+    it(
+      "should absorb two blocks and calculate the correct final state",
+      { timeout: 30_000 },
+      async function (): Promise<void> {
+        const msg = Keccak256Utils.getRandomBits(2176) as Bit[];
+        const finalStateArray = absorb(msg);
 
-      await circuit.expectPass({ msg }, { finalStateArray });
-    });
+        await circuit.expectPass({ msg }, { finalStateArray });
+      },
+    );
   });
 });
 

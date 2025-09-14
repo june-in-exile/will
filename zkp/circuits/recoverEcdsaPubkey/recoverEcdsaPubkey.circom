@@ -2,11 +2,11 @@ pragma circom 2.2.2;
 
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
-include "../ecdsa/ecdsa.circom";
-include "../ecdsa/bigint_func.circom";
-include "../ecdsa/secp256k1_func.circom";
-include "../arithmetic.circom";
-include "../bus.circom";
+include "../shared/components/ecdsa/ecdsa.circom";
+include "../shared/components/ecdsa/bigint_func.circom";
+include "../shared/components/ecdsa/secp256k1_func.circom";
+include "../shared/components/arithmetic.circom";
+include "../shared/components/bus.circom";
 
 // Add two big integers modulo p
 // a, b, p and result are all n bits k registers
@@ -266,29 +266,39 @@ function recover_pubkey(n, k, r, s, msghash, v) {
     
     // Step 3: Compute s * R
     var sR[2][100] = ec_mult(n, k, s, R, p);
+    // var sR[2][100];
+    // for (var i = 0; i < 2; i++) {
+    //     for (var j = 0; j < k; j++) {
+    //         sR[i][j] = 1;
+    //     }
+    // }
     
     // Step 4: Compute h * G (where h = msghash)
     var G[2][100] = get_secp256k1_generator(n, k);
-    var hG[2][100] = ec_mult(n, k, msghash, G, p);
+    // var hG[2][100] = ec_mult(n, k, msghash, G, p);
+    var hG[2][100];
+    for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < k; j++) {
+            hG[i][j] = 1;
+        }
+    }
     
     // Step 5: Compute s * R - h * G
     var neg_hG[2][100] = ec_negate(n, k, hG, p);
     var sR_minus_hG[2][100] = secp256k1_addunequal_func(n, k, sR[0], sR[1], neg_hG[0], neg_hG[1]);
     
     // Step 6: Compute recovered_pubkey = rinv * (s * R - h * G)
-    var recovered_pubkey[2][100] = ec_mult(n, k, rinv, sR_minus_hG, p);
+    // var recovered_pubkey[2][100] = ec_mult(n, k, rinv, sR_minus_hG, p);
+    var recovered_pubkey[2][100];
+    for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < k; j++) {
+            recovered_pubkey[i][j] = 1;
+        }
+    }
     
     return recovered_pubkey;
 }
 
-/*
- * Recovers public key using unconstrained computation + verification
- *
- * @param n: Number of bits in each registers
- * @param k: Number of registers
- *
- * e.g. For uint256, n = 64 and k = 4
- */
 template RecoverEcdsaPubkey(n, k) {
     assert(k >= 2);
     assert(k <= 100);
@@ -317,89 +327,73 @@ template RecoverEcdsaPubkey(n, k) {
     var p[100] = get_secp256k1_prime(n, k);
     var order[100] = get_secp256k1_order(n, k);
 
-    // Unconstrained public key recovery
-    var recovered_pubkey[2][100] = recover_pubkey(n, k, r, s, msghash, v);
-    
-    // Assign recovered pubkey to signals
+    // compute multiplicative inverse of r mod n
+    var rinv_comp[100] = mod_inv(n, k, r, order);
+    signal rinv[k];
+    component rinv_range_checks[k];
     for (var idx = 0; idx < k; idx++) {
-        pubkey[0][idx] <-- recovered_pubkey[0][idx];
-        pubkey[1][idx] <-- recovered_pubkey[1][idx];
+        rinv[idx] <-- rinv_comp[idx];
+        rinv_range_checks[idx] = Num2Bits(n);
+        rinv_range_checks[idx].in <== rinv[idx];
     }
-
-    // Range checks for pubkey coordinates
-    component pubkey_range_checks[2][k];
-    for (var coord = 0; coord < 2; coord++) {
-        for (var idx = 0; idx < k; idx++) {
-            pubkey_range_checks[coord][idx] = Num2Bits(n);
-            pubkey_range_checks[coord][idx].in <== pubkey[coord][idx];
+    component rinv_check = BigMultModP(n, k);
+    for (var idx = 0; idx < k; idx++) {
+        rinv_check.a[idx] <== rinv[idx];
+        rinv_check.b[idx] <== r[idx];
+        rinv_check.p[idx] <== order[idx];
+    }
+    for (var idx = 0; idx < k; idx++) {
+        if (idx > 0) {
+            rinv_check.out[idx] === 0;
+        }
+        if (idx == 0) {
+            rinv_check.out[idx] === 1;
         }
     }
 
-    // Verify the recovered pubkey using existing circuit
-    component verify = ECDSAVerifyNoPubkeyCheck(n, k);
+    // Recover R point from r coordinate and recovery_id (unconstraint)
+    var recovery_id = v - 27; // Convert v to recovery_id (0 or 1)
+    var R[2][100] = recover_R_point(n, k, r, recovery_id, p);
+    
+    // Compute s * R
+    component s_mult_R = ECDSAPrivToPub(n, k);
     for (var idx = 0; idx < k; idx++) {
-        verify.r[idx] <== r[idx];
-        verify.s[idx] <== s[idx];
-        verify.msghash[idx] <== msghash[idx];
-        verify.pubkey[0][idx] <== pubkey[0][idx];
-        verify.pubkey[1][idx] <== pubkey[1][idx];
+        s_mult_R.privkey[idx] <== s[idx];
+    }
+    
+    // Compute h * G (where h = msghash)
+    var G[2][100] = get_secp256k1_generator(n, k);
+    component h_mult_G = ECDSAPrivToPub(n, k);
+    for (var idx = 0; idx < k; idx++) {
+        h_mult_G.privkey[idx] <== msghash[idx];
     }
 
-    // Constraint - verification must succeed
-    verify.result === 1;
+    // Compute s * R - h * G
+    var neg_hG[2][100] = ec_negate(n, k, hG, p);
+    var sR_minus_hG[2][100] = secp256k1_addunequal_func(n, k, sR[0], sR[1], neg_hG[0], neg_hG[1]);
 
-    // Additional constraint for v uniqueness
-    // v should be 27 or 28, convert to recovery_id (0 or 1)
-    signal recovery_id <== v - 27;
-    
-    // Constrain recovery_id to be 0 or 1
-    component v_constraint = IsZero();
-    v_constraint.in <== recovery_id * (recovery_id - 1);
-    v_constraint.out === 1;
 
-    // Verify the pubkey corresponds to the correct recovery_id
-    // Check y coordinate parity using Mod2
-    component y_parity_check = Mod2();
-    y_parity_check.in <== pubkey[1][0]; // Check lowest register for parity
-    
-    // recovery_id should match y coordinate parity
-    y_parity_check.out === recovery_id;
-}
-
-template RecoverEcdsaPubkeyUnconstrainted(n, k) {
-    assert(k >= 2);
-    assert(k <= 100);
-
-    EcdsaSignature() input signature;
-    signal input {bit} digest[n * k];
-
-    signal output pubkey[2][k];
-
-    // Decode signature
-    signal {uint64} r[k] <== signature.r;
-    signal {uint64} s[k] <== signature.s;
-    signal {byte} v  <== signature.v;
-
-    // Convert msghash from bits to k n-bit registers
-    component bits2num[4];
-    var msghash[k];
-    for (var i = 0; i < k; i++) {
-        bits2num[i] = Bits2Num(64);
-        for (var j = 0; j < n; j++) {
-            bits2num[i].in[j] <== digest[i * n + j];
-        }
-        msghash[k - (i + 1)] = bits2num[i].out;
+    component sR_minus_hG = Secp256k1AddUnequal(n, k);
+    for (var idx = 0; idx < k; idx++) {
+        sR_minus_hG.a[0][idx] <== s_mult_R.pubkey[0][idx];
+        sR_minus_hG.a[1][idx] <== s_mult_R.pubkey[1][idx];
+        sR_minus_hG.b[0][idx] <== h_mult_G.pubkey[0][idx];
+        sR_minus_hG.b[1][idx] <== h_mult_G.pubkey[1][idx];
     }
 
-    var p[100] = get_secp256k1_prime(n, k);
-    var order[100] = get_secp256k1_order(n, k);
 
-    // Unconstrained public key recovery
-    var recovered_pubkey[2][100] = recover_pubkey(n, k, r, s, msghash, v);
-
+    var neg_hG[2][100] = ec_negate(n, k, hG, p);
+    var sR_minus_hG[2][100] = secp256k1_addunequal_func(n, k, sR[0], sR[1], neg_hG[0], neg_hG[1]);
+    
+    // Step 6: Compute recovered_pubkey = rinv * (s * R - h * G)
+    // var recovered_pubkey[2][100] = ec_mult(n, k, rinv, sR_minus_hG, p);
+    var recovered_pubkey[2][100];
     for (var i = 0; i < 2; i++) {
         for (var j = 0; j < k; j++) {
-            pubkey[i][j] <== recovered_pubkey[i][j];
+            recovered_pubkey[i][j] = 1;
         }
     }
+
+
+
 }

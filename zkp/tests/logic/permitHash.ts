@@ -1,12 +1,5 @@
-import {
-  Bit,
-  Address,
-  PermitTransferFrom,
-} from "../type/index.js";
-import {
-  hexToByte,
-  byteToBit,
-} from "../util/index.js";
+import { Bit, Address, PermitTransferFrom } from "../type/index.js";
+import { hexToByte, byteToBit } from "../util/index.js";
 import { Permit2 } from "./index.js";
 
 function hashPermit(permit: PermitTransferFrom, spender: Address): Bit[] {

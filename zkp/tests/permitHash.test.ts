@@ -1,7 +1,4 @@
-import {
-  flattenPermitTransferFrom,
-  WitnessTester,
-} from "./util/index.js";
+import { flattenPermitTransferFrom, WitnessTester } from "./util/index.js";
 import { hashPermit } from "./logic/index.js";
 import { Address, PermitTransferFrom } from "./type/index.js";
 

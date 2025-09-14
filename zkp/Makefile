@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-# CIRCUIT = encryptBlock
+CIRCUIT = recoverEcdsaPubkey
 CIRCUIT ?= multiplier2
 
-# TEMPLATE = ExpandKey
+TEMPLATE = RecoverEcdsaPubkeyUnconstrainted
 TEMPLATE ?= Multiplier2
 
 # Directory structure
@@ -85,19 +85,19 @@ trusted-setup-phase1:
 
 # Circuit operations
 circuit: compile witness trusted-setup-phase2 prove verify solidity generate-call
-	@echo "✅ Circuit $(CIRCUIT) setup completed!"
+	@echo "✅ Circuit $(TEMPLATE) setup completed!"
 
 untag:
 	@pnpm exec tsx ./tests/util/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
 	
 compile:
-	@echo "🔨 Compiling circuit: $(CIRCUIT)..."
+	@echo "🔨 Compiling circuit: $(TEMPLATE)..."
 	mkdir -p $(BUILD)
 	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --inspect --output $(BUILD)
-	@echo "✅ Circuit $(CIRCUIT) compiled successfully!"
+	@echo "✅ Circuit $(TEMPLATE) compiled successfully!"
 
 witness:
-	@echo "🧮 Generating witness for $(CIRCUIT)..."
+	@echo "🧮 Generating witness for $(TEMPLATE)..."
 	@if [ ! -f $(INPUTS)/example.json ]; then \
 		echo "❌ Input file not found."; \
 		exit 1; \
@@ -107,7 +107,7 @@ witness:
 	@echo "✅ Witness generated successfully!"
 
 trusted-setup-phase2:
-	@echo "🔑 Generating keys for $(CIRCUIT)..."
+	@echo "🔑 Generating keys for $(TEMPLATE)..."
 	mkdir -p $(KEYS)
 	@if [ ! -f $(PTAU_PATH) ]; then \
 		echo "❌ Powers of Tau not found."; \
@@ -119,7 +119,7 @@ trusted-setup-phase2:
 	@echo "✅ Keys generated successfully!"
 
 prove:
-	@echo "🔐 Generating proof for $(CIRCUIT)..."
+	@echo "🔐 Generating proof for $(TEMPLATE)..."
 	mkdir -p $(PROOFS)
 	@if [ ! -f $(BUILD)/witness.wtns ]; then \
 		echo "❌ Witness not found. Run 'make witness' first."; \
@@ -129,7 +129,7 @@ prove:
 	@echo "✅ Proof generated successfully!"
 
 verify:
-	@echo "✅ Verifying proof for $(CIRCUIT)..."
+	@echo "✅ Verifying proof for $(TEMPLATE)..."
 	@if [ ! -f $(PROOFS)/proof.json ]; then \
 		echo "❌ Proof not found. Run 'make prove' first."; \
 		exit 1; \
@@ -138,13 +138,13 @@ verify:
 	@echo "✅ Proof verification completed!"
 
 solidity:
-	@echo "📝 Generating Solidity verifier for $(CIRCUIT)..."
+	@echo "📝 Generating Solidity verifier for $(TEMPLATE)..."
 	mkdir -p $(CONTRACTS)
 	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(CONTRACTS)/verifier.sol
 	@echo "✅ Solidity verifier generated: $(CONTRACTS)/verifier.sol"
 
 generate-call:
-	@echo "📞 Generating Solidity call data for $(CIRCUIT)..."
+	@echo "📞 Generating Solidity call data for $(TEMPLATE)..."
 	@if [ ! -f $(PROOFS)/proof.json ]; then \
 		echo "❌ Proof not found. Run 'make prove' first."; \
 		exit 1; \

@@ -76,7 +76,11 @@ function wordToBuffer(words: Word[]): Buffer {
 /**
  * Convert hex string to bytes
  */
-function hexToByte(hex: string, numBytes?: number, bigEndian: boolean = true): Byte[] {
+function hexToByte(
+  hex: string,
+  numBytes?: number,
+  bigEndian: boolean = true,
+): Byte[] {
   const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
 
   if (cleanHex.length % 2 !== 0) {
@@ -124,13 +128,19 @@ function hexToByte(hex: string, numBytes?: number, bigEndian: boolean = true): B
  */
 function byteToHex(bytes: Byte[], bigEndian: boolean = true): string {
   const processedBytes = bigEndian ? bytes : bytes.slice().reverse();
-  return processedBytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return processedBytes
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**
  * Convert bigint to bytes (big-endian)
  */
-function bigIntToByte(val: bigint, numBytes?: number, bigEndian: boolean = true): Byte[] {
+function bigIntToByte(
+  val: bigint,
+  numBytes?: number,
+  bigEndian: boolean = true,
+): Byte[] {
   if (val < 0n) {
     throw new Error("BigInt value must be non-negative");
   }
@@ -162,7 +172,7 @@ function byteToBit(bytes: Byte[]): Bit[] {
   const bits: Bit[] = [];
 
   for (const byte of bytes) {
-    // Extract each bit from the byte 
+    // Extract each bit from the byte
     for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
       const bit = (byte >> bitIdx) & 1;
       bits.push(bit as Bit);
@@ -262,7 +272,7 @@ function splitBigInt(
  * @param concat - Concat the x_components, x_components in EcdsaPoint or keep them as bigint[]
  */
 function bigIntsToEcdsaPoint(
-  pubkey: bigint[][],
+  pubkey: Uint256[],
   concat: boolean = true,
 ): ConcatedEcdsaPoint | EcdsaPoint {
   if (pubkey.length !== 2) {
@@ -277,15 +287,15 @@ function bigIntsToEcdsaPoint(
 
   return concat
     ? ({
-      x: concatBigInts(x) as bigint,
-      y: concatBigInts(y) as bigint,
-      isInfinity: false,
-    } as ConcatedEcdsaPoint)
+        x: concatBigInts(x) as bigint,
+        y: concatBigInts(y) as bigint,
+        isInfinity: false,
+      } as ConcatedEcdsaPoint)
     : ({
-      x: x as Uint256,
-      y: y as Uint256,
-      isInfinity: false,
-    } as EcdsaPoint);
+        x: x as Uint256,
+        y: y as Uint256,
+        isInfinity: false,
+      } as EcdsaPoint);
 }
 
 /**
@@ -294,7 +304,7 @@ function bigIntsToEcdsaPoint(
  */
 function ecdsaPointToBigInts(
   point: ConcatedEcdsaPoint | EcdsaPoint,
-): bigint[][] {
+): Uint256[] {
   // ConcatedEcdsaPoint
   if (typeof point.x == "bigint" && typeof point.y == "bigint") {
     return [splitBigInt(point.x), splitBigInt(point.y)];

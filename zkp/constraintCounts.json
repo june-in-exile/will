@@ -22,9 +22,15 @@
     }
   },
   "base64": {
-    "Base64Char": {},
-    "Base64CharExcludingPadding": {},
-    "Base64CharWithPaddingDetector": {},
+    "Base64Char": {
+      "base64 character": 144
+    },
+    "Base64CharExcludingPadding": {
+      "base64 character excluding padding": 142
+    },
+    "Base64CharWithPaddingDetector": {
+      "base64 character with padding detector": 144
+    },
     "Base64GroupDecoder": {},
     "Base64GroupDecoderWithoutPadding": {},
     "Base64GroupDecoderWithPadding": {},
@@ -113,11 +119,17 @@
     "CtrEncrypt": {}
   },
   "deserialization": {
-    "Deserialize": {}
+    "Deserialize": {
+      "will deserialization": 1
+    }
   },
   "ecdsa": {
-    "ECDSAPrivToPub": {},
-    "ECDSAVerifyNoPubkeyCheck": {}
+    "ECDSAPrivToPub": {
+      "calculate ecdsa public key from private key": 95444
+    },
+    "ECDSAVerifyNoPubkeyCheck": {
+      "256-bit message hash signature verification w/o checking public key": 1508904
+    }
   },
   "encryptBlock": {
     "ExpandKey": {},
@@ -131,7 +143,9 @@
     "EncryptBlock": {}
   },
   "galoisField": {
-    "GF8Mul2": {},
+    "GF8Mul2": {
+      "GF(2^8) multiplication by 2": 59
+    },
     "GF8Mul3": {},
     "GF128Multiply": {},
     "GHash": {}
@@ -163,6 +177,9 @@
   "range": {
     "InRange": {}
   },
+  "recoverEcdsaPubkey": {
+    "RecoverEcdsaPubkey": {}
+  },
   "secp256k1": {
     "AddUnequalCubicConstraint": {},
     "Secp256k1PointOnLine": {},
@@ -170,7 +187,9 @@
     "Secp256k1PointOnCurve": {},
     "Secp256k1AddUnequal": {},
     "Secp256k1Double": {},
-    "Secp256k1ScalarMult": {}
+    "Secp256k1ScalarMult": {
+      "point multiplication by scalar on secp256k1 curve": 1399441
+    }
   },
   "sponge": {
     "Padding": {},
@@ -181,8 +200,15 @@
     "HashTypedData": {}
   },
   "utf8": {
-    "Utf8ByteLength": {},
+    "Utf8ByteLength": {
+      "utf8 length (in bytes) calculation": 135
+    },
     "Utf8Encoder": {},
     "Utf8StringEncoder": {}
+  },
+  "eth": {
+    "FlattenPubkey": {
+      "flatten public key in the foramt of 2 4*64-bit registers": 512
+    }
   }
 }
