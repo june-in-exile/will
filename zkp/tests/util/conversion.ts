@@ -161,7 +161,9 @@ function bigIntToByte(
  * Convert bytes to bigint (big-endian)
  */
 function byteToBigInt(bytes: Byte[], bigEndian: boolean = true): bigint {
+  console.debug("bytes:", bytes);
   const hex = byteToHex(bytes, bigEndian);
+  console.debug("hex:", hex);
   return BigInt("0x" + hex);
 }
 
@@ -287,15 +289,15 @@ function bigIntsToEcdsaPoint(
 
   return concat
     ? ({
-        x: concatBigInts(x) as bigint,
-        y: concatBigInts(y) as bigint,
-        isInfinity: false,
-      } as ConcatedEcdsaPoint)
+      x: concatBigInts(x) as bigint,
+      y: concatBigInts(y) as bigint,
+      isInfinity: false,
+    } as ConcatedEcdsaPoint)
     : ({
-        x: x as Uint256,
-        y: y as Uint256,
-        isInfinity: false,
-      } as EcdsaPoint);
+      x: x as Uint256,
+      y: y as Uint256,
+      isInfinity: false,
+    } as EcdsaPoint);
 }
 
 /**

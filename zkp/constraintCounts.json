@@ -209,6 +209,10 @@
   "eth": {
     "FlattenPubkey": {
       "flatten public key in the foramt of 2 4*64-bit registers": 512
+    },
+    "PubkeyToAddress": {
+      "convert ECDSA public key (in bits) to Ethereum address": 151424,
+      "convert 512-bit public key to Ethereum address": 151424
     }
   }
 }

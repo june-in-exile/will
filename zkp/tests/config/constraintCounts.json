@@ -43,6 +43,7 @@
     "AddRoundKey": {},
     "EncryptBlock": {}
   },
+  "eth": { "FlattenPubkey": {}, "PubkeyToAddress": {} },
   "galoisField": {
     "GF8Mul2": {},
     "GF8Mul3": {},

@@ -106,7 +106,7 @@ class Permit2 {
   static publicKeyToAddress(publicKey: { x: bigint; y: bigint }): string {
     const xHex = AbiEncoder.numberToPaddedHex(publicKey.x);
     const yHex = AbiEncoder.numberToPaddedHex(publicKey.y);
-
+    
     const publicKeyHash = Keccak256.hash("0x" + xHex + yHex);
     const signer = "0x" + publicKeyHash.slice(-40);
 
