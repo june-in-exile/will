@@ -76,7 +76,7 @@ function wordToBuffer(words: Word[]): Buffer {
 /**
  * Convert hex string to bytes
  */
-function hexToByte(hex: string, numBytes?: number): Byte[] {
+function hexToByte(hex: string, numBytes?: number, bigEndian: boolean = true): Byte[] {
   const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
 
   if (cleanHex.length % 2 !== 0) {
@@ -88,7 +88,12 @@ function hexToByte(hex: string, numBytes?: number): Byte[] {
     bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16);
   }
 
-  const result = bytes as Byte[];
+  let result = bytes as Byte[];
+
+  // Handle endianness
+  if (!bigEndian) {
+    result = result.reverse();
+  }
 
   if (numBytes) {
     if (result.length > numBytes) {
@@ -96,9 +101,18 @@ function hexToByte(hex: string, numBytes?: number): Byte[] {
         `Hex string requires ${result.length} bytes but only ${numBytes} bytes allowed`,
       );
     }
-    // Pad with zeros at the beginning if needed
+
+    // Pad with zeros
     const paddedBytes = new Array(numBytes).fill(0) as Byte[];
-    paddedBytes.splice(-result.length, result.length, ...result);
+
+    if (bigEndian) {
+      // Big-endian: pad at the beginning (left)
+      paddedBytes.splice(-result.length, result.length, ...result);
+    } else {
+      // Little-endian: pad at the end (right)
+      paddedBytes.splice(0, result.length, ...result);
+    }
+
     return paddedBytes;
   }
 
@@ -108,14 +122,15 @@ function hexToByte(hex: string, numBytes?: number): Byte[] {
 /**
  * Convert bytes to hex string
  */
-function byteToHex(bytes: Byte[]): string {
-  return bytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+function byteToHex(bytes: Byte[], bigEndian: boolean = true): string {
+  const processedBytes = bigEndian ? bytes : bytes.slice().reverse();
+  return processedBytes.map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /**
- * Convert bigint to bytes
+ * Convert bigint to bytes (big-endian)
  */
-function bigIntToByte(val: bigint, numBytes?: number): Byte[] {
+function bigIntToByte(val: bigint, numBytes?: number, bigEndian: boolean = true): Byte[] {
   if (val < 0n) {
     throw new Error("BigInt value must be non-negative");
   }
@@ -129,25 +144,25 @@ function bigIntToByte(val: bigint, numBytes?: number): Byte[] {
 
   const hex = val.toString(16);
   const paddedHex = hex.length % 2 === 0 ? hex : "0" + hex;
-  return hexToByte(paddedHex, numBytes);
+  return hexToByte(paddedHex, numBytes, bigEndian);
 }
 
 /**
- * Convert bytes to bigint
+ * Convert bytes to bigint (big-endian)
  */
-function byteToBigInt(bytes: Byte[]): bigint {
-  const hex = byteToHex(bytes);
+function byteToBigInt(bytes: Byte[], bigEndian: boolean = true): bigint {
+  const hex = byteToHex(bytes, bigEndian);
   return BigInt("0x" + hex);
 }
 
 /**
- * Convert bytes to bits array (each byte becomes 8 bits)
+ * Convert bytes to bits array (LSB first)
  */
 function byteToBit(bytes: Byte[]): Bit[] {
   const bits: Bit[] = [];
 
   for (const byte of bytes) {
-    // Extract each bit from the byte (LSB first)
+    // Extract each bit from the byte 
     for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
       const bit = (byte >> bitIdx) & 1;
       bits.push(bit as Bit);
@@ -158,7 +173,7 @@ function byteToBit(bytes: Byte[]): Bit[] {
 }
 
 /**
- * Convert bits array to bytes (every 8 bits becomes 1 byte)
+ * Convert bits array to bytes (LSB first)
  */
 function bitToByte(bits: Bit[]): Byte[] {
   if (bits.length % 8 !== 0) {
@@ -181,7 +196,7 @@ function bitToByte(bits: Bit[]): Byte[] {
   for (let byteIdx = 0; byteIdx < bits.length / 8; byteIdx++) {
     let byteValue = 0;
 
-    // Combine 8 bits into a byte (LSB first)
+    // Combine 8 bits into a byte
     for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
       const bit = bits[byteIdx * 8 + bitIdx];
       byteValue |= bit << bitIdx;
