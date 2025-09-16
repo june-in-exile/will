@@ -1,8 +1,8 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = recoverEcdsaPubkey
+CIRCUIT = pubkeyRecover
 CIRCUIT ?= multiplier2
 
-TEMPLATE = RecoverEcdsaPubkeyUnconstrainted
+TEMPLATE = RecoverEcdsaPubkey
 TEMPLATE ?= Multiplier2
 
 # Directory structure

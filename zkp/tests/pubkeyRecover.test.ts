@@ -91,7 +91,7 @@ describe("RecoverEcdsaPubkey Circuit", { timeout: 1200_000 }, function () {
   });
 });
 
-describe.only(
+describe(
   "RecoverEcdsaPubkeyUnconstrainted Circuit",
   { timeout: 1200_000 },
   function () {

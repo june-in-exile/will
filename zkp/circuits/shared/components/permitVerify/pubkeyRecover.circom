@@ -153,24 +153,6 @@ function ec_mult(n, k, scalar, point, p) {
     return result;
 }
 
-// Point negation
-function ec_negate(n, k, point, p) {
-    var result[2][100];
-    
-    // x coordinate stays the same
-    for (var i = 0; i < k; i++) {
-        result[0][i] = point[0][i];
-    }
-    
-    // y coordinate becomes -y mod p = p - y
-    var neg_y[100] = long_sub(n, k, p, point[1]);
-    for (var i = 0; i < k; i++) {
-        result[1][i] = neg_y[i];
-    }
-    
-    return result;
-}
-
 // Get secp256k1 generator point G
 function get_secp256k1_generator(n, k) {
     var G[2][100];
@@ -294,7 +276,7 @@ template RecoverEcdsaPubkey(n, k) {
     assert(k <= 100);
 
     EcdsaSignature() input signature;
-    signal input {bit} digest[n * k];
+    signal input {bit} bitsMsghash[n * k];
 
     signal output pubkey[2][k];
 
@@ -309,9 +291,9 @@ template RecoverEcdsaPubkey(n, k) {
     for (var i = 0; i < k; i++) {
         bits2num[i] = Bits2Num(64);
         for (var j = 0; j < n; j++) {
-            bits2num[i].in[j] <== digest[i * n + j];
+            bits2num[i].in[j] <== bitsMsghash[i * n + j];
         }
-        msghash[k - (i + 1)] = bits2num[i].out;
+        msghash[i] = bits2num[i].out;
     }
 
     var p[100] = get_secp256k1_prime(n, k);
@@ -371,7 +353,7 @@ template RecoverEcdsaPubkeyUnconstrainted(n, k) {
     assert(k <= 100);
 
     EcdsaSignature() input signature;
-    signal input {bit} digest[n * k];
+    signal input {bit} bitsMsghash[n * k];
 
     signal output pubkey[2][k];
 
@@ -386,9 +368,9 @@ template RecoverEcdsaPubkeyUnconstrainted(n, k) {
     for (var i = 0; i < k; i++) {
         bits2num[i] = Bits2Num(64);
         for (var j = 0; j < n; j++) {
-            bits2num[i].in[j] <== digest[i * n + j];
+            bits2num[i].in[j] <== bitsMsghash[i * n + j];
         }
-        msghash[k - (i + 1)] = bits2num[i].out;
+        msghash[i] = bits2num[i].out;
     }
 
     var p[100] = get_secp256k1_prime(n, k);

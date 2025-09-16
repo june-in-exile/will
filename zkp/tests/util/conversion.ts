@@ -161,9 +161,7 @@ function bigIntToByte(
  * Convert bytes to bigint (big-endian)
  */
 function byteToBigInt(bytes: Byte[], bigEndian: boolean = true): bigint {
-  console.debug("bytes:", bytes);
   const hex = byteToHex(bytes, bigEndian);
-  console.debug("hex:", hex);
   return BigInt("0x" + hex);
 }
 

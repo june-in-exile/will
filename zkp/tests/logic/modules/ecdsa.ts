@@ -415,16 +415,16 @@ class ECDSAUtils {
    * Convert our signature format to ethers.js format
    * Note: This is incomplete as we need recovery ID (v)
    */
-  static ourSignatureToEthers(
-    signature: { r: bigint; s: bigint },
-    v: number = 27,
-  ): string {
-    const r = signature.r.toString(16).padStart(64, "0");
-    const s = signature.s.toString(16).padStart(64, "0");
-    const vHex = v.toString(16).padStart(2, "0");
+  // static ourSignatureToEthers(
+  //   signature: { r: bigint; s: bigint },
+  //   v: number = 27,
+  // ): string {
+  //   const r = signature.r.toString(16).padStart(64, "0");
+  //   const s = signature.s.toString(16).padStart(64, "0");
+  //   const vHex = v.toString(16).padStart(2, "0");
 
-    return "0x" + r + s + vHex;
-  }
+  //   return "0x" + r + s + vHex;
+  // }
 
   /**
    * Find the correct recovery ID for a signature
@@ -528,6 +528,9 @@ class ECDSAUtils {
         return null;
       }
 
+      // Calculate modular inverse of r: r^(-1)
+      const rInv = MathUtils.modInverse(r, CURVE.n);
+
       // Calculate recovery point R from r coordinate
       const x = r;
 
@@ -551,26 +554,19 @@ class ECDSAUtils {
         return null;
       }
 
-      // Calculate public key: Q = r^(-1) * (s * R - e * G)
-      const rInv = MathUtils.modInverse(r, CURVE.n);
+      // Calculate public key: Q = r^(-1) * (s * R - h * G)
       const sR = EllipticCurve.pointMultiply(s, R);
-      // const eG = this.pointMultiply(messageHash, {
-      //     x: CURVE.Gx,
-      //     y: CURVE.Gy,
-      //     isInfinity: false
-      // });
 
-      // Calculate s * R - e * G = s * R + (-e) * G
-      const negE = MathUtils.mod(-messageHash, CURVE.n);
-      const negEG = EllipticCurve.pointMultiply(negE, {
+      // Calculate s * R - h * G = s * R + (-h) * G
+      const negH = MathUtils.mod(-messageHash, CURVE.n);
+      const negHG = EllipticCurve.pointMultiply(negH, {
         x: CURVE.Gx,
         y: CURVE.Gy,
         isInfinity: false,
       });
 
-      const temp = EllipticCurve.pointAdd(sR, negEG);
-      const publicKey = EllipticCurve.pointMultiply(rInv, temp);
-
+      const sum = EllipticCurve.pointAdd(sR, negHG);
+      const publicKey = EllipticCurve.pointMultiply(rInv, sum);
       return publicKey;
     } catch {
       return null;

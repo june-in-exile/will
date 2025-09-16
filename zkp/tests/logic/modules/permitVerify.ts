@@ -1,6 +1,4 @@
-import { SigningKey } from "ethers";
-import { AbiEncoder, Keccak256 } from "../index.js";
-import { hexToPoint } from "../../util/index.js";
+import { AbiEncoder, Keccak256, ECDSAUtils } from "../index.js";
 import chalk from "chalk";
 
 class Permit2 {
@@ -86,27 +84,33 @@ class Permit2 {
   }
 
   static recoverPublicKey(
-    msgDigest: string,
+    msghash: string,
     r: bigint,
     s: bigint,
     v: number,
   ): { x: bigint; y: bigint } {
-    const signature =
-      "0x" +
-      (r.toString(16).padStart(64, "0") +
-        s.toString(16).padStart(64, "0") +
-        v.toString(16).padStart(2, "0"));
-    const recoveredPublicKey = SigningKey.recoverPublicKey(
-      msgDigest,
+    const messageHash = BigInt(msghash.startsWith('0x') ? msghash : '0x' + msghash);
+    const signature = {
+      r, s
+    };
+    const recoveryId = v - 27;
+
+    const recoveredPublicKey = ECDSAUtils.recoverPublicKey(
+      messageHash,
       signature,
-    );
-    return hexToPoint(recoveredPublicKey);
+      recoveryId,
+    )
+
+    if (!recoveredPublicKey) {
+      throw new Error("Failed to recover public key");
+    }
+    return { x: recoveredPublicKey.x, y: recoveredPublicKey.y };
   }
 
   static publicKeyToAddress(publicKey: { x: bigint; y: bigint }): string {
     const xHex = AbiEncoder.numberToPaddedHex(publicKey.x);
     const yHex = AbiEncoder.numberToPaddedHex(publicKey.y);
-    
+
     const publicKeyHash = Keccak256.hash("0x" + xHex + yHex);
     const signer = "0x" + publicKeyHash.slice(-40);
 

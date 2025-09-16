@@ -9,11 +9,11 @@ import { Permit2 } from "./index.js";
 
 function recoverPublicKey(
   signature: EcdsaSignature,
-  msghash: Bit[],
+  bitsMsghash: Bit[],
 ): Uint256[] {
-  const msghashHex = "0x" + byteToHex(bitToByte(msghash));
+  const msghash = "0x" + byteToHex(bitToByte(bitsMsghash), false);
   const recoveredPublicKey = Permit2.recoverPublicKey(
-    msghashHex,
+    msghash,
     concatBigInts(signature.r),
     concatBigInts(signature.s),
     signature.v,
