@@ -1,6 +1,6 @@
 # Web3 Will System
 
-A blockchain-based will management system that utilizes Permit2, CREATE2, Zero-Knowledge Proofs (ZKP), and IPFS to handle on-chain estates left by testators.
+A blockchain-based will management system that utilizes Permit2, CREATE2, Zero-Knowledge Proofs (ZKP), and IPFS to handle testators's on-chain inheritance.
 
 ## 🏗️ Project Architecture
 

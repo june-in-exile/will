@@ -396,3 +396,75 @@ check-balance-after:
 	@echo "\nExecutor's LINK:"
 	@$(MAKE) check-executor-link-balance
 	@echo "$(YELLOW)Expect: unchanged$(RESET)"
+
+
+# ------------------- Debugging -------------------
+
+# LATEST := $(shell cast block-number --rpc-url $(RPC_URL))
+# FROM := $(shell echo $$(($(LATEST) - 9)))
+# TO := $(LATEST)
+
+PERMIT := "([($(TOKEN0),$(AMOUNT0)),($(TOKEN1),$(AMOUNT1))],$(NONCE),$(DEADLINE))"
+
+deploy-debugger-to-forked-arb-sepolia:
+	forge script \
+		--broadcast \
+		--fork-url $(ANVIL_RPC_URL) \
+		--private-key $(MY_PRIVATE_KEY) \
+		script/PermitVerifier.s.sol:PermitVerifierScript
+
+# block:
+# 	cast block-number --rpc-url http://127.0.0.1:8545
+
+TOKEN_PERMISSIONS_TYPEHASH:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"_TOKEN_PERMISSIONS_TYPEHASH()(bytes32)"
+# 0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1
+
+PERMIT_BATCH_TRANSFER_FROM_TYPEHASH:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"_PERMIT_BATCH_TRANSFER_FROM_TYPEHASH()(bytes32)"
+# 0xfcf35f5ac6a2c28868dc44c302166470266239195f02b0ee408334829333b766
+
+HASHED_NAME:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"_HASHED_NAME()(bytes32)"
+# 0x9ac997416e8ff9d2ff6bebeb7149f65cdae5e32e2b90440b566bb3044041d36a
+
+TYPE_HASH:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"_TYPE_HASH()(bytes32)"
+# 0x8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a866
+
+# With Anvil, the block.chainid used in DOMAIN_SEPARATOR() is always 31337 no matter forking which chain
+getChainId:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"getChainId()(uint256)"
+
+DOMAIN_SEPARATOR:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"DOMAIN_SEPARATOR()(bytes32)"
+# 0x4d553c58ae79a6c4ba64f0e690a5d1cd2deff8c6b91cf38300e0f2b76f9ee346
+
+hashPermit:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"hashPermit(((address,uint256)[],uint256,uint256),address)(bytes32)" \
+		$(PERMIT) $(WILL)
+# PERMIT_DIGEST := 0x4eadcedffba99db39567da6212ac1ad9eb429fe5e6ce10d866140a6934aa84e1
+
+hashTypedData:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"hashTypedData(bytes32)(bytes32)" \
+		$(PERMIT_DIGEST)
+# TYPED_PERMIT_DIGEST := 0x3bbbc719c9f5bb11b342bbe24efe817e51f8be9ff221c9c39db36a021b25698d
+
+recoverSigner:
+	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"recoverSigner(bytes,bytes32)(address)" \
+		$(PERMIT2_SIGNATURE) $(TYPED_PERMIT_DIGEST)
+# SIGNER := 0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc
+
+verifyPermit:
+	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \
+		"verifyPermit(address,((address,uint256)[],uint256,uint256),address,bytes)()" \
+		$(TESTATOR) $(PERMIT) $(WILL) $(PERMIT2_SIGNATURE)
