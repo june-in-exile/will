@@ -7,9 +7,29 @@ include "../keccak256/keccak256.circom";
  *   - Mainnet: https://etherscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
  *   - Arbitrum Sepolia: https://sepolia.arbiscan.io/address/0x000000000022d473030f116ddee9f6b43ac78ba3#readContract#F1
  *
- * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614)
+ * @param chainId - Chain ID (Mainnet = 1, Arbitrum Sepolia = 421614, Anvil = 31337)
  */
 function EIP712_DOMAIN_SEPARATOR(chainId) {
+    var ANVIL[256] = [
+        1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+        0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0,
+        0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0,
+        0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1,
+        0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0,
+        0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1,
+        0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1,
+        1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1,
+        1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1,
+        0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1,
+        1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0,
+        1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+        0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1,
+        1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1,
+        1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0
+    ];
+    // 0x4d553c58ae79a6c4ba64f0e690a5d1cd2deff8c6b91cf38300e0f2b76f9ee346
+
     var ARBITRUM_SEPOLIA[256] = [
         1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1,
         1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1,
@@ -49,6 +69,10 @@ function EIP712_DOMAIN_SEPARATOR(chainId) {
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0
     ];
     // 0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28
+
+    if (chainId == 31337) {
+        return ANVIL;
+    }
 
     if (chainId == 421614) {
         return ARBITRUM_SEPOLIA;
