@@ -130,5 +130,4 @@ template Deserialize(bytesLength) {
 
     // process signature v
     signature.v <== serializedBytes[byteIdx];
-    (signature.v - 27) * (signature.v - 28) === 0;
 }
