@@ -6,6 +6,7 @@ include "../ecdsa/ecdsa.circom";
 include "../ecdsa/bigint_func.circom";
 include "../ecdsa/secp256k1_func.circom";
 include "../arithmetic.circom";
+include "../bits.circom";
 include "../bus.circom";
 
 // Add two big integers modulo p
@@ -105,12 +106,85 @@ function compute_sqrt_exponent(n, k, p) {
     }
 }
 
-// Elliptic curve scalar multiplication
+// Check if a point is the point at infinity (all coordinates are 0)
+function is_point_at_infinity(n, k, point) {
+    for (var i = 0; i < k; i++) {
+        if (point[0][i] != 0 || point[1][i] != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// Elliptic curve point addition with proper infinity handling
+function ec_add_with_infinity(n, k, point1, point2, p) {
+    var result[2][100];
+
+    // Check if either point is at infinity
+    var p1_is_inf = is_point_at_infinity(n, k, point1);
+    var p2_is_inf = is_point_at_infinity(n, k, point2);
+
+    if (p1_is_inf == 1) {
+        // point1 is infinity, return point2
+        for (var i = 0; i < k; i++) {
+            result[0][i] = point2[0][i];
+            result[1][i] = point2[1][i];
+        }
+        return result;
+    }
+
+    if (p2_is_inf == 1) {
+        // point2 is infinity, return point1
+        for (var i = 0; i < k; i++) {
+            result[0][i] = point1[0][i];
+            result[1][i] = point1[1][i];
+        }
+        return result;
+    }
+
+    // Check if points are equal (need point doubling)
+    var points_equal = 1;
+    for (var i = 0; i < k; i++) {
+        if (point1[0][i] != point2[0][i] || point1[1][i] != point2[1][i]) {
+            points_equal = 0;
+        }
+    }
+
+    if (points_equal == 1) {
+        // Point doubling case
+        result = secp256k1_double_func(n, k, point1[0], point1[1]);
+    } else {
+        // Check if points are inverses (x coordinates equal, y coordinates different)
+        var x_equal = 1;
+        for (var i = 0; i < k; i++) {
+            if (point1[0][i] != point2[0][i]) {
+                x_equal = 0;
+            }
+        }
+
+        if (x_equal == 1) {
+            // Points are inverses, result is point at infinity
+            for (var i = 0; i < k; i++) {
+                result[0][i] = 0;
+                result[1][i] = 0;
+            }
+        } else {
+            // General point addition
+            result = secp256k1_addunequal_func(n, k, point1[0], point1[1], point2[0], point2[1]);
+        }
+    }
+
+    return result;
+}
+
+// Elliptic curve scalar multiplication with proper infinity handling
 // Computes scalar * point using double-and-add method
 function ec_mult(n, k, scalar, point, p) {
-    var result[2][100];
-    var temp_point[2][100];
-    
+    assert(k <= 4);
+
+    var result[2][4];
+    var temp_point[2][4];
+
     // Initialize result as point at infinity (0,0)
     for (var i = 0; i < k; i++) {
         result[0][i] = 0;
@@ -118,44 +192,56 @@ function ec_mult(n, k, scalar, point, p) {
         temp_point[0][i] = point[0][i];
         temp_point[1][i] = point[1][i];
     }
-    
+
+    // Check if input point is at infinity
+    if (is_point_at_infinity(n, k, point) == 1) {
+        return result; // infinity * scalar = infinity
+    }
+
+    // Check if scalar is zero
+    var scalar_is_zero = 1;
+    for (var i = 0; i < k; i++) {
+        if (scalar[i] != 0) {
+            scalar_is_zero = 0;
+        }
+    }
+    if (scalar_is_zero == 1) {
+        return result; // 0 * point = infinity
+    }
+
     // Double-and-add algorithm
     for (var reg = 0; reg < k; reg++) {
         for (var bit = 0; bit < n; bit++) {
             // Check if bit is set
             var bit_set = (scalar[reg] >> bit) & 1;
-            
+
             if (bit_set == 1) {
-                // Check if result is point at infinity
-                var result_is_zero = 1;
+                // Add temp_point to result
+                var temp_result[2][4];
+                var add_result[2][100] = ec_add_with_infinity(n, k, result, temp_point, p);
                 for (var i = 0; i < k; i++) {
-                    if (result[0][i] != 0 || result[1][i] != 0) result_is_zero = 0;
-                }
-                
-                if (result_is_zero == 1) {
-                    // result = temp_point (copy point)
-                    for (var i = 0; i < k; i++) {
-                        result[0][i] = temp_point[0][i];
-                        result[1][i] = temp_point[1][i];
-                    }
-                } else {
-                    result = secp256k1_addunequal_func(n, k, result[0], result[1], temp_point[0], temp_point[1]);
+                    result[0][i] = add_result[0][i];
+                    result[1][i] = add_result[1][i];
                 }
             }
-            
+
             // Double temp_point for next iteration
             if (reg < k - 1 || bit < n - 1) {
-                temp_point = secp256k1_double_func(n, k, temp_point[0], temp_point[1]);
+                var double_result[2][100] = secp256k1_double_func(n, k, temp_point[0], temp_point[1]);
+                for (var i = 0; i < k; i++) {
+                    temp_point[0][i] = double_result[0][i];
+                    temp_point[1][i] = double_result[1][i];
+                }
             }
         }
     }
-    
+
     return result;
 }
 
 // Get secp256k1 generator point G
 function get_secp256k1_generator(n, k) {
-    var G[2][100];
+    var G[2][4];
     
     // secp256k1 generator point coordinates
     // Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
@@ -180,7 +266,7 @@ function get_secp256k1_generator(n, k) {
 
 // Recover R point from r coordinate and recovery_id
 function recover_R_point(n, k, r, recovery_id, p) {
-    var R_point[2][100];
+    var R_point[2][4];
     
     // Step 1: Compute y² = x³ + 7 mod p
     var x_squared[100] = prod_mod_p(n, k, r, r, p);
@@ -202,9 +288,9 @@ function recover_R_point(n, k, r, recovery_id, p) {
     
     // Step 3: Choose correct y based on recovery_id parity
     // recovery_id & 1 determines if we need the negated y
-    var need_negate = recovery_id % 2;
+    var y_parity = y[0] % 2;
     
-    if (need_negate == 1) {
+    if (y_parity != recovery_id) {
         // Compute -y mod p = p - y
         y = long_sub(n, k, p, y);
     }
@@ -241,25 +327,25 @@ function recover_pubkey(n, k, r, s, msghash, v) {
     
     // Step 1: Compute modular inverse of r mod order
     var rinv[100] = mod_inv(n, k, r, order);
-    
+
     // Step 2: Recover R point from r coordinate and recovery_id
     var recovery_id = v - 27; // Convert v to recovery_id (0 or 1)
-    var R[2][100] = recover_R_point(n, k, r, recovery_id, p);
+    var R[2][4] = recover_R_point(n, k, r, recovery_id, p);
     
     // Step 3: Compute s * R
-    var sR[2][100] = ec_mult(n, k, s, R, p);
-    
+    var sR[2][4] = ec_mult(n, k, s, R, p);
+
     // Step 4: Compute h * G (where h = msghash)
-    var G[2][100] = get_secp256k1_generator(n, k);
-    var hG[2][100] = ec_mult(n, k, msghash, G, p);
-    
+    var G[2][4] = get_secp256k1_generator(n, k);
+    var neg_h[100] = long_sub(n, k, order, msghash);
+    var neg_hG[2][4] = ec_mult(n, k, neg_h, G, p);
+      
     // Step 5: Compute s * R - h * G
-    var neg_hG[2][100] = ec_negate(n, k, hG, p);
     var sR_minus_hG[2][100] = secp256k1_addunequal_func(n, k, sR[0], sR[1], neg_hG[0], neg_hG[1]);
-    
+
     // Step 6: Compute recovered_pubkey = rinv * (s * R - h * G)
-    var recovered_pubkey[2][100] = ec_mult(n, k, rinv, sR_minus_hG, p);
-    
+    var recovered_pubkey[2][4] = ec_mult(n, k, rinv, sR_minus_hG, p);
+
     return recovered_pubkey;
 }
 
@@ -275,32 +361,46 @@ template RecoverEcdsaPubkey(n, k) {
     assert(k >= 2);
     assert(k <= 100);
 
-    EcdsaSignature() input signature;
     signal input {bit} bitsMsghash[n * k];
+    EcdsaSignature() input signature;
 
     signal output pubkey[2][k];
+
+    var numBytesPerReg = n \ 8;
+    var totalNumBytes = numBytesPerReg * k;
+
+    // Convert msghash from bits to k n-bit registers
+    component bits2bytes = BitsToBytes(totalNumBytes,1);
+    bits2bytes.bits <== bitsMsghash;
+
+    component bytes2num[k];
+    for (var i = 0; i < k; i++) {
+        bytes2num[i] = BytesToNum(numBytesPerReg,0);
+        for (var j = 0; j < n \ 8; j++) {
+            bytes2num[i].bytes[j] <== bits2bytes.bytes[i * numBytesPerReg + j];
+        }
+    }
+
+    signal msghash[k];
+    for (var i = 0; i < k; i++) {
+        msghash[i] <== bytes2num[k - (i + 1)].num;
+    }
 
     // Decode signature
     signal {uint64} r[k] <== signature.r;
     signal {uint64} s[k] <== signature.s;
     signal {byte} v  <== signature.v;
 
-    // Convert msghash from bits to k n-bit registers
-    component bits2num[4];
-    var msghash[k];
-    for (var i = 0; i < k; i++) {
-        bits2num[i] = Bits2Num(64);
-        for (var j = 0; j < n; j++) {
-            bits2num[i].in[j] <== bitsMsghash[i * n + j];
-        }
-        msghash[i] = bits2num[i].out;
-    }
-
-    var p[100] = get_secp256k1_prime(n, k);
-    var order[100] = get_secp256k1_order(n, k);
+    // v should be 27 or 28, convert to recovery_id (0 or 1)
+    signal {bit} recovery_id <== v - 27;
+    
+    // Constrain recovery_id to be 0 or 1
+    component v_constraint = IsZero();
+    v_constraint.in <== recovery_id * (recovery_id - 1);
+    v_constraint.out === 1;
 
     // Unconstrained public key recovery
-    var recovered_pubkey[2][100] = recover_pubkey(n, k, r, s, msghash, v);
+    var recovered_pubkey[2][4] = recover_pubkey(n, k, r, s, msghash, v);
     
     // Assign recovered pubkey to signals
     for (var idx = 0; idx < k; idx++) {
@@ -329,59 +429,4 @@ template RecoverEcdsaPubkey(n, k) {
 
     // Constraint - verification must succeed
     verify.result === 1;
-
-    // Additional constraint for v uniqueness
-    // v should be 27 or 28, convert to recovery_id (0 or 1)
-    signal recovery_id <== v - 27;
-    
-    // Constrain recovery_id to be 0 or 1
-    component v_constraint = IsZero();
-    v_constraint.in <== recovery_id * (recovery_id - 1);
-    v_constraint.out === 1;
-
-    // Verify the pubkey corresponds to the correct recovery_id
-    // Check y coordinate parity using Mod2
-    component y_parity_check = Mod2();
-    y_parity_check.in <== pubkey[1][0]; // Check lowest register for parity
-    
-    // recovery_id should match y coordinate parity
-    y_parity_check.out === recovery_id;
-}
-
-template RecoverEcdsaPubkeyUnconstrainted(n, k) {
-    assert(k >= 2);
-    assert(k <= 100);
-
-    EcdsaSignature() input signature;
-    signal input {bit} bitsMsghash[n * k];
-
-    signal output pubkey[2][k];
-
-    // Decode signature
-    signal {uint64} r[k] <== signature.r;
-    signal {uint64} s[k] <== signature.s;
-    signal {byte} v  <== signature.v;
-
-    // Convert msghash from bits to k n-bit registers
-    component bits2num[4];
-    var msghash[k];
-    for (var i = 0; i < k; i++) {
-        bits2num[i] = Bits2Num(64);
-        for (var j = 0; j < n; j++) {
-            bits2num[i].in[j] <== bitsMsghash[i * n + j];
-        }
-        msghash[i] = bits2num[i].out;
-    }
-
-    var p[100] = get_secp256k1_prime(n, k);
-    var order[100] = get_secp256k1_order(n, k);
-
-    // Unconstrained public key recovery
-    var recovered_pubkey[2][100] = recover_pubkey(n, k, r, s, msghash, v);
-
-    for (var i = 0; i < 2; i++) {
-        for (var j = 0; j < k; j++) {
-            pubkey[i][j] <== recovered_pubkey[i][j];
-        }
-    }
 }

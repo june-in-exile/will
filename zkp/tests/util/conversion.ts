@@ -8,7 +8,7 @@ import {
   Estate,
   EcdsaSignature,
   TokenPermission,
-  PermitTransferFrom,
+  PermitBatchTransferFrom,
   Uint256,
 } from "../type/index.js";
 import { assert } from "console";
@@ -375,7 +375,7 @@ function flattenTokenPermissions(
 /**
  * Flatten PermitTransferFrom for circom_tester
  */
-function flattenPermitTransferFrom(permit: PermitTransferFrom): bigint[] {
+function flattenPermitTransferFrom(permit: PermitBatchTransferFrom): bigint[] {
   return [
     ...permit.permitted.flatMap((p) => [p.token, p.amount]),
     permit.nonce,

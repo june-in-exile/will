@@ -37,7 +37,7 @@ bus TokenPermission() {
     signal amount;
 }
 
-bus PermitTransferFrom(numPermission) {
+bus PermitBatchTransferFrom(numPermission) {
     TokenPermission() permitted[numPermission];
     signal {uint128} nonce;
     signal {uint32} deadline;

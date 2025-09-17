@@ -1,6 +1,6 @@
 import { flattenPermitTransferFrom, WitnessTester } from "./util/index.js";
 import { hashPermit } from "./logic/index.js";
-import { Address, PermitTransferFrom } from "./type/index.js";
+import { Address, PermitBatchTransferFrom } from "./type/index.js";
 
 describe("HashPermit Circuit", { timeout: 300_000 }, function () {
   let circuit: WitnessTester<["permit", "spender"], ["permitDigest"]>;
@@ -24,7 +24,7 @@ describe("HashPermit Circuit", { timeout: 300_000 }, function () {
     });
 
     it("should produce the correct digest", async function (): Promise<void> {
-      const permit: PermitTransferFrom = {
+      const permit: PermitBatchTransferFrom = {
         permitted: [
           {
             token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
@@ -70,7 +70,7 @@ describe("HashPermit Circuit", { timeout: 300_000 }, function () {
     });
 
     it("should produce the correct digest", async function (): Promise<void> {
-      const permit: PermitTransferFrom = {
+      const permit: PermitBatchTransferFrom = {
         permitted: [
           {
             token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),

@@ -11,13 +11,14 @@ function recoverPublicKey(
   signature: EcdsaSignature,
   bitsMsghash: Bit[],
 ): Uint256[] {
-  const msghash = "0x" + byteToHex(bitToByte(bitsMsghash), false);
+  const msghash = "0x" + byteToHex(bitToByte(bitsMsghash));
   const recoveredPublicKey = Permit2.recoverPublicKey(
     msghash,
     concatBigInts(signature.r),
     concatBigInts(signature.s),
     signature.v,
   );
+  console.debug(recoveredPublicKey);
   return [splitBigInt(recoveredPublicKey.x), splitBigInt(recoveredPublicKey.y)];
 }
 

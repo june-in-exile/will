@@ -72,6 +72,9 @@
   "permitHash": {
     "HashPermit": {}
   },
+  "pubkeyRecover": {
+    "RecoverEcdsaPubkey": {}
+  },
   "range": { "InRange": {} },
   "secp256k1": {
     "AddUnequalCubicConstraint": {},

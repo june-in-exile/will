@@ -120,7 +120,7 @@
   },
   "deserialization": {
     "Deserialize": {
-      "will deserialization": 1
+      "will deserialization": 0
     }
   },
   "ecdsa": {
@@ -197,7 +197,11 @@
     "Squeeze": {}
   },
   "typedDataHash": {
-    "HashTypedData": {}
+    "HashTypedData": {
+      "anvil": 115200,
+      "arbitrum sepolia": 115200,
+      "mainnet": 115200
+    }
   },
   "utf8": {
     "Utf8ByteLength": {
@@ -213,6 +217,14 @@
     "PubkeyToAddress": {
       "convert ECDSA public key (in bits) to Ethereum address": 151424,
       "convert 512-bit public key to Ethereum address": 151424
+    }
+  },
+  "pubkeyRecover": {
+    "RecoverEcdsaPubkey": {
+      "recover public key from hash and signature": 1509415
+    },
+    "RecoverEcdsaPubkeyUnconstrainted": {
+      "recover public key from hash and signature (unconstrainted)": 1509416
     }
   }
 }

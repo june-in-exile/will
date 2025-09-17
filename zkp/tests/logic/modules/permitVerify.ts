@@ -1,4 +1,6 @@
-import { AbiEncoder, Keccak256, ECDSAUtils } from "../index.js";
+import { AbiEncoder } from "./abiEncoder.js";
+import { Keccak256 } from "./keccak256.js";
+import { ECDSAUtils } from "./ecdsa.js";
 import chalk from "chalk";
 
 class Permit2 {
@@ -16,7 +18,7 @@ class Permit2 {
 
   static readonly PERMIT2_ADDRESS = "0x000000000022d473030f116ddee9f6b43ac78ba3";
 
-  static DOMAIN_SEPARATOR(chainId: number = 31337): string {
+  static DOMAIN_SEPARATOR(chainId: number): string {
     // if (chainId === 31337) {
     //   DOMAIN_SEPARATOR =
     //     "0x4d553c58ae79a6c4ba64f0e690a5d1cd2deff8c6b91cf38300e0f2b76f9ee346";
@@ -72,8 +74,8 @@ class Permit2 {
     return Keccak256.hash(betchPermit);
   }
 
-  static hashTypedData(permitDigest: string): string {
-    const DOMAIN_SEPARATOR = this.DOMAIN_SEPARATOR();
+  static hashTypedData(permitDigest: string, chainId: number = 31337): string {
+    const DOMAIN_SEPARATOR = this.DOMAIN_SEPARATOR(chainId);
     const typedDigest = AbiEncoder.encode(
       ["bytes", "bytes32", "uint256"],
       ["0x1901", DOMAIN_SEPARATOR, BigInt(permitDigest)],
@@ -120,7 +122,8 @@ class Permit2 {
     if (!recoveredPublicKey) {
       throw new Error("Failed to recover public key");
     }
-    return { x: recoveredPublicKey.x, y: recoveredPublicKey.y };
+
+    return recoveredPublicKey;
   }
 
   static publicKeyToAddress(publicKey: { x: bigint; y: bigint }): string {
@@ -138,10 +141,6 @@ class Permit2 {
     typedPermitDigest: string,
   ): string {
     const { r, s, v } = this.decodeSignature(signature);
-    console.log("typedPermitDigest:", typedPermitDigest);
-    console.log("r:", r);
-    console.log("s:", s);
-    console.log("v:", v);
 
     const recoveredPublicKey = this.recoverPublicKey(
       typedPermitDigest,
@@ -149,6 +148,7 @@ class Permit2 {
       s,
       v,
     );
+
     const signer = this.publicKeyToAddress(recoveredPublicKey);
     return signer;
   }
@@ -198,11 +198,10 @@ class Permit2Verification {
             amount: 5000000n,
           },
         ],
-        will: "0x80515F00edB3D90891D6494b63a58Dc06543bEF0",
-        nonce: 139895343447235933714306105636108089805n,
-        deadline: 1788798363,
-        signature:
-          "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
+        will: "0xCfD7d00d14F04c021cB76647ACe8976580B83D54",
+        nonce: 307798376644172688526653206965886192621n,
+        deadline: 1789652776,
+        signature: "0xe2c3427d586d098f41d41f1a6c45dc61bc47bdf47ea0b74bbacee7e1fdaa8af873434b90e656c5332de72de6e9ede658973947bc497fa4edafd9789de84b38ef1b",
       },
       {
         testator: "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
@@ -216,10 +215,11 @@ class Permit2Verification {
             amount: 5000000n,
           },
         ],
-        will: "0xCfD7d00d14F04c021cB76647ACe8976580B83D54",
-        nonce: 307798376644172688526653206965886192621n,
-        deadline: 1789652776,
-        signature: "0xe2c3427d586d098f41d41f1a6c45dc61bc47bdf47ea0b74bbacee7e1fdaa8af873434b90e656c5332de72de6e9ede658973947bc497fa4edafd9789de84b38ef1b",
+        will: "0x80515F00edB3D90891D6494b63a58Dc06543bEF0",
+        nonce: 139895343447235933714306105636108089805n,
+        deadline: 1788798363,
+        signature:
+          "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
       }
     ]
 

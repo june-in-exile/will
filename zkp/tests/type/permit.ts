@@ -5,10 +5,10 @@ type TokenPermission = {
   amount: bigint;
 };
 
-type PermitTransferFrom = {
+type PermitBatchTransferFrom = {
   permitted: TokenPermission[];
   nonce: Nonce;
   deadline: Timestamp;
 };
 
-export type { TokenPermission, PermitTransferFrom };
+export type { TokenPermission, PermitBatchTransferFrom };

@@ -1,8 +1,8 @@
-import { Bit, Address, PermitTransferFrom } from "../type/index.js";
+import { Bit, Address, PermitBatchTransferFrom } from "../type/index.js";
 import { hexToByte, byteToBit } from "../util/index.js";
 import { Permit2 } from "./index.js";
 
-function hashPermit(permit: PermitTransferFrom, spender: Address): Bit[] {
+function hashPermit(permit: PermitBatchTransferFrom, spender: Address): Bit[] {
   const permitted = permit.permitted.map((tokenPermission) => ({
     token: "0x" + tokenPermission.token.toString(16),
     amount: tokenPermission.amount,
