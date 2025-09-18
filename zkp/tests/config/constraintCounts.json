@@ -72,6 +72,9 @@
   "permitHash": {
     "HashPermit": {}
   },
+  "permitVerify": {
+    "VerifyPermit": {}
+  },
   "pubkeyRecover": {
     "RecoverEcdsaPubkey": {}
   },

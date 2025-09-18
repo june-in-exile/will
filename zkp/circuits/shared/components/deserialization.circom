@@ -24,11 +24,11 @@ template Deserialize(bytesLength) {
     var perEstateLength = beneficiaryBytesLength + tokenBytesLength + amountBytesLength;
     assert (perEstateLength == 56 && totalEstatesLength % perEstateLength == 0);
 
-    var estateCount = totalEstatesLength \ perEstateLength;
+    var numEstates = totalEstatesLength \ perEstateLength;
 
     signal input {byte} serializedBytes[bytesLength];
     signal output {address} testator;       // 20-byte unsigned integer
-    output Estate() estates[estateCount];
+    output Estate() estates[numEstates];
     signal output {uint256} salt[4];        // 32-byte unsigned integer composed of 4 8-byte registers, little-endian
     signal output {address} will;           // 20-byte unsigned integer
     signal output {uint128} nonce;          // 16-byte unsigned integer
@@ -36,9 +36,9 @@ template Deserialize(bytesLength) {
     output EcdsaSignature() signature;
 
     signal {byte} testatorBytes[testatorBytesLength];
-    signal {byte} beneficiaryBytes[estateCount][beneficiaryBytesLength];
-    signal {byte} tokenBytes[estateCount][tokenBytesLength];
-    signal {byte} amountBytes[estateCount][amountBytesLength];
+    signal {byte} beneficiaryBytes[numEstates][beneficiaryBytesLength];
+    signal {byte} tokenBytes[numEstates][tokenBytesLength];
+    signal {byte} amountBytes[numEstates][amountBytesLength];
     signal {byte} saltBytes[4][saltBytesLength\4];
     signal {byte} willBytes[willBytesLength];
     signal {byte} nonceBytes[nonceBytesLength];
@@ -56,7 +56,7 @@ template Deserialize(bytesLength) {
     testator <== BytesToNum(testatorBytesLength, 0)(testatorBytes);
 
     // process estates
-    for (var estateIdx = 0; estateIdx < estateCount; estateIdx++) {
+    for (var estateIdx = 0; estateIdx < numEstates; estateIdx++) {
         // process beneficiary
         for (var i = 0; i < beneficiaryBytesLength; i++) {
             beneficiaryBytes[estateIdx][i] <== serializedBytes[byteIdx];

@@ -1,8 +1,11 @@
+/*
+ * This document comes from https://github.com/0xPARC/circom-ecdsa/blob/master/circuits/zk-identity/eth.circom
+ * , with only the source of the keccak256 circuit modified (keccak256-circom -> ../keccak256) to save constraints
+ */
 pragma circom 2.2.2;
 
 include "circomlib/circuits/bitify.circom";
-// include "../keccak256/keccak256.circom";
-include "../keccak256/keccak256Vocdoni.circom";
+include "../keccak256/keccak256.circom";
 
 /*
  * Possibly generalizable, but for now just flatten a single pubkey from k n-bit chunks to a * single bit array
@@ -51,8 +54,6 @@ template FlattenPubkey(numBits, k) {
 
 /*
  * Helper for verifying an eth address refers to the correct public key point
- *
- * NOTE: uses https://github.com/vocdoni/keccak256-circom, a highly experimental keccak256 implementation
  */
 template PubkeyToAddress() {
     // public key is (x, y) curve point. this is a 512-bit little-endian bitstring representation of y + 2**256 * x
@@ -63,16 +64,17 @@ template PubkeyToAddress() {
     // our representation is little-endian 512-bit bitstring
     // keccak template operates on bytestrings one byte at a time, starting with the biggest byte
     // but bytes are represented as little-endian 8-bit bitstrings
-    signal reverse[512];
+    signal {bit} reverse[512];
 
     for (var i = 0; i < 512; i++) {
       reverse[i] <== pubkeyBits[511-i];
     }
 
-    component keccak = Keccak(512, 256);
+    // component keccak = Keccak(512, 256);
+    component keccak = Keccak256(512);
     for (var i = 0; i < 512 / 8; i += 1) {
       for (var j = 0; j < 8; j++) {
-        keccak.in[8*i + j] <== reverse[8*i + (7-j)];
+        keccak.msg[8*i + j] <== reverse[8*i + (7-j)];
       }
     }
 
@@ -83,7 +85,7 @@ template PubkeyToAddress() {
     component bits2Num = Bits2Num(160);
     for (var i = 0; i < 20; i++) {
       for (var j = 0; j < 8; j++) {
-        bits2Num.in[8*i + j] <== keccak.out[256 - 8*(i+1) + j];
+        bits2Num.in[8*i + j] <== keccak.digest[256 - 8*(i+1) + j];
       }
     }
 
