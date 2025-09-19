@@ -13,6 +13,18 @@ import {
 } from "../type/index.js";
 import { assert } from "console";
 
+function base64ToBytes(base64: string): Byte[] {
+  // Decode base64 to binary string
+  const binary = atob(base64);
+
+  // Convert binary string to Uint8Array
+  const bytes: Byte[] = [];
+  for (let i = 0; i < binary.length; i++) {
+    bytes.push(Number(binary.charCodeAt(i)) as Byte);
+  }
+  return bytes;
+}
+
 /**
  * @param bytes - Byte array (length should be a multiple of 4)
  * @returns Word[]
@@ -384,6 +396,7 @@ function flattenPermitTransferFrom(permit: PermitBatchTransferFrom): bigint[] {
 }
 
 export {
+  base64ToBytes,
   byteToWord,
   wordToByte,
   bufferToWord,
