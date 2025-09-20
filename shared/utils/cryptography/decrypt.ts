@@ -1,5 +1,5 @@
 import { CRYPTO_CONFIG } from "@config";
-import { AES_256_GCM } from "@shared/constants/cryptography.js";
+import { AES_256_CTR, AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/cryptography.js";
 import type {
   DecryptionArgs,
   SupportedAlgorithm,
@@ -21,7 +21,7 @@ interface AuthenticatedDecipher extends Decipheriv {
 function parseArgs(): DecryptionArgs {
   const args = process.argv.slice(2);
   const parsed: Partial<DecryptionArgs> = {
-    algorithm: AES_256_GCM, // Default algorithm
+    algorithm: AES_256_CTR, // Default algorithm
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -81,7 +81,7 @@ function parseArgs(): DecryptionArgs {
   if (!parsed.ciphertext) missingParams.push("--ciphertext");
   if (!parsed.key) missingParams.push("--key");
   if (!parsed.iv) missingParams.push("--iv");
-  if (!parsed.authTag) missingParams.push("--authTag");
+  if ([AES_256_GCM, CHACHA20_POLY1305].includes(parsed.algorithm!) && !parsed.authTag) missingParams.push("--authTag");
 
   if (missingParams.length > 0) {
     throw new Error(
@@ -120,25 +120,25 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-      chalk.gray(
-        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-      ),
+    chalk.gray(
+      "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+    ),
   );
   console.log(
     chalk.cyan("  --ciphertext") +
-      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+    chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-      chalk.gray("          Base64-encoded decryption key [required]"),
+    chalk.gray("          Base64-encoded decryption key [required]"),
   );
   console.log(
     chalk.cyan("  --iv") +
-      chalk.gray("           Base64-encoded initialization vector [required]"),
+    chalk.gray("           Base64-encoded initialization vector [required]"),
   );
   console.log(
     chalk.cyan("  --authTag") +
-      chalk.gray("      Base64-encoded authentication tag [required]"),
+    chalk.gray("      Base64-encoded authentication tag [required]"),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -163,63 +163,70 @@ function validateDecryptionParams(
   ciphertext: Buffer,
   key: Buffer,
   iv: Buffer,
-  authTag: Buffer,
+  authTag?: Buffer,
 ): void {
-  // Validate algorithm
-  if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
-    throw new Error(
-      `Unsupported decryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
-    );
-  }
+  try {
+    // Validate algorithm
+    if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
+      throw new Error(
+        `Unsupported decryption algorithm: ${algorithm}. Supported: ${CRYPTO_CONFIG.supportedAlgorithms.join(", ")}`,
+      );
+    }
 
-  // Validate ciphertext
-  if (!Buffer.isBuffer(ciphertext)) {
-    throw new Error("Ciphertext must be a Buffer");
-  }
+    // Validate ciphertext
+    if (!Buffer.isBuffer(ciphertext)) {
+      throw new Error("Ciphertext must be a Buffer");
+    }
 
-  if (ciphertext.length === 0) {
-    throw new Error("Ciphertext cannot be empty");
-  }
+    if (ciphertext.length === 0) {
+      throw new Error("Ciphertext cannot be empty");
+    }
 
-  if (ciphertext.length > CRYPTO_CONFIG.maxPlaintextSize) {
-    throw new Error(
-      `Ciphertext too large: ${ciphertext.length} bytes (max: ${CRYPTO_CONFIG.maxPlaintextSize} bytes)`,
-    );
-  }
+    if (ciphertext.length > CRYPTO_CONFIG.maxPlaintextSize) {
+      throw new Error(
+        `Ciphertext too large: ${ciphertext.length} bytes (max: ${CRYPTO_CONFIG.maxPlaintextSize} bytes)`,
+      );
+    }
 
-  // Validate key
-  if (!Buffer.isBuffer(key)) {
-    throw new Error("Key must be a Buffer");
-  }
+    // Validate key
+    if (!Buffer.isBuffer(key)) {
+      throw new Error("Key must be a Buffer");
+    }
 
-  if (key.length !== CRYPTO_CONFIG.keySize) {
-    throw new Error(
-      `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${key.length} bytes`,
-    );
-  }
+    if (key.length !== CRYPTO_CONFIG.keySize) {
+      throw new Error(
+        `Invalid key size: expected ${CRYPTO_CONFIG.keySize} bytes, got ${key.length} bytes`,
+      );
+    }
 
-  // Validate IV
-  if (!Buffer.isBuffer(iv)) {
-    throw new Error("IV must be a Buffer");
-  }
+    // Validate IV
+    if (!Buffer.isBuffer(iv)) {
+      throw new Error("IV must be a Buffer");
+    }
 
-  const expectedIvSize = 12; // Both use 12 bytes for these algorithms
-  if (iv.length !== expectedIvSize) {
-    throw new Error(
-      `Invalid IV size for ${algorithm}: expected ${expectedIvSize} bytes, got ${iv.length} bytes`,
-    );
-  }
+    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(algorithm) ? 12 : 16;
+    if (iv.length !== expectedIVLength) {
+      throw new Error(
+        `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${iv.length} bytes`,
+      );
+    }
 
-  // Validate auth tag
-  if (!Buffer.isBuffer(authTag)) {
-    throw new Error("Auth tag must be a Buffer");
-  }
-
-  const expectedAuthTagSize = 16; // Both algorithms use 16-byte auth tags
-  if (authTag.length !== expectedAuthTagSize) {
-    throw new Error(
-      `Invalid auth tag size: expected ${expectedAuthTagSize} bytes, got ${authTag.length} bytes`,
-    );
+    // Validate auth tag
+    if ([AES_256_GCM, CHACHA20_POLY1305].includes(algorithm)) {
+      if (!authTag || !Buffer.isBuffer(authTag)) {
+        throw new Error("Auth tag must be a Buffer for authenticated algorithms");
+      }
+      const expectedAuthTagSize = 16; // 128 bits for GCM/Poly1305
+      if (authTag.length !== expectedAuthTagSize) {
+        throw new Error(
+          `Invalid auth tag size: expected ${expectedAuthTagSize} bytes, got ${authTag.length} bytes`,
+        );
+      }
+    }
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Decryption failed: ${errorMessage}`);
   }
 }
 
@@ -231,7 +238,7 @@ function decrypt(
   ciphertext: Buffer,
   key: Buffer,
   iv: Buffer,
-  authTag: Buffer,
+  authTag?: Buffer,
 ): Buffer {
   try {
     console.log(chalk.blue(`Decrypting with ${algorithm}...`));
@@ -247,9 +254,13 @@ function decrypt(
     ) as AuthenticatedDecipher;
 
     // Perform decryption
-    decipher.setAuthTag(authTag);
+    if ([AES_256_GCM, CHACHA20_POLY1305].includes(algorithm) && authTag) {
+      decipher.setAuthTag(authTag);
+    }
     let plaintext = decipher.update(ciphertext);
+    console.debug("Start concat");
     plaintext = Buffer.concat([plaintext, decipher.final()]);
+    console.debug("End concat");
 
     // Validate result
     if (plaintext.length === 0) {
@@ -261,23 +272,6 @@ function decrypt(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    // Enhanced error messages for common decryption failures
-    if (
-      errorMessage.includes("Unsupported state") ||
-      errorMessage.includes("auth")
-    ) {
-      throw new Error(
-        `Authentication failed - invalid auth tag or corrupted data: ${errorMessage}`,
-      );
-    }
-
-    if (
-      errorMessage.includes("Invalid key length") ||
-      errorMessage.includes("Invalid IV length")
-    ) {
-      throw new Error(`Crypto parameter error: ${errorMessage}`);
-    }
-
     throw new Error(`Decryption failed: ${errorMessage}`);
   }
 }
@@ -302,7 +296,7 @@ async function main(): Promise<void> {
     // Perform decryption
     console.log(chalk.blue("Performing decryption..."));
     const plaintextBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-    const plaintext = plaintextBuffer.toString(CRYPTO_CONFIG.plaintextEncoding);
+    const plaintext = plaintextBuffer.toString("utf8");
 
     // Display results
     console.log(chalk.green.bold("\n✅ Decryption completed successfully!\n"));
@@ -317,10 +311,12 @@ async function main(): Promise<void> {
       chalk.white(key.toString("base64")),
     );
     console.log(chalk.cyan("IV(base64):"), chalk.white(iv.toString("base64")));
-    console.log(
-      chalk.cyan("AuthTag(base64):"),
-      chalk.white(authTag.toString("base64")),
-    );
+    if (authTag) {
+      console.log(
+        chalk.cyan("AuthTag(base64):"),
+        chalk.white(authTag.toString("base64")),
+      );
+    }
     console.log();
     console.log(chalk.cyan("Plaintext:"), chalk.white(plaintext));
   } catch (error) {

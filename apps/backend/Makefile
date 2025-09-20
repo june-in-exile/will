@@ -91,18 +91,22 @@ keccak256:
 
 encrypt-data:
 	@pnpm exec tsx ../../shared/utils/cryptography/encrypt.ts	\
+		--algorithm aes-256-gcm \
 		--plaintext "Hello, World!"
 	@pnpm exec tsx ../../shared/utils/cryptography/encrypt.ts \
 		--algorithm chacha20-poly1305 \
 		--plaintext "Secret message"
 	@pnpm exec tsx ../../shared/utils/cryptography/encrypt.ts \
+		--algorithm aes-256-gcm \
 		--plaintext "Text" \
 		--key "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=" \
 		--iv "YjgZJzfIXjAYvwt/"
-# PgG52g==
+	@pnpm exec tsx ../../shared/utils/cryptography/encrypt.ts \
+		--plaintext "AES-256-CTR algorithm"
 
 decrypt-data:
 	@pnpm exec tsx ../../shared/utils/cryptography/decrypt.ts \
+		--algorithm aes-256-gcm \
 		--ciphertext "Gpom0+vuv9teKLYbPg==" \
 		--key "6jGDknBabkzOqplZpenhe9M/4iF2hotChGiVvOERQ7k=" \
 		--iv "lV8jzMw8l38VL+kA" \
@@ -116,11 +120,17 @@ decrypt-data:
 		--authTag "Yu1tQXI0/uqRxDIkSPwzrA=="
 # Secret message
 	@pnpm exec tsx ../../shared/utils/cryptography/decrypt.ts \
+		--algorithm aes-256-gcm \
 		--ciphertext "PgG52g==" \
 		--key "qmpEWRQQ+w1hp6xFYkoXFUHZA8Os71XTWxDZIdNAS7o=" \
 		--iv "YjgZJzfIXjAYvwt/" \
 		--authTag "u1NxL5uXKyM/8qbZiBtUvQ=="
 # Text
+	@pnpm exec tsx ../../shared/utils/cryptography/decrypt.ts \
+		--ciphertext "pHd5wodomsWb3bpRbVi6/8gUONBa" \
+		--key "NPu551h+p/8ZCJxFOE0ZMHQ9GKgONWTUWfFqbIj6vZ0=" \
+		--iv "wqoEnM5H2VDxfIcR7NsdAQ=="
+# AES-256-CTR algorithm
 
 cid-data:
 	@pnpm exec tsx src/offchain/ipfs/cid.ts \

@@ -45,10 +45,10 @@ async function processWillDecryption(
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
-    const decryptedWill: DecryptedWill = JSON.parse(
+    const decryptedWill: DecryptedWill = {
+      hex: 
       dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
-    );
-
+    }
     saveWill(WILL_TYPE.DECRYPTED, decryptedWill);
 
     console.log(

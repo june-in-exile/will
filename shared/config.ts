@@ -1,5 +1,6 @@
 import { UTF8, ASCII, BASE64, HEX } from "@shared/constants/encoding.js";
 import {
+  AES_256_CTR,
   AES_256_GCM,
   CHACHA20_POLY1305,
 } from "@shared/constants/cryptography.js";
@@ -76,7 +77,6 @@ interface CryptoConfig {
   algorithm: SupportedAlgorithm;
   keySize: number;
   ivSize: number;
-  authTagSize: number;
   maxPlaintextSize: number;
   maxCiphertextSize: number;
   plaintextEncoding: Encoding;
@@ -349,22 +349,21 @@ export const NETWORK_CONFIG: NetworkConfig = {
 // ================================
 export const CRYPTO_CONFIG: CryptoConfig = {
   // Supported algorithms
-  supportedAlgorithms: [AES_256_GCM, CHACHA20_POLY1305],
+  supportedAlgorithms: [AES_256_CTR, AES_256_GCM, CHACHA20_POLY1305],
 
   // Current algorithm
-  algorithm: AES_256_GCM,
+  algorithm: AES_256_CTR,
 
   // Key and IV sizes
   keySize: 32, // 256 bits
-  ivSize: 12, // 96 bits
-  authTagSize: 16, // 128 bits
+  ivSize: 16, // 128 bits
 
   // Security limits
   maxPlaintextSize: 10 * 1024 * 1024, // 10MB
   maxCiphertextSize: 10 * 1024 * 1024, // 10MB
 
   // Encodings
-  plaintextEncoding: "utf8",
+  plaintextEncoding: "hex",
   ciphertextEncoding: "base64",
 
   // File paths (relative to utils/cryptography/)

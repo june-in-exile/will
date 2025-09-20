@@ -2,7 +2,7 @@ import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
 import {
   Base64String,
   type EncryptionArgs,
-  type SignedWill,
+  type SerializedWill,
   type EncryptedWill,
 } from "@shared/types/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
@@ -25,9 +25,9 @@ interface ProcessResult extends EncryptedWill {
 function getEncryptionArgs(): EncryptionArgs {
   const algorithm = CRYPTO_CONFIG.algorithm;
 
-  const signedWill: SignedWill = readWill(WILL_TYPE.SERIALIZED);
+  const serializedWill: SerializedWill = readWill(WILL_TYPE.SERIALIZED);
   const plaintext = Buffer.from(
-    JSON.stringify(signedWill),
+    serializedWill.hex,
     CRYPTO_CONFIG.plaintextEncoding,
   );
   const key = generateKey();
@@ -43,13 +43,13 @@ async function processWillEncryption(): Promise<ProcessResult> {
   try {
     const { algorithm, plaintext: will, key, iv } = getEncryptionArgs();
 
-    const { ciphertext, authTag } = encrypt(algorithm, will, key, iv);
+    const result = encrypt(algorithm, will, key, iv);
 
     const encryptedWill: EncryptedWill = {
       algorithm: algorithm,
       iv: Base64String.fromBuffer(iv),
-      authTag: Base64String.fromBuffer(authTag),
-      ciphertext: Base64String.fromBuffer(ciphertext),
+      authTag: 'authTag' in result ? Base64String.fromBuffer(result.authTag) : Base64String.fromBuffer(Buffer.alloc(0)),
+      ciphertext: Base64String.fromBuffer(result.ciphertext),
       timestamp: Math.floor(Date.now() / 1000),
     };
 
