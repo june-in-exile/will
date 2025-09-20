@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
-    include: ["tests/**/*.{test,spec}.ts"],
+    include: ["tests/**/*.{test,spec}.ts", "tests/**/*.heavy.{test,spec}.ts"],
     exclude: ["node_modules"],
     hookTimeout: 60_000, // 1 minute to compile circuit
     testTimeout: 10_000, // 10 seconds to calculate witness and verify

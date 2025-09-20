@@ -3,14 +3,7 @@ pragma circom 2.2.2;
 include "bits.circom";
 include "bus.circom";
 
-/**
- * Deserialize circuit that converts serialized byte data into structured will components.
- * Takes serialized bytes containing testator address, estates (beneficiary, token, amount), 
- * salt, will address, nonce, deadline, and signature.
- *
- * @param bytesLength - the number of bytes in serialized input
- */
-template Deserialize(bytesLength) {
+function calNumEstates(bytesLength) {
     var testatorBytesLength = 20;
     var beneficiaryBytesLength = 20;
     var tokenBytesLength = 20;
@@ -26,6 +19,19 @@ template Deserialize(bytesLength) {
 
     var numEstates = totalEstatesLength \ perEstateLength;
 
+    return numEstates;
+}
+
+/**
+ * Deserialize circuit that converts serialized byte data into structured will components.
+ * Takes serialized bytes containing testator address, estates (beneficiary, token, amount), 
+ * salt, will address, nonce, deadline, and signature.
+ *
+ * @param bytesLength - the number of bytes in serialized input
+ */
+template Deserialize(bytesLength) {
+    var numEstates = calNumEstates(bytesLength);
+
     signal input {byte} serializedBytes[bytesLength];
     signal output {address} testator;       // 20-byte unsigned integer
     output Estate() estates[numEstates];
@@ -34,6 +40,16 @@ template Deserialize(bytesLength) {
     signal output {uint128} nonce;          // 16-byte unsigned integer
     signal output {uint32} deadline;        //  4-byte unsigned integer
     output EcdsaSignature() signature;
+
+    var testatorBytesLength = 20;
+    var beneficiaryBytesLength = 20;
+    var tokenBytesLength = 20;
+    var amountBytesLength = 16;
+    var saltBytesLength = 32;
+    var willBytesLength = 20;
+    var nonceBytesLength = 16;
+    var deadlineBytesLength = 4;
+    var signatureBytesLength = 65;
 
     signal {byte} testatorBytes[testatorBytesLength];
     signal {byte} beneficiaryBytes[numEstates][beneficiaryBytesLength];

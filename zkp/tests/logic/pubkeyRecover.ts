@@ -18,7 +18,6 @@ function recoverPublicKey(
     concatBigInts(signature.s),
     signature.v,
   );
-  console.debug(recoveredPublicKey);
   return [splitBigInt(recoveredPublicKey.x), splitBigInt(recoveredPublicKey.y)];
 }
 

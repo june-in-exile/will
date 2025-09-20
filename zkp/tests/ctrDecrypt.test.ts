@@ -9,7 +9,7 @@ describe("CtrDecrypt Circuits", function () {
     describe("64 Bytes (4 Block)", function () {
       beforeAll(async function (): Promise<void> {
         circuit = await WitnessTester.construct(
-          "circuits/shared/components/aesGcm/ctrEncrypt.circom",
+          "circuits/shared/components/aesGcm/ctrDecrypt.circom",
           "CtrDecrypt",
           {
             templateParams: ["256", "64"],

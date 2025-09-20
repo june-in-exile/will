@@ -73,7 +73,10 @@
     "HashPermit": {}
   },
   "permitVerify": {
-    "VerifyPermit": {}
+    "VerifyPermit": {
+      "permit with 1 estate": 2202599,
+      "permit with 2 estates": 2318311
+    }
   },
   "pubkeyRecover": {
     "RecoverEcdsaPubkey": {}
@@ -96,5 +99,12 @@
   "typedDataHash": {
     "HashTypedData": {}
   },
-  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} }
+  "cidUpload": {
+    "UploadCid": {
+      "213-byte ciphertext": 3887244,
+      "269-byte ciphertext": 4364207
+    }
+  },
+  "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
+  "willCreation": { "createWill": {} }
 }

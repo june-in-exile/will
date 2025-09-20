@@ -26,17 +26,22 @@
 3. Test commands can be found in package.json:
 
    ```json
-   "test": "vitest run",
-   "test:watch": "vitest",
-   "test:abiEncoder": "pnpm exec tsx ./tests/logic/modules/abiEncoder.ts",
-   "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
-   "test:aesgcm": "pnpm exec tsx ./tests/logic/modules/aesGcm.ts",
-   "test:ecdsa": "pnpm exec tsx ./tests/logic/modules/ecdsa.ts",
-   "test:permitVerify": " pnpm exec tsx ./tests/logic/modules/permitVerify.ts",
-   "test:all": "pnpm exec tsx ./tests/logic/modules/runTests.ts && vitest run --reporter=basic",
+    "test": ...,
+    "test:light": ...,
+    "test:heavy": ...,
+    "test:circuits": ...,
+    "test:abiEncoder": ...,
+    "test:keccak256": ...,
+    "test:aesgcm": ...,
+    "test:ecdsa": ...,
+    "test:permitVerify": ...,
+    "test:modules": ...,
+    "test:all": ...,
    ```
 
-   - If you run all the tests at once (`pnpm test:all`), some of the tests might fail not due to issues about circuits but due to running out of memory. In that case you can run the failed tests independently (e.g., [ecdsa.test.ts](ecdsa.test.ts)).
+   - Tests of circuits are devided into heavy tests (with `.heavy` in suffix) and light tests. Heavy tests consume more momeries so the parameter `NODE_OPTIONS='--max-old-space-size=16384` prepends the vitest command. You can run all the circuits tests at once by `pnpm test:circuits`
+   - Tests of modules can be runned at once by `pnpm test:modules`.
+   - If you run all the tests at once (`pnpm test` or `pnpm test:all`), some of the tests might fail not due to issues about circuits but due to running out of memory. In that case you can run the failed tests independently: `pnpm test <test_file>.test.ts`.
 
 4. After running the tests, you can find the number of constrains for each circuit (template) in [../constrainCounts.json](../constrainCounts.json)
    - The order of the constrain counts can be rearranged [./config/constraintCounts.json](./config/constraintCounts.json)

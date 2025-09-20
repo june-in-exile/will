@@ -1,8 +1,10 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = pubkeyRecover
+# CIRCUIT = cidUpload
+# CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
-TEMPLATE = RecoverEcdsaPubkey
+# TEMPLATE = UploadCid
+# TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
 
 # Directory structure
