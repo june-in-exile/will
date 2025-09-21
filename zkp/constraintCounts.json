@@ -120,6 +120,12 @@
       "optimized 3x32-bit xor operation": 128
     }
   },
+  "cidUpload": {
+    "UploadCid": {
+      "213-byte ciphertext": 3887244,
+      "269-byte ciphertext": 4364207
+    }
+  },
   "counter": {
     "ComputeJ0Standard": {
       "j0 computation for standard IV (12 bytes)": 4
@@ -374,12 +380,6 @@
       "mainnet": 115200
     }
   },
-  "cidUpload": {
-    "UploadCid": {
-      "213-byte ciphertext": 3887244,
-      "269-byte ciphertext": 4364207
-    }
-  },
   "utf8": {
     "Utf8ByteLength": {
       "utf8 length (in bytes) calculation": 135
@@ -392,7 +392,16 @@
       "15-character utf8 string encoder": 15198
     }
   },
+  "permitVerify.manual": {
+    "VerifyPermit": {
+      "permit with 1 estate": 2202599,
+      "permit with 2 estates": 2318311
+    }
+  },
   "willCreation": {
-    "createWill": {}
+    "createWill": {
+      "213-byte ciphertext": 1684645,
+      "269-byte ciphertext": 2045896
+    }
   }
 }

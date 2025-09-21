@@ -99,4 +99,4 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
     createwillComponent.expectedEstates <== _expectedEstates;
 }
 
-component main = UntaggedCreateWill(256, 269);
+component main {public [ciphertext, iv, expectedTestator, expectedEstates]} = UntaggedCreateWill(256, 269);

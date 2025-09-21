@@ -7,7 +7,7 @@ import {
 import { EcdsaSignature, Estate, Nonce, Timestamp } from "./type/index.js";
 import { Permit2 } from "./logic/index.js";
 
-describe("Show VerifyPermit Input", function (): void {
+describe.skip("Show VerifyPermit Input", function (): void {
   it("prints input for permit verification circuit", async function (): Promise<void> {
     const signedWills = [
       {
@@ -244,7 +244,7 @@ describe("Show VerifyPermit Input", function (): void {
   });
 });
 
-describe.skip("VerifyPermit Circuit", function () {
+describe("VerifyPermit Circuit", function () {
   let circuit: WitnessTester<
     ["testator", "estates", "nonce", "deadline", "will", "signature"]
   >;
@@ -269,7 +269,7 @@ describe.skip("VerifyPermit Circuit", function () {
 
     it(
       "should accept the verification for valid permit",
-      { timeout: 30_000 },
+      { timeout: 60_000 },
       async function (): Promise<void> {
         const testCases = [
           {

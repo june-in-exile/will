@@ -4,8 +4,8 @@
   "description": "TypeScript testing framework for Circom circuit development",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
-    "test:auto": "vitest run --exclude '**/*.manual.test.ts'",
+    "test": "NODE_OPTIONS='--max-old-space-size=8192' vitest run",
+    "test:auto": "NODE_OPTIONS='--max-old-space-size=8192' vitest run --exclude '**/*.manual.test.ts'",
     "test:manual": "vitest run .manual.test.ts",
     "test:abiEncoder": "pnpm exec tsx ./tests/logic/modules/abiEncoder.ts",
     "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
