@@ -132,7 +132,7 @@ deploy-groth16verifier-to-arb-sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-uploadcidverifier-to-arb-sepolia:
 	@forge script \
@@ -174,7 +174,7 @@ deploy-willFactory-to-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
+deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-createwillverifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-arb-sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
@@ -196,7 +196,7 @@ deploy-groth16verifier-to-forked-arb-sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-uploadcidverifier-to-forked-arb-sepolia:
 	@forge script \
@@ -207,12 +207,12 @@ deploy-uploadcidverifier-to-forked-arb-sepolia:
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER UploadCidVerifier $(CHAIN_ID)
 
 deploy-createwillverifier-to-forked-arb-sepolia:
-	@forge script \
+	forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/CreateWillVerifier.s.sol:CreateWillVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER CreateWillVerifier $(CHAIN_ID)
+	pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER CreateWillVerifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -230,7 +230,7 @@ deploy-willFactory-to-forked-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
+deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-createwillverifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
