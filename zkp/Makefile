@@ -1,10 +1,10 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = willCreation
+# CIRCUIT = willCreation
 # CIRCUIT = cidUpload
 # CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CreateWill
+# TEMPLATE = CreateWill
 # TEMPLATE = UploadCid
 # TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
@@ -28,6 +28,7 @@ help:
 	@echo ""
 	@echo "⚗️  Circuit Operations (current: $(CIRCUIT)):"
 	@echo "  make circuit             - Complete circuit setup (compile + keys + verifier)"
+	@echo "  make circuit-no-proof    - Circuit setup without proof (compile + verifier)"
 	@echo "  make untag               - Untag template for current circuit"
 	@echo "  make compile             - Compile current circuit"
 	@echo "  make witness             - Generate witness for current circuit"
@@ -90,6 +91,9 @@ trusted-setup-phase1:
 # Circuit operations
 circuit: compile witness trusted-setup-phase2 prove verify solidity generate-call
 	@echo "✅ Circuit $(TEMPLATE) setup completed!"
+
+circuit-no-proof: compile trusted-setup-phase2 solidity
+	@echo "✅ Circuit $(TEMPLATE) setup without proof completed!"
 
 untag:
 	@pnpm exec tsx ./tests/util/untagTemplate.ts "$(DIR)/$(CIRCUIT).circom" "$(TEMPLATE)" "true"
