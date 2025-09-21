@@ -1,18 +1,5 @@
-/*
- * Generate ZK Proof for multiplier2
- *
- * input:
- *  - private: a, b
- *  - public: c (= a * b)
- *
- * output:
- *  - proof.json in @zkp/circuits/multiplier2/proofs/proof.json
- *  - public.json in @zkp/circuits/multiplier2/proofs/public.json
- *
- * The proof.json proves the c in public.json is equal the product of two secret numbers
- */
-
 import { PATHS_CONFIG } from "@config";
+import type { Groth16Proof, Multiplier2Input } from "@shared/types/index.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { writeFile, mkdir } from "fs/promises";
@@ -20,16 +7,6 @@ import { dirname } from "path";
 import chalk from "chalk";
 
 const execAsync = promisify(exec);
-
-interface Multiplier2Input {
-  a: number;
-  b: number;
-}
-
-interface Groth16Proof {
-  proof: object;
-  publicSignals: string[];
-}
 
 async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth16Proof> {
   const { a, b } = input;
@@ -43,7 +20,6 @@ async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth1
   const buildDir = `${circuitDir}/build`;
   const inputsDir = `${circuitDir}/inputs`;
   const keysDir = `${circuitDir}/keys`;
-  // const proofsDir = `${circuitDir}/proofs`;
 
   const wasmFile = `${buildDir}/${circuitName}_js/${circuitName}.wasm`;
   const zkeyFile = `${keysDir}/${circuitName}_0001.zkey`;
@@ -72,7 +48,6 @@ async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth1
     const proofContent = await import(proofFile, { assert: { type: "json" } });
     const publicContent = await import(publicFile, { assert: { type: "json" } });
 
-    console.log(chalk.green(`✅ Proof generation completed successfully`));
     console.log(chalk.cyan(`📁 Proof file: ${proofFile}`));
     console.log(chalk.cyan(`📁 Public signals file: ${publicFile}`));
     console.log(chalk.yellow(`🔍 Public output: ${publicContent.default[0]}`));
@@ -89,7 +64,7 @@ async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth1
   }
 }
 
-export async function main(): Promise<void> {
+async function main(): Promise<void> {
   try {
     console.log(
       chalk.cyan("\n=== Generating Multiplier2 Zero Knowledge Proof ===\n")
@@ -131,3 +106,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export { generateMultiplier2Proof };

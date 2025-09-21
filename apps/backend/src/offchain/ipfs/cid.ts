@@ -7,7 +7,7 @@ import chalk from "chalk";
 
 // Type definitions
 interface Args {
-  data?: any;
+  data?: unknown;
   path?: string;
 }
 
@@ -67,7 +67,7 @@ function parseArgs(): Args {
  * @returns Parsed JSON data from the file
  * @throws Error if file doesn't exist, can't be read, or contains invalid JSON
  */
-function readJsonFromFile(path: string): unknown {
+function readJsonFromFile(path: string) {
   try {
     // Check if file exists
     if (!fs.existsSync(path)) {
@@ -104,7 +104,7 @@ function readJsonFromFile(path: string): unknown {
  * @returns JSON data object (from CLI or file)
  * @throws Error if file operations fail or arguments are invalid
  */
-function getJsonData(): any {
+function getJsonData() {
   const { data, path } = parseArgs();
   if (data) {
     return data;
