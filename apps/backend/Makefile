@@ -28,7 +28,7 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit2 predict-address sign-permit2 serialize-will encrypt-will upload-will upload-cid
+phase1: approve-permit2 predict-address sign-permit2 serialize-will encrypt-will prove-permit upload-will upload-cid
 
 approve-permit2:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
@@ -36,14 +36,18 @@ approve-permit2:
 predict-address:
 	@pnpm exec tsx src/onchain/willFactory/predictWill.ts
 
-sign-permit2:
-	@pnpm exec tsx src/offchain/signature/permit2.ts
+sign-permit:
+	@pnpm exec tsx src/offchain/signature/permit.ts
 
 serialize-will:
 	@pnpm exec tsx src/offchain/serialization/serialize.ts
 
 encrypt-will:
 	@pnpm exec tsx src/offchain/cryptography/encryptWill.ts
+
+prove-permit:
+# 	@pnpm exec tsx src/offchain/zkp/permit.ts
+	@pnpm exec tsx src/offchain/zkp/multiplier2.ts
 
 upload-will:
 	@pnpm exec tsx src/offchain/ipfs/upload.ts
@@ -73,7 +77,10 @@ notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
-phase3: create-will signature-transfer
+phase3: prove-inclusion create-will signature-transfer
+
+prove-inclusion:
+	@pnpm exec tsx src/offchain/zkp/inclusion.ts
 
 create-will:
 	@pnpm exec tsx src/onchain/willFactory/createWill.ts

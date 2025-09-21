@@ -9,6 +9,6 @@
  *  - proof.json in @zkp/circuits/willCreation/proofs/proof.json
  *  - public.json in @zkp/circuits/willCreation/proofs/public.json
  * 
- * The proof.json proves the testator and estates come from ciphertext. All three parameters are revealed in public.json
+ * The proof.json proves the testator and estates are included in ciphertext. All three parameters are revealed in public.json
  * @apps/backend/src/onchain/willFactory/createWill.ts script will read and submit the proof on-chain
  */
