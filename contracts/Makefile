@@ -23,7 +23,7 @@ sync-anvil:
 	@pnpm exec tsx ../shared/utils/file/syncAnvil.ts
 
 sync-groth16verifier-and-proof:
-	@cd ../zkp && $(MAKE) circuit
+# 	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
 sync: sync-anvil sync-groth16verifier-and-proof

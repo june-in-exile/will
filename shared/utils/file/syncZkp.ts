@@ -34,19 +34,35 @@ async function copyVerifierContract(): Promise<void> {
   try {
     console.log(chalk.blue("Copying verifier contract..."));
 
-    const sourcePath = PATHS_CONFIG.zkp.multiplier2.verifier;
-    const destPath = PATHS_CONFIG.contracts.groth16Verifier;
+    const paths = [
+      {
+        name: "Groth16 verifier",
+        source: PATHS_CONFIG.zkp.multiplier2.verifier,
+        dest: PATHS_CONFIG.contracts.groth16Verifier,
+      },
+      // {
+      //   name: "UploadCid verifier",
+      //   source: PATHS_CONFIG.zkp.uploadCid.verifier,
+      //   dest: PATHS_CONFIG.contracts.uploadCidVerifier,
+      // },
+      {
+        name: "CreateWill verifier",
+        source: PATHS_CONFIG.zkp.createWill.verifier,
+        dest: PATHS_CONFIG.contracts.createWillVerifier,
+      }
+    ]
 
-    const destDir = dirname(destPath);
-    await mkdir(destDir, { recursive: true });
+    for (const { name, source, dest } of paths) {
+      await mkdir(dirname(dest), { recursive: true });
 
-    await copyFile(sourcePath, destPath);
+      await copyFile(source, dest);
 
-    console.log(
-      chalk.green(
-        `✅ Verifier contract copied from ${sourcePath} to ${destPath}`,
-      ),
-    );
+      console.log(
+        chalk.green(
+          `✅ ${name} contract copied from ${source} to ${dest}`,
+        ),
+      );
+    }
   } catch (error) {
     throw new Error(
       `Failed to copy verifier contract: ${error instanceof Error ? error.message : "Unknown error"}`,

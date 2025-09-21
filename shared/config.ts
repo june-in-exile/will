@@ -150,6 +150,8 @@ interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
   groth16Verifier: string;
+  uploadCidVerifier: string;
+  createWillVerifier: string;
   jsonCidVerifier: string;
   will: string;
   willFactory: string;
@@ -458,26 +460,26 @@ export const PATHS_CONFIG: PathsConfig = {
     uploadCid: {
       verifier: resolve(
         modulePath,
-        "../zkp/circuits/uploadCid/contracts/verifier.sol",
+        "../zkp/circuits/cidUpload/contracts/verifier.sol",
       ),
-      proof: resolve(modulePath, "../zkp/circuits/uploadCid/proofs/proof.json"),
+      proof: resolve(modulePath, "../zkp/circuits/cidUpload/proofs/proof.json"),
       public: resolve(
         modulePath,
-        "../zkp/circuits/uploadCid/proofs/public.json",
+        "../zkp/circuits/cidUpload/proofs/public.json",
       ),
     },
     createWill: {
       verifier: resolve(
         modulePath,
-        "../zkp/circuits/createWill/contracts/verifier.sol",
+        "../zkp/circuits/willCreation/contracts/verifier.sol",
       ),
       proof: resolve(
         modulePath,
-        "../zkp/circuits/createWill/proofs/proof.json",
+        "../zkp/circuits/willCreation/proofs/proof.json",
       ),
       public: resolve(
         modulePath,
-        "../zkp/circuits/createWill/proofs/public.json",
+        "../zkp/circuits/willCreation/proofs/public.json",
       ),
     },
     multiplier2: {
@@ -506,6 +508,14 @@ export const PATHS_CONFIG: PathsConfig = {
     groth16Verifier: resolve(
       modulePath,
       "../contracts/src/Groth16Verifier.sol",
+    ),
+    uploadCidVerifier: resolve(
+      modulePath,
+      "../contracts/src/UploadCidVerifier.sol",
+    ),
+    createWillVerifier: resolve(
+      modulePath,
+      "../contracts/src/CreateWillVerifier.sol",
     ),
     jsonCidVerifier: resolve(
       modulePath,
