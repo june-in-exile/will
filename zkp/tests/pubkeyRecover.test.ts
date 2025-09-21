@@ -47,7 +47,7 @@ describe("RecoverEcdsaPubkey Circuit", { timeout: 600_000 }, function () {
             v: 27,
           } as EcdsaSignature,
         },
-      ]
+      ];
       for (const { signature, bitsMsghash } of testCases) {
         const pubkey = recoverPublicKey(signature, bitsMsghash);
         await circuit.expectPass(
@@ -78,7 +78,7 @@ describe("RecoverEcdsaPubkey Circuit", { timeout: 600_000 }, function () {
             v: 28,
           } as EcdsaSignature,
         },
-      ]
+      ];
       for (const { signature, bitsMsghash } of testCases) {
         const pubkey = recoverPublicKey(signature, bitsMsghash);
         await circuit.expectPass(

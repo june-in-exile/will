@@ -4,19 +4,23 @@ import { ECDSAUtils } from "./ecdsa.js";
 import chalk from "chalk";
 
 class Permit2 {
-  static readonly TOKEN_PERMISSIONS_TYPEHASH = Keccak256.hash("TokenPermissions(address token,uint256 amount)");
+  static readonly TOKEN_PERMISSIONS_TYPEHASH = Keccak256.hash(
+    "TokenPermissions(address token,uint256 amount)",
+  );
   // "0x618358ac3db8dc274f0cd8829da7e234bd48cd73c4a740aede1adec9846d06a1";
   static readonly PERMIT_BATCH_TRANSFER_FROM_TYPEHASH = Keccak256.hash(
-    "PermitBatchTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"
+    "PermitBatchTransferFrom(TokenPermissions[] permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)",
   );
   // "0xfcf35f5ac6a2c28868dc44c302166470266239195f02b0ee408334829333b766";
-  static readonly TYPE_HASH =
-    Keccak256.hash("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
+  static readonly TYPE_HASH = Keccak256.hash(
+    "EIP712Domain(string name,uint256 chainId,address verifyingContract)",
+  );
   // 0x8cad95687ba82c2ce50e74f7b754645e5117c3a5bec8151c0726d5857980a866
   static readonly HASHED_NAME = Keccak256.hash("Permit2");
   // 0x9ac997416e8ff9d2ff6bebeb7149f65cdae5e32e2b90440b566bb3044041d36a
 
-  static readonly PERMIT2_ADDRESS = "0x000000000022d473030f116ddee9f6b43ac78ba3";
+  static readonly PERMIT2_ADDRESS =
+    "0x000000000022d473030f116ddee9f6b43ac78ba3";
 
   static DOMAIN_SEPARATOR(chainId: number): string {
     // if (chainId === 31337) {
@@ -31,7 +35,12 @@ class Permit2 {
     //   DOMAIN_SEPARATOR =
     //     "0x866a5aba21966af95d6c7ab78eb2b2fc913915c28be3b9aa07cc04ff903e3f28";
     // }
-    return Keccak256.hash(AbiEncoder.encode(["bytes32", "bytes32", "uint256", "address"], [this.TYPE_HASH, this.HASHED_NAME, chainId, this.PERMIT2_ADDRESS]));
+    return Keccak256.hash(
+      AbiEncoder.encode(
+        ["bytes32", "bytes32", "uint256", "address"],
+        [this.TYPE_HASH, this.HASHED_NAME, chainId, this.PERMIT2_ADDRESS],
+      ),
+    );
   }
 
   static hashPermit(
@@ -107,9 +116,12 @@ class Permit2 {
     s: bigint,
     v: number,
   ): { x: bigint; y: bigint } {
-    const messageHash = BigInt(msghash.startsWith('0x') ? msghash : '0x' + msghash);
+    const messageHash = BigInt(
+      msghash.startsWith("0x") ? msghash : "0x" + msghash,
+    );
     const signature = {
-      r, s
+      r,
+      s,
     };
     const recoveryId = v - 27;
 
@@ -117,7 +129,7 @@ class Permit2 {
       messageHash,
       signature,
       recoveryId,
-    )
+    );
 
     if (!recoveredPublicKey) {
       throw new Error("Failed to recover public key");
@@ -136,10 +148,7 @@ class Permit2 {
     return signer;
   }
 
-  static recoverSigner(
-    signature: string,
-    typedPermitDigest: string,
-  ): string {
+  static recoverSigner(signature: string, typedPermitDigest: string): string {
     const { r, s, v } = this.decodeSignature(signature);
 
     const recoveredPublicKey = this.recoverPublicKey(
@@ -175,7 +184,7 @@ class Permit2 {
     );
     const typedPermitDigest = this.hashTypedData(permitDigest);
     const signer = this.recoverSigner(signature, typedPermitDigest);
-    return (testator.toLowerCase() === signer.toLowerCase());
+    return testator.toLowerCase() === signer.toLowerCase();
   }
 }
 
@@ -201,7 +210,8 @@ class Permit2Verification {
         will: "0xCfD7d00d14F04c021cB76647ACe8976580B83D54",
         nonce: 307798376644172688526653206965886192621n,
         deadline: 1789652776,
-        signature: "0xe2c3427d586d098f41d41f1a6c45dc61bc47bdf47ea0b74bbacee7e1fdaa8af873434b90e656c5332de72de6e9ede658973947bc497fa4edafd9789de84b38ef1b",
+        signature:
+          "0xe2c3427d586d098f41d41f1a6c45dc61bc47bdf47ea0b74bbacee7e1fdaa8af873434b90e656c5332de72de6e9ede658973947bc497fa4edafd9789de84b38ef1b",
       },
       {
         testator: "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
@@ -220,10 +230,17 @@ class Permit2Verification {
         deadline: 1788798363,
         signature:
           "0x8792602093a4f8d68e2fa48bf50cd105c45f95f6a614ed3632737ee9c4ae75a2081cb24113bfec49fbf8e52236f132bc292a15f82e6f475cccf0e2846b26c8861c",
-      }
-    ]
+      },
+    ];
 
-    for (const { testator, permitted, will, nonce, deadline, signature } of testCases) {
+    for (const {
+      testator,
+      permitted,
+      will,
+      nonce,
+      deadline,
+      signature,
+    } of testCases) {
       const isValid = Permit2.verifyPermit(
         testator,
         permitted,

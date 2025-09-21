@@ -1,5 +1,11 @@
 import { Bit, Uint256, Address } from "../type/index.js";
-import { bigIntToByte, byteToBit, bitToByte, byteToBigInt, concatBigInts } from "../util/conversion.js";
+import {
+  bigIntToByte,
+  byteToBit,
+  bitToByte,
+  byteToBigInt,
+  concatBigInts,
+} from "../util/conversion.js";
 import { Permit2 } from "./index.js";
 
 function flattenPubkey(chunkedPubkey: Uint256[]): Bit[] {
@@ -40,8 +46,9 @@ function pubkeyToAddress(pubkeyBits: Bit[]): Address {
   }
   // Concat 4*64-bit bigint to get x, y coordinates
   const publicKey = {
-    x: concatBigInts(uint64Array.slice(4, 8)), y: concatBigInts(uint64Array.slice(0, 4))
-  }
+    x: concatBigInts(uint64Array.slice(4, 8)),
+    y: concatBigInts(uint64Array.slice(0, 4)),
+  };
   const address = Permit2.publicKeyToAddress(publicKey);
   return BigInt(address);
 }

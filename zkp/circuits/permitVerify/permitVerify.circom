@@ -97,4 +97,4 @@ template UntaggedVerifyPermit(numEstates) {
     verifypermitComponent.signature <== _signature;
 }
 
-component main = UntaggedVerifyPermit(1);
+component main = UntaggedVerifyPermit(2);

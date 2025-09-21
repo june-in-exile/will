@@ -23,6 +23,12 @@
     "BytesToBits": {},
     "BitsToBytes": {}
   },
+  "cidUpload": {
+    "UploadCid": {
+      "213-byte ciphertext": 3887244,
+      "269-byte ciphertext": 4364207
+    }
+  },
   "counter": {
     "ComputeJ0Standard": {},
     "ComputeJ0NonStandard": {},
@@ -99,12 +105,11 @@
   "typedDataHash": {
     "HashTypedData": {}
   },
-  "cidUpload": {
-    "UploadCid": {
-      "213-byte ciphertext": 3887244,
-      "269-byte ciphertext": 4364207
-    }
-  },
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
-  "willCreation": { "createWill": {} }
+  "willCreation": {
+    "createWill": {
+      "213-byte ciphertext": 1684645,
+      "269-byte ciphertext": 2045896
+    }
+  }
 }

@@ -28,12 +28,11 @@ template UploadCid(keyBits, ciphertextBytes) {
     var numEstates = calNumEstates(plaintextBytes);
     signal {address} testator;
     Estate() estates[numEstates];
-    signal {uint256} salt[4];
     signal {address} will;
     signal {uint128} nonce;
     signal {uint32} deadline;
     EcdsaSignature() signature;
-    (testator, estates, salt, will, nonce, deadline, signature) <== Deserialize(plaintextBytes)(plaintext);
+    (testator, estates, _, will, nonce, deadline, signature) <== Deserialize(plaintextBytes)(plaintext);
 
     // verification
     VerifyPermit(numEstates)(testator, estates, nonce, deadline, will, signature);

@@ -27,9 +27,8 @@
 
    ```json
     "test": ...,
-    "test:light": ...,
-    "test:heavy": ...,
-    "test:circuits": ...,
+    "test:auto": ...,
+    "test:manual": ...,
     "test:abiEncoder": ...,
     "test:keccak256": ...,
     "test:aesgcm": ...,
@@ -39,7 +38,13 @@
     "test:all": ...,
    ```
 
-   - Tests of circuits are devided into heavy tests (with `.heavy` in suffix) and light tests. Heavy tests consume more momeries so the parameter `NODE_OPTIONS='--max-old-space-size=16384` prepends the vitest command. You can run all the circuits tests at once by `pnpm test:circuits`
+   - Tests of circuits are devided into manual tests (with `.manual` in suffix) and automatic tests. Manual tests consume too much momeries for circom_tester to afford. To handle these situations, the `<filename>.manual.test.ts` only print inputs to the circuits and left the job of compilation to the devepoler.
+     - For example, to test `UploadCid` template in [../circuits/cidUpload/cidUpload.circom](../circuits/cidUpload/cidUpload.circom)
+       1. `pnpm test cidUpload.manual.test.ts`
+       2. Copy the inputs to [../circuits/cidUpload/inputs/example.json](../circuits/cidUpload/inputs/example.json)
+       3. Run the script in [../Makefile](../Makefile) to compile the circuit and generate the witness.
+          - Note: Some of the inputs are expected to "fail".
+   
    - Tests of modules can be runned at once by `pnpm test:modules`.
    - If you run all the tests at once (`pnpm test` or `pnpm test:all`), some of the tests might fail not due to issues about circuits but due to running out of memory. In that case you can run the failed tests independently: `pnpm test <test_file>.test.ts`.
 

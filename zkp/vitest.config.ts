@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   define: {
-    LOG_LEVEL: '"debug"', // error < warn < info < debug < log
+    LOG_LEVEL: '"log"', // error < warn < info < debug < log
     INCLUDE_LIB: ["circomlib", "keccak256-circom"],
     CIRCOM_TESTER_DEFAULTS: JSON.stringify({
       O: 2,
