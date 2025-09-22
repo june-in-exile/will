@@ -1,22 +1,22 @@
-import type { Groth16Proof, SignedWill, EncryptedWill } from "@shared/types/index.js";
+import type { Groth16Proof, DownloadedWill, DeserializedWill } from "@shared/types/index.js";
 import { generateZkpProof } from "./generator.js";
 import { WILL_TYPE } from "@shared/constants/index.js";
 import { readWill, getKey, base64ToBytes, flattenEstates } from "@shared/utils/index.js";
 import chalk from "chalk";
 
 async function generateInclusionProof(): Promise<Groth16Proof> {
-  const signedWill: SignedWill = readWill(WILL_TYPE.SIGNED);
-  const encryptedWill: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
+  const downloadedWill: DownloadedWill = readWill(WILL_TYPE.DOWNLOADED);
+  const deserializedWill: DeserializedWill = readWill(WILL_TYPE.DESERIALIZED);
   const key = getKey();
 
   return generateZkpProof({
     circuitName: "willCreation",
     input: {
-      ciphertext: base64ToBytes(encryptedWill.ciphertext),
+      ciphertext: base64ToBytes(downloadedWill.ciphertext),
       key: base64ToBytes(key.toString("base64")),
-      iv: base64ToBytes(encryptedWill.iv),
-      expectedTestator: BigInt(signedWill.testator).toString(),
-      expectedEstates: flattenEstates(signedWill.estates),
+      iv: base64ToBytes(downloadedWill.iv),
+      expectedTestator: BigInt(deserializedWill.testator).toString(),
+      expectedEstates: flattenEstates(deserializedWill.estates),
     }
   });
 }
