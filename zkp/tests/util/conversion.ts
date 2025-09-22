@@ -14,15 +14,8 @@ import {
 import { assert } from "console";
 
 function base64ToBytes(base64: string): Byte[] {
-  // Decode base64 to binary string
   const binary = atob(base64);
-
-  // Convert binary string to Uint8Array
-  const bytes: Byte[] = [];
-  for (let i = 0; i < binary.length; i++) {
-    bytes.push(Number(binary.charCodeAt(i)) as Byte);
-  }
-  return bytes;
+  return Array.from(binary, char => char.charCodeAt(0)) as Byte[];
 }
 
 /**
@@ -299,15 +292,15 @@ function bigIntsToEcdsaPoint(
 
   return concat
     ? ({
-        x: concatBigInts(x) as bigint,
-        y: concatBigInts(y) as bigint,
-        isInfinity: false,
-      } as ConcatedEcdsaPoint)
+      x: concatBigInts(x) as bigint,
+      y: concatBigInts(y) as bigint,
+      isInfinity: false,
+    } as ConcatedEcdsaPoint)
     : ({
-        x: x as Uint256,
-        y: y as Uint256,
-        isInfinity: false,
-      } as EcdsaPoint);
+      x: x as Uint256,
+      y: y as Uint256,
+      isInfinity: false,
+    } as EcdsaPoint);
 }
 
 /**

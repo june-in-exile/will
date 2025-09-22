@@ -1,26 +1,23 @@
-import type { Groth16Proof, Multiplier2Input } from "@shared/types/index.js";
-import { generateZkpProof, runZkpMain } from "./generator.js";
+import type { Groth16Proof } from "@shared/types/index.js";
+import { generateZkpProof } from "./generator.js";
 import chalk from "chalk";
 
-async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth16Proof> {
-  const { a, b } = input;
-  console.log(chalk.blue(`Input: a=${a}, b=${b}, expected c=${a * b}`));
-
+async function generateMultiplier2Proof(): Promise<Groth16Proof> {
   return generateZkpProof({
     circuitName: "multiplier2",
-    input,
+    input: {
+      a: Math.floor(Math.random() * 100),
+      b: Math.floor(Math.random() * 100)
+    },
   });
 }
 
 async function main(): Promise<void> {
-  await runZkpMain("Generating Multiplier2 Zero Knowledge Proof", async () => {
-    const input: Multiplier2Input = {
-      a: Math.floor(Math.random() * 100),
-      b: Math.floor(Math.random() * 100)
-    };
+  console.log(chalk.cyan(`\n=== Generating Multiplier2 Zero Knowledge Proof ===\n`));
 
-    await generateMultiplier2Proof(input);
-  });
+  await generateMultiplier2Proof();
+
+  console.log(chalk.green.bold("\n✅ Process completed successfully!"));
 }
 
 if (import.meta.url === new URL(process.argv[1], "file:").href) {

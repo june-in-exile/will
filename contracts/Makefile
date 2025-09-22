@@ -196,7 +196,7 @@ deploy-groth16verifier-to-forked-arb-sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-cidUploadVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -230,7 +230,6 @@ deploy-willFactory-to-forked-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-# deploy-willCreationVerifier-to-forked-arb-sepolia
 deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 

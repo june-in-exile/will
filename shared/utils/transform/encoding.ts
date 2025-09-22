@@ -1,3 +1,5 @@
+import { Estate } from "../../types/index.js";
+
 function uint8ArrayToHex(
   uint8Array: Uint8Array,
   addPrefix: boolean = true,
@@ -15,4 +17,17 @@ function uint8ArrayToHex(
   return addPrefix ? "0x" + finalHex : finalHex;
 }
 
-export { uint8ArrayToHex };
+function base64ToBytes(base64: string): number[] {
+  const binary = atob(base64);
+  return Array.from(binary, char => char.charCodeAt(0));
+}
+
+function flattenEstates(estates: Estate[]): string[] {
+  return estates.flatMap((estate) => [
+    BigInt(estate.beneficiary).toString(),
+    BigInt(estate.token).toString(),
+    estate.amount.toString(),
+  ]);
+}
+
+export { uint8ArrayToHex, base64ToBytes, flattenEstates };

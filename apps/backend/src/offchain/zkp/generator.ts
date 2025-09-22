@@ -27,6 +27,7 @@ async function generateZkpProof<T>(options: ZkpGeneratorOptions<T>): Promise<Gro
     await mkdir(dirname(files.input), { recursive: true });
     await mkdir(dirname(files.witness), { recursive: true });
 
+
     // Write input file
     await writeFile(files.input, JSON.stringify(input, null, 2));
     console.log(chalk.green(`✅ Input file created: ${files.input}`));
@@ -61,27 +62,4 @@ async function generateZkpProof<T>(options: ZkpGeneratorOptions<T>): Promise<Gro
   }
 }
 
-async function runZkpMain(
-  title: string,
-  generateProofFn: () => Promise<void>
-): Promise<void> {
-  try {
-    console.log(chalk.cyan(`\n=== ${title} ===\n`));
-
-    await generateProofFn();
-
-    console.log(chalk.green(`\n✅ Successfully generated proof.`));
-  } catch (error) {
-    console.error(
-      chalk.red.bold("\n❌ Program execution failed:"),
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    if (process.env.NODE_ENV === "development" && error instanceof Error) {
-      console.error(chalk.gray("Stack trace:"), error.stack);
-    }
-
-    process.exit(1);
-  }
-}
-
-export { generateZkpProof, runZkpMain };
+export { generateZkpProof };
