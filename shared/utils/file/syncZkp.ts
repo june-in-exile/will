@@ -4,7 +4,8 @@ import { readProof } from "@shared/utils/file/readProof.js";
 import { bigintArrayToEnvString } from "@shared/utils/transform/env.js";
 import { updateEnvVariable } from "./updateEnvVariable.js";
 import { mkdir, copyFile } from "fs/promises";
-import { dirname } from "path";
+import path from "path";
+import fs from 'fs';
 import chalk from "chalk";
 
 async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
@@ -30,39 +31,68 @@ async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
   }
 }
 
+function renameVerifier(filePath: string, newContractName: string): void {
+  const CONTRACT_NAME = "Groth16Verifier";
+  try {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found at ${filePath}`);
+    }
+
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+
+    const updatedContent = fileContent.replace(
+      /contract\s+Groth16Verifier/g,
+      `contract ${newContractName}`
+    );
+
+    if (fileContent === updatedContent) {
+      console.warn(chalk.yellow(`Warning: No "${CONTRACT_NAME}" contract found to replace in ${filePath}`));
+      return;
+    }
+
+    fs.writeFileSync(filePath, updatedContent, 'utf8');
+
+    console.log(chalk.green(`✅ Successfully renamed contract to "${newContractName}" in ${filePath}`));
+
+  } catch (error) {
+    throw new Error(
+      `Failed to update verifier contract name: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
+}
+
 async function copyVerifierContract(): Promise<void> {
   try {
     console.log(chalk.blue("Copying verifier contract..."));
 
     const paths = [
       {
-        name: "Groth16 verifier",
         source: PATHS_CONFIG.zkp.multiplier2.verifier,
-        dest: PATHS_CONFIG.contracts.groth16Verifier,
+        dest: PATHS_CONFIG.contracts.multiplier2Verifier,
       },
       {
-        name: "UploadCid verifier",
         source: PATHS_CONFIG.zkp.cidUpload.verifier,
         dest: PATHS_CONFIG.contracts.cidUploadVerifier,
       },
       {
-        name: "CreateWill verifier",
         source: PATHS_CONFIG.zkp.willCreation.verifier,
         dest: PATHS_CONFIG.contracts.willCreationVerifier,
       }
     ]
 
-    for (const { name, source, dest } of paths) {
-      await mkdir(dirname(dest), { recursive: true });
-
-      await copyFile(source, dest);
-
-      console.log(
-        chalk.green(
-          `✅ ${name} contract copied from ${source} to ${dest}`,
-        ),
-      );
-    }
+    await Promise.all(
+      paths.map(async (p) => {
+        await mkdir(path.dirname(p.dest), { recursive: true });
+        await copyFile(p.source, p.dest);
+        const verifierName = path.basename(p.dest, ".sol");
+        renameVerifier(p.dest, verifierName);
+        console.log(
+          chalk.green(
+            `✅ Verifier contract copied from ${p.source} to ${p.dest} and rename to ${verifierName}`,
+          ),
+        );
+      })
+    )
   } catch (error) {
     throw new Error(
       `Failed to copy verifier contract: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -70,7 +100,7 @@ async function copyVerifierContract(): Promise<void> {
   }
 }
 
-export async function main(): Promise<void> {
+async function main(): Promise<void> {
   try {
     console.log(
       chalk.cyan("\n=== Synchronizing Zero Knowledge Proof in .env file ===\n"),
@@ -107,3 +137,5 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     process.exit(1);
   });
 }
+
+export { copyVerifierContract, renameVerifier as updateVerifierName };

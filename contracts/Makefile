@@ -2,7 +2,7 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: sync-anvil sync-groth16verifier-and-proof sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
+.PHONY: sync-anvil sync-zkp sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -22,11 +22,11 @@ endif
 sync-anvil:
 	@pnpm exec tsx ../shared/utils/file/syncAnvil.ts
 
-sync-groth16verifier-and-proof:
+sync-zkp:
 # 	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
-sync: sync-anvil sync-groth16verifier-and-proof
+sync: sync-anvil sync-zkp
 
 # ---------------- Clean Commands -----------------------
 
@@ -59,16 +59,16 @@ build: sync
 typechain: 
 	@pnpm exec typechain --target ethers-v6 --out-dir ../shared/types/typechain-types 'out/**/*.sol/*.json'
 
-test-fuzz: sync-groth16verifier-and-proof
+test-fuzz: sync-zkp
 	@pnpm test "test/fuzz/*"
 
-test-integration: sync-groth16verifier-and-proof
+test-integration: sync-zkp
 	@pnpm test "test/integration/*"
 
-test-unit: sync-groth16verifier-and-proof
+test-unit: sync-zkp
 	@pnpm test "test/unit/*"
 
-test: sync-groth16verifier-and-proof
+test: sync-zkp
 	@pnpm test
 
 # --------------- Conditional Deployment ----------------
@@ -452,10 +452,6 @@ check-balance-after:
 
 # ------------------- Debugging -------------------
 
-# LATEST := $(shell cast block-number --rpc-url $(RPC_URL))
-# FROM := $(shell echo $$(($(LATEST) - 9)))
-# TO := $(LATEST)
-
 PERMIT := "([($(TOKEN0),$(AMOUNT0)),($(TOKEN1),$(AMOUNT1))],$(NONCE),$(DEADLINE))"
 
 deploy-debugger-to-forked-arb-sepolia:
@@ -464,9 +460,6 @@ deploy-debugger-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/PermitVerifier.s.sol:PermitVerifierScript
-
-# block:
-# 	cast block-number --rpc-url http://127.0.0.1:8545
 
 TOKEN_PERMISSIONS_TYPEHASH:
 	@cast call $(PERMIT_VERIFIER) --rpc-url $(RPC_URL) \

@@ -1,5 +1,5 @@
-import { PATHS_CONFIG } from "@config";
 import type { Groth16Proof } from "@shared/types/index.js";
+import { PATHS_CONFIG } from "@config";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { writeFile, mkdir } from "fs/promises";

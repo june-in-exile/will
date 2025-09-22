@@ -153,7 +153,7 @@ interface ZkpPathsConfig {
 interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
-  groth16Verifier: string;
+  multiplier2Verifier: string;
   cidUploadVerifier: string;
   willCreationVerifier: string;
   jsonCidVerifier: string;
@@ -502,9 +502,9 @@ export const PATHS_CONFIG: PathsConfig = {
   contracts: {
     broadcastDir: resolve(BASE_PATHS.contracts, "broadcast"),
     outDir: resolve(BASE_PATHS.contracts, "out"),
-    groth16Verifier: resolve(BASE_PATHS.contracts, "src/Groth16Verifier.sol"),
-    cidUploadVerifier: resolve(BASE_PATHS.contracts, "src/UploadCidVerifier.sol"),
-    willCreationVerifier: resolve(BASE_PATHS.contracts, "src/CreateWillVerifier.sol"),
+    multiplier2Verifier: resolve(BASE_PATHS.contracts, "src/Multiplier2Verifier.sol"),
+    cidUploadVerifier: resolve(BASE_PATHS.contracts, "src/CidUploadVerifier.sol"),
+    willCreationVerifier: resolve(BASE_PATHS.contracts, "src/WillCreationVerifier.sol"),
     jsonCidVerifier: resolve(BASE_PATHS.contracts, "src/JsonCidVerifier.sol"),
     will: resolve(BASE_PATHS.contracts, "src/Will.sol"),
     willFactory: resolve(BASE_PATHS.contracts, "src/WillFactory.sol"),

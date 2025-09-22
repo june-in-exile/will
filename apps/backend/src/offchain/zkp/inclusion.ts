@@ -22,7 +22,7 @@ async function generateInclusionProof(): Promise<Groth16Proof> {
 }
 
 async function main(): Promise<void> {
-  console.log(chalk.cyan(`\n=== Generating Will Creation Inclusion Proof ===\n`));
+  console.log(chalk.cyan(`\n=== Generating Inclusion Proof for Will Creation ===\n`));
 
   await generateInclusionProof();
 

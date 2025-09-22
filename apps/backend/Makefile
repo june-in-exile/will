@@ -46,8 +46,7 @@ encrypt-will:
 	@pnpm exec tsx src/offchain/cryptography/encryptWill.ts
 
 prove-permit:
-# 	@pnpm exec tsx src/offchain/zkp/permit.ts
-	@pnpm exec tsx src/offchain/zkp/multiplier2.ts
+	@pnpm exec tsx src/offchain/zkp/permit.ts
 
 upload-will:
 	@pnpm exec tsx src/offchain/ipfs/upload.ts

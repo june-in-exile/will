@@ -2,17 +2,17 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Groth16Verifier} from "src/CreateWillVerifier.sol";
+import {WillCreationVerifier} from "src/WillCreationVerifier.sol";
 
-contract CreateWillVerifierScript is Script {
-    Groth16Verifier public verifier;
+contract WillCreationVerifierScript is Script {
+    WillCreationVerifier public verifier;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        verifier = new Groth16Verifier();
+        verifier = new WillCreationVerifier();
 
         vm.stopBroadcast();
     }

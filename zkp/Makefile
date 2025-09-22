@@ -1,11 +1,11 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = willCreation
-# CIRCUIT = cidUpload
+# CIRCUIT = willCreation
+CIRCUIT = cidUpload
 # CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CreateWill
-# TEMPLATE = UploadCid
+# TEMPLATE = CreateWill
+TEMPLATE = UploadCid
 # TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
 
@@ -150,9 +150,13 @@ verifier:
 	@echo "📝 Generating Solidity verifier for $(TEMPLATE)..."
 	mkdir -p $(CONTRACTS)
 	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(VERIFIER)
-	pnpm exec tsx ../shared/utils/file/updateVerifierName.ts $(VERIFIER) $(CIRCUIT)
 	@echo "✅ Solidity verifier generated: $(VERIFIER)"
 	
+split-verifier:
+	@echo "📝 Splitting Solidity verifier for $(TEMPLATE)..."
+	pnpm exec tsx ../shared/utils/file/updateVerifierName.ts $(VERIFIER) $(CIRCUIT)
+	@echo "✅ Solidity verifier split: $(VERIFIER)"
+
 generate-call:
 	@echo "📞 Generating Solidity call data for $(TEMPLATE)..."
 	@if [ ! -f $(PROOFS)/proof.json ]; then \

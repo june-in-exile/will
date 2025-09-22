@@ -2,17 +2,17 @@
 pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Groth16Verifier} from "src/Groth16Verifier.sol";
+import {CidUploadVerifier} from "src/CidUploadVerifier.sol";
 
-contract Groth16VerifierScript is Script {
-    Groth16Verifier public verifier;
+contract CidUploadVerifierScript is Script {
+    CidUploadVerifier public verifier;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        verifier = new Groth16Verifier();
+        verifier = new CidUploadVerifier();
 
         vm.stopBroadcast();
     }
