@@ -9,7 +9,7 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryUnitTest is Test {
     WillFactory factory;
-    MockGroth16Verifier mockuploadCidVerifier;
+    MockGroth16Verifier mockcidUploadVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
@@ -42,12 +42,12 @@ contract WillFactoryUnitTest is Test {
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
         executor = vm.addr(executorPrivateKey);
 
-        mockuploadCidVerifier = new MockGroth16Verifier();
+        mockcidUploadVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
-            address(mockuploadCidVerifier),
+            address(mockcidUploadVerifier),
             address(mockDecryptionVerifier),
             address(mockJsonCidVerifier),
             executor,
@@ -84,11 +84,11 @@ contract WillFactoryUnitTest is Test {
 
     function test_Constructor() public view {
         assertEq(
-            address(factory.uploadCidVerifier()),
-            address(mockuploadCidVerifier)
+            address(factory.cidUploadVerifier()),
+            address(mockcidUploadVerifier)
         );
         assertEq(
-            address(factory.createWillVerifier()),
+            address(factory.willCreateVerifier()),
             address(mockDecryptionVerifier)
         );
         assertEq(
@@ -101,7 +101,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_UploadCID_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
 
         uint256 expectedTimestamp = block.timestamp;
         vm.expectEmit(false, false, false, false);
@@ -129,7 +129,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_UploadCID_TestatorProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(false);
+        mockcidUploadVerifier.setShouldReturnTrue(false);
 
         vm.expectRevert(WillFactory.TestatorProofInvalid.selector);
 
@@ -138,7 +138,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_NotarizeCID_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectEmit(true, false, false, true);
@@ -167,7 +167,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_CreateWill_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -221,7 +221,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_CreateWill_CIDNotValidatedByExecutor() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectRevert(
@@ -246,7 +246,7 @@ contract WillFactoryUnitTest is Test {
 
     function test_CreateWill_DecryptionProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -274,7 +274,7 @@ contract WillFactoryUnitTest is Test {
     function test_CreateWill_WillAlreadyExists() public {
         // Upload and notarize CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
@@ -346,7 +346,7 @@ contract WillFactoryUnitTest is Test {
         string memory cid2 = "cid2";
 
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
         mockDecryptionVerifier.setShouldReturnTrue(true);
 
         // Create first will

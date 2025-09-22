@@ -81,20 +81,20 @@ deploy-groth16verifier: sync
 		$(MAKE) deploy-groth16verifier-to-arb-sepolia; \
 	fi
 
-deploy-uploadcidverifier: sync
+deploy-cidUploadVerifier: sync
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
-		$(MAKE) deploy-uploadcidverifier-to-forked-arb-sepolia; \
+		$(MAKE) deploy-cidUploadVerifier-to-forked-arb-sepolia; \
 	else \
-		$(MAKE) deploy-uploadcidverifier-to-arb-sepolia; \
+		$(MAKE) deploy-cidUploadVerifier-to-arb-sepolia; \
 	fi
 
-deploy-createwillverifier: sync
+deploy-willCreationVerifier: sync
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
-		$(MAKE) deploy-createwillverifier-to-forked-arb-sepolia; \
+		$(MAKE) deploy-willCreationVerifier-to-forked-arb-sepolia; \
 	else \
-		$(MAKE) deploy-createwillverifier-to-arb-sepolia; \
+		$(MAKE) deploy-willCreationVerifier-to-arb-sepolia; \
 	fi
 
 deploy-jsonCidVerifier: sync
@@ -134,25 +134,25 @@ deploy-groth16verifier-to-arb-sepolia:
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
 # 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
-deploy-uploadcidverifier-to-arb-sepolia:
+deploy-cidUploadVerifier-to-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/UploadCidVerifier.s.sol:UploadCidVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER UploadCidVerifier $(CHAIN_ID)
+		script/CidUploadVerifier.s.sol:CidUploadVerifierScript
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER CidUploadVerifier $(CHAIN_ID)
 
-deploy-createwillverifier-to-arb-sepolia:
+deploy-willCreationVerifier-to-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--verify \
 		--rpc-url $(ARB_SEPOLIA_RPC_URL) \
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/CreateWillVerifier.s.sol:CreateWillVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER CreateWillVerifier $(CHAIN_ID)
+		script/WillCreationVerifier.s.sol:WillCreationVerifierScript
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER WillCreationVerifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-arb-sepolia:
 	@forge script \
@@ -174,7 +174,7 @@ deploy-willFactory-to-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-createwillverifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
+deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-willCreationVerifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-arb-sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
@@ -196,23 +196,23 @@ deploy-groth16verifier-to-forked-arb-sepolia:
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
-deploy-uploadcidverifier-to-forked-arb-sepolia:
+deploy-cidUploadVerifier-to-forked-arb-sepolia:
 	@forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/UploadCidVerifier.s.sol:UploadCidVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER UploadCidVerifier $(CHAIN_ID)
+		script/CidUploadVerifier.s.sol:CidUploadVerifierScript
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER CidUploadVerifier $(CHAIN_ID)
 
-deploy-createwillverifier-to-forked-arb-sepolia:
+deploy-willCreationVerifier-to-forked-arb-sepolia:
 	forge script \
 		--broadcast \
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
-		script/CreateWillVerifier.s.sol:CreateWillVerifierScript
-	pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER CreateWillVerifier $(CHAIN_ID)
+		script/WillCreationVerifier.s.sol:WillCreationVerifierScript
+	pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER WillCreationVerifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -230,7 +230,8 @@ deploy-willFactory-to-forked-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-createwillverifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
+# deploy-willCreationVerifier-to-forked-arb-sepolia
+deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
@@ -262,14 +263,14 @@ generateCIDString:
 
 # ----------------------- Read --------------------------
 
-uploadCidVerifier:
+cidUploadVerifier:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"uploadCidVerifier()(address)"
+		"cidUploadVerifier()(address)"
 	@echo "$(YELLOW)Expect: $(UPLOAD_CID_VERIFIER)$(RESET)"
 
-createWillVerifier:
+willCreationVerifier:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"createWillVerifier()(address)"
+		"willCreationVerifier()(address)"
 	@echo "$(YELLOW)Expect: $(CREATE_WILL_VERIFIER)$(RESET)"
 
 executor:

@@ -10,8 +10,8 @@ import "src/JsonCidVerifier.sol";
 
 contract WillFactoryIntegrationTest is Test {
     WillFactory willFactory;
-    Groth16Verifier uploadCidVerifier;
-    Groth16Verifier createWillVerifier;
+    Groth16Verifier cidUploadVerifier;
+    Groth16Verifier willCreateVerifier;
     JsonCidVerifier jsonCidVerifier;
 
     address executor;
@@ -39,16 +39,16 @@ contract WillFactoryIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        uploadCidVerifier = new Groth16Verifier();
-        createWillVerifier = new Groth16Verifier();
+        cidUploadVerifier = new Groth16Verifier();
+        willCreateVerifier = new Groth16Verifier();
         jsonCidVerifier = new JsonCidVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
         permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
         willFactory = new WillFactory(
-            address(uploadCidVerifier),
-            address(createWillVerifier),
+            address(cidUploadVerifier),
+            address(willCreateVerifier),
             address(jsonCidVerifier),
             executor,
             permit2

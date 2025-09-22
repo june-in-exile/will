@@ -43,12 +43,12 @@ async function copyVerifierContract(): Promise<void> {
       // {
       //   name: "UploadCid verifier",
       //   source: PATHS_CONFIG.zkp.uploadCid.verifier,
-      //   dest: PATHS_CONFIG.contracts.uploadCidVerifier,
+      //   dest: PATHS_CONFIG.contracts.cidUploadVerifier,
       // },
       {
         name: "CreateWill verifier",
-        source: PATHS_CONFIG.zkp.createWill.verifier,
-        dest: PATHS_CONFIG.contracts.createWillVerifier,
+        source: PATHS_CONFIG.zkp.willCreation.verifier,
+        dest: PATHS_CONFIG.contracts.willCreationVerifier,
       }
     ]
 

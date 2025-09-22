@@ -1,5 +1,6 @@
 import type { Groth16Proof, CreateWillInput } from "@shared/types/zkp.js";
 import { generateZkpProof, runZkpMain } from "./generator.js";
+import chalk from "chalk";
 
 async function generateInclusionProof(input: CreateWillInput): Promise<Groth16Proof> {
   // Transform BigInt to string for JSON serialization
@@ -12,17 +13,13 @@ async function generateInclusionProof(input: CreateWillInput): Promise<Groth16Pr
   };
 
   return generateZkpProof({
-    circuitName: "createWill",
+    circuitName: "willCreation",
     input: processedInput
   });
 }
 
 async function main(): Promise<void> {
-  try {
-    console.log(
-      chalk.cyan("\n=== Generating Will Creation Inclusion Proof ===\n")
-    );
-
+  await runZkpMain("Generating Will Creation Inclusion Proof", async () => {
     const input: CreateWillInput = {
       ciphertext: [
         131, 12, 245, 205, 129, 145, 210, 196, 196, 238, 134, 210, 253, 81, 15, 237,
@@ -50,31 +47,19 @@ async function main(): Promise<void> {
       iv: [
         225, 33, 187, 199, 111, 28, 77, 46, 234, 100, 34, 59, 114, 39, 189, 178
       ],
-      expectedTestator: BigInt("23534931745907890980266428008810490351955727564"),
+      expectedTestator: 23534931745907890980266428008810490351955727564n,
       expectedEstates: [
-        BigInt("365062515231589969257526822856879792433486645900"),
-        BigInt("673548107664921955330296301951937659338232343117"),
-        BigInt("1000"),
-        BigInt("365062515231589969257526822856879792433486645900"),
-        BigInt("1015226402129197188552501637625932070384463636494"),
-        BigInt("5000000")
+        365062515231589969257526822856879792433486645900n,
+        673548107664921955330296301951937659338232343117n,
+        1000n,
+        365062515231589969257526822856879792433486645900n,
+        1015226402129197188552501637625932070384463636494n,
+        5000000n
       ]
     };
 
     await generateInclusionProof(input);
-
-    console.log(chalk.green("\n✅ Successfully generated inclusion proof."));
-  } catch (error) {
-    console.error(
-      chalk.red.bold("\n❌ Program execution failed:"),
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    if (process.env.NODE_ENV === "development" && error instanceof Error) {
-      console.error(chalk.gray("Stack trace:"), error.stack);
-    }
-
-    process.exit(1);
-  }
+  });
 }
 
 if (import.meta.url === new URL(process.argv[1], "file:").href) {

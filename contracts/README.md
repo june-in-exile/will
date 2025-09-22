@@ -53,8 +53,8 @@
    Check the deployment
 
    > ```sh
-   > make uploadCidVerifier
-   > make createWillVerifier
+   > make cidUploadVerifier
+   > make willCreateVerifier
    > make executor
    > ```
 

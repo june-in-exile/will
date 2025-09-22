@@ -9,7 +9,7 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryFuzzTest is Test {
     WillFactory factory;
-    MockGroth16Verifier mockuploadCidVerifier;
+    MockGroth16Verifier mockcidUploadVerifier;
     MockGroth16Verifier mockDecryptionVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
@@ -19,12 +19,12 @@ contract WillFactoryFuzzTest is Test {
     JsonCidVerifier.TypedJsonObject willJson;
 
     function setUp() public {
-        mockuploadCidVerifier = new MockGroth16Verifier();
+        mockcidUploadVerifier = new MockGroth16Verifier();
         mockDecryptionVerifier = new MockGroth16Verifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
-            address(mockuploadCidVerifier),
+            address(mockcidUploadVerifier),
             address(mockDecryptionVerifier),
             address(mockJsonCidVerifier),
             executor,
@@ -98,7 +98,7 @@ contract WillFactoryFuzzTest is Test {
         vm.assume(invalidSignature.length > 0);
 
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockuploadCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [

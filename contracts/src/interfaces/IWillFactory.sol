@@ -22,11 +22,11 @@ interface IWillFactory {
     error WillAlreadyExists(string cid, address existingWill);
     error WillAddressInconsistent(address predicted, address actual);
 
-    function uploadCidVerifier() external view returns (address);
+    function cidUploadVerifier() external view returns (address);
 
     function executorVerifier() external view returns (address);
 
-    function createWillVerifier() external view returns (address);
+    function willCreateVerifier() external view returns (address);
 
     function executor() external view returns (address);
 

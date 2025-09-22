@@ -146,16 +146,16 @@ interface ZkpCircuitsFilesConfig {
 
 interface ZkpPathsConfig {
   multiplier2: ZkpCircuitsFilesConfig;
-  uploadCid: ZkpCircuitsFilesConfig;
-  createWill: ZkpCircuitsFilesConfig;
+  cidUpload: ZkpCircuitsFilesConfig;
+  willCreation: ZkpCircuitsFilesConfig;
 }
 
 interface ContractPathsConfig {
   broadcastDir: string;
   outDir: string;
   groth16Verifier: string;
-  uploadCidVerifier: string;
-  createWillVerifier: string;
+  cidUploadVerifier: string;
+  willCreationVerifier: string;
   jsonCidVerifier: string;
   will: string;
   willFactory: string;
@@ -449,19 +449,19 @@ export const PATHS_CONFIG: PathsConfig = {
   // Will files
   will: (() => {
     const willDir = resolve(BASE_PATHS.backend, "will");
-    const createWillPath = (step: number, name: string) =>
+    const setWillPath = (step: number, name: string) =>
       resolve(willDir, `${step}_${name}.json`);
 
     return {
-      raw: createWillPath(1, "raw"),
-      formatted: createWillPath(2, "formatted"),
-      addressed: createWillPath(3, "addressed"),
-      signed: createWillPath(4, "signed"),
-      serialized: createWillPath(5, "serialized"),
-      encrypted: createWillPath(6, "encrypted"),
-      downloaded: createWillPath(7, "downloaded"),
-      decrypted: createWillPath(8, "decrypted"),
-      deserialized: createWillPath(9, "deserialized"),
+      raw: setWillPath(1, "raw"),
+      formatted: setWillPath(2, "formatted"),
+      addressed: setWillPath(3, "addressed"),
+      signed: setWillPath(4, "signed"),
+      serialized: setWillPath(5, "serialized"),
+      encrypted: setWillPath(6, "encrypted"),
+      downloaded: setWillPath(7, "downloaded"),
+      decrypted: setWillPath(8, "decrypted"),
+      deserialized: setWillPath(9, "deserialized"),
     };
   })(),
 
@@ -481,7 +481,7 @@ export const PATHS_CONFIG: PathsConfig = {
         wasm: resolve(dirs.build, `${circuitName}_js/${circuitName}.wasm`),
         witness: resolve(dirs.build, `witness.wtns`),
         input: resolve(dirs.inputs, `input.json`),
-        zkey: resolve(dirs.keys , `${circuitName}_0001.zkey`),
+        zkey: resolve(dirs.keys, `${circuitName}_0001.zkey`),
         proof: resolve(dirs.proofs, `proof.json`),
         public: resolve(dirs.proofs, `public.json`),
         verifier: resolve(dirs.contracts, `verifier.sol`),
@@ -490,8 +490,8 @@ export const PATHS_CONFIG: PathsConfig = {
 
     return {
       multiplier2: createZkpConfig("multiplier2"),
-      uploadCid: createZkpConfig("cidUpload"),
-      createWill: createZkpConfig("willCreation"),
+      cidUpload: createZkpConfig("cidUpload"),
+      willCreation: createZkpConfig("willCreation"),
     };
   })(),
 
@@ -503,8 +503,8 @@ export const PATHS_CONFIG: PathsConfig = {
     broadcastDir: resolve(BASE_PATHS.contracts, "broadcast"),
     outDir: resolve(BASE_PATHS.contracts, "out"),
     groth16Verifier: resolve(BASE_PATHS.contracts, "src/Groth16Verifier.sol"),
-    uploadCidVerifier: resolve(BASE_PATHS.contracts, "src/UploadCidVerifier.sol"),
-    createWillVerifier: resolve(BASE_PATHS.contracts, "src/CreateWillVerifier.sol"),
+    cidUploadVerifier: resolve(BASE_PATHS.contracts, "src/UploadCidVerifier.sol"),
+    willCreationVerifier: resolve(BASE_PATHS.contracts, "src/CreateWillVerifier.sol"),
     jsonCidVerifier: resolve(BASE_PATHS.contracts, "src/JsonCidVerifier.sol"),
     will: resolve(BASE_PATHS.contracts, "src/Will.sol"),
     willFactory: resolve(BASE_PATHS.contracts, "src/WillFactory.sol"),

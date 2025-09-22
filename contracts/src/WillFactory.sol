@@ -11,8 +11,8 @@ contract WillFactory {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    Groth16Verifier public uploadCidVerifier;
-    Groth16Verifier public createWillVerifier;
+    Groth16Verifier public cidUploadVerifier;
+    Groth16Verifier public willCreateVerifier;
     JsonCidVerifier public jsonCidVerifier;
     address public permit2;
     address public executor;
@@ -40,14 +40,14 @@ contract WillFactory {
     error WillAddressInconsistent(address predicted, address actual);
 
     constructor(
-        address _uploadCidVerifier,
-        address _createWillVerifier,
+        address _cidUploadVerifier,
+        address _willCreateVerifier,
         address _jsonCidVerifier,
         address _executor,
         address _permit2
     ) {
-        uploadCidVerifier = Groth16Verifier(_uploadCidVerifier);
-        createWillVerifier = Groth16Verifier(_createWillVerifier);
+        cidUploadVerifier = Groth16Verifier(_cidUploadVerifier);
+        willCreateVerifier = Groth16Verifier(_willCreateVerifier);
         jsonCidVerifier = JsonCidVerifier(_jsonCidVerifier);
         executor = _executor;
         permit2 = _permit2;
@@ -93,7 +93,7 @@ contract WillFactory {
 
         if (!isValid) revert JsonCidInvalid(_cid);
 
-        if (!uploadCidVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert TestatorProofInvalid();
 
         _testatorValidateTimes[_cid] = block.timestamp;
@@ -162,7 +162,7 @@ contract WillFactory {
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
         if (!isValid) revert JsonCidInvalid(_cid);
-        if (!createWillVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
             revert DecryptionProofInvalid();
         if (wills[_cid] != address(0))
             revert WillAlreadyExists(_cid, wills[_cid]);
