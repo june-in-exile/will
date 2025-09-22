@@ -32,6 +32,29 @@ function updateEnvVariable(key: string, value: string): void {
   }
 }
 
+async function updateEnvironmentVariables(
+  updates: Array<[string, string]>,
+): Promise<void> {
+  try {
+    console.log(chalk.blue("Updating environment variables..."));
+
+    // Execute all updates in parallel
+    await Promise.all(
+      updates.map(([key, value]) =>
+        Promise.resolve(updateEnvVariable(key, value)),
+      ),
+    );
+
+    console.log(chalk.green("✅ Environment variables updated successfully"));
+  } catch (error) {
+    console.warn(
+      chalk.yellow("Warning: Failed to update environment variables:"),
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    throw error;
+  }
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -65,29 +88,6 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     );
     process.exit(1);
   });
-}
-
-async function updateEnvironmentVariables(
-  updates: Array<[string, string]>,
-): Promise<void> {
-  try {
-    console.log(chalk.blue("Updating environment variables..."));
-
-    // Execute all updates in parallel
-    await Promise.all(
-      updates.map(([key, value]) =>
-        Promise.resolve(updateEnvVariable(key, value)),
-      ),
-    );
-
-    console.log(chalk.green("✅ Environment variables updated successfully"));
-  } catch (error) {
-    console.warn(
-      chalk.yellow("Warning: Failed to update environment variables:"),
-      error instanceof Error ? error.message : "Unknown error",
-    );
-    throw error;
-  }
 }
 
 export { updateEnvVariable, updateEnvironmentVariables };

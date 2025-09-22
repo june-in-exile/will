@@ -1,11 +1,11 @@
 # Default circuit for circuit-specific operations
-# CIRCUIT = willCreation
-CIRCUIT = cidUpload
+CIRCUIT = willCreation
+# CIRCUIT = cidUpload
 # CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
-# TEMPLATE = CreateWill
-TEMPLATE = UploadCid
+TEMPLATE = CreateWill
+# TEMPLATE = UploadCid
 # TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
 
@@ -19,6 +19,7 @@ BUILD := $(DIR)/build
 KEYS := $(DIR)/keys
 PROOFS := $(DIR)/proofs
 CONTRACTS := $(DIR)/contracts
+VERIFIER := $(CONTRACTS)/verifier.sol
 
 DOWNLOAD_CMD = $(shell which wget > /dev/null 2>&1 && echo "wget -O" || echo "curl -o")
 
@@ -34,7 +35,7 @@ help:
 	@echo "  make witness             - Generate witness for current circuit"
 	@echo "  make prove               - Generate proof for current circuit"
 	@echo "  make verify              - Verify proof for current circuit"
-	@echo "  make solidity            - Generate Solidity verifier"
+	@echo "  make verifier            - Generate Solidity verifier"
 	@echo "  make generate-call       - Generate Solidity call data"
 	@echo ""
 	@echo "🔑 Key Management:"
@@ -89,10 +90,10 @@ trusted-setup-phase1:
 	fi
 
 # Circuit operations
-circuit: compile witness trusted-setup-phase2 prove verify solidity generate-call
+circuit: compile witness trusted-setup-phase2 prove verify verifier generate-call
 	@echo "✅ Circuit $(TEMPLATE) setup completed!"
 
-circuit-no-proof: compile trusted-setup-phase2 solidity
+circuit-no-proof: compile trusted-setup-phase2 verifier
 	@echo "✅ Circuit $(TEMPLATE) setup without proof completed!"
 
 untag:
@@ -144,13 +145,14 @@ verify:
 	fi
 	snarkjs groth16 verify $(KEYS)/verification_key.json $(PROOFS)/public.json $(PROOFS)/proof.json
 	@echo "✅ Proof verification completed!"
-
-solidity:
+	
+verifier:
 	@echo "📝 Generating Solidity verifier for $(TEMPLATE)..."
 	mkdir -p $(CONTRACTS)
-	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(CONTRACTS)/verifier.sol
-	@echo "✅ Solidity verifier generated: $(CONTRACTS)/verifier.sol"
-
+	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(VERIFIER)
+	pnpm exec tsx ../shared/utils/file/updateVerifierName.ts $(VERIFIER) $(CIRCUIT)
+	@echo "✅ Solidity verifier generated: $(VERIFIER)"
+	
 generate-call:
 	@echo "📞 Generating Solidity call data for $(TEMPLATE)..."
 	@if [ ! -f $(PROOFS)/proof.json ]; then \
