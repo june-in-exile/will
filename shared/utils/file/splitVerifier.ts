@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import chalk from "chalk";
 
 interface ICConstant {
     index: number;
@@ -86,22 +87,22 @@ ${constantDeclarations}
     function getICCount() external pure returns (uint256) {
         return ${count};
     }
-    
-    function getIC(uint256 index) external pure returns (uint256 x, uint256 y) {
+
+    function getIC(uint256 index) public pure returns (uint256 x, uint256 y) {
         require(index < ${count}, "Index out of range");
-        
-${getICCases}        
+
+${getICCases}
         revert("Invalid index");
     }
-    
+
     // Batch getter for gas optimization
-    function getBatchIC(uint256 startIdx, uint256 count) 
+    function getBatchIC(uint256 startIdx, uint256 count)
         external pure returns (uint256[] memory xs, uint256[] memory ys) {
         require(startIdx + count <= ${count}, "Batch out of range");
-        
+
         xs = new uint256[](count);
         ys = new uint256[](count);
-        
+
         for (uint256 i = 0; i < count; i++) {
             (xs[i], ys[i]) = getIC(startIdx + i);
         }
@@ -371,7 +372,7 @@ contract DeployVerifierScript is Script {
 }`;
 }
 
-function main() {
+async function main(): Promise<void> {
     const args = process.argv.slice(2);
     if (args.length !== 1) {
         console.error('Usage: node split-verifier.js <verifier-file-path>');
@@ -384,11 +385,18 @@ function main() {
         process.exit(1);
     }
 
-    const outputDir = path.dirname(inputFile);
+    const parentDir = path.dirname(inputFile);
     const baseName = path.basename(inputFile, '.sol');
+    const outputDir = path.join(parentDir, baseName);
 
     console.log(`Splitting verifier contract: ${inputFile}`);
     console.log(`Output directory: ${outputDir}`);
+
+    // Create output directory if it doesn't exist
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+        console.log(`Created output directory: ${outputDir}`);
+    }
 
     try {
         const verifierData = parseVerifierContract(inputFile);
@@ -435,6 +443,13 @@ function main() {
     }
 }
 
-if (require.main === module) {
-    main();
+// Check: is this file being executed directly or imported?
+if (import.meta.url === new URL(process.argv[1], "file:").href) {
+    // Only run when executed directly
+    main().catch((error: Error) => {
+        const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
+        console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+        process.exit(1);
+    });
 }

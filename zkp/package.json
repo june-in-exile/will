@@ -17,7 +17,7 @@
     "e2e": "make circuit",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
-    "clean": "make clean-all"
+    "clean": "make clean-test"
   },
   "keywords": [
     "zkp",

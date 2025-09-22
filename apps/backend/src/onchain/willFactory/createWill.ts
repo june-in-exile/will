@@ -169,7 +169,7 @@ async function processCreateWill(): Promise<ProcessResult> {
       wallet,
     );
 
-    const proof: ProofData = readProof();
+    const proof: ProofData = readProof("willCreation");
     const encryptedWill: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const encryptedWillKeyValues: JsonCidVerifier.TypedJsonObjectStruct =
       encryptedWillToTypedJsonObject(encryptedWill);

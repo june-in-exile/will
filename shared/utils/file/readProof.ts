@@ -6,21 +6,23 @@ import chalk from "chalk";
 /**
  * Read proof data from file
  */
-export function readProof(): ProofData {
+export function readProof(circuitName: keyof typeof PATHS_CONFIG.zkp = "multiplier2"): ProofData {
   try {
     console.log(chalk.blue("Reading testator proof data..."));
 
+    const files = PATHS_CONFIG.zkp[circuitName];
+
     const proof = JSON.parse(
-      readFileSync(PATHS_CONFIG.zkp.multiplier2.proof, "utf8"),
+      readFileSync(files.proof, "utf8"),
     );
     const publicSignals = JSON.parse(
-      readFileSync(PATHS_CONFIG.zkp.multiplier2.public, "utf8"),
+      readFileSync(files.public, "utf8"),
     );
 
     const proofData: ProofData = {
       pA: [proof.pi_a[0], proof.pi_a[1]],
       pB: [
-        [proof.pi_b[0][1], proof.pi_b[0][0]], // Note：G2 point needs to swap the order
+        [proof.pi_b[0][1], proof.pi_b[0][0]], // @note G2 point needs to swap the order
         [proof.pi_b[1][1], proof.pi_b[1][0]],
       ],
       pC: [proof.pi_c[0], proof.pi_c[1]],

@@ -140,7 +140,7 @@ async function processUploadCid(): Promise<ProcessResult> {
       wallet,
     );
 
-    const proof: ProofData = readProof();
+    const proof: ProofData = readProof("cidUpload");
     const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObject =
       encryptedWillToTypedJsonObject(willData);

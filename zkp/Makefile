@@ -50,6 +50,7 @@ help:
 	@echo ""
 	@echo "🧹 Cleanup:"
 	@echo "  make clean               - Clean current circuit ($(CIRCUIT))"
+	@echo "  make clean-test          - Clean all test circuits"
 	@echo "  make clean-all           - Clean all circuits"
 	@echo ""
 	@echo "🎯 Circuit-specific operations:"
@@ -151,11 +152,6 @@ verifier:
 	mkdir -p $(CONTRACTS)
 	snarkjs zkey export solidityverifier $(KEYS)/$(CIRCUIT)_0001.zkey $(VERIFIER)
 	@echo "✅ Solidity verifier generated: $(VERIFIER)"
-	
-split-verifier:
-	@echo "📝 Splitting Solidity verifier for $(TEMPLATE)..."
-	pnpm exec tsx ../shared/utils/file/updateVerifierName.ts $(VERIFIER) $(CIRCUIT)
-	@echo "✅ Solidity verifier split: $(VERIFIER)"
 
 generate-call:
 	@echo "📞 Generating Solidity call data for $(TEMPLATE)..."
@@ -186,6 +182,11 @@ clean-all:
 		$(call clean_dir,$$circuit_dir); \
 	done
 	@echo "✅ All circuits cleaned!"
+
+clean-test:
+	@echo "🧹 Cleaning test circuits..."
+	rm -rf ./circuits/test
+	@echo "✅ Test circuit cleanup completed!"
 
 
 # Test

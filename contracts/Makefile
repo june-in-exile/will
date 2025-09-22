@@ -2,7 +2,7 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: sync-anvil sync-zkp sync clean-address clean-groth16verifier-and-proof clean-typechain clean install build test test-fuzz test-integration test-unit deploy
+.PHONY: sync-anvil sync-zkp sync clean-address clean-verifiers-and-proofs clean-typechain clean install build test test-fuzz test-integration test-unit deploy
 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
@@ -17,6 +17,13 @@ else
 	CHAIN_ID := $(ARB_SEPOLIA_CHAIN_ID)
 endif
 
+test-deploy-willCreationVerifier-to-forked-arb-sepolia:
+	forge script \
+		--broadcast \
+		--fork-url $(ANVIL_RPC_URL) \
+		--private-key $(MY_PRIVATE_KEY) \
+		src/WillCreationVerifier/DeployVerifier.s.sol:DeployVerifierScript
+
 # ------------- Synchronization Commands ----------------
 
 sync-anvil:
@@ -26,6 +33,11 @@ sync-zkp:
 # 	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
+split-verifier:
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/Multiplier2Verifier.sol
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/WillCreationVerifier.sol
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/CidUploadVerifier.sol
+
 sync: sync-anvil sync-zkp
 
 # ---------------- Clean Commands -----------------------
@@ -33,14 +45,16 @@ sync: sync-anvil sync-zkp
 clean-address:
 	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_WILL_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
 
-clean-groth16verifier-and-proof:
-	@rm -rf src/Groth16Verifier.sol
+clean-verifiers-and-proofs:
+	@rm -rf src/Multiplier2Verifier
+	@rm -rf src/CidUploadVerifier
+	@rm -rf src/WillCreationVerifier
 	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts PA_ARRAY PB_ARRAY PC_ARRAY PUBSIGNALS_ARRAY
 
 clean-typechain:
 	@rm -rf ../shared/types/typechain-types
 
-clean: clean-address clean-groth16verifier-and-proof clean-typechain
+clean: clean-address clean-verifiers-and-proofs clean-typechain
 	@forge clean
 	@rm -rf cache broadcast lib
 
@@ -131,8 +145,6 @@ deploy-groth16verifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-cidUploadVerifier-to-arb-sepolia:
 	@forge script \
@@ -174,7 +186,7 @@ deploy-willFactory-to-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-willCreationVerifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
+deploy-to-arb-sepolia: deploy-groth16verifier-to-arb-sepolia deploy-cidUploadVerifier-to-arb-sepolia deploy-willCreationVerifier-to-arb-sepolia deploy-jsonCidVerifier-to-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-arb-sepolia
 
 # --------- Scripts for forked Arbitrun Sepolia ---------
@@ -195,8 +207,6 @@ deploy-groth16verifier-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Groth16Verifier.s.sol:Groth16VerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER Groth16Verifier $(CHAIN_ID)
-# 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER Groth16Verifier $(CHAIN_ID)
 
 deploy-cidUploadVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -230,7 +240,7 @@ deploy-willFactory-to-forked-arb-sepolia:
 		script/WillFactory.s.sol:WillFactoryScript
 	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_FACTORY WillFactory $(CHAIN_ID)
 
-deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
+deploy-to-forked-arb-sepolia: deploy-groth16verifier-to-forked-arb-sepolia deploy-cidUploadVerifier-to-forked-arb-sepolia deploy-willCreationVerifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
 
 # ---------------- Call Groth16 Verifier ----------------
