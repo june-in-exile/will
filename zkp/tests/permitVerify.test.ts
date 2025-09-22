@@ -1,10 +1,10 @@
 import {
   WitnessTester,
-  flattenEstates,
-  flattenEcdsaSignature,
   splitBigInt,
+  flattenEcdsaSignature,
+  flattenTokenPermissions,
 } from "./util/index.js";
-import { EcdsaSignature, Estate, Nonce, Timestamp } from "./type/index.js";
+import { EcdsaSignature, Estate, Nonce, TokenPermission, Timestamp } from "./type/index.js";
 import { Permit2 } from "./logic/index.js";
 
 describe.skip("Show VerifyPermit Input", function (): void {
@@ -228,13 +228,11 @@ describe.skip("Show VerifyPermit Input", function (): void {
       const { r, s, v } = Permit2.decodeSignature(permit2.signature);
       const input = {
         testator: BigInt(testator),
-        estates: estates.flatMap((estate) => [
-          BigInt(estate.beneficiary),
+        permit: [...estates.flatMap((estate) => [
+          // BigInt(estate.beneficiary),
           BigInt(estate.token),
           estate.amount,
-        ]),
-        nonce: permit2.nonce,
-        deadline: permit2.deadline,
+        ]), permit2.nonce, permit2.deadline],
         will: BigInt(will),
         signature: [...splitBigInt(r), ...splitBigInt(s), v],
       };
@@ -246,7 +244,7 @@ describe.skip("Show VerifyPermit Input", function (): void {
 
 describe("VerifyPermit Circuit", function () {
   let circuit: WitnessTester<
-    ["testator", "estates", "nonce", "deadline", "will", "signature"]
+    ["testator", "permit", "will", "signature"]
   >;
 
   describe("Verify Permit with 1 Estate", function (): void {
@@ -259,7 +257,7 @@ describe("VerifyPermit Circuit", function () {
         },
       );
       circuit.setConstraint("permit with 1 estate");
-    }, 600_000);
+    }, 120_000);
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
@@ -269,9 +267,9 @@ describe("VerifyPermit Circuit", function () {
 
     it(
       "should accept the verification for valid permit",
-      { timeout: 60_000 },
+      { timeout: 30_000 },
       async function (): Promise<void> {
-        const testCases = [
+        const testWills = [
           {
             testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
             estates: [
@@ -310,12 +308,11 @@ describe("VerifyPermit Circuit", function () {
           nonce,
           deadline,
           signature,
-        } of testCases) {
+        } of testWills) {
+          const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
           await circuit.expectPass({
             testator,
-            estates: flattenEstates(estates),
-            nonce,
-            deadline,
+            permit: [...flattenTokenPermissions(permitted), nonce, deadline],
             will,
             signature: flattenEcdsaSignature(signature),
           });
@@ -324,7 +321,7 @@ describe("VerifyPermit Circuit", function () {
     );
 
     it("should reject the verification for invalid permit", async function (): Promise<void> {
-      const testCases = [
+      const testWills = [
         {
           testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc") - 1n, // invalid testator
           estates: [
@@ -469,12 +466,11 @@ describe("VerifyPermit Circuit", function () {
         nonce,
         deadline,
         signature,
-      } of testCases) {
+      } of testWills) {
+        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
         await circuit.expectFail({
           testator,
-          estates: flattenEstates(estates),
-          nonce,
-          deadline,
+          permit: [...flattenTokenPermissions(permitted), nonce, deadline],
           will,
           signature: flattenEcdsaSignature(signature),
         });
@@ -482,7 +478,7 @@ describe("VerifyPermit Circuit", function () {
     });
 
     it("should ignore beneficiaries and salt", async function (): Promise<void> {
-      const testCases = [
+      const testWills = [
         {
           testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
           estates: [
@@ -520,12 +516,11 @@ describe("VerifyPermit Circuit", function () {
         nonce,
         deadline,
         signature,
-      } of testCases) {
+      } of testWills) {
+        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
         await circuit.expectPass({
           testator,
-          estates: flattenEstates(estates),
-          nonce,
-          deadline,
+          permit: [...flattenTokenPermissions(permitted), nonce, deadline],
           will,
           signature: flattenEcdsaSignature(signature),
         });
@@ -543,7 +538,7 @@ describe("VerifyPermit Circuit", function () {
         },
       );
       circuit.setConstraint("permit with 2 estates");
-    }, 600_000);
+    }, 120_000);
 
     afterAll(async function (): Promise<void> {
       if (circuit) {
@@ -555,7 +550,7 @@ describe("VerifyPermit Circuit", function () {
       "should accept the verification for valid permit",
       { timeout: 30_000 },
       async function (): Promise<void> {
-        const testCases = [
+        const testWills = [
           {
             testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
             estates: [
@@ -601,12 +596,11 @@ describe("VerifyPermit Circuit", function () {
           nonce,
           deadline,
           signature,
-        } of testCases) {
+        } of testWills) {
+          const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
           await circuit.expectPass({
             testator,
-            estates: flattenEstates(estates),
-            nonce,
-            deadline,
+            permit: [...flattenTokenPermissions(permitted), nonce, deadline],
             will,
             signature: flattenEcdsaSignature(signature),
           });
@@ -615,7 +609,7 @@ describe("VerifyPermit Circuit", function () {
     );
 
     it("should reject the verification for invalid permit", async function (): Promise<void> {
-      const testCases = [
+      const testWills = [
         {
           testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc") - 1n, // invalid testator
           estates: [
@@ -785,12 +779,11 @@ describe("VerifyPermit Circuit", function () {
         nonce,
         deadline,
         signature,
-      } of testCases) {
+      } of testWills) {
+        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
         await circuit.expectFail({
           testator,
-          estates: flattenEstates(estates),
-          nonce,
-          deadline,
+          permit: [...flattenTokenPermissions(permitted), nonce, deadline],
           will,
           signature: flattenEcdsaSignature(signature),
         });
@@ -798,7 +791,7 @@ describe("VerifyPermit Circuit", function () {
     });
 
     it("should ignore beneficiaries and salt", async function (): Promise<void> {
-      const testCases = [
+      const testWills = [
         {
           testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
           estates: [
@@ -842,12 +835,11 @@ describe("VerifyPermit Circuit", function () {
         nonce,
         deadline,
         signature,
-      } of testCases) {
+      } of testWills) {
+        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
         await circuit.expectPass({
           testator,
-          estates: flattenEstates(estates),
-          nonce,
-          deadline,
+          permit: [...flattenTokenPermissions(permitted), nonce, deadline],
           will,
           signature: flattenEcdsaSignature(signature),
         });

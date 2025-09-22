@@ -1,11 +1,11 @@
 # Default circuit for circuit-specific operations
-CIRCUIT = willCreation
-# CIRCUIT = cidUpload
+# CIRCUIT = willCreation
+CIRCUIT = cidUpload
 # CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
-TEMPLATE = CreateWill
-# TEMPLATE = UploadCid
+# TEMPLATE = CreateWill
+TEMPLATE = UploadCid
 # TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
 
@@ -101,7 +101,7 @@ untag:
 compile:
 	@echo "🔨 Compiling circuit: $(TEMPLATE)..."
 	mkdir -p $(BUILD)
-	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --inspect --output $(BUILD)
+	circom $(DIR)/$(CIRCUIT).circom --r1cs --sym --wasm -l node_modules --O2 --output $(BUILD)
 	@echo "✅ Circuit $(TEMPLATE) compiled successfully!"
 
 witness:

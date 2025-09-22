@@ -35,7 +35,15 @@ template UploadCid(keyBits, ciphertextBytes) {
     (testator, estates, _, will, nonce, deadline, signature) <== Deserialize(plaintextBytes)(plaintext);
 
     // verification
-    VerifyPermit(numEstates)(testator, estates, nonce, deadline, will, signature);
+    var numPermission = numEstates;
+    PermitBatchTransferFrom(numPermission) permit;
+    for (var i = 0; i < numPermission; i++) {
+        permit.permitted[i].token <== estates[i].token;
+        permit.permitted[i].amount <== estates[i].amount;
+    }
+    permit.nonce <== nonce;
+    permit.deadline <== deadline;
+    VerifyPermit(numPermission)(testator, permit, will, signature);
 }
 
 

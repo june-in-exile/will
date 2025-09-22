@@ -13,26 +13,14 @@ include "../shared/components/bus.circom";
  * at Mainnet 0x000000000022d473030f116ddee9f6b43ac78ba3
  * (SignatureTransfer.sol, ./libraries/PermitHash.sol, etc.)
  */
-template VerifyPermit(numEstates) {
+template VerifyPermit(numPermission) {
     signal input {address} testator;   // 20 byte unsigned integer
-    input Estate() estates[numEstates];
-    signal input {uint128} nonce;      // 16 byte (128 bit) unsigned integer
-    signal input {uint32} deadline;    // 4 byte (32 bit) unsigned integer
+    input PermitBatchTransferFrom(numPermission) permit;
     signal input {address} will;       // 20 byte unsigned integer
     input EcdsaSignature() signature;
 
-    var numPermission = numEstates;
     var n = 64, k = 4;
     var chainId = 31337;
-
-    // Converts estates to permit
-    PermitBatchTransferFrom(numPermission) permit;
-    for (var i = 0; i < numPermission; i++) {
-        permit.permitted[i].token <== estates[i].token;
-        permit.permitted[i].amount <== estates[i].amount;
-    }
-    permit.nonce <== nonce;
-    permit.deadline <== deadline;
 
     // Hashes permit to get typed permit digest
     signal {bit} permitDigest[256] <== HashPermit(numPermission)(permit, will);
@@ -48,12 +36,11 @@ template VerifyPermit(numEstates) {
 }
 
 
-
-// Auto updated: 2025-09-20T14:02:57.321Z
-bus UntaggedEstate() {
-    signal beneficiary;
-    signal token;
-    signal amount;
+// Auto updated: 2025-09-22T14:16:26.677Z
+bus UntaggedPermitBatchTransferFrom(numPermission) {
+    UntaggedTokenPermission() permitted[numPermission];
+    signal nonce;
+    signal deadline;
 }
 
 bus UntaggedEcdsaSignature() {
@@ -62,39 +49,39 @@ bus UntaggedEcdsaSignature() {
     signal v;
 }
 
-template UntaggedVerifyPermit(numEstates) {
+bus UntaggedTokenPermission() {
+    signal token;
+    signal amount;
+}
+
+template UntaggedVerifyPermit(numPermission) {
     signal input testator;
-    input UntaggedEstate() estates[numEstates];
-    signal input nonce;
-    signal input deadline;
+    input UntaggedPermitBatchTransferFrom(numPermission) permit;
     signal input will;
     input UntaggedEcdsaSignature() signature;
 
     signal {address} _testator <== testator;
-    signal {uint128} _nonce <== nonce;
-    signal {uint32} _deadline <== deadline;
     signal {address} _will <== will;
 
-    Estate() _estates[numEstates];
+    PermitBatchTransferFrom(numPermission) _permit;
     EcdsaSignature() _signature;
 
-    for (var i = 0; i < numEstates; i++) {
-        _estates[i].beneficiary <== estates[i].beneficiary;
-        _estates[i].token <== estates[i].token;
-        _estates[i].amount <== estates[i].amount;
+    for (var i = 0; i < numPermission; i++) {
+        _permit.permitted[i].token <== permit.permitted[i].token;
+        _permit.permitted[i].amount <== permit.permitted[i].amount;
     }
 
+    _permit.nonce <== permit.nonce;
+    _permit.deadline <== permit.deadline;
     _signature.r <== signature.r;
     _signature.s <== signature.s;
     _signature.v <== signature.v;
 
-    component verifypermitComponent = VerifyPermit(numEstates);
-    verifypermitComponent.testator <== _testator; 
-    verifypermitComponent.estates <== _estates;
-    verifypermitComponent.nonce <== _nonce;
-    verifypermitComponent.deadline <== _deadline;
+    component verifypermitComponent = VerifyPermit(numPermission);
+    verifypermitComponent.testator <== _testator;
+    verifypermitComponent.permit <== _permit;
     verifypermitComponent.will <== _will;
     verifypermitComponent.signature <== _signature;
 }
 
-component main = UntaggedVerifyPermit(2);
+component main = UntaggedVerifyPermit(1);
