@@ -1,59 +1,20 @@
-import { PATHS_CONFIG } from "@config";
 import type { Groth16Proof, CreateWillInput } from "@shared/types/zkp.js";
-import { exec } from "child_process";
-import { promisify } from "util";
-import { writeFile, mkdir } from "fs/promises";
-import { dirname } from "path";
-import chalk from "chalk";
-
-const execAsync = promisify(exec);
+import { generateZkpProof, runZkpMain } from "./generator.js";
 
 async function generateInclusionProof(input: CreateWillInput): Promise<Groth16Proof> {
-  const { ciphertext, key, iv, expectedTestator, expectedEstates } = input;
+  // Transform BigInt to string for JSON serialization
+  const processedInput = {
+    ciphertext: input.ciphertext,
+    key: input.key,
+    iv: input.iv,
+    expectedTestator: input.expectedTestator.toString(),
+    expectedEstates: input.expectedEstates.map(e => e.toString())
+  };
 
-  console.log(chalk.blue(`Generating inclusion proof for will creation`));
-
-  const files = PATHS_CONFIG.zkp.createWill;
-
-  try {
-    await mkdir(dirname(files.proof), { recursive: true });
-    await mkdir(dirname(files.public), { recursive: true });
-    await mkdir(dirname(files.input), { recursive: true });
-    await mkdir(dirname(files.witness), { recursive: true });
-
-    await writeFile(files.input, JSON.stringify({
-      ciphertext,
-      key,
-      iv,
-      expectedTestator: expectedTestator.toString(),
-      expectedEstates: expectedEstates.map(e => e.toString())
-    }, null, 2));
-    console.log(chalk.green(`✅ Input file created: ${files.input}`));
-
-    console.log(chalk.blue("Calculating witness..."));
-    await execAsync(`snarkjs wtns calculate ${files.wasm} ${files.input} ${files.witness}`);
-    console.log(chalk.green("✅ Witness calculated"));
-
-    console.log(chalk.blue("Generating proof..."));
-    await execAsync(`snarkjs groth16 prove ${files.zkey} ${files.witness} ${files.proof} ${files.public}`);
-    console.log(chalk.green("✅ Proof generated"));
-
-    const proofContent = await import(files.proof, { assert: { type: "json" } });
-    const publicContent = await import(files.public, { assert: { type: "json" } });
-
-    console.log(chalk.cyan(`📁 Proof file: ${files.proof}`));
-    console.log(chalk.cyan(`📁 Public signals file: ${files.public}`));
-    console.log(chalk.yellow(`🔍 Public output: ${publicContent.default}`));
-
-    return {
-      proof: proofContent.default,
-      publicSignals: publicContent.default
-    };
-  } catch (error) {
-    throw new Error(
-      `Failed to generate inclusion proof: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-  }
+  return generateZkpProof({
+    circuitName: "createWill",
+    input: processedInput
+  });
 }
 
 async function main(): Promise<void> {

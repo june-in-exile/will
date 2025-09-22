@@ -28,7 +28,7 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit2 predict-address sign-permit2 serialize-will encrypt-will prove-permit upload-will upload-cid
+phase1: approve-permit2 predict-address sign-permit serialize-will encrypt-will prove-permit upload-will upload-cid
 
 approve-permit2:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
