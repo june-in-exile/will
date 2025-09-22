@@ -134,16 +134,20 @@ interface WillPathsConfig {
   deserialized: string;
 }
 
-interface ZkpCircuitsPathsConfig {
-  verifier: string;
+interface ZkpCircuitsFilesConfig {
+  wasm: string;
+  witness: string;
+  input: string;
+  zkey: string;
   proof: string;
   public: string;
+  verifier: string;
 }
 
 interface ZkpPathsConfig {
-  uploadCid: ZkpCircuitsPathsConfig;
-  createWill: ZkpCircuitsPathsConfig;
-  multiplier2: ZkpCircuitsPathsConfig;
+  multiplier2: ZkpCircuitsFilesConfig;
+  uploadCid: ZkpCircuitsFilesConfig;
+  createWill: ZkpCircuitsFilesConfig;
 }
 
 interface ContractPathsConfig {
@@ -429,100 +433,81 @@ export const IPFS_CONFIG: IpfsConfig = {
 // ================================
 // FILE PATHS CONFIG
 // ================================
+// Base paths (defined first so they can be reused)
+const BASE_PATHS = {
+  root: resolve(modulePath, ".."),
+  backend: resolve(modulePath, "../apps/backend"),
+  frontend: resolve(modulePath, "../apps/frontend"),
+  zkp: resolve(modulePath, "../zkp"),
+  contracts: resolve(modulePath, "../contracts"),
+};
+
 export const PATHS_CONFIG: PathsConfig = {
   // Base paths
-  base: {
-    root: resolve(modulePath, ".."),
-    backend: resolve(modulePath, "../apps/backend"),
-    frontend: resolve(modulePath, "../apps/frontend"),
-    zkp: resolve(modulePath, "../zkp"),
-    contracts: resolve(modulePath, "../contracts"),
-  },
+  base: BASE_PATHS,
 
   // Will files
-  will: {
-    raw: resolve(modulePath, "../apps/backend/will/1_raw.json"),
-    formatted: resolve(modulePath, "../apps/backend/will/2_formatted.json"),
-    addressed: resolve(modulePath, "../apps/backend/will/3_addressed.json"),
-    signed: resolve(modulePath, "../apps/backend/will/4_signed.json"),
-    serialized: resolve(modulePath, "../apps/backend/will/5_serialized.json"),
-    encrypted: resolve(modulePath, "../apps/backend/will/6_encrypted.json"),
-    downloaded: resolve(modulePath, "../apps/backend/will/7_downloaded.json"),
-    decrypted: resolve(modulePath, "../apps/backend/will/8_decrypted.json"),
-    deserialized: resolve(
-      modulePath,
-      "../apps/backend/will/9_deserialized.json",
-    ),
-  },
+  will: (() => {
+    const willDir = resolve(BASE_PATHS.backend, "will");
+    const createWillPath = (step: number, name: string) =>
+      resolve(willDir, `${step}_${name}.json`);
+
+    return {
+      raw: createWillPath(1, "raw"),
+      formatted: createWillPath(2, "formatted"),
+      addressed: createWillPath(3, "addressed"),
+      signed: createWillPath(4, "signed"),
+      serialized: createWillPath(5, "serialized"),
+      encrypted: createWillPath(6, "encrypted"),
+      downloaded: createWillPath(7, "downloaded"),
+      decrypted: createWillPath(8, "decrypted"),
+      deserialized: createWillPath(9, "deserialized"),
+    };
+  })(),
 
   // ZKP files
-  zkp: {
-    uploadCid: {
-      verifier: resolve(
-        modulePath,
-        "../zkp/circuits/cidUpload/contracts/verifier.sol",
-      ),
-      proof: resolve(modulePath, "../zkp/circuits/cidUpload/proofs/proof.json"),
-      public: resolve(
-        modulePath,
-        "../zkp/circuits/cidUpload/proofs/public.json",
-      ),
-    },
-    createWill: {
-      verifier: resolve(
-        modulePath,
-        "../zkp/circuits/willCreation/contracts/verifier.sol",
-      ),
-      proof: resolve(
-        modulePath,
-        "../zkp/circuits/willCreation/proofs/proof.json",
-      ),
-      public: resolve(
-        modulePath,
-        "../zkp/circuits/willCreation/proofs/public.json",
-      ),
-    },
-    multiplier2: {
-      verifier: resolve(
-        modulePath,
-        "../zkp/circuits/multiplier2/contracts/verifier.sol",
-      ),
-      proof: resolve(
-        modulePath,
-        "../zkp/circuits/multiplier2/proofs/proof.json",
-      ),
-      public: resolve(
-        modulePath,
-        "../zkp/circuits/multiplier2/proofs/public.json",
-      ),
-    },
-  },
+  zkp: (() => {
+    const createZkpConfig = (circuitName: string): ZkpCircuitsFilesConfig => {
+      const circuitsDir = resolve(BASE_PATHS.zkp, `circuits/${circuitName}`);
+      const dirs = {
+        build: resolve(circuitsDir, "build"),
+        keys: resolve(circuitsDir, "keys"),
+        proofs: resolve(circuitsDir, "proofs"),
+        contracts: resolve(circuitsDir, "contracts"),
+        inputs: resolve(circuitsDir, "inputs"),
+      };
+
+      return {
+        wasm: resolve(dirs.build, `${circuitName}_js/${circuitName}.wasm`),
+        witness: resolve(dirs.build, `witness.wtns`),
+        input: resolve(dirs.inputs, `input.json`),
+        zkey: resolve(dirs.keys , `${circuitName}_0001.zkey`),
+        proof: resolve(dirs.proofs, `proof.json`),
+        public: resolve(dirs.proofs, `public.json`),
+        verifier: resolve(dirs.contracts, `verifier.sol`),
+      };
+    };
+
+    return {
+      multiplier2: createZkpConfig("multiplier2"),
+      uploadCid: createZkpConfig("cidUpload"),
+      createWill: createZkpConfig("willCreation"),
+    };
+  })(),
 
   // Environment files
   env: resolve(modulePath, "../.env"),
 
   // Contract artifacts
   contracts: {
-    broadcastDir: resolve(modulePath, "../contracts/broadcast"),
-    outDir: resolve(modulePath, "../contracts/out"),
-    groth16Verifier: resolve(
-      modulePath,
-      "../contracts/src/Groth16Verifier.sol",
-    ),
-    uploadCidVerifier: resolve(
-      modulePath,
-      "../contracts/src/UploadCidVerifier.sol",
-    ),
-    createWillVerifier: resolve(
-      modulePath,
-      "../contracts/src/CreateWillVerifier.sol",
-    ),
-    jsonCidVerifier: resolve(
-      modulePath,
-      "../contracts/src/JsonCidVerifier.sol",
-    ),
-    will: resolve(modulePath, "../contracts/src/Will.sol"),
-    willFactory: resolve(modulePath, "../contracts/src/WillFactory.sol"),
+    broadcastDir: resolve(BASE_PATHS.contracts, "broadcast"),
+    outDir: resolve(BASE_PATHS.contracts, "out"),
+    groth16Verifier: resolve(BASE_PATHS.contracts, "src/Groth16Verifier.sol"),
+    uploadCidVerifier: resolve(BASE_PATHS.contracts, "src/UploadCidVerifier.sol"),
+    createWillVerifier: resolve(BASE_PATHS.contracts, "src/CreateWillVerifier.sol"),
+    jsonCidVerifier: resolve(BASE_PATHS.contracts, "src/JsonCidVerifier.sol"),
+    will: resolve(BASE_PATHS.contracts, "src/Will.sol"),
+    willFactory: resolve(BASE_PATHS.contracts, "src/WillFactory.sol"),
   },
 
   // Crypto keys

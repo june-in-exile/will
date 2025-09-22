@@ -13,43 +13,31 @@ async function generateMultiplier2Proof(input: Multiplier2Input): Promise<Groth1
   const c = a * b;
 
   console.log(chalk.blue(`Generating proof for a=${a}, b=${b}, c=${c}`));
-
-  const circuitName = "multiplier2";
-  const zkpBaseDir = "../../zkp";
-  const circuitDir = `${zkpBaseDir}/circuits/${circuitName}`;
-  const buildDir = `${circuitDir}/build`;
-  const inputsDir = `${circuitDir}/inputs`;
-  const keysDir = `${circuitDir}/keys`;
-
-  const wasmFile = `${buildDir}/${circuitName}_js/${circuitName}.wasm`;
-  const zkeyFile = `${keysDir}/${circuitName}_0001.zkey`;
-  const inputFile = `${inputsDir}/input.json`;
-  const witnessFile = `${buildDir}/witness.wtns`;
-  const proofFile = PATHS_CONFIG.zkp.multiplier2.proof;
-  const publicFile = PATHS_CONFIG.zkp.multiplier2.public;
+  
+  const files = PATHS_CONFIG.zkp.multiplier2;
 
   try {
-    await mkdir(dirname(proofFile), { recursive: true });
-    await mkdir(dirname(publicFile), { recursive: true });
-    await mkdir(dirname(inputFile), { recursive: true });
-    await mkdir(dirname(witnessFile), { recursive: true });
+    await mkdir(dirname(files.proof), { recursive: true });
+    await mkdir(dirname(files.public), { recursive: true });
+    await mkdir(dirname(files.input), { recursive: true });
+    await mkdir(dirname(files.witness), { recursive: true });
 
-    await writeFile(inputFile, JSON.stringify({ a, b }, null, 2));
-    console.log(chalk.green(`✅ Input file created: ${inputFile}`));
+    await writeFile(files.input, JSON.stringify({ a, b }, null, 2));
+    console.log(chalk.green(`✅ Input file created: ${files.input}`));
 
     console.log(chalk.blue("Calculating witness..."));
-    await execAsync(`snarkjs wtns calculate ${wasmFile} ${inputFile} ${witnessFile}`);
+    await execAsync(`snarkjs wtns calculate ${files.wasm} ${files.input} ${files.witness}`);
     console.log(chalk.green("✅ Witness calculated"));
 
     console.log(chalk.blue("Generating proof..."));
-    await execAsync(`snarkjs groth16 prove ${zkeyFile} ${witnessFile} ${proofFile} ${publicFile}`);
+    await execAsync(`snarkjs groth16 prove ${files.zkey} ${files.witness} ${files.proof} ${files.public}`);
     console.log(chalk.green("✅ Proof generated"));
 
-    const proofContent = await import(proofFile, { assert: { type: "json" } });
-    const publicContent = await import(publicFile, { assert: { type: "json" } });
+    const proofContent = await import(files.proof, { assert: { type: "json" } });
+    const publicContent = await import(files.public, { assert: { type: "json" } });
 
-    console.log(chalk.cyan(`📁 Proof file: ${proofFile}`));
-    console.log(chalk.cyan(`📁 Public signals file: ${publicFile}`));
+    console.log(chalk.cyan(`📁 Proof file: ${files.proof}`));
+    console.log(chalk.cyan(`📁 Public signals file: ${files.public}`));
     console.log(chalk.yellow(`🔍 Public output: ${publicContent.default[0]}`));
 
     return {
@@ -70,7 +58,10 @@ async function main(): Promise<void> {
       chalk.cyan("\n=== Generating Multiplier2 Zero Knowledge Proof ===\n")
     );
 
-    const input: Multiplier2Input = { a: 3, b: 11 };
+    const input: Multiplier2Input = {
+      a: Math.floor(Math.random() * 100),
+      b: Math.floor(Math.random() * 100)
+    };
 
     const result = await generateMultiplier2Proof(input);
 

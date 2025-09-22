@@ -106,11 +106,11 @@ compile:
 
 witness:
 	@echo "🧮 Generating witness for $(TEMPLATE)..."
-	@if [ ! -f $(INPUTS)/example.json ]; then \
+	@if [ ! -f $(INPUTS)/input.json ]; then \
 		echo "❌ Input file not found."; \
 		exit 1; \
 	fi
-	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUTS)/example.json $(BUILD)/witness.wtns
+	snarkjs wtns calculate $(BUILD)/$(CIRCUIT)_js/$(CIRCUIT).wasm $(INPUTS)/input.json $(BUILD)/witness.wtns
 	snarkjs wtns export json $(BUILD)/witness.wtns $(BUILD)/witness.json
 	@echo "✅ Witness generated successfully!"
 
