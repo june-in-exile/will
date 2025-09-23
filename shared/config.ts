@@ -24,21 +24,6 @@ config({ path: resolve(modulePath, "../.env") });
 // TYPE DEFINITIONS
 // ================================
 
-interface EnvironmentSettings {
-  enableStackTrace: boolean;
-  verboseLogging: boolean;
-  enableRetries: boolean;
-}
-
-interface AppConfig {
-  name: string;
-  version: string;
-  environment: string;
-  useAnvil: boolean;
-  development: EnvironmentSettings;
-  production: EnvironmentSettings;
-}
-
 interface NetworkRpcConfig {
   current: string | undefined;
   anvil: string | undefined;
@@ -179,24 +164,6 @@ interface SaltConfig {
   defaultSaltBytes: number;
 }
 
-interface ErrorCategoriesConfig {
-  VALIDATION_ERROR: string;
-  NETWORK_ERROR: string;
-  CRYPTO_ERROR: string;
-  FILE_ERROR: string;
-  CONTRACT_ERROR: string;
-}
-
-interface ErrorConfig {
-  maxRetries: number;
-  baseDelay: number;
-  maxDelay: number;
-  backoffMultiplier: number;
-  categories: ErrorCategoriesConfig;
-  logLevel: string;
-  enableStackTrace: boolean;
-}
-
 interface Permit2Config {
   defaultDuration: number;
   maxNonceBytes: number;
@@ -206,107 +173,11 @@ interface SerializationConfig {
   maxAmountBytes: number;
 }
 
-interface LoggingColorsConfig {
-  success: string;
-  error: string;
-  warning: string;
-  info: string;
-  debug: string;
-  highlight: string;
-  accent: string;
-}
-
-interface LoggingLevelsConfig {
-  ERROR: number;
-  WARN: number;
-  INFO: number;
-  DEBUG: number;
-}
-
-interface LoggingConfig {
-  colors: LoggingColorsConfig;
-  levels: LoggingLevelsConfig;
-  truncateSignatures: boolean;
-  signatureDisplayLength: number;
-  timestampFormat: string;
-  verboseMode: boolean;
-}
-
-interface EnvValidationConfig {
-  [key: string]: RegExp;
-}
-
-interface EnvCurrentConfig {
-  USE_ANVIL: boolean;
-  NODE_ENV: string;
-  ANVIL_RPC_URL: string | undefined;
-  ARB_SEPOLIA_RPC_URL: string | undefined;
-}
-
-interface EnvConfig {
-  required: string[];
-  networkRequired: string[];
-  optional: string[];
-  validation: EnvValidationConfig;
-  current: EnvCurrentConfig;
-}
-
-interface RetryConfig {
-  attempts: number;
-  delay: number;
-}
-
-interface EnvironmentInfo {
-  NODE_ENV: string;
-  USE_ANVIL: boolean;
-  network: string;
-  chainId: number[];
-  rpcUrl: string | undefined;
-  configLoaded: boolean;
-}
-
-interface ConfigUtilsInterface {
-  getModuleConfig(moduleName: string): any;
-  validateEnvironment(): boolean;
-  getNetworkConfig(): AnvilNetworkConfig | ArbitrumSepoliaNetworkConfig;
-  isUsingAnvil(): boolean;
-  getMergedConfig(): any;
-  isDevelopment(): boolean;
-  isProduction(): boolean;
-  getTimeout(operation: string): number;
-  getRetryConfig(operation: string): RetryConfig;
-  getEnvironmentInfo(): EnvironmentInfo;
-}
-
 // ================================
 // ENVIRONMENT DETECTION
 // ================================
 const USE_ANVIL: boolean = process.env.USE_ANVIL === "true";
 const NODE_ENV: string = process.env.NODE_ENV || "development";
-
-// ================================
-// GENERAL APPLICATION CONFIG
-// ================================
-export const APP_CONFIG: AppConfig = {
-  name: "Will Application",
-  version: "1.0.0",
-  environment: NODE_ENV,
-  useAnvil: USE_ANVIL,
-
-  // Development settings
-  development: {
-    enableStackTrace: true,
-    verboseLogging: true,
-    enableRetries: true,
-  },
-
-  // Production settings
-  production: {
-    enableStackTrace: false,
-    verboseLogging: false,
-    enableRetries: true,
-  },
-};
 
 // ================================
 // NETWORK & RPC CONFIG
@@ -534,30 +405,6 @@ export const SALT_CONFIG: SaltConfig = {
 };
 
 // ================================
-// ERROR HANDLING CONFIG
-// ================================
-export const ERROR_CONFIG: ErrorConfig = {
-  // Retry settings
-  maxRetries: 3,
-  baseDelay: USE_ANVIL ? 500 : 1000, // Faster for local network
-  maxDelay: 10000, // 10 seconds
-  backoffMultiplier: 2,
-
-  // Error categories
-  categories: {
-    VALIDATION_ERROR: "ValidationError",
-    NETWORK_ERROR: "NetworkError",
-    CRYPTO_ERROR: "CryptoError",
-    FILE_ERROR: "FileError",
-    CONTRACT_ERROR: "ContractError",
-  },
-
-  // Logging settings
-  logLevel: process.env.LOG_LEVEL || (USE_ANVIL ? "debug" : "info"),
-  enableStackTrace: NODE_ENV === "development",
-};
-
-// ================================
 // PERMIT2 CONFIG
 // ================================
 export const PERMIT2_CONFIG: Permit2Config = {
@@ -577,249 +424,9 @@ export const SERIALIZATION_CONFIG: SerializationConfig = {
 };
 
 // ================================
-// LOGGING CONFIG
-// ================================
-export const LOGGING_CONFIG: LoggingConfig = {
-  // Console colors (chalk)
-  colors: {
-    success: "green",
-    error: "red",
-    warning: "yellow",
-    info: "blue",
-    debug: "gray",
-    highlight: "white",
-    accent: "cyan",
-  },
-
-  // Log levels
-  levels: {
-    ERROR: 0,
-    WARN: 1,
-    INFO: 2,
-    DEBUG: 3,
-  },
-
-  // Output settings
-  truncateSignatures: true,
-  signatureDisplayLength: 18, // Show first 10 + last 8 characters
-
-  // Timestamp format
-  timestampFormat: "YYYY-MM-DD HH:mm:ss",
-
-  // Environment-specific settings
-  verboseMode: USE_ANVIL || NODE_ENV === "development",
-};
-
-// ================================
-// ENVIRONMENT VARIABLES CONFIG
-// ================================
-export const ENV_CONFIG: EnvConfig = {
-  // Required environment variables
-  required: [
-    "PERMIT2",
-    "CID_UPLOAD_VERIFIER",
-    "WILL_CREATION_VERIFIER",
-    "JSON_CID_VERIFIER",
-    "WILL_FACTORY",
-    "TESTATOR_PRIVATE_KEY",
-    "EXECUTOR_PRIVATE_KEY",
-    "EXECUTOR",
-  ],
-
-  // Network-specific required variables
-  networkRequired: USE_ANVIL ? ["ANVIL_RPC_URL"] : ["ARB_SEPOLIA_RPC_URL"],
-
-  // Optional environment variables
-  optional: ["NODE_ENV", "LOG_LEVEL"],
-
-  // Validation patterns
-  validation: {
-    PERMIT2: /^0x[0-9a-fA-F]{40}$/,
-    CID_UPLOAD_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    WILL_CREATION_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    JSON_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    WILL_FACTORY: /^0x[0-9a-fA-F]{40}$/,
-    TESTATOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
-    EXECUTOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
-    EXECUTOR: /^0x[0-9a-fA-F]{40}$/,
-    CID: /^[a-zA-Z0-9]{46,100}$/,
-    ALGORITHM: /^(aes-256-gcm|chacha20-poly1305)$/,
-    ANVIL_RPC_URL: /^https?:\/\/.+/,
-    ARB_SEPOLIA_RPC_URL: /^https?:\/\/.+/,
-  },
-
-  // Current environment values
-  current: {
-    USE_ANVIL,
-    NODE_ENV,
-    ANVIL_RPC_URL: process.env.ANVIL_RPC_URL,
-    ARB_SEPOLIA_RPC_URL: process.env.ARB_SEPOLIA_RPC_URL,
-  },
-};
-
-// ================================
-// UTILITY FUNCTIONS
-// ================================
-export const CONFIG_UTILS: ConfigUtilsInterface = {
-  /**
-   * Get configuration for specific module
-   */
-  getModuleConfig(moduleName: string): any {
-    const configs: { [key: string]: any } = {
-      app: APP_CONFIG,
-      crypto: CRYPTO_CONFIG,
-      signature: SIGNATURE_CONFIG,
-      hash: HASH_CONFIG,
-      approval: APPROVAL_CONFIG,
-      ipfs: IPFS_CONFIG,
-      network: NETWORK_CONFIG,
-      paths: PATHS_CONFIG,
-      salt: SALT_CONFIG,
-      error: ERROR_CONFIG,
-      permit2: PERMIT2_CONFIG,
-      serialization: SERIALIZATION_CONFIG,
-      logging: LOGGING_CONFIG,
-      env: ENV_CONFIG,
-    };
-
-    return configs[moduleName] || null;
-  },
-
-  /**
-   * Validate environment variables
-   */
-  validateEnvironment(): boolean {
-    const allRequired = [...ENV_CONFIG.required, ...ENV_CONFIG.networkRequired];
-    const missing = allRequired.filter((key) => !process.env[key]);
-
-    if (missing.length > 0) {
-      throw new Error(
-        `Missing required environment variables: ${missing.join(", ")}`,
-      );
-    }
-
-    // Validate format of existing variables
-    for (const [key, pattern] of Object.entries(ENV_CONFIG.validation)) {
-      const value = process.env[key];
-      if (value && !pattern.test(value)) {
-        throw new Error(
-          `Invalid format for environment variable ${key}: ${value}`,
-        );
-      }
-    }
-
-    return true;
-  },
-
-  /**
-   * Get network-specific configuration
-   */
-  getNetworkConfig(): AnvilNetworkConfig | ArbitrumSepoliaNetworkConfig {
-    return USE_ANVIL ? NETWORK_CONFIG.anvil : NETWORK_CONFIG.arbitrumSepolia;
-  },
-
-  /**
-   * Check if using Anvil local network
-   */
-  isUsingAnvil(): boolean {
-    return USE_ANVIL;
-  },
-
-  /**
-   * Get merged configuration
-   */
-  getMergedConfig(): any {
-    return {
-      app: APP_CONFIG,
-      network: NETWORK_CONFIG,
-      crypto: CRYPTO_CONFIG,
-      signature: SIGNATURE_CONFIG,
-      hash: HASH_CONFIG,
-      approval: APPROVAL_CONFIG,
-      ipfs: IPFS_CONFIG,
-      paths: PATHS_CONFIG,
-      salt: SALT_CONFIG,
-      error: ERROR_CONFIG,
-      permit2: PERMIT2_CONFIG,
-      serialization: SERIALIZATION_CONFIG,
-      logging: LOGGING_CONFIG,
-      env: ENV_CONFIG,
-    };
-  },
-
-  /**
-   * Check if running in development mode
-   */
-  isDevelopment(): boolean {
-    return NODE_ENV === "development";
-  },
-
-  /**
-   * Check if running in production mode
-   */
-  isProduction(): boolean {
-    return NODE_ENV === "production";
-  },
-
-  /**
-   * Get timeout for specific operation
-   */
-  getTimeout(operation: string): number {
-    const timeouts: { [key: string]: number } = {
-      network: NETWORK_CONFIG.timeout,
-      ipfs: IPFS_CONFIG.pinning.timeout,
-    };
-
-    return timeouts[operation] || 30000; // Default 30 seconds
-  },
-
-  /**
-   * Get retry configuration for specific operation
-   */
-  getRetryConfig(operation: string): RetryConfig {
-    const retryConfigs: { [key: string]: RetryConfig } = {
-      network: {
-        attempts: NETWORK_CONFIG.retryAttempts,
-        delay: NETWORK_CONFIG.retryDelay,
-      },
-      approval: {
-        attempts: APPROVAL_CONFIG.maxRetries,
-        delay: APPROVAL_CONFIG.retryDelay,
-      },
-      ipfs: {
-        attempts: IPFS_CONFIG.pinning.retryAttempts,
-        delay: IPFS_CONFIG.pinning.retryDelay,
-      },
-    };
-
-    return (
-      retryConfigs[operation] || {
-        attempts: ERROR_CONFIG.maxRetries,
-        delay: ERROR_CONFIG.baseDelay,
-      }
-    );
-  },
-
-  /**
-   * Get environment information for debugging
-   */
-  getEnvironmentInfo(): EnvironmentInfo {
-    return {
-      NODE_ENV,
-      USE_ANVIL,
-      network: NETWORK_CONFIG.network,
-      chainId: NETWORK_CONFIG.expectedChainIds,
-      rpcUrl: NETWORK_CONFIG.rpc.current,
-      configLoaded: true,
-    };
-  },
-};
-
-// ================================
 // EXPORT DEFAULT CONFIG
 // ================================
 export default {
-  APP_CONFIG,
   NETWORK_CONFIG,
   CRYPTO_CONFIG,
   SIGNATURE_CONFIG,
@@ -828,10 +435,6 @@ export default {
   IPFS_CONFIG,
   PATHS_CONFIG,
   SALT_CONFIG,
-  ERROR_CONFIG,
   PERMIT2_CONFIG,
   SERIALIZATION_CONFIG,
-  LOGGING_CONFIG,
-  ENV_CONFIG,
-  CONFIG_UTILS,
 };
