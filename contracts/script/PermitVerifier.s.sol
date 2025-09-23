@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { Script, console } from "forge-std/Script.sol";
-import { PermitVerifier } from "src/PermitVerifier.sol";
+import { PermitVerifier } from "src/lib/PermitVerifier.sol";
 
 contract PermitVerifierScript is Script {
     PermitVerifier public permitVerifier;

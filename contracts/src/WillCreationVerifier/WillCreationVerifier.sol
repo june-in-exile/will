@@ -3,8 +3,9 @@
 pragma solidity ^0.8.17;
 
 import { IVerifierConstants } from "../interfaces/IVerifierConstants.sol";
+import { EllipticCurveOps } from "../libs/EllipticCurveOps.sol";
 
-contract WillCreationVerifier {
+contract WillCreationVerifier is EllipticCurveOps {
     // Basic curve parameters
     uint256 constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
@@ -28,8 +29,8 @@ contract WillCreationVerifier {
     uint256 constant IC0y = 1392674064755996927770870762452202945904829176451604197957652770843219931776;
 
     // Constants contract addresses
-    address public immutable constants1;
-    address public immutable constants2;
+    IVerifierConstants public immutable constants1;
+    IVerifierConstants public immutable constants2;
 
     // Memory data
     uint16 constant pVk = 0;
@@ -37,8 +38,8 @@ contract WillCreationVerifier {
     uint16 constant pLastMem = 896;
 
     constructor(address _constants1, address _constants2) {
-        constants1 = _constants1;
-        constants2 = _constants2;
+        constants1 = IVerifierConstants(_constants1);
+        constants2 = IVerifierConstants(_constants2);
     }
 
     function _getICCount() internal pure returns (uint256) {
@@ -49,9 +50,9 @@ contract WillCreationVerifier {
         if (index == 0) {
             return (IC0x, IC0y);
         } else if (index <= 150) {
-            return IVerifierConstants(constants1).getIC(index);
+            return constants1.getIC(index);
         } else if (index < _getICCount()) {
-            return IVerifierConstants(constants2).getIC(index);
+            return constants2.getIC(index);
         } else {
             revert("IC index out of range");
         }
@@ -81,7 +82,7 @@ contract WillCreationVerifier {
             uint256 batchCount = batchEnd - batchStart;
 
             (uint256[] memory batchXs, uint256[] memory batchYs) =
-                IVerifierConstants(constants1).getBatchIC(batchStart, batchCount);
+                constants1.getBatchIC(batchStart, batchCount);
 
             for (uint256 i = 0; i < batchCount; i++) {
                 xs[processed + i] = batchXs[i];
@@ -96,7 +97,7 @@ contract WillCreationVerifier {
             uint256 remaining = count - processed;
 
             (uint256[] memory batchXs, uint256[] memory batchYs) =
-                IVerifierConstants(constants2).getBatchIC(batchStart, remaining);
+                constants2.getBatchIC(batchStart, remaining);
 
             for (uint256 i = 0; i < remaining; i++) {
                 xs[processed + i] = batchXs[i];
@@ -134,10 +135,11 @@ contract WillCreationVerifier {
             for (uint256 i = 0; i < count; i++) {
                 uint256 signalIndex = start + i - 1; // -1 because pubSignals is 0-indexed but IC starts from 1
                 if (signalIndex < 292 && pubSignals[signalIndex] != 0) {
-                    // This would need proper elliptic curve arithmetic
-                    // For now, this is a placeholder using field arithmetic
-                    x = addmod(x, mulmod(icxs[i], pubSignals[signalIndex], q), q);
-                    y = addmod(y, mulmod(icys[i], pubSignals[signalIndex], q), q);
+                    // Scalar multiplication
+                    (uint256 mulX, uint256 mulY) = ecMul(icxs[i], icys[i], pubSignals[signalIndex]);
+                    
+                    // Point addition
+                    (x, y) = ecAdd(x, y, mulX, mulY);
                 }
             }
         }
