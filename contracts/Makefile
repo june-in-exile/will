@@ -17,6 +17,19 @@ else
 	CHAIN_ID := $(ARB_SEPOLIA_CHAIN_ID)
 endif
 
+# -------------- Split Verifier Commands ----------------
+
+split-multiplier2Verifier:
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/Multiplier2Verifier.sol
+
+split-cidUploadVerifier:
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/CidUploadVerifier.sol
+
+split-willCreationVerifier:
+	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/WillCreationVerifier.sol
+
+split-verifiers: split-multiplier2Verifier split-cidUploadVerifier split-willCreationVerifier
+
 # ------------- Synchronization Commands ----------------
 
 sync-anvil:
@@ -26,12 +39,7 @@ sync-zkp:
 # 	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
 
-split-verifier:
-	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/Multiplier2Verifier.sol
-	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/WillCreationVerifier.sol
-	@pnpm exec tsx ../shared/utils/file/splitVerifier.ts ./src/CidUploadVerifier.sol
-
-sync: sync-anvil sync-zkp
+sync: sync-anvil sync-zkp split-verifiers
 
 # ---------------- Clean Commands -----------------------
 

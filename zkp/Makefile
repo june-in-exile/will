@@ -1,11 +1,11 @@
 # Default circuit for circuit-specific operations
 # CIRCUIT = willCreation
-# CIRCUIT = cidUpload
+CIRCUIT = cidUpload
 # CIRCUIT = permitVerify
 CIRCUIT ?= multiplier2
 
 # TEMPLATE = CreateWill
-# TEMPLATE = UploadCid
+TEMPLATE = UploadCid
 # TEMPLATE = VerifyPermit
 TEMPLATE ?= Multiplier2
 

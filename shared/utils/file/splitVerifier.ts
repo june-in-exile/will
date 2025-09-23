@@ -19,12 +19,17 @@ function parseVerifierContract(filePath: string): VerifierData {
 
   // Extract basic constants (r, q, alpha, beta, gamma, delta)
   const basicConstants: string[] = [];
+  const seenConstants = new Set<string>();
   const basicConstantRegex =
     /uint256\s+constant\s+(r|q|alphax|alphay|betax1|betax2|betay1|betay2|gammax1|gammax2|gammay1|gammay2|deltax1|deltax2|deltay1|deltay2)\s*=\s*([^;]+);/g;
 
   let match;
   while ((match = basicConstantRegex.exec(content)) !== null) {
-    basicConstants.push(match[0]);
+    const constantName = match[1];
+    if (!seenConstants.has(constantName)) {
+      seenConstants.add(constantName);
+      basicConstants.push(match[0]);
+    }
   }
 
   // Extract IC constants
@@ -67,161 +72,262 @@ function generateConstantsContract(
   icConstants: ICConstant[],
 ): string {
   const relevantConstants = icConstants.slice(startIndex, endIndex);
-  const count = relevantConstants.length;
 
   let constantDeclarations = "";
   let getICCases = "";
 
-  relevantConstants.forEach((ic, localIndex) => {
+  relevantConstants.forEach((ic) => {
     constantDeclarations += `    uint256 constant IC${ic.index}x = ${ic.x};\n`;
     constantDeclarations += `    uint256 constant IC${ic.index}y = ${ic.y};\n`;
 
-    getICCases += `        if (index == ${localIndex}) return (IC${ic.index}x, IC${ic.index}y);\n`;
+    getICCases += `        if (index == ${ic.index}) return (IC${ic.index}x, IC${ic.index}y);\n`;
   });
 
-  return `// SPDX-License-Identifier: GPL-3.0
+  const rangeStart =
+    relevantConstants.length > 0 ? relevantConstants[0].index : startIndex;
+  const rangeEnd =
+    relevantConstants.length > 0
+      ? relevantConstants[relevantConstants.length - 1].index + 1
+      : endIndex;
 
-pragma solidity >=0.7.0 <0.9.0;
+  return `// SPDX-License-Identifier: MIT
 
-interface IVerifierConstants {
-    function getIC(uint256 index) external pure returns (uint256 x, uint256 y);
-    function getICCount() external pure returns (uint256);
-}
+pragma solidity ^0.8.24;
+
+import { IVerifierConstants } from "../interfaces/IVerifierConstants.sol";
 
 contract ${contractName} is IVerifierConstants {
 ${constantDeclarations}
-    function getICCount() external pure returns (uint256) {
-        return ${count};
+    function _getICRange() internal pure returns (uint256 start, uint256 end) {
+        return (${rangeStart}, ${rangeEnd});
     }
 
-    function getIC(uint256 index) public pure returns (uint256 x, uint256 y) {
-        require(index < ${count}, "Index out of range");
+    function _getICCount() internal pure returns (uint256) {
+        (uint256 start, uint256 end) = _getICRange();
+        return end - start;
+    }
+
+    function getICCount() external pure returns (uint256) {
+        return _getICCount();
+    }
+
+    function _getIC(uint256 index) internal pure returns (uint256 x, uint256 y) {
+        (uint256 start, uint256 end) = _getICRange();
+        if (index < start || index >= end) revert IndexOutOfRange(index);
 
 ${getICCases}
         revert("Invalid index");
     }
 
-    // Batch getter for gas optimization
+    function getIC(uint256 index) external pure returns (uint256 x, uint256 y) {
+        return _getIC(index);
+    }
+
     function getBatchIC(uint256 startIdx, uint256 count)
         external pure returns (uint256[] memory xs, uint256[] memory ys) {
-        require(startIdx + count <= ${count}, "Batch out of range");
-
+        (uint256 start, uint256 end) = _getICRange();
+        if (startIdx < start || startIdx >= end) revert BatchStartOutOfRange(startIdx);
+        if (startIdx + count > end) revert BatchEndOutOfRange(startIdx, count);
+        
         xs = new uint256[](count);
         ys = new uint256[](count);
 
         for (uint256 i = 0; i < count; i++) {
-            (xs[i], ys[i]) = getIC(startIdx + i);
+            (xs[i], ys[i]) = _getIC(startIdx + i);
         }
     }
 }`;
 }
 
 function generateMainContract(
+  contractName: string,
   basicConstants: string[],
-  totalICCount: number,
+  icConstants: ICConstant[],
+  constantsContracts: string[],
 ): string {
   const basicConstantDeclarations = basicConstants.join("\n    ");
+  const totalICCount = icConstants.length;
+  const pubSignalsCount = totalICCount - 1;
+
+  // Find IC0 values
+  const ic0 = icConstants.find((ic) => ic.index === 0);
+  const ic0Declaration = ic0
+    ? `\n    // IC0 constant\n    uint256 constant IC0x = ${ic0.x};\n    uint256 constant IC0y = ${ic0.y};`
+    : "";
+
+  // Generate constants contract addresses and constructor params
+  const constantsAddresses = constantsContracts
+    .map(
+      (_, index) =>
+        `    IVerifierConstants public immutable constants${index + 1};`,
+    )
+    .join("\n");
+
+  const constructorParams = constantsContracts
+    .map((_, index) => `address _constants${index + 1}`)
+    .join(", ");
+
+  const constructorAssignments = constantsContracts
+    .map(
+      (_, index) =>
+        `        constants${index + 1} = IVerifierConstants(_constants${index + 1});`,
+    )
+    .join("\n");
 
   return `// SPDX-License-Identifier: GPL-3.0
 
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.24;
 
-interface IVerifierConstants {
-    function getIC(uint256 index) external pure returns (uint256 x, uint256 y);
-    function getICCount() external pure returns (uint256);
-    function getBatchIC(uint256 startIdx, uint256 count) 
-        external pure returns (uint256[] memory xs, uint256[] memory ys);
-}
+import { IVerifierConstants } from "./interfaces/IVerifierConstants.sol";
+import { EllipticCurveOps } from "./libs/EllipticCurveOps.sol";
 
-contract Groth16VerifierMain {
-    // Basic curve parameters
-    ${basicConstantDeclarations}
+contract ${contractName} is EllipticCurveOps, IVerifierConstants {
+    // Verification Key data
+    ${basicConstantDeclarations}${ic0Declaration}
 
-    // Constants contract addresses
-    address public immutable constants1;
-    address public immutable constants2;
-    address public immutable constants3;
+${constantsAddresses}
 
     // Memory data
     uint16 constant pVk = 0;
     uint16 constant pPairing = 128;
     uint16 constant pLastMem = 896;
 
-    constructor(address _constants1, address _constants2, address _constants3) {
-        constants1 = _constants1;
-        constants2 = _constants2;
-        constants3 = _constants3;
+    constructor(${constructorParams}) {
+${constructorAssignments}
     }
 
-    // Get IC constant from appropriate contract
-    function getIC(uint256 index) internal view returns (uint256 x, uint256 y) {
-        if (index < 98) {
-            return IVerifierConstants(constants1).getIC(index);
-        } else if (index < 196) {
-            return IVerifierConstants(constants2).getIC(index - 98);
-        } else if (index < ${totalICCount}) {
-            return IVerifierConstants(constants3).getIC(index - 196);
+    function _getICCount() internal pure returns (uint256) {
+        return ${totalICCount};
+    }
+
+    function getICCount() external pure returns (uint256) {
+        return _getICCount();
+    }
+
+    function _getIC(uint256 index) internal view returns (uint256 x, uint256 y) {
+        if (index == 0) {
+            return (IC0x, IC0y);
+        }${
+          constantsContracts.length === 1
+            ? ` else if (index < _getICCount()) {
+            return constants1.getIC(index);
+        }`
+            : ` else if (index <= 150) {
+            return constants1.getIC(index);
+        } else if (index < _getICCount()) {
+            return constants2.getIC(index);
+        }`
         } else {
             revert("IC index out of range");
         }
     }
-    
-    // Optimized batch getter
-    function getBatchIC(uint256 startIndex, uint256 count) 
-        internal view returns (uint256[] memory xs, uint256[] memory ys) {
+
+    function getIC(uint256 index) external view returns (uint256 x, uint256 y) {
+        return _getIC(index);
+    }
+
+    function _getBatchIC(uint256 startIdx, uint256 count)
+        internal
+        view
+        returns (uint256[] memory xs, uint256[] memory ys)
+    {
+        if (startIdx == 0 || startIdx >= _getICCount()) revert BatchStartOutOfRange(startIdx);
+        if (startIdx + count > _getICCount()) revert BatchEndOutOfRange(startIdx, count);
+
         xs = new uint256[](count);
         ys = new uint256[](count);
-        
+
         uint256 processed = 0;
-        
-        // Process constants1 range (0-97)
-        if (startIndex < 98 && processed < count) {
-            uint256 batchStart = startIndex;
-            uint256 batchEnd = startIndex + count > 98 ? 98 : startIndex + count;
-            uint256 batchCount = batchEnd - batchStart;
-            
-            (uint256[] memory batchXs, uint256[] memory batchYs) = 
-                IVerifierConstants(constants1).getBatchIC(batchStart, batchCount);
-                
-            for (uint256 i = 0; i < batchCount; i++) {
-                xs[processed + i] = batchXs[i];
-                ys[processed + i] = batchYs[i];
-            }
-            processed += batchCount;
-        }
-        
-        // Process constants2 range (98-195)
-        if (startIndex + processed < 196 && processed < count) {
-            uint256 batchStart = startIndex + processed < 98 ? 0 : startIndex + processed - 98;
-            uint256 remaining = count - processed;
-            uint256 batchCount = remaining > 98 ? 98 : remaining;
-            
-            (uint256[] memory batchXs, uint256[] memory batchYs) = 
-                IVerifierConstants(constants2).getBatchIC(batchStart, batchCount);
-                
-            for (uint256 i = 0; i < batchCount; i++) {
-                xs[processed + i] = batchXs[i];
-                ys[processed + i] = batchYs[i];
-            }
-            processed += batchCount;
-        }
-        
-        // Process constants3 range (196+)
+
+        ${
+          constantsContracts.length === 1
+            ? `// Process constants1 range (1+)
         if (processed < count) {
-            uint256 batchStart = startIndex + processed < 196 ? 0 : startIndex + processed - 196;
+            uint256 batchStart = startIdx;
             uint256 remaining = count - processed;
-            
-            (uint256[] memory batchXs, uint256[] memory batchYs) = 
-                IVerifierConstants(constants3).getBatchIC(batchStart, remaining);
-                
+
+            (uint256[] memory batchXs, uint256[] memory batchYs) = constants1.getBatchIC(batchStart, remaining);
+
             for (uint256 i = 0; i < remaining; i++) {
                 xs[processed + i] = batchXs[i];
                 ys[processed + i] = batchYs[i];
             }
+        }`
+            : `// Process constants1 range (1-150)
+        if (startIdx <= 150 && processed < count) {
+            uint256 batchStart = startIdx;
+            uint256 batchEnd = startIdx + count > 151 ? 151 : startIdx + count;
+            uint256 batchCount = batchEnd - batchStart;
+
+            (uint256[] memory batchXs, uint256[] memory batchYs) = constants1.getBatchIC(batchStart, batchCount);
+
+            for (uint256 i = 0; i < batchCount; i++) {
+                xs[processed + i] = batchXs[i];
+                ys[processed + i] = batchYs[i];
+            }
+            processed += batchCount;
+        }
+
+        // Process constants2 range (151+)
+        if (processed < count) {
+            uint256 batchStart = startIdx + processed;
+            uint256 remaining = count - processed;
+
+            (uint256[] memory batchXs, uint256[] memory batchYs) = constants2.getBatchIC(batchStart, remaining);
+
+            for (uint256 i = 0; i < remaining; i++) {
+                xs[processed + i] = batchXs[i];
+                ys[processed + i] = batchYs[i];
+            }
+        }`
         }
     }
 
-    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[${totalICCount - 1}] calldata _pubSignals) public view returns (bool) {
+    function getBatchIC(uint256 startIdx, uint256 count)
+        external
+        view
+        returns (uint256[] memory xs, uint256[] memory ys)
+    {
+        return _getBatchIC(startIdx, count);
+    }
+
+    function computeLinearCombination(uint256[${pubSignalsCount}] calldata pubSignals) internal view returns (uint256 x, uint256 y) {
+        // Get IC0 as starting point
+        (x, y) = _getIC(0);
+        if (!isOnCurve(x, y)) revert ICNotOnCurve(x, y);
+
+        // Adjust batch size based on gas limits
+        uint256 batchSize = 50;
+        uint256 ICCount = _getICCount();
+
+        for (uint256 start = 1; start < ICCount; start += batchSize) {
+            uint256 end = start + batchSize > ICCount ? ICCount : start + batchSize;
+            uint256 count = end - start;
+
+            // Get batch of IC constants
+            (uint256[] memory icxs, uint256[] memory icys) = _getBatchIC(start, count);
+
+            // Process each IC in the batch
+            for (uint256 i = 0; i < count; i++) {
+                uint256 signalIndex = start + i - 1; // -1 because pubSignals is 0-indexed but IC starts from 1
+                if (signalIndex < ${pubSignalsCount} && pubSignals[signalIndex] != 0) {
+                    // Scalar multiplication
+                    (uint256 mulX, uint256 mulY) = ecMul(icxs[i], icys[i], pubSignals[signalIndex]);
+
+                    // Point addition
+                    (x, y) = ecAdd(x, y, mulX, mulY);
+                }
+            }
+        }
+    }
+
+    function verifyProof(
+        uint256[2] calldata _pA,
+        uint256[2][2] calldata _pB,
+        uint256[2] calldata _pC,
+        uint256[${pubSignalsCount}] calldata _pubSignals
+    ) public view returns (bool) {
+        (uint256 vk_x, uint256 vk_y) = computeLinearCombination(_pubSignals);
         assembly {
             function checkField(v) {
                 if iszero(lt(v, r)) {
@@ -229,39 +335,10 @@ contract Groth16VerifierMain {
                     return(0, 0x20)
                 }
             }
-            
-            function g1_mulAccC(pR, x, y, s) {
-                let success
-                let mIn := mload(0x40)
-                mstore(mIn, x)
-                mstore(add(mIn, 32), y)
-                mstore(add(mIn, 64), s)
 
-                success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
-
-                if iszero(success) {
-                    mstore(0, 0)
-                    return(0, 0x20)
-                }
-
-                mstore(add(mIn, 64), mload(pR))
-                mstore(add(mIn, 96), mload(add(pR, 32)))
-
-                success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
-
-                if iszero(success) {
-                    mstore(0, 0)
-                    return(0, 0x20)
-                }
-            }
-
-            function checkPairing(pA, pB, pC, pubSignals, pMem) -> isOk {
+            function checkPairing(pA, pB, pC, pubSignals, pMem, vkX, vkY) -> isOk {
                 let _pPairing := add(pMem, pPairing)
                 let _pVk := add(pMem, pVk)
-
-                // We need to compute the linear combination in Solidity
-                // This assembly version is simplified and would need external calls
-                // For a working version, compute the linear combination outside assembly
 
                 // -A
                 mstore(_pPairing, calldataload(pA))
@@ -283,9 +360,9 @@ contract Groth16VerifierMain {
                 mstore(add(_pPairing, 320), betay1)
                 mstore(add(_pPairing, 352), betay2)
 
-                // vk_x - this would need to be computed outside assembly
-                mstore(add(_pPairing, 384), mload(add(pMem, pVk)))
-                mstore(add(_pPairing, 416), mload(add(pMem, add(pVk, 32))))
+                // vk_x
+                mstore(add(_pPairing, 384), vkX)
+                mstore(add(_pPairing, 416), vkY)
 
                 // gamma2
                 mstore(add(_pPairing, 448), gammax1)
@@ -304,6 +381,7 @@ contract Groth16VerifierMain {
                 mstore(add(_pPairing, 736), deltay2)
 
                 let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
+
                 isOk := and(success, mload(_pPairing))
             }
 
@@ -311,74 +389,46 @@ contract Groth16VerifierMain {
             mstore(0x40, add(pMem, pLastMem))
 
             // Validate that all evaluations ∈ F
-            for { let i := 0 } lt(i, ${totalICCount - 1}) { i := add(i, 1) } {
-                checkField(calldataload(add(_pubSignals, mul(i, 32))))
-            }
+            for { let i := 0 } lt(i, ${pubSignalsCount}) { i := add(i, 1) } { checkField(calldataload(add(_pubSignals, mul(i, 32)))) }
 
-            // For a complete implementation, the linear combination computation
-            // should be done in Solidity before calling this assembly block
-            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
+            // Validate all evaluations
+            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem, vk_x, vk_y)
+
             mstore(0, isValid)
             return(0, 0x20)
-        }
-    }
-    
-    // Helper function to compute linear combination (Solidity implementation)
-    function computeLinearCombination(uint[${totalICCount - 1}] calldata pubSignals) 
-        public view returns (uint256 x, uint256 y) 
-    {
-        // Get IC0 as starting point
-        (x, y) = getIC(0);
-        
-        // Add each pubSignal * IC[i+1]
-        for (uint256 i = 0; i < ${totalICCount - 1}; i++) {
-            if (pubSignals[i] != 0) {
-                (uint256 icx, uint256 icy) = getIC(i + 1);
-                // This would need proper elliptic curve arithmetic
-                // For now, this is a placeholder
-                x = addmod(x, mulmod(icx, pubSignals[i], q), q);
-                y = addmod(y, mulmod(icy, pubSignals[i], q), q);
-            }
         }
     }
 }`;
 }
 
-function generateDeployScript(outputDir: string): string {
-  return `// SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.7.0 <0.9.0;
+function generateCombinedContract(
+  contractName: string,
+  basicConstants: string[],
+  icConstants: ICConstant[],
+  constantsContracts: { name: string; content: string }[],
+): string {
+  const mainContract = generateMainContract(
+    contractName,
+    basicConstants,
+    icConstants,
+    constantsContracts.map((c) => c.name),
+  );
 
-import "forge-std/Script.sol";
-import "./VerifierConstants1.sol";
-import "./VerifierConstants2.sol";
-import "./VerifierConstants3.sol";
-import "./Groth16VerifierMain.sol";
+  // Extract the contract content without SPDX and pragma
+  const constantsContractContents = constantsContracts
+    .map((contract) => {
+      const lines = contract.content.split("\n");
+      const contractStartIndex = lines.findIndex((line) =>
+        line.startsWith("contract "),
+      );
+      return lines.slice(contractStartIndex).join("\n");
+    })
+    .join("\n\n");
 
-contract DeployVerifierScript is Script {
-    function run() external {
-        vm.startBroadcast();
+  return `${mainContract}
 
-        // Deploy constants contracts
-        VerifierConstants1 constants1 = new VerifierConstants1();
-        VerifierConstants2 constants2 = new VerifierConstants2();
-        VerifierConstants3 constants3 = new VerifierConstants3();
-
-        console.log("Constants1 deployed at:", address(constants1));
-        console.log("Constants2 deployed at:", address(constants2));
-        console.log("Constants3 deployed at:", address(constants3));
-
-        // Deploy main verifier
-        Groth16VerifierMain verifier = new Groth16VerifierMain(
-            address(constants1),
-            address(constants2),
-            address(constants3)
-        );
-
-        console.log("Main verifier deployed at:", address(verifier));
-
-        vm.stopBroadcast();
-    }
-}`;
+${constantsContractContents}
+`;
 }
 
 async function main(): Promise<void> {
@@ -394,18 +444,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const parentDir = path.dirname(inputFile);
   const baseName = path.basename(inputFile, ".sol");
-  const outputDir = path.join(parentDir, baseName);
 
   console.log(`Splitting verifier contract: ${inputFile}`);
-  console.log(`Output directory: ${outputDir}`);
-
-  // Create output directory if it doesn't exist
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-    console.log(`Created output directory: ${outputDir}`);
-  }
+  console.log(`Updating original file with split structure`);
 
   try {
     const verifierData = parseVerifierContract(inputFile);
@@ -417,70 +459,63 @@ async function main(): Promise<void> {
 
     console.log(`Found ${verifierData.icConstants.length} IC constants`);
 
-    // Generate constants contracts
-    const constants1 = generateConstantsContract(
-      "VerifierConstants1",
-      0,
-      98,
-      verifierData.icConstants,
-    );
-    const constants2 = generateConstantsContract(
-      "VerifierConstants2",
-      98,
-      196,
-      verifierData.icConstants,
-    );
-    const constants3 = generateConstantsContract(
-      "VerifierConstants3",
-      196,
-      verifierData.icConstants.length,
-      verifierData.icConstants,
-    );
+    // Determine how many constants contracts we need and their names
+    const contracts: { name: string; content: string }[] = [];
 
-    // Generate main contract
-    const mainContract = generateMainContract(
+    // For small verifiers like Multiplier2Verifier (2 IC constants), only need one constants contract
+    if (verifierData.icConstants.length <= 100) {
+      contracts.push({
+        name: "VerifierConstants1",
+        content: generateConstantsContract(
+          "VerifierConstants1",
+          1,
+          verifierData.icConstants.length,
+          verifierData.icConstants,
+        ),
+      });
+    } else {
+      // For larger verifiers, split into multiple contracts
+      contracts.push({
+        name: "VerifierConstants1",
+        content: generateConstantsContract(
+          "VerifierConstants1",
+          1,
+          151,
+          verifierData.icConstants,
+        ),
+      });
+      contracts.push({
+        name: "VerifierConstants2",
+        content: generateConstantsContract(
+          "VerifierConstants2",
+          151,
+          verifierData.icConstants.length,
+          verifierData.icConstants,
+        ),
+      });
+    }
+
+    // Generate combined contract with all contracts in one file
+    const combinedContract = generateCombinedContract(
+      baseName,
       verifierData.basicConstants,
-      verifierData.icConstants.length,
+      verifierData.icConstants,
+      contracts,
     );
 
-    // Generate deploy script
-    const deployScript = generateDeployScript(outputDir);
+    // Write the combined contract back to the original file
+    fs.writeFileSync(inputFile, combinedContract);
 
-    // Write files
-    fs.writeFileSync(
-      path.join(outputDir, "VerifierConstants1.sol"),
-      constants1,
-    );
-    fs.writeFileSync(
-      path.join(outputDir, "VerifierConstants2.sol"),
-      constants2,
-    );
-    fs.writeFileSync(
-      path.join(outputDir, "VerifierConstants3.sol"),
-      constants3,
-    );
-    fs.writeFileSync(
-      path.join(outputDir, "Groth16VerifierMain.sol"),
-      mainContract,
-    );
-    fs.writeFileSync(
-      path.join(outputDir, "DeployVerifier.s.sol"),
-      deployScript,
-    );
-
-    console.log("✅ Successfully generated split contracts:");
-    console.log("  - VerifierConstants1.sol (IC 0-97)");
-    console.log("  - VerifierConstants2.sol (IC 98-195)");
-    console.log("  - VerifierConstants3.sol (IC 196+)");
-    console.log("  - Groth16VerifierMain.sol (main verifier)");
-    console.log("  - DeployVerifier.s.sol (deployment script)");
-
-    console.log("\\n📝 Next steps:");
+    console.log("✅ Successfully updated verifier contract:");
     console.log(
-      "1. Deploy contracts using: forge script DeployVerifier.s.sol --broadcast",
+      `  - ${baseName}.sol (main verifier with embedded constants contracts)`,
     );
+    contracts.forEach((contract) => {
+      console.log(`    - ${contract.name} (embedded)`);
+    });
+
     console.log(
-      "2. The main contract assembly code may need manual adjustment for proper linear combination computation",
+      "\\n📝 The original verifier contract has been updated with the split structure.",
     );
   } catch (error) {
     console.error("Error processing verifier contract:", error);

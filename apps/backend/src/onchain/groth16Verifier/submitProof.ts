@@ -4,7 +4,11 @@ import {
   CidUploadVerifier__factory,
   WillCreationVerifier__factory,
 } from "@shared/types/typechain-types/index.js";
-import type { ProofData, SubmitProof, VerifierContract } from "@shared/types/index.js";
+import type {
+  ProofData,
+  SubmitProof,
+  VerifierContract,
+} from "@shared/types/index.js";
 import { readProof } from "@shared/utils/file/readProof.js";
 import {
   validateFiles,
@@ -57,7 +61,9 @@ async function selectCircuit(): Promise<keyof typeof PATHS_CONFIG.zkp> {
             resolve("willCreation");
             break;
           default:
-            console.log(chalk.red("❌ Invalid selection. Please choose 1, 2, or 3."));
+            console.log(
+              chalk.red("❌ Invalid selection. Please choose 1, 2, or 3."),
+            );
             askForInput();
             break;
         }
@@ -87,7 +93,7 @@ function validateEnvironmentVariables(): SubmitProof {
 
 /**
  * Submit proof to verifier contract
- * 
+ *
  * @note This function is kept only for debugging purpose
  */
 async function executeProofSubmission(
@@ -133,15 +139,18 @@ async function executeProofSubmission(
 /**
  * Process proof submission workflow
  */
-async function processProofSubmission(circuitName: keyof typeof PATHS_CONFIG.zkp): Promise<ProcessResult> {
+async function processProofSubmission(
+  circuitName: keyof typeof PATHS_CONFIG.zkp,
+): Promise<ProcessResult> {
   const circuitFiles = PATHS_CONFIG.zkp[circuitName];
 
   try {
-    validateFiles([
-      circuitFiles.proof,
-      circuitFiles.public,
-    ]);
-    const { MULTIPLIER2_VERIFIER, CID_UPLOAD_VERIFIER, WILL_CREATION_VERIFIER } = validateEnvironmentVariables();
+    validateFiles([circuitFiles.proof, circuitFiles.public]);
+    const {
+      MULTIPLIER2_VERIFIER,
+      CID_UPLOAD_VERIFIER,
+      WILL_CREATION_VERIFIER,
+    } = validateEnvironmentVariables();
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     const [, proof] = await Promise.all([
@@ -172,7 +181,11 @@ async function processProofSubmission(circuitName: keyof typeof PATHS_CONFIG.zkp
       throw new Error(`Unavailable verifier contract: ${circuitName}`);
     }
 
-    const contract = await createContract<VerifierContract>(entry.address, entry.factory, provider);
+    const contract = await createContract<VerifierContract>(
+      entry.address,
+      entry.factory,
+      provider,
+    );
 
     const result = await executeProofSubmission(contract, proof);
 

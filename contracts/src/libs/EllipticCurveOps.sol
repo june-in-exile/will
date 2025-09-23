@@ -11,6 +11,7 @@ contract EllipticCurveOps {
 
     error CoordOutOfRange(string coord, uint256 value);
     error ScalarOutOfRange(uint256 scalar);
+    error ICNotOnCurve(uint256 x, uint256 y);
     error PrecompileFailed(uint256 opcode);
 
     /**

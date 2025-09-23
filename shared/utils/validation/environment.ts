@@ -113,9 +113,13 @@ const presetValidations = {
   }),
 
   submitProof: (): EnvironmentValidationOptions => ({
-    optional: ["MULTIPLIER2_VERIFIER", "CID_UPLOAD_VERIFIER", "WILL_CREATION_VERIFIER"],
+    optional: [
+      "MULTIPLIER2_VERIFIER",
+      "CID_UPLOAD_VERIFIER",
+      "WILL_CREATION_VERIFIER",
+    ],
     validators: {
-      MULTIPLIER2_VERIFIER: validators.ethereumAddress, 
+      MULTIPLIER2_VERIFIER: validators.ethereumAddress,
       CID_UPLOAD_VERIFIER: validators.ethereumAddress,
       WILL_CREATION_VERIFIER: validators.ethereumAddress,
     },

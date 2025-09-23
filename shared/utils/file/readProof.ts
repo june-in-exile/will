@@ -5,12 +5,10 @@ import chalk from "chalk";
 
 /**
  * Read proof data from file
- * 
- * @note G2 point (pB) needs to swap the order 
+ *
+ * @note G2 point (pB) needs to swap the order
  */
-function readProof(
-  circuitName: keyof typeof PATHS_CONFIG.zkp,
-): ProofData {
+function readProof(circuitName: keyof typeof PATHS_CONFIG.zkp): ProofData {
   try {
     console.log(chalk.blue("Reading testator proof data..."));
 
