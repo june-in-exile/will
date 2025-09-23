@@ -116,7 +116,7 @@ ${constantDeclarations}
         if (index < start || index >= end) revert IndexOutOfRange(index);
 
 ${getICCases}
-        revert("Invalid index");
+        revert InvalidIndex(index);
     }
 
     function getIC(uint256 index) external pure returns (uint256 x, uint256 y) {
@@ -218,7 +218,7 @@ ${constructorAssignments}
             return constants2.getIC(index);
         }`
         } else {
-            revert("IC index out of range");
+            revert IndexOutOfRange(index);
         }
     }
 

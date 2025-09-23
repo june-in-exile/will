@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 interface IVerifierConstants {
     error IndexOutOfRange(uint256 index);
+    error InvalidIndex(uint256 index);
     error BatchStartOutOfRange(uint256 startIdx);
     error BatchEndOutOfRange(uint256 startIdx, uint256 count);
 
