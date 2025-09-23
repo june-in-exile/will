@@ -39,8 +39,9 @@ contract WillFactoryIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        cidUploadVerifier = new Multiplier2Verifier();
-        willCreateVerifier = new Multiplier2Verifier();
+        IVerifierConstants constants1 = new VerifierConstants1();
+        cidUploadVerifier = new Multiplier2Verifier(address(constants1));
+        willCreateVerifier = new Multiplier2Verifier(address(constants1));
         jsonCidVerifier = new JsonCidVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;

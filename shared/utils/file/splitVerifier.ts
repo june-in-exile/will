@@ -174,7 +174,7 @@ function generateMainContract(
     )
     .join("\n");
 
-  return `// SPDX-License-Identifier: GPL-3.0
+  return `// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.24;
 
@@ -207,17 +207,16 @@ ${constructorAssignments}
     function _getIC(uint256 index) internal view returns (uint256 x, uint256 y) {
         if (index == 0) {
             return (IC0x, IC0y);
-        }${
-          constantsContracts.length === 1
-            ? ` else if (index < _getICCount()) {
+        }${constantsContracts.length === 1
+      ? ` else if (index < _getICCount()) {
             return constants1.getIC(index);
         }`
-            : ` else if (index <= 150) {
+      : ` else if (index <= 150) {
             return constants1.getIC(index);
         } else if (index < _getICCount()) {
             return constants2.getIC(index);
         }`
-        } else {
+    } else {
             revert("IC index out of range");
         }
     }
@@ -239,9 +238,8 @@ ${constructorAssignments}
 
         uint256 processed = 0;
 
-        ${
-          constantsContracts.length === 1
-            ? `// Process constants1 range (1+)
+        ${constantsContracts.length === 1
+      ? `// Process constants1 range (1+)
         if (processed < count) {
             uint256 batchStart = startIdx;
             uint256 remaining = count - processed;
@@ -253,7 +251,7 @@ ${constructorAssignments}
                 ys[processed + i] = batchYs[i];
             }
         }`
-            : `// Process constants1 range (1-150)
+      : `// Process constants1 range (1-150)
         if (startIdx <= 150 && processed < count) {
             uint256 batchStart = startIdx;
             uint256 batchEnd = startIdx + count > 151 ? 151 : startIdx + count;
@@ -280,7 +278,7 @@ ${constructorAssignments}
                 ys[processed + i] = batchYs[i];
             }
         }`
-        }
+    }
     }
 
     function getBatchIC(uint256 startIdx, uint256 count)
@@ -446,8 +444,7 @@ async function main(): Promise<void> {
 
   const baseName = path.basename(inputFile, ".sol");
 
-  console.log(`Splitting verifier contract: ${inputFile}`);
-  console.log(`Updating original file with split structure`);
+  console.log(chalk.blue(`\nSplitting verifier contract: ${inputFile} ...`));
 
   try {
     const verifierData = parseVerifierContract(inputFile);
@@ -506,17 +503,13 @@ async function main(): Promise<void> {
     // Write the combined contract back to the original file
     fs.writeFileSync(inputFile, combinedContract);
 
-    console.log("✅ Successfully updated verifier contract:");
-    console.log(
+    console.log(chalk.green("✅ Successfully updated verifier contract:"));
+    console.log(chalk.green(
       `  - ${baseName}.sol (main verifier with embedded constants contracts)`,
-    );
+    ));
     contracts.forEach((contract) => {
-      console.log(`    - ${contract.name} (embedded)`);
+      console.log(chalk.green(`    - ${contract.name} (embedded)`));
     });
-
-    console.log(
-      "\\n📝 The original verifier contract has been updated with the split structure.",
-    );
   } catch (error) {
     console.error("Error processing verifier contract:", error);
     process.exit(1);

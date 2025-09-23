@@ -2,8 +2,11 @@ ENV_FILE := ../.env
 include $(ENV_FILE)
 export
 
-.PHONY: sync-anvil sync-zkp sync clean-address clean-verifiers-and-proofs clean-typechain clean install build test test-fuzz test-integration test-unit deploy
-
+.PHONY: split-multiplier2Verifier split-cidUploadVerifier split-willCreationVerifier split-verifiers \
+		sync-anvil sync-zkp sync clean-address clean-verifiers-and-proofs clean-typechain clean \
+		install build test test-fuzz test-integration test-unit deploy \
+	 	format typechain fork-clean fork fork-background
+	 
 MY_PRIVATE_KEY := $(EXECUTOR_PRIVATE_KEY)
 
 ESTATES := "[($(BENEFICIARY0),$(TOKEN0),$(AMOUNT0)),($(BENEFICIARY1),$(TOKEN1),$(AMOUNT1))]"
@@ -36,10 +39,10 @@ sync-anvil:
 	@pnpm exec tsx ../shared/utils/file/syncAnvil.ts
 
 sync-zkp:
-# 	@cd ../zkp && $(MAKE) circuit
 	@pnpm exec tsx ../shared/utils/file/syncZkp.ts
+	@$(MAKE) split-verifiers
 
-sync: sync-anvil sync-zkp split-verifiers
+sync: sync-anvil sync-zkp
 
 # ---------------- Clean Commands -----------------------
 
@@ -48,8 +51,8 @@ clean-address:
 
 clean-verifiers-and-proofs:
 	@rm -rf src/Multiplier2Verifier
-# 	@rm -rf src/CidUploadVerifier
-# 	@rm -rf src/WillCreationVerifier
+	@rm -rf src/CidUploadVerifier
+	@rm -rf src/WillCreationVerifier
 	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts PA_ARRAY PB_ARRAY PC_ARRAY PUBSIGNALS_ARRAY
 
 clean-typechain:
@@ -93,7 +96,7 @@ test: sync-zkp
 
 # --------------- Conditional Deployment ----------------
 
-deploy-multiplier2verifier: sync
+deploy-multiplier2verifier:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-multiplier2verifier-to-forked-arb-sepolia; \
@@ -101,7 +104,7 @@ deploy-multiplier2verifier: sync
 		$(MAKE) deploy-multiplier2verifier-to-arb-sepolia; \
 	fi
 
-deploy-cidUploadVerifier: sync
+deploy-cidUploadVerifier:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-cidUploadVerifier-to-forked-arb-sepolia; \
@@ -109,7 +112,7 @@ deploy-cidUploadVerifier: sync
 		$(MAKE) deploy-cidUploadVerifier-to-arb-sepolia; \
 	fi
 
-deploy-willCreationVerifier: sync
+deploy-willCreationVerifier:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-willCreationVerifier-to-forked-arb-sepolia; \
@@ -117,7 +120,7 @@ deploy-willCreationVerifier: sync
 		$(MAKE) deploy-willCreationVerifier-to-arb-sepolia; \
 	fi
 
-deploy-jsonCidVerifier: sync
+deploy-jsonCidVerifier:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-jsonCidVerifier-to-forked-arb-sepolia; \
@@ -125,7 +128,7 @@ deploy-jsonCidVerifier: sync
 		$(MAKE) deploy-jsonCidVerifier-to-arb-sepolia; \
 	fi
 
-deploy-willFactory: sync
+deploy-willFactory:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-willFactory-to-forked-arb-sepolia; \
@@ -133,7 +136,7 @@ deploy-willFactory: sync
 		$(MAKE) deploy-willFactory-to-arb-sepolia; \
 	fi
 
-deploy: sync
+deploy:
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-to-forked-arb-sepolia; \
@@ -250,14 +253,6 @@ deploy-willFactory-to-forked-arb-sepolia:
 
 deploy-to-forked-arb-sepolia: deploy-multiplier2verifier-to-forked-arb-sepolia deploy-cidUploadVerifier-to-forked-arb-sepolia deploy-willCreationVerifier-to-forked-arb-sepolia deploy-jsonCidVerifier-to-forked-arb-sepolia
 	@$(MAKE) deploy-willFactory-to-forked-arb-sepolia
-
-# ---------------- Call Groth16 Verifier ----------------
-
-# groth16verify-on-chain:
-# 	cast call $(CID_UPLOAD_VERIFIER) --rpc-url $(RPC_URL) \
-# 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
-# 		$(PA_ARRAY) $(PB_ARRAY) $(PC_ARRAY) $(PUBSIGNALS_ARRAY)
-# 	echo "$(YELLOW)Expect: true$(RESET)"
 
 # ------------------ Call CID Verifier ------------------
 

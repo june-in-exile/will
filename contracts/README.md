@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-1. Generate ZKP in [../zkp/](../zkp/).
+1. Generate verifiers and proofs in [`../zkp/circuits`](../zkp/circuits).
 
 ## Initialization
 
@@ -14,137 +14,32 @@
 
    Open a new terminal and run the following commands.
 
-2. Update the `USE_ANVIL` in `.env`, build the contracts, generate TypeScript types, etc.
+2. Build the contracts.
 
    ```sh
    make build
    ```
 
-   If build fails due to `Error: failed to resolve file`, try `make install` first.
+   - Before building the contracts, this command automatically completes these jobs under the hood:
+     1. Updates the `USE_ANVIL` in `.env`
+     2. Synchronizes with ZKPs
+     3. Splits verifiers (to conform to 24,576 byte limit by to EIP-170)
+   - After the building, this command then generates TypeScript types for the backends.
+   - If build fails due to `Error: failed to resolve file`, try `make install` first.
 
-3. Deploy `Multiplier2Verifier.sol`.
-
-   Check the deployment
-
-   ```sh
-   make groth16verify-on-chain
-   ```
-
-   If it returns `true`, skip the deployment. Otherwise, execute the instruction.
+3. Deploy all the necessary contracts at once.
 
    ```sh
-   make deploy-multiplier2verifier
+   make deploy
    ```
 
-4. Deploy `JsonCidVerifier.sol`.
+   This will deploy the following (in the order):
+   1. Verifiers:
+      1. Groth16Verifiers:
+         1. [`Multiplier2Verifier.sol`](./src/Multiplier2Verifier.sol) (dummy verifier)
+         2. [`CidUploadVerifier.sol`](./src/CidUploadVerifier.sol)
+         3. [`WillCreationVerifier.sol`](./src/WillCreationVerifier.sol)
+      2. [`JsonCidVerifier.sol`](./src/JsonCidVerifier.sol)
+   2. [`WillFactory.sol`](./src/WillFactory.sol)
 
-   Check the deployment
-
-   ```sh
-   make jsoncidverify-on-chain
-   ```
-
-   If it returns `true`, skip the deployment. Otherwise, execute the instruction.
-
-   ```sh
-   make deploy-jsonCidVerifier
-   ```
-
-5. Deploy `WillFactory.sol`.
-
-   Check the deployment
-
-   > ```sh
-   > make cidUploadVerifier
-   > make willCreateVerifier
-   > make executor
-   > ```
-
-   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `CID_UPLOAD_VERIFIER`, `WILL_CREATION_VERIFIER` in the `.env` are set. Then, execute the instruction.
-
-   ```sh
-   make deploy-willFactory
-   ```
-
-## Execution
-
-### Phase1: Encrypt & Upload Will
-
-1. Follow the [backend's](../apps/backend/) "Phase1: Encrypt & Upload Will" instructions to predict the address, generate the signature, encrypt the will, and upload it to IPFS.
-
-2. Upload the `CID` to the WillFactory contract.
-
-   ```sh
-   make uploadCid
-   ```
-
-   > Check
-   >
-   > ```sh
-   > make testatorValidateTime
-   > ```
-
-### Phase2: Probation
-
-1. Follow the [backend's](../apps/backend/) "Phase2: Probation" instructions to doownload the will from the IPFS, decrypt it, and sign the cid as the executor.
-
-2. Notarize the `CID` in the WillFactory contract.
-
-   ```sh
-   make notarizeCid
-   ```
-
-   > Check
-   >
-   > ```sh
-   > make executorValidateTime
-   > ```
-
-### Phase3: Decrypt & Execute Will
-
-1. Deploy `Will.sol`.
-
-   ```sh
-   make createWill
-   ```
-
-   > Check
-   >
-   > ```sh
-   > make permit2
-   > make will
-   > make testator
-   > make estate0
-   > make estate1
-   > make executed-before
-   > ```
-
-2. (Arbitrum Sepolia only) Verify `Will.sol`.
-
-   Check the contract on `https://sepolia.arbiscan.io/address/<WILL>`. If it's not verified yet, run the following command to verify it.
-
-   ```sh
-   make verify-will
-   ```
-
-3. Teansfer the tokens from the testator to the beneficiary.
-
-   > Check
-   >
-   > ```sh
-   > make check-balance-before
-   > ```
-
-   ```sh
-   make signatureTransferToBeneficiaries
-   ```
-
-   > Check
-   >
-   > ```sh
-   > make executed-after
-   > ```
-   >
-   > ```sh
-   > make check-balance-after
-   > ```
+   Note: The deployment of WillFactory contract requires all the verifers to be deployed first.

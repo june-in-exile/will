@@ -92,6 +92,8 @@ apps/backend/will/9_deserialized.json
 # =============================================================================
 # ZKP Verifier
 contracts/src/Multiplier2Verifier.sol
+contracts/src/CidUploadVerifier.sol
+contracts/src/WillCreationVerifier.sol
 
 # Foundry
 broadcast/
