@@ -4,7 +4,7 @@ import { WILL_TYPE } from "@shared/constants/index.js";
 import { readWill, getKey, base64ToBytes, flattenEstates } from "@shared/utils/index.js";
 import chalk from "chalk";
 
-async function generateInclusionProof(): Promise<Groth16Proof> {
+async function proveForWillCreation(): Promise<Groth16Proof> {
   const downloadedWill: DownloadedWill = readWill(WILL_TYPE.DOWNLOADED);
   const deserializedWill: DeserializedWill = readWill(WILL_TYPE.DESERIALIZED);
   const key = getKey();
@@ -22,9 +22,9 @@ async function generateInclusionProof(): Promise<Groth16Proof> {
 }
 
 async function main(): Promise<void> {
-  console.log(chalk.cyan(`\n=== Generating Inclusion Proof for Will Creation ===\n`));
+  console.log(chalk.cyan(`\n=== Generating Proof for Will Creation ===\n`));
 
-  await generateInclusionProof();
+  await proveForWillCreation();
 
   console.log(chalk.green.bold("\n✅ Process completed successfully!"));
 }
@@ -39,4 +39,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   });
 }
 
-export { generateInclusionProof };
+export { proveForWillCreation };

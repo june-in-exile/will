@@ -4,7 +4,7 @@ import { WILL_TYPE } from "@shared/constants/index.js";
 import { readWill, getKey, base64ToBytes } from "@shared/utils/index.js";
 import chalk from "chalk";
 
-async function generatePermitProof(): Promise<Groth16Proof> {
+async function proveForCidUpload(): Promise<Groth16Proof> {
     const encryptedWill: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const key = getKey();
 
@@ -19,9 +19,9 @@ async function generatePermitProof(): Promise<Groth16Proof> {
 }
 
 async function main(): Promise<void> {
-    console.log(chalk.cyan(`\n=== Generating Permit Proof for CID Upload ===\n`));
+    console.log(chalk.cyan(`\n=== Generating Proof for CID Upload ===\n`));
 
-    await generatePermitProof();
+    await proveForCidUpload();
 
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
 }
@@ -36,4 +36,4 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
     });
 }
 
-export { generatePermitProof as generateInclusionProof };
+export { proveForCidUpload };
