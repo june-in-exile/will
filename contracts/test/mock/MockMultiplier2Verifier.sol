@@ -8,12 +8,11 @@ contract MockMultiplier2Verifier {
         shouldReturnTrue = _shouldReturnTrue;
     }
 
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[1] calldata
-    ) external view returns (bool) {
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[1] calldata)
+        external
+        view
+        returns (bool)
+    {
         return shouldReturnTrue;
     }
 }

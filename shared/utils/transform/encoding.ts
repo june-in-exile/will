@@ -19,7 +19,7 @@ function uint8ArrayToHex(
 
 function base64ToBytes(base64: string): number[] {
   const binary = atob(base64);
-  return Array.from(binary, char => char.charCodeAt(0));
+  return Array.from(binary, (char) => char.charCodeAt(0));
 }
 
 function flattenEstates(estates: Estate[]): string[] {

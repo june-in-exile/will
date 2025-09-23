@@ -4,7 +4,13 @@ import {
   flattenEcdsaSignature,
   flattenTokenPermissions,
 } from "./util/index.js";
-import { EcdsaSignature, Estate, Nonce, TokenPermission, Timestamp } from "./type/index.js";
+import {
+  EcdsaSignature,
+  Estate,
+  Nonce,
+  TokenPermission,
+  Timestamp,
+} from "./type/index.js";
 import { Permit2 } from "./logic/index.js";
 
 describe.skip("Show VerifyPermit Input", function (): void {
@@ -228,11 +234,15 @@ describe.skip("Show VerifyPermit Input", function (): void {
       const { r, s, v } = Permit2.decodeSignature(permit2.signature);
       const input = {
         testator: BigInt(testator),
-        permit: [...estates.flatMap((estate) => [
-          // BigInt(estate.beneficiary),
-          BigInt(estate.token),
-          estate.amount,
-        ]), permit2.nonce, permit2.deadline],
+        permit: [
+          ...estates.flatMap((estate) => [
+            // BigInt(estate.beneficiary),
+            BigInt(estate.token),
+            estate.amount,
+          ]),
+          permit2.nonce,
+          permit2.deadline,
+        ],
         will: BigInt(will),
         signature: [...splitBigInt(r), ...splitBigInt(s), v],
       };
@@ -243,9 +253,7 @@ describe.skip("Show VerifyPermit Input", function (): void {
 });
 
 describe("VerifyPermit Circuit", function () {
-  let circuit: WitnessTester<
-    ["testator", "permit", "will", "signature"]
-  >;
+  let circuit: WitnessTester<["testator", "permit", "will", "signature"]>;
 
   describe("Verify Permit with 1 Estate", function (): void {
     beforeAll(async function (): Promise<void> {
@@ -309,7 +317,10 @@ describe("VerifyPermit Circuit", function () {
           deadline,
           signature,
         } of testWills) {
-          const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+          const permitted: TokenPermission[] = estates.map((e) => ({
+            token: e.token,
+            amount: e.amount,
+          }));
           await circuit.expectPass({
             testator,
             permit: [...flattenTokenPermissions(permitted), nonce, deadline],
@@ -467,7 +478,10 @@ describe("VerifyPermit Circuit", function () {
         deadline,
         signature,
       } of testWills) {
-        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+        const permitted: TokenPermission[] = estates.map((e) => ({
+          token: e.token,
+          amount: e.amount,
+        }));
         await circuit.expectFail({
           testator,
           permit: [...flattenTokenPermissions(permitted), nonce, deadline],
@@ -517,7 +531,10 @@ describe("VerifyPermit Circuit", function () {
         deadline,
         signature,
       } of testWills) {
-        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+        const permitted: TokenPermission[] = estates.map((e) => ({
+          token: e.token,
+          amount: e.amount,
+        }));
         await circuit.expectPass({
           testator,
           permit: [...flattenTokenPermissions(permitted), nonce, deadline],
@@ -597,7 +614,10 @@ describe("VerifyPermit Circuit", function () {
           deadline,
           signature,
         } of testWills) {
-          const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+          const permitted: TokenPermission[] = estates.map((e) => ({
+            token: e.token,
+            amount: e.amount,
+          }));
           await circuit.expectPass({
             testator,
             permit: [...flattenTokenPermissions(permitted), nonce, deadline],
@@ -780,7 +800,10 @@ describe("VerifyPermit Circuit", function () {
         deadline,
         signature,
       } of testWills) {
-        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+        const permitted: TokenPermission[] = estates.map((e) => ({
+          token: e.token,
+          amount: e.amount,
+        }));
         await circuit.expectFail({
           testator,
           permit: [...flattenTokenPermissions(permitted), nonce, deadline],
@@ -836,7 +859,10 @@ describe("VerifyPermit Circuit", function () {
         deadline,
         signature,
       } of testWills) {
-        const permitted: TokenPermission[] = estates.map((e) => ({ token: e.token, amount: e.amount }))
+        const permitted: TokenPermission[] = estates.map((e) => ({
+          token: e.token,
+          amount: e.amount,
+        }));
         await circuit.expectPass({
           testator,
           permit: [...flattenTokenPermissions(permitted), nonce, deadline],

@@ -36,22 +36,10 @@ contract JsonCidVerifierUnitTest is Test {
         typedJson.keys[3] = "data";
         expectedCIDTyped = "bagaaierahuwddmix3id4x7qhonchbuyofmsbiij46stacr6uia7gz5keaj7q";
 
-        typedJson.values[0] = JsonCidVerifier.JsonValue(
-            "Alice",
-            JsonCidVerifier.JsonValueType.STRING
-        );
-        typedJson.values[1] = JsonCidVerifier.JsonValue(
-            "30",
-            JsonCidVerifier.JsonValueType.NUMBER
-        );
-        typedJson.values[2] = JsonCidVerifier.JsonValue(
-            "true",
-            JsonCidVerifier.JsonValueType.BOOLEAN
-        );
-        typedJson.values[3] = JsonCidVerifier.JsonValue(
-            "",
-            JsonCidVerifier.JsonValueType.NULL
-        );
+        typedJson.values[0] = JsonCidVerifier.JsonValue("Alice", JsonCidVerifier.JsonValueType.STRING);
+        typedJson.values[1] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
+        typedJson.values[2] = JsonCidVerifier.JsonValue("true", JsonCidVerifier.JsonValueType.BOOLEAN);
+        typedJson.values[3] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
     }
 
     // =============================================================================
@@ -95,13 +83,7 @@ contract JsonCidVerifierUnitTest is Test {
         mismatchJson.keys[1] = "key2";
         mismatchJson.values[0] = "value1";
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                JsonCidVerifier.LengthMismatch.selector,
-                2,
-                1
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(JsonCidVerifier.LengthMismatch.selector, 2, 1));
         verifier.buildStandardizedJson(mismatchJson);
     }
 
@@ -128,10 +110,7 @@ contract JsonCidVerifierUnitTest is Test {
         stringOnlyJson.keys = new string[](1);
         stringOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
         stringOnlyJson.keys[0] = "text";
-        stringOnlyJson.values[0] = JsonCidVerifier.JsonValue(
-            "hello",
-            JsonCidVerifier.JsonValueType.STRING
-        );
+        stringOnlyJson.values[0] = JsonCidVerifier.JsonValue("hello", JsonCidVerifier.JsonValueType.STRING);
 
         string memory result = verifier.buildStandardizedJson(stringOnlyJson);
         assertEq(result, '{"text":"hello"}');
@@ -142,10 +121,7 @@ contract JsonCidVerifierUnitTest is Test {
         numberOnlyJson.keys = new string[](1);
         numberOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
         numberOnlyJson.keys[0] = "count";
-        numberOnlyJson.values[0] = JsonCidVerifier.JsonValue(
-            "42",
-            JsonCidVerifier.JsonValueType.NUMBER
-        );
+        numberOnlyJson.values[0] = JsonCidVerifier.JsonValue("42", JsonCidVerifier.JsonValueType.NUMBER);
 
         string memory result = verifier.buildStandardizedJson(numberOnlyJson);
         assertEq(result, '{"count":42}');
@@ -157,14 +133,8 @@ contract JsonCidVerifierUnitTest is Test {
         boolOnlyJson.values = new JsonCidVerifier.JsonValue[](2);
         boolOnlyJson.keys[0] = "isTrue";
         boolOnlyJson.keys[1] = "isFalse";
-        boolOnlyJson.values[0] = JsonCidVerifier.JsonValue(
-            "true",
-            JsonCidVerifier.JsonValueType.BOOLEAN
-        );
-        boolOnlyJson.values[1] = JsonCidVerifier.JsonValue(
-            "false",
-            JsonCidVerifier.JsonValueType.BOOLEAN
-        );
+        boolOnlyJson.values[0] = JsonCidVerifier.JsonValue("true", JsonCidVerifier.JsonValueType.BOOLEAN);
+        boolOnlyJson.values[1] = JsonCidVerifier.JsonValue("false", JsonCidVerifier.JsonValueType.BOOLEAN);
 
         string memory result = verifier.buildStandardizedJson(boolOnlyJson);
         assertEq(result, '{"isTrue":true,"isFalse":false}');
@@ -175,10 +145,7 @@ contract JsonCidVerifierUnitTest is Test {
         nullOnlyJson.keys = new string[](1);
         nullOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
         nullOnlyJson.keys[0] = "empty";
-        nullOnlyJson.values[0] = JsonCidVerifier.JsonValue(
-            "",
-            JsonCidVerifier.JsonValueType.NULL
-        );
+        nullOnlyJson.values[0] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
 
         string memory result = verifier.buildStandardizedJson(nullOnlyJson);
         assertEq(result, '{"empty":null}');
@@ -211,8 +178,7 @@ contract JsonCidVerifierUnitTest is Test {
     }
 
     function test_getCIDBytes() public view {
-        bytes
-            memory multihash = hex"12201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        bytes memory multihash = hex"12201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
         bytes memory cidBytes = verifier.getCIDBytes(multihash);
 
         // Check CID format: [0x01][0x80][0x04][multihash]
@@ -229,8 +195,7 @@ contract JsonCidVerifierUnitTest is Test {
 
     function test_getCIDString_ValidInput() public view {
         // Valid CID bytes: CIDv1 + JSON codec + SHA-256 multihash
-        bytes
-            memory validCidBytes = hex"01800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        bytes memory validCidBytes = hex"01800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
         string memory result = verifier.getCIDString(validCidBytes);
 
@@ -248,16 +213,14 @@ contract JsonCidVerifierUnitTest is Test {
     }
 
     function test_getCIDString_RevertOnInvalidVersion() public {
-        bytes
-            memory invalidCidBytes = hex"00800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        bytes memory invalidCidBytes = hex"00800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
         vm.expectRevert("Not CIDv1");
         verifier.getCIDString(invalidCidBytes);
     }
 
     function test_getCIDString_RevertOnInvalidCodec() public {
-        bytes
-            memory invalidCidBytes = hex"01700412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+        bytes memory invalidCidBytes = hex"01700412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
         vm.expectRevert("Not Varint-encoded json codec (first byte)");
         verifier.getCIDString(invalidCidBytes);
@@ -325,10 +288,7 @@ contract JsonCidVerifierUnitTest is Test {
         differentJson.keys = new string[](1);
         differentJson.values = new JsonCidVerifier.JsonValue[](1);
         differentJson.keys[0] = "different";
-        differentJson.values[0] = JsonCidVerifier.JsonValue(
-            "value",
-            JsonCidVerifier.JsonValueType.STRING
-        );
+        differentJson.values[0] = JsonCidVerifier.JsonValue("value", JsonCidVerifier.JsonValueType.STRING);
 
         assertFalse(verifier.verifyCID(differentJson, cid));
     }

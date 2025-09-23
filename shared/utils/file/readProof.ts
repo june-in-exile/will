@@ -6,18 +6,16 @@ import chalk from "chalk";
 /**
  * Read proof data from file
  */
-export function readProof(circuitName: keyof typeof PATHS_CONFIG.zkp = "multiplier2"): ProofData {
+export function readProof(
+  circuitName: keyof typeof PATHS_CONFIG.zkp = "multiplier2",
+): ProofData {
   try {
     console.log(chalk.blue("Reading testator proof data..."));
 
     const files = PATHS_CONFIG.zkp[circuitName];
 
-    const proof = JSON.parse(
-      readFileSync(files.proof, "utf8"),
-    );
-    const publicSignals = JSON.parse(
-      readFileSync(files.public, "utf8"),
-    );
+    const proof = JSON.parse(readFileSync(files.proof, "utf8"));
+    const publicSignals = JSON.parse(readFileSync(files.public, "utf8"));
 
     const proofData: ProofData = {
       pA: [proof.pi_a[0], proof.pi_a[1]],

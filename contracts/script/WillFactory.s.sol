@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {WillFactory} from "src/WillFactory.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { WillFactory } from "src/WillFactory.sol";
 
 contract WillFactoryScript is Script {
     WillFactory public willFactory;
@@ -20,18 +20,12 @@ contract WillFactoryScript is Script {
         _permit2 = vm.envAddress("PERMIT2");
     }
 
-    function setUp() public {}
+    function setUp() public { }
 
     function run() public {
         vm.startBroadcast();
 
-        willFactory = new WillFactory(
-            _cidUploadVerifier,
-            _willCreateVerifier,
-            _jsonCidVerifier,
-            _executor,
-            _permit2
-        );
+        willFactory = new WillFactory(_cidUploadVerifier, _willCreateVerifier, _jsonCidVerifier, _executor, _permit2);
 
         vm.stopBroadcast();
     }

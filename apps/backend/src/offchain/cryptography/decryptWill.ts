@@ -46,9 +46,8 @@ async function processWillDecryption(
 
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
     const decryptedWill: DecryptedWill = {
-      hex: 
-      dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
-    }
+      hex: dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
+    };
     saveWill(WILL_TYPE.DECRYPTED, decryptedWill);
 
     console.log(

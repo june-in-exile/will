@@ -9,6 +9,7 @@ pragma solidity ^0.8.24;
 contract JsonCidVerifier {
     error LengthMismatch(uint256 keyLength, uint256 valueLength);
     error EmptyJSONObject();
+
     struct JsonObject {
         string[] keys;
         string[] values;
@@ -31,50 +32,37 @@ contract JsonCidVerifier {
         JsonValue[] values;
     }
 
-    constructor() {}
+    constructor() { }
 
-    function verifyCID(
-        JsonObject memory jsonObj,
-        string memory cid
-    ) external pure returns (bool) {
+    function verifyCID(JsonObject memory jsonObj, string memory cid) external pure returns (bool) {
         return stringEquals(generateCIDString(jsonObj), cid);
     }
 
-    function verifyCID(
-        TypedJsonObject memory typedJsonObj,
-        string memory cid
-    ) external pure returns (bool) {
+    function verifyCID(TypedJsonObject memory typedJsonObj, string memory cid) external pure returns (bool) {
         return stringEquals(generateCIDString(typedJsonObj), cid);
     }
 
-    function generateCIDString(
-        JsonObject memory jsonObj
-    ) public pure returns (string memory) {
+    function generateCIDString(JsonObject memory jsonObj) public pure returns (string memory) {
         string memory json = buildStandardizedJson(jsonObj);
         return _generateCIDString(json);
     }
 
-    function generateCIDString(
-        TypedJsonObject memory typedJsonObj
-    ) public pure returns (string memory) {
+    function generateCIDString(TypedJsonObject memory typedJsonObj) public pure returns (string memory) {
         string memory json = buildStandardizedJson(typedJsonObj);
         return _generateCIDString(json);
     }
 
-    function _generateCIDString(
-        string memory json
-    ) internal pure returns (string memory) {
+    function _generateCIDString(string memory json) internal pure returns (string memory) {
         bytes memory jsonBytes = getJsonBytes(json);
         bytes memory multihash = getMultihash(jsonBytes);
         bytes memory cidBytes = getCIDBytes(multihash);
         return getCIDString(cidBytes);
     }
 
-    function buildStandardizedJson(
-        JsonObject memory jsonObj
-    ) public pure returns (string memory) {
-        if (jsonObj.keys.length != jsonObj.values.length)
+    function buildStandardizedJson(JsonObject memory jsonObj) public pure returns (string memory) {
+        if (jsonObj.keys.length != jsonObj.values.length) {
             revert LengthMismatch(jsonObj.keys.length, jsonObj.values.length);
+        }
         if (jsonObj.keys.length == 0) revert EmptyJSONObject();
 
         string memory json = "{";
@@ -84,28 +72,17 @@ contract JsonCidVerifier {
                 json = string.concat(json, ",");
             }
 
-            json = string.concat(
-                json,
-                '"',
-                jsonObj.keys[i],
-                '":"',
-                jsonObj.values[i],
-                '"'
-            );
+            json = string.concat(json, '"', jsonObj.keys[i], '":"', jsonObj.values[i], '"');
         }
 
         json = string.concat(json, "}");
         return json;
     }
 
-    function buildStandardizedJson(
-        TypedJsonObject memory typedJsonObj
-    ) public pure returns (string memory) {
-        if (typedJsonObj.keys.length != typedJsonObj.values.length)
-            revert LengthMismatch(
-                typedJsonObj.keys.length,
-                typedJsonObj.values.length
-            );
+    function buildStandardizedJson(TypedJsonObject memory typedJsonObj) public pure returns (string memory) {
+        if (typedJsonObj.keys.length != typedJsonObj.values.length) {
+            revert LengthMismatch(typedJsonObj.keys.length, typedJsonObj.values.length);
+        }
         if (typedJsonObj.keys.length == 0) revert EmptyJSONObject();
 
         string memory json = "{";
@@ -134,15 +111,11 @@ contract JsonCidVerifier {
         return json;
     }
 
-    function getJsonBytes(
-        string memory json
-    ) public pure returns (bytes memory) {
+    function getJsonBytes(string memory json) public pure returns (bytes memory) {
         return bytes(json);
     }
 
-    function getMultihash(
-        bytes memory jsonBytes
-    ) public pure returns (bytes memory) {
+    function getMultihash(bytes memory jsonBytes) public pure returns (bytes memory) {
         bytes32 rawHash = sha256(jsonBytes);
         bytes memory multihash = new bytes(34); // 2 bytes prefix + 32 bytes hash
 
@@ -157,9 +130,7 @@ contract JsonCidVerifier {
         return multihash;
     }
 
-    function getCIDBytes(
-        bytes memory multihash
-    ) public pure returns (bytes memory) {
+    function getCIDBytes(bytes memory multihash) public pure returns (bytes memory) {
         bytes memory result = new bytes(37);
 
         result[0] = 0x01; // CIDv1
@@ -174,32 +145,19 @@ contract JsonCidVerifier {
         return result;
     }
 
-    function getCIDString(
-        bytes memory cidBytes
-    ) public pure returns (string memory) {
+    function getCIDString(bytes memory cidBytes) public pure returns (string memory) {
         // CIDv1 byte format: [version][codec][hash_type][hash_length][hash_bytes]
-        require(
-            cidBytes.length == 37,
-            "Invalid CID bytes length for json codec"
-        );
+        require(cidBytes.length == 37, "Invalid CID bytes length for json codec");
         require(cidBytes[0] == 0x01, "Not CIDv1");
-        require(
-            cidBytes[1] == 0x80,
-            "Not Varint-encoded json codec (first byte)"
-        );
-        require(
-            cidBytes[2] == 0x04,
-            "Not Varint-encoded json codec (second byte)"
-        );
+        require(cidBytes[1] == 0x80, "Not Varint-encoded json codec (first byte)");
+        require(cidBytes[2] == 0x04, "Not Varint-encoded json codec (second byte)");
         require(cidBytes[3] == 0x12, "Not SHA-256 hash");
         require(cidBytes[4] == 0x20, "Invalid hash length");
 
         return encodeBase32(cidBytes);
     }
 
-    function encodeBase32(
-        bytes memory data
-    ) internal pure returns (string memory) {
+    function encodeBase32(bytes memory data) internal pure returns (string memory) {
         if (data.length == 0) return "";
 
         // IPFS base32 alphabet
@@ -241,10 +199,7 @@ contract JsonCidVerifier {
         return string(finalResult);
     }
 
-    function stringEquals(
-        string memory a,
-        string memory b
-    ) public pure returns (bool) {
+    function stringEquals(string memory a, string memory b) public pure returns (bool) {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 }

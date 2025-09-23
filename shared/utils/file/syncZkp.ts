@@ -5,7 +5,7 @@ import { bigintArrayToEnvString } from "@shared/utils/transform/env.js";
 import { updateEnvVariable } from "./updateEnvVariable.js";
 import { mkdir, copyFile } from "fs/promises";
 import path from "path";
-import fs from 'fs';
+import fs from "fs";
 import chalk from "chalk";
 
 async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
@@ -38,25 +38,32 @@ function renameVerifier(filePath: string, newContractName: string): void {
       throw new Error(`File not found at ${filePath}`);
     }
 
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const fileContent = fs.readFileSync(filePath, "utf8");
 
     const updatedContent = fileContent.replace(
       /contract\s+Groth16Verifier/g,
-      `contract ${newContractName}`
+      `contract ${newContractName}`,
     );
 
     if (fileContent === updatedContent) {
-      console.warn(chalk.yellow(`Warning: No "${CONTRACT_NAME}" contract found to replace in ${filePath}`));
+      console.warn(
+        chalk.yellow(
+          `Warning: No "${CONTRACT_NAME}" contract found to replace in ${filePath}`,
+        ),
+      );
       return;
     }
 
-    fs.writeFileSync(filePath, updatedContent, 'utf8');
+    fs.writeFileSync(filePath, updatedContent, "utf8");
 
-    console.log(chalk.green(`✅ Successfully renamed contract to "${newContractName}" in ${filePath}`));
-
+    console.log(
+      chalk.green(
+        `✅ Successfully renamed contract to "${newContractName}" in ${filePath}`,
+      ),
+    );
   } catch (error) {
     throw new Error(
-      `Failed to update verifier contract name: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to update verifier contract name: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
 }
@@ -77,8 +84,8 @@ async function copyVerifierContract(): Promise<void> {
       {
         source: PATHS_CONFIG.zkp.willCreation.verifier,
         dest: PATHS_CONFIG.contracts.willCreationVerifier,
-      }
-    ]
+      },
+    ];
 
     await Promise.all(
       paths.map(async (p) => {
@@ -91,8 +98,8 @@ async function copyVerifierContract(): Promise<void> {
             `✅ Verifier contract copied from ${p.source} to ${p.dest} and rename to ${verifierName}`,
           ),
         );
-      })
-    )
+      }),
+    );
   } catch (error) {
     throw new Error(
       `Failed to copy verifier contract: ${error instanceof Error ? error.message : "Unknown error"}`,

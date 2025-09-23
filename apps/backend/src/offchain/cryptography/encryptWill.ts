@@ -48,7 +48,10 @@ async function processWillEncryption(): Promise<ProcessResult> {
     const encryptedWill: EncryptedWill = {
       algorithm: algorithm,
       iv: Base64String.fromBuffer(iv),
-      authTag: 'authTag' in result ? Base64String.fromBuffer(result.authTag) : Base64String.fromBuffer(Buffer.alloc(0)),
+      authTag:
+        "authTag" in result
+          ? Base64String.fromBuffer(result.authTag)
+          : Base64String.fromBuffer(Buffer.alloc(0)),
       ciphertext: Base64String.fromBuffer(result.ciphertext),
       timestamp: Math.floor(Date.now() / 1000),
     };

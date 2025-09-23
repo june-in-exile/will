@@ -1,7 +1,16 @@
-import type { Groth16Proof, DownloadedWill, DeserializedWill } from "@shared/types/index.js";
+import type {
+  Groth16Proof,
+  DownloadedWill,
+  DeserializedWill,
+} from "@shared/types/index.js";
 import { generateZkpProof } from "./generator.js";
 import { WILL_TYPE } from "@shared/constants/index.js";
-import { readWill, getKey, base64ToBytes, flattenEstates } from "@shared/utils/index.js";
+import {
+  readWill,
+  getKey,
+  base64ToBytes,
+  flattenEstates,
+} from "@shared/utils/index.js";
 import chalk from "chalk";
 
 async function proveForWillCreation(): Promise<Groth16Proof> {
@@ -17,7 +26,7 @@ async function proveForWillCreation(): Promise<Groth16Proof> {
       iv: base64ToBytes(downloadedWill.iv),
       expectedTestator: BigInt(deserializedWill.testator).toString(),
       expectedEstates: flattenEstates(deserializedWill.estates),
-    }
+    },
   });
 }
 
@@ -33,7 +42,7 @@ if (import.meta.url === new URL(process.argv[1], "file:").href) {
   main().catch((error: Error) => {
     console.error(
       chalk.red.bold("Uncaught error:"),
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     process.exit(1);
   });

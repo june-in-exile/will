@@ -54,8 +54,10 @@ class ContractAddressExtractor {
       );
 
       // Priority: Extract from receipts
-      const contractAddressFromReceipts =
-        this.extractFromReceipts(broadcastData, contractName);
+      const contractAddressFromReceipts = this.extractFromReceipts(
+        broadcastData,
+        contractName,
+      );
       if (contractAddressFromReceipts) {
         return contractAddressFromReceipts;
       }
@@ -80,8 +82,14 @@ class ContractAddressExtractor {
   /**
    * Extract address from receipts
    */
-  private extractFromReceipts(broadcastData: BroadcastData, contractName: string): string | null {
-    if (!broadcastData.transactions || broadcastData.transactions.length === 0) {
+  private extractFromReceipts(
+    broadcastData: BroadcastData,
+    contractName: string,
+  ): string | null {
+    if (
+      !broadcastData.transactions ||
+      broadcastData.transactions.length === 0
+    ) {
       return null;
     }
 

@@ -1,6 +1,9 @@
 import { CRYPTO_CONFIG } from "@config";
 import { WILL_TYPE } from "@shared/constants/will.js";
-import { AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/cryptography.js";
+import {
+  AES_256_GCM,
+  CHACHA20_POLY1305,
+} from "@shared/constants/cryptography.js";
 import { validateEthereumAddress, validateSignature } from "./blockchain.js";
 import { Base64String } from "@shared/types/base64String.js";
 import type {
@@ -195,7 +198,10 @@ function validateEncryptedWill(
 
   for (const field of requiredFields) {
     if (!willData[field]) {
-      if (field !== "authTag" || [AES_256_GCM, CHACHA20_POLY1305].includes(CRYPTO_CONFIG.algorithm)) {
+      if (
+        field !== "authTag" ||
+        [AES_256_GCM, CHACHA20_POLY1305].includes(CRYPTO_CONFIG.algorithm)
+      ) {
         throw new Error(`Missing required field: ${field}`);
       }
     }

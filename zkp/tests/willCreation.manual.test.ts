@@ -120,7 +120,13 @@ describe("Show CreateWill Input", function (): void {
       },
     ];
     console.log(`Circuit input (copy and paste to input file directly):`);
-    for (const { ciphertext, key, iv, expectedTestator, expectedEstates } of inputs) {
+    for (const {
+      ciphertext,
+      key,
+      iv,
+      expectedTestator,
+      expectedEstates,
+    } of inputs) {
       const processedInput = {
         ciphertext: base64ToBytes(ciphertext),
         key: base64ToBytes(key),
@@ -130,14 +136,12 @@ describe("Show CreateWill Input", function (): void {
           BigInt(estate.beneficiary),
           BigInt(estate.token),
           estate.amount,
-        ])
+        ]),
       };
       const formatted = Object.entries(processedInput)
         .map(([key, value]) => `  "${key}": ${JSON.stringify(value)}`)
         .join(",\n");
-      console.log(
-        `\nCreateWill(256, ${base64ToBytes(ciphertext).length}):`,
-      );
+      console.log(`\nCreateWill(256, ${base64ToBytes(ciphertext).length}):`);
       console.log(`{\n${formatted}\n}`);
     }
   });

@@ -1,5 +1,9 @@
 import { CRYPTO_CONFIG } from "@config";
-import { AES_256_CTR, AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/cryptography.js";
+import {
+  AES_256_CTR,
+  AES_256_GCM,
+  CHACHA20_POLY1305,
+} from "@shared/constants/cryptography.js";
 import type {
   DecryptionArgs,
   SupportedAlgorithm,
@@ -81,7 +85,11 @@ function parseArgs(): DecryptionArgs {
   if (!parsed.ciphertext) missingParams.push("--ciphertext");
   if (!parsed.key) missingParams.push("--key");
   if (!parsed.iv) missingParams.push("--iv");
-  if ([AES_256_GCM, CHACHA20_POLY1305].includes(parsed.algorithm!) && !parsed.authTag) missingParams.push("--authTag");
+  if (
+    [AES_256_GCM, CHACHA20_POLY1305].includes(parsed.algorithm!) &&
+    !parsed.authTag
+  )
+    missingParams.push("--authTag");
 
   if (missingParams.length > 0) {
     throw new Error(
@@ -120,25 +128,25 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "     Decryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --ciphertext") +
-    chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
+      chalk.gray("    Base64-encoded ciphertext to decrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray("          Base64-encoded decryption key [required]"),
+      chalk.gray("          Base64-encoded decryption key [required]"),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray("           Base64-encoded initialization vector [required]"),
+      chalk.gray("           Base64-encoded initialization vector [required]"),
   );
   console.log(
     chalk.cyan("  --authTag") +
-    chalk.gray("      Base64-encoded authentication tag [required]"),
+      chalk.gray("      Base64-encoded authentication tag [required]"),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -204,7 +212,11 @@ function validateDecryptionParams(
       throw new Error("IV must be a Buffer");
     }
 
-    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(algorithm) ? 12 : 16;
+    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(
+      algorithm,
+    )
+      ? 12
+      : 16;
     if (iv.length !== expectedIVLength) {
       throw new Error(
         `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${iv.length} bytes`,
@@ -214,7 +226,9 @@ function validateDecryptionParams(
     // Validate auth tag
     if ([AES_256_GCM, CHACHA20_POLY1305].includes(algorithm)) {
       if (!authTag || !Buffer.isBuffer(authTag)) {
-        throw new Error("Auth tag must be a Buffer for authenticated algorithms");
+        throw new Error(
+          "Auth tag must be a Buffer for authenticated algorithms",
+        );
       }
       const expectedAuthTagSize = 16; // 128 bits for GCM/Poly1305
       if (authTag.length !== expectedAuthTagSize) {

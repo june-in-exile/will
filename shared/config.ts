@@ -502,9 +502,18 @@ export const PATHS_CONFIG: PathsConfig = {
   contracts: {
     broadcastDir: resolve(BASE_PATHS.contracts, "broadcast"),
     outDir: resolve(BASE_PATHS.contracts, "out"),
-    multiplier2Verifier: resolve(BASE_PATHS.contracts, "src/Multiplier2Verifier.sol"),
-    cidUploadVerifier: resolve(BASE_PATHS.contracts, "src/CidUploadVerifier.sol"),
-    willCreationVerifier: resolve(BASE_PATHS.contracts, "src/WillCreationVerifier.sol"),
+    multiplier2Verifier: resolve(
+      BASE_PATHS.contracts,
+      "src/Multiplier2Verifier.sol",
+    ),
+    cidUploadVerifier: resolve(
+      BASE_PATHS.contracts,
+      "src/CidUploadVerifier.sol",
+    ),
+    willCreationVerifier: resolve(
+      BASE_PATHS.contracts,
+      "src/WillCreationVerifier.sol",
+    ),
     jsonCidVerifier: resolve(BASE_PATHS.contracts, "src/JsonCidVerifier.sol"),
     will: resolve(BASE_PATHS.contracts, "src/Will.sol"),
     willFactory: resolve(BASE_PATHS.contracts, "src/WillFactory.sol"),

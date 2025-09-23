@@ -37,7 +37,7 @@ contract WillFactoryFuzzTest is Test {
         JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](1);
         values[0] = JsonCidVerifier.JsonValue("12345", JsonCidVerifier.JsonValueType(1));
 
-        willJson = JsonCidVerifier.TypedJsonObject({keys: keys, values: values});
+        willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
     }
 
     function test_PredictWill_DeterministicOutput(
@@ -52,11 +52,7 @@ contract WillFactoryFuzzTest is Test {
         vm.assume(token != address(0));
 
         Will.Estate[] memory estates = new Will.Estate[](1);
-        estates[0] = Will.Estate({
-            token: token,
-            amount: amount,
-            beneficiary: beneficiary
-        });
+        estates[0] = Will.Estate({ token: token, amount: amount, beneficiary: beneficiary });
 
         address predicted1 = factory.predictWill(testator, estates, salt);
         address predicted2 = factory.predictWill(testator, estates, salt);
@@ -78,11 +74,7 @@ contract WillFactoryFuzzTest is Test {
         vm.assume(salt1 != salt2);
 
         Will.Estate[] memory estates = new Will.Estate[](1);
-        estates[0] = Will.Estate({
-            token: token,
-            amount: amount,
-            beneficiary: beneficiary
-        });
+        estates[0] = Will.Estate({ token: token, amount: amount, beneficiary: beneficiary });
 
         address predicted1 = factory.predictWill(testator, estates, salt1);
         address predicted2 = factory.predictWill(testator, estates, salt2);
@@ -90,10 +82,7 @@ contract WillFactoryFuzzTest is Test {
         assertTrue(predicted1 != predicted2);
     }
 
-    function test_NotarizeCID_RevertOnInvalidSignature(
-        string calldata cid,
-        bytes calldata invalidSignature
-    ) public {
+    function test_NotarizeCID_RevertOnInvalidSignature(string calldata cid, bytes calldata invalidSignature) public {
         vm.assume(bytes(cid).length > 0);
         vm.assume(invalidSignature.length > 0);
 
@@ -101,10 +90,7 @@ contract WillFactoryFuzzTest is Test {
         mockcidUploadVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
-        uint256[2][2] memory pB = [
-            [uint256(3), uint256(4)],
-            [uint256(5), uint256(6)]
-        ];
+        uint256[2][2] memory pB = [[uint256(3), uint256(4)], [uint256(5), uint256(6)]];
         uint256[2] memory pC = [uint256(7), uint256(8)];
         uint256[1] memory pubSignals = [uint256(9)];
 
@@ -114,21 +100,12 @@ contract WillFactoryFuzzTest is Test {
         factory.notarizeCid(cid, invalidSignature);
     }
 
-    function test_OnlyAuthorizedModifier(
-        address unauthorizedCaller,
-        string calldata cid
-    ) public {
+    function test_OnlyAuthorizedModifier(address unauthorizedCaller, string calldata cid) public {
         vm.assume(unauthorizedCaller != executor);
         vm.assume(bytes(cid).length > 0);
 
         vm.prank(unauthorizedCaller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                WillFactory.UnauthorizedCaller.selector,
-                unauthorizedCaller,
-                executor
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, unauthorizedCaller, executor));
         factory.testatorValidateTimes(cid);
 
         vm.prank(executor);

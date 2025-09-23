@@ -20,6 +20,7 @@
     "test:fuzz": "make test-fuzz",
     "test:integration": "make test-integration",
     "test:unit": "make test-unit",
+    "format": "make format",
     "clean": "make clean"
   },
   "lint-staged": {

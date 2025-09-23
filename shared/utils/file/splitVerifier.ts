@@ -1,79 +1,85 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 import chalk from "chalk";
 
 interface ICConstant {
-    index: number;
-    x: string;
-    y: string;
+  index: number;
+  x: string;
+  y: string;
 }
 
 interface VerifierData {
-    basicConstants: string[];
-    icConstants: ICConstant[];
-    verifyFunction: string;
+  basicConstants: string[];
+  icConstants: ICConstant[];
+  verifyFunction: string;
 }
 
 function parseVerifierContract(filePath: string): VerifierData {
-    const content = fs.readFileSync(filePath, 'utf-8');
+  const content = fs.readFileSync(filePath, "utf-8");
 
-    // Extract basic constants (r, q, alpha, beta, gamma, delta)
-    const basicConstants: string[] = [];
-    const basicConstantRegex = /uint256\s+constant\s+(r|q|alphax|alphay|betax1|betax2|betay1|betay2|gammax1|gammax2|gammay1|gammay2|deltax1|deltax2|deltay1|deltay2)\s*=\s*([^;]+);/g;
+  // Extract basic constants (r, q, alpha, beta, gamma, delta)
+  const basicConstants: string[] = [];
+  const basicConstantRegex =
+    /uint256\s+constant\s+(r|q|alphax|alphay|betax1|betax2|betay1|betay2|gammax1|gammax2|gammay1|gammay2|deltax1|deltax2|deltay1|deltay2)\s*=\s*([^;]+);/g;
 
-    let match;
-    while ((match = basicConstantRegex.exec(content)) !== null) {
-        basicConstants.push(match[0]);
+  let match;
+  while ((match = basicConstantRegex.exec(content)) !== null) {
+    basicConstants.push(match[0]);
+  }
+
+  // Extract IC constants
+  const icConstants: ICConstant[] = [];
+  const icRegex = /uint256\s+constant\s+IC(\d+)(x|y)\s*=\s*([^;]+);/g;
+
+  while ((match = icRegex.exec(content)) !== null) {
+    const index = parseInt(match[1]);
+    const coord = match[2];
+    const value = match[3];
+
+    let icConstant = icConstants.find((ic) => ic.index === index);
+    if (!icConstant) {
+      icConstant = { index, x: "", y: "" };
+      icConstants.push(icConstant);
     }
 
-    // Extract IC constants
-    const icConstants: ICConstant[] = [];
-    const icRegex = /uint256\s+constant\s+IC(\d+)(x|y)\s*=\s*([^;]+);/g;
-
-    while ((match = icRegex.exec(content)) !== null) {
-        const index = parseInt(match[1]);
-        const coord = match[2];
-        const value = match[3];
-
-        let icConstant = icConstants.find(ic => ic.index === index);
-        if (!icConstant) {
-            icConstant = { index, x: '', y: '' };
-            icConstants.push(icConstant);
-        }
-
-        if (coord === 'x') {
-            icConstant.x = value;
-        } else {
-            icConstant.y = value;
-        }
+    if (coord === "x") {
+      icConstant.x = value;
+    } else {
+      icConstant.y = value;
     }
+  }
 
-    // Sort IC constants by index
-    icConstants.sort((a, b) => a.index - b.index);
+  // Sort IC constants by index
+  icConstants.sort((a, b) => a.index - b.index);
 
-    // Extract the verifyProof function
-    const verifyFunctionRegex = /function verifyProof\([^}]+\{[\s\S]*?\n\s*\}/;
-    const verifyMatch = content.match(verifyFunctionRegex);
-    const verifyFunction = verifyMatch ? verifyMatch[0] : '';
+  // Extract the verifyProof function
+  const verifyFunctionRegex = /function verifyProof\([^}]+\{[\s\S]*?\n\s*\}/;
+  const verifyMatch = content.match(verifyFunctionRegex);
+  const verifyFunction = verifyMatch ? verifyMatch[0] : "";
 
-    return { basicConstants, icConstants, verifyFunction };
+  return { basicConstants, icConstants, verifyFunction };
 }
 
-function generateConstantsContract(contractName: string, startIndex: number, endIndex: number, icConstants: ICConstant[]): string {
-    const relevantConstants = icConstants.slice(startIndex, endIndex);
-    const count = relevantConstants.length;
+function generateConstantsContract(
+  contractName: string,
+  startIndex: number,
+  endIndex: number,
+  icConstants: ICConstant[],
+): string {
+  const relevantConstants = icConstants.slice(startIndex, endIndex);
+  const count = relevantConstants.length;
 
-    let constantDeclarations = '';
-    let getICCases = '';
+  let constantDeclarations = "";
+  let getICCases = "";
 
-    relevantConstants.forEach((ic, localIndex) => {
-        constantDeclarations += `    uint256 constant IC${ic.index}x = ${ic.x};\n`;
-        constantDeclarations += `    uint256 constant IC${ic.index}y = ${ic.y};\n`;
+  relevantConstants.forEach((ic, localIndex) => {
+    constantDeclarations += `    uint256 constant IC${ic.index}x = ${ic.x};\n`;
+    constantDeclarations += `    uint256 constant IC${ic.index}y = ${ic.y};\n`;
 
-        getICCases += `        if (index == ${localIndex}) return (IC${ic.index}x, IC${ic.index}y);\n`;
-    });
+    getICCases += `        if (index == ${localIndex}) return (IC${ic.index}x, IC${ic.index}y);\n`;
+  });
 
-    return `// SPDX-License-Identifier: GPL-3.0
+  return `// SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
 
@@ -110,10 +116,13 @@ ${getICCases}
 }`;
 }
 
-function generateMainContract(basicConstants: string[], totalICCount: number): string {
-    const basicConstantDeclarations = basicConstants.join('\n    ');
+function generateMainContract(
+  basicConstants: string[],
+  totalICCount: number,
+): string {
+  const basicConstantDeclarations = basicConstants.join("\n    ");
 
-    return `// SPDX-License-Identifier: GPL-3.0
+  return `// SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.7.0 <0.9.0;
 
@@ -336,7 +345,7 @@ contract Groth16VerifierMain {
 }
 
 function generateDeployScript(outputDir: string): string {
-    return `// SPDX-License-Identifier: GPL-3.0
+  return `// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
 
 import "forge-std/Script.sol";
@@ -373,83 +382,119 @@ contract DeployVerifierScript is Script {
 }
 
 async function main(): Promise<void> {
-    const args = process.argv.slice(2);
-    if (args.length !== 1) {
-        console.error('Usage: node split-verifier.js <verifier-file-path>');
-        process.exit(1);
+  const args = process.argv.slice(2);
+  if (args.length !== 1) {
+    console.error("Usage: node split-verifier.js <verifier-file-path>");
+    process.exit(1);
+  }
+
+  const inputFile = args[0];
+  if (!fs.existsSync(inputFile)) {
+    console.error(`File not found: ${inputFile}`);
+    process.exit(1);
+  }
+
+  const parentDir = path.dirname(inputFile);
+  const baseName = path.basename(inputFile, ".sol");
+  const outputDir = path.join(parentDir, baseName);
+
+  console.log(`Splitting verifier contract: ${inputFile}`);
+  console.log(`Output directory: ${outputDir}`);
+
+  // Create output directory if it doesn't exist
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+    console.log(`Created output directory: ${outputDir}`);
+  }
+
+  try {
+    const verifierData = parseVerifierContract(inputFile);
+
+    if (verifierData.icConstants.length === 0) {
+      console.error("No IC constants found in the contract");
+      process.exit(1);
     }
 
-    const inputFile = args[0];
-    if (!fs.existsSync(inputFile)) {
-        console.error(`File not found: ${inputFile}`);
-        process.exit(1);
-    }
+    console.log(`Found ${verifierData.icConstants.length} IC constants`);
 
-    const parentDir = path.dirname(inputFile);
-    const baseName = path.basename(inputFile, '.sol');
-    const outputDir = path.join(parentDir, baseName);
+    // Generate constants contracts
+    const constants1 = generateConstantsContract(
+      "VerifierConstants1",
+      0,
+      98,
+      verifierData.icConstants,
+    );
+    const constants2 = generateConstantsContract(
+      "VerifierConstants2",
+      98,
+      196,
+      verifierData.icConstants,
+    );
+    const constants3 = generateConstantsContract(
+      "VerifierConstants3",
+      196,
+      verifierData.icConstants.length,
+      verifierData.icConstants,
+    );
 
-    console.log(`Splitting verifier contract: ${inputFile}`);
-    console.log(`Output directory: ${outputDir}`);
+    // Generate main contract
+    const mainContract = generateMainContract(
+      verifierData.basicConstants,
+      verifierData.icConstants.length,
+    );
 
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir, { recursive: true });
-        console.log(`Created output directory: ${outputDir}`);
-    }
+    // Generate deploy script
+    const deployScript = generateDeployScript(outputDir);
 
-    try {
-        const verifierData = parseVerifierContract(inputFile);
+    // Write files
+    fs.writeFileSync(
+      path.join(outputDir, "VerifierConstants1.sol"),
+      constants1,
+    );
+    fs.writeFileSync(
+      path.join(outputDir, "VerifierConstants2.sol"),
+      constants2,
+    );
+    fs.writeFileSync(
+      path.join(outputDir, "VerifierConstants3.sol"),
+      constants3,
+    );
+    fs.writeFileSync(
+      path.join(outputDir, "Groth16VerifierMain.sol"),
+      mainContract,
+    );
+    fs.writeFileSync(
+      path.join(outputDir, "DeployVerifier.s.sol"),
+      deployScript,
+    );
 
-        if (verifierData.icConstants.length === 0) {
-            console.error('No IC constants found in the contract');
-            process.exit(1);
-        }
+    console.log("✅ Successfully generated split contracts:");
+    console.log("  - VerifierConstants1.sol (IC 0-97)");
+    console.log("  - VerifierConstants2.sol (IC 98-195)");
+    console.log("  - VerifierConstants3.sol (IC 196+)");
+    console.log("  - Groth16VerifierMain.sol (main verifier)");
+    console.log("  - DeployVerifier.s.sol (deployment script)");
 
-        console.log(`Found ${verifierData.icConstants.length} IC constants`);
-
-        // Generate constants contracts
-        const constants1 = generateConstantsContract('VerifierConstants1', 0, 98, verifierData.icConstants);
-        const constants2 = generateConstantsContract('VerifierConstants2', 98, 196, verifierData.icConstants);
-        const constants3 = generateConstantsContract('VerifierConstants3', 196, verifierData.icConstants.length, verifierData.icConstants);
-
-        // Generate main contract
-        const mainContract = generateMainContract(verifierData.basicConstants, verifierData.icConstants.length);
-
-        // Generate deploy script
-        const deployScript = generateDeployScript(outputDir);
-
-        // Write files
-        fs.writeFileSync(path.join(outputDir, 'VerifierConstants1.sol'), constants1);
-        fs.writeFileSync(path.join(outputDir, 'VerifierConstants2.sol'), constants2);
-        fs.writeFileSync(path.join(outputDir, 'VerifierConstants3.sol'), constants3);
-        fs.writeFileSync(path.join(outputDir, 'Groth16VerifierMain.sol'), mainContract);
-        fs.writeFileSync(path.join(outputDir, 'DeployVerifier.s.sol'), deployScript);
-
-        console.log('✅ Successfully generated split contracts:');
-        console.log('  - VerifierConstants1.sol (IC 0-97)');
-        console.log('  - VerifierConstants2.sol (IC 98-195)');
-        console.log('  - VerifierConstants3.sol (IC 196+)');
-        console.log('  - Groth16VerifierMain.sol (main verifier)');
-        console.log('  - DeployVerifier.s.sol (deployment script)');
-
-        console.log('\\n📝 Next steps:');
-        console.log('1. Deploy contracts using: forge script DeployVerifier.s.sol --broadcast');
-        console.log('2. The main contract assembly code may need manual adjustment for proper linear combination computation');
-
-    } catch (error) {
-        console.error('Error processing verifier contract:', error);
-        process.exit(1);
-    }
+    console.log("\\n📝 Next steps:");
+    console.log(
+      "1. Deploy contracts using: forge script DeployVerifier.s.sol --broadcast",
+    );
+    console.log(
+      "2. The main contract assembly code may need manual adjustment for proper linear combination computation",
+    );
+  } catch (error) {
+    console.error("Error processing verifier contract:", error);
+    process.exit(1);
+  }
 }
 
 // Check: is this file being executed directly or imported?
 if (import.meta.url === new URL(process.argv[1], "file:").href) {
-    // Only run when executed directly
-    main().catch((error: Error) => {
-        const errorMessage =
-            error instanceof Error ? error.message : "Unknown error";
-        console.error(chalk.red.bold("Uncaught error:"), errorMessage);
-        process.exit(1);
-    });
+  // Only run when executed directly
+  main().catch((error: Error) => {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    console.error(chalk.red.bold("Uncaught error:"), errorMessage);
+    process.exit(1);
+  });
 }

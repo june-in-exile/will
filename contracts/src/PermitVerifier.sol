@@ -17,7 +17,7 @@ contract PermitVerifier {
         // the maximum amount that can be spent
         uint256 amount;
     }
-    
+
     struct PermitBatchTransferFrom {
         TokenPermissions[] permitted;
         // a unique value for every token owner's signature to prevent signature replays
@@ -40,7 +40,9 @@ contract PermitVerifier {
     }
 
     function DOMAIN_SEPARATOR() public view returns (bytes32) {
-        return keccak256(abi.encode(_TYPE_HASH, _HASHED_NAME, block.chainid, address(0x000000000022D473030F116dDEE9F6B43aC78BA3)));
+        return keccak256(
+            abi.encode(_TYPE_HASH, _HASHED_NAME, block.chainid, address(0x000000000022D473030F116dDEE9F6B43aC78BA3))
+        );
     }
 
     function hashPermit(PermitBatchTransferFrom calldata permit, address spender) public pure returns (bytes32) {
@@ -66,11 +68,11 @@ contract PermitVerifier {
         return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR(), permitDigest));
     }
 
-    function decodeSignature(bytes calldata signature) public pure returns (bytes32 r, bytes32 s, uint8 v)  {
+    function decodeSignature(bytes calldata signature) public pure returns (bytes32 r, bytes32 s, uint8 v) {
         (r, s) = abi.decode(signature, (bytes32, bytes32));
         v = uint8(signature[64]);
-        
-        return (r,s,v);
+
+        return (r, s, v);
     }
 
     function recoverSigner(bytes calldata signature, bytes32 typedPermitDigest) public pure returns (address) {
@@ -79,7 +81,12 @@ contract PermitVerifier {
         return signer;
     }
 
-    function verifyPermit(address testator, PermitBatchTransferFrom calldata permit, address spender, bytes calldata signature) public view {
+    function verifyPermit(
+        address testator,
+        PermitBatchTransferFrom calldata permit,
+        address spender,
+        bytes calldata signature
+    ) public view {
         bytes32 permitDigest = hashPermit(permit, spender);
         bytes32 typedPermitDigest = hashTypedData(permitDigest);
         address signer = recoverSigner(signature, typedPermitDigest);

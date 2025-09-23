@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Will} from "src/Will.sol";
-import {Multiplier2Verifier} from "src/Multiplier2Verifier.sol";
+import { Will } from "src/Will.sol";
+import { Multiplier2Verifier } from "src/Multiplier2Verifier.sol";
 // import {CidUploadVerifier} from "src/CidUploadVerifier/CidUploadVerifier.sol";
 // import {WillCreationVerifier} from  "src/WillCreationVerifier/WillCreationVerifier.sol";
-import {JsonCidVerifier} from "src/JsonCidVerifier.sol";
+import { JsonCidVerifier } from "src/JsonCidVerifier.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
@@ -23,11 +23,7 @@ contract WillFactory {
     mapping(string => uint256) private _executorValidateTimes;
     mapping(string => address) public wills;
 
-    event WillCreated(
-        string indexed cid,
-        address indexed testator,
-        address will
-    );
+    event WillCreated(string indexed cid, address indexed testator, address will);
     event CIDUploaded(string indexed cid, uint256 timestamp);
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
@@ -56,30 +52,24 @@ contract WillFactory {
     }
 
     modifier onlyAuthorized() {
-        if (msg.sender != executor)
+        if (msg.sender != executor) {
             revert UnauthorizedCaller(msg.sender, executor);
+        }
         _;
     }
 
-    function verifyExecutorSignature(
-        string calldata message,
-        bytes memory signature
-    ) external view returns (bool) {
+    function verifyExecutorSignature(string calldata message, bytes memory signature) external view returns (bool) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         address recoveredSigner = ethSignedMessageHash.recover(signature);
         return recoveredSigner == executor;
     }
 
-    function testatorValidateTimes(
-        string calldata _cid
-    ) external view onlyAuthorized returns (uint256) {
+    function testatorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
         return _testatorValidateTimes[_cid];
     }
 
-    function executorValidateTimes(
-        string calldata _cid
-    ) external view onlyAuthorized returns (uint256) {
+    function executorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
         return _executorValidateTimes[_cid];
     }
 
@@ -95,24 +85,21 @@ contract WillFactory {
 
         if (!isValid) revert JsonCidInvalid(_cid);
 
-        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
             revert TestatorProofInvalid();
+        }
 
         _testatorValidateTimes[_cid] = block.timestamp;
         emit CIDUploaded(_cid, block.timestamp);
     }
 
-    function notarizeCid(
-        string calldata _cid,
-        bytes memory _signature
-    ) external {
-        if (_testatorValidateTimes[_cid] == 0)
+    function notarizeCid(string calldata _cid, bytes memory _signature) external {
+        if (_testatorValidateTimes[_cid] == 0) {
             revert CIDNotValidatedByTestator(_cid);
+        }
 
         bool isValidSignature;
-        try this.verifyExecutorSignature(_cid, _signature) returns (
-            bool result
-        ) {
+        try this.verifyExecutorSignature(_cid, _signature) returns (bool result) {
             isValidSignature = result;
         } catch {
             isValidSignature = false;
@@ -123,24 +110,15 @@ contract WillFactory {
         emit CIDNotarized(_cid, block.timestamp);
     }
 
-    function predictWill(
-        address _testator,
-        Will.Estate[] calldata estates,
-        uint256 _salt
-    ) public view returns (address) {
-        bytes memory bytecode = abi.encodePacked(
-            type(Will).creationCode,
-            abi.encode(permit2, _testator, executor, estates)
-        );
+    function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+        public
+        view
+        returns (address)
+    {
+        bytes memory bytecode =
+            abi.encodePacked(type(Will).creationCode, abi.encode(permit2, _testator, executor, estates));
 
-        bytes32 hash = keccak256(
-            abi.encodePacked(
-                bytes1(0xff),
-                address(this),
-                _salt,
-                keccak256(bytecode)
-            )
-        );
+        bytes32 hash = keccak256(abi.encodePacked(bytes1(0xff), address(this), _salt, keccak256(bytecode)));
 
         return address(uint160(uint256(hash)));
     }
@@ -156,28 +134,28 @@ contract WillFactory {
         Will.Estate[] calldata _estates,
         uint256 _salt
     ) external returns (address) {
-        if (_testatorValidateTimes[_cid] == 0)
+        if (_testatorValidateTimes[_cid] == 0) {
             revert CIDNotValidatedByTestator(_cid);
-        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid])
+        }
+        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]) {
             revert CIDNotValidatedByExecutor(_cid);
+        }
 
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
         if (!isValid) revert JsonCidInvalid(_cid);
-        if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals))
+        if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
             revert DecryptionProofInvalid();
-        if (wills[_cid] != address(0))
+        }
+        if (wills[_cid] != address(0)) {
             revert WillAlreadyExists(_cid, wills[_cid]);
+        }
 
-        Will will = new Will{salt: bytes32(_salt)}(
-            permit2,
-            _testator,
-            executor,
-            _estates
-        );
+        Will will = new Will{ salt: bytes32(_salt) }(permit2, _testator, executor, _estates);
         address predictedAddress = predictWill(_testator, _estates, _salt);
-        if (address(will) != predictedAddress)
+        if (address(will) != predictedAddress) {
             revert WillAddressInconsistent(predictedAddress, address(will));
+        }
 
         wills[_cid] = address(will);
         emit WillCreated(_cid, _testator, address(will));

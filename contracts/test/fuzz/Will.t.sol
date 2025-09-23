@@ -33,11 +33,7 @@ contract WillFuzzTest is Test {
         vm.assume(_amount > 0);
 
         Will.Estate[] memory newEstates = new Will.Estate[](1);
-        newEstates[0] = Will.Estate({
-            beneficiary: _beneficiary,
-            token: _token,
-            amount: _amount
-        });
+        newEstates[0] = Will.Estate({ beneficiary: _beneficiary, token: _token, amount: _amount });
 
         Will newWill = new Will(permit2, _testator, _executor, newEstates);
 
@@ -47,11 +43,7 @@ contract WillFuzzTest is Test {
         assertEq(newWill.getAllEstates().length, 1);
     }
 
-    function testFuzzSignatureTransferAccessControl(
-        address caller,
-        uint256 nonce,
-        uint256 deadline
-    ) public {
+    function testFuzzSignatureTransferAccessControl(address caller, uint256 nonce, uint256 deadline) public {
         vm.assume(caller != executor);
         vm.assume(nonce != 0);
         vm.assume(deadline > block.timestamp);

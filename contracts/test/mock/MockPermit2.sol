@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {PermitHash} from "permit2/src/libraries/PermitHash.sol";
-import {IPermit2, ISignatureTransfer} from "permit2/src/interfaces/IPermit2.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { PermitHash } from "permit2/src/libraries/PermitHash.sol";
+import { IPermit2, ISignatureTransfer } from "permit2/src/interfaces/IPermit2.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title MockPermit2
 /// @notice Mock implementation of Permit2 for testing purposes
@@ -20,15 +20,13 @@ contract MockPermit2 is IPermit2 {
     using PermitHash for PermitBatchTransferFrom;
 
     /// @notice Domain separator for EIP-712
-    bytes32 private constant _DOMAIN_SEPARATOR =
-        keccak256("MOCK_PERMIT2_DOMAIN");
+    bytes32 private constant _DOMAIN_SEPARATOR = keccak256("MOCK_PERMIT2_DOMAIN");
 
     /// @notice Mapping to track nonce bitmaps for unordered nonces
     mapping(address => mapping(uint256 => uint256)) public override nonceBitmap;
 
     /// @notice Mapping to track allowances: owner => token => spender => PackedAllowance
-    mapping(address => mapping(address => mapping(address => PackedAllowance)))
-        private _allowances;
+    mapping(address => mapping(address => mapping(address => PackedAllowance))) private _allowances;
 
     /// @notice Control flag to simulate transfer failures for testing
     bool public shouldTransferRevert = false;
@@ -37,12 +35,7 @@ contract MockPermit2 is IPermit2 {
     bool public shouldRejectSignature = false;
 
     /// @notice Event emitted when a mock transfer occurs
-    event MockTransfer(
-        address indexed from,
-        address indexed to,
-        address indexed token,
-        uint256 amount
-    );
+    event MockTransfer(address indexed from, address indexed to, address indexed token, uint256 amount);
 
     /// @notice Set whether the mock should reject signatures
     function setShouldRejectSignature(bool _shouldReject) external {
@@ -66,13 +59,7 @@ contract MockPermit2 is IPermit2 {
         address owner,
         bytes calldata signature
     ) external override {
-        _permitTransferFrom(
-            singlePermit,
-            transferDetails,
-            owner,
-            singlePermit.hash(),
-            signature
-        );
+        _permitTransferFrom(singlePermit, transferDetails, owner, singlePermit.hash(), signature);
     }
 
     /// @notice Mock implementation of permitWitnessTransferFrom for single token
@@ -85,11 +72,7 @@ contract MockPermit2 is IPermit2 {
         bytes calldata signature
     ) external override {
         _permitTransferFrom(
-            witnessPermit,
-            transferDetails,
-            owner,
-            witnessPermit.hashWithWitness(witness, witnessTypeString),
-            signature
+            witnessPermit, transferDetails, owner, witnessPermit.hashWithWitness(witness, witnessTypeString), signature
         );
     }
 
@@ -100,8 +83,9 @@ contract MockPermit2 is IPermit2 {
         bytes32,
         bytes calldata
     ) private {
-        if (block.timestamp > singlePermit.deadline)
+        if (block.timestamp > singlePermit.deadline) {
             revert SignatureExpired(singlePermit.deadline);
+        }
 
         if (transferDetails.requestedAmount > singlePermit.permitted.amount) {
             revert InvalidAmount(singlePermit.permitted.amount);
@@ -118,19 +102,9 @@ contract MockPermit2 is IPermit2 {
         }
 
         // Perform the mock transfer
-        _mockTransfer(
-            owner,
-            transferDetails.to,
-            singlePermit.permitted.token,
-            transferDetails.requestedAmount
-        );
+        _mockTransfer(owner, transferDetails.to, singlePermit.permitted.token, transferDetails.requestedAmount);
 
-        emit MockTransfer(
-            owner,
-            transferDetails.to,
-            singlePermit.permitted.token,
-            transferDetails.requestedAmount
-        );
+        emit MockTransfer(owner, transferDetails.to, singlePermit.permitted.token, transferDetails.requestedAmount);
     }
 
     /// @notice Mock implementation of permitTransferFrom for batch tokens
@@ -140,13 +114,7 @@ contract MockPermit2 is IPermit2 {
         address owner,
         bytes calldata signature
     ) external override {
-        _permitTransferFrom(
-            batchPermit,
-            transferDetails,
-            owner,
-            batchPermit.hash(),
-            signature
-        );
+        _permitTransferFrom(batchPermit, transferDetails, owner, batchPermit.hash(), signature);
     }
 
     /// @notice Mock implementation of permitWitnessTransferFrom for batch tokens
@@ -176,8 +144,9 @@ contract MockPermit2 is IPermit2 {
     ) private {
         uint256 numPermitted = batchPermit.permitted.length;
 
-        if (block.timestamp > batchPermit.deadline)
+        if (block.timestamp > batchPermit.deadline) {
             revert SignatureExpired(batchPermit.deadline);
+        }
         if (numPermitted != transferDetails.length) revert LengthMismatch();
 
         _useUnorderedNonce(owner, batchPermit.nonce);
@@ -194,33 +163,21 @@ contract MockPermit2 is IPermit2 {
                 TokenPermissions memory permitted = batchPermit.permitted[i];
                 uint256 requestedAmount = transferDetails[i].requestedAmount;
 
-                if (requestedAmount > permitted.amount)
+                if (requestedAmount > permitted.amount) {
                     revert InvalidAmount(permitted.amount);
+                }
 
                 if (requestedAmount != 0) {
-                    _mockTransfer(
-                        owner,
-                        transferDetails[i].to,
-                        permitted.token,
-                        requestedAmount
-                    );
+                    _mockTransfer(owner, transferDetails[i].to, permitted.token, requestedAmount);
 
-                    emit MockTransfer(
-                        owner,
-                        transferDetails[i].to,
-                        permitted.token,
-                        requestedAmount
-                    );
+                    emit MockTransfer(owner, transferDetails[i].to, permitted.token, requestedAmount);
                 }
             }
         }
     }
 
     /// @notice Mock implementation of invalidateUnorderedNonces
-    function invalidateUnorderedNonces(
-        uint256 wordPos,
-        uint256 mask
-    ) external override {
+    function invalidateUnorderedNonces(uint256 wordPos, uint256 mask) external override {
         require(wordPos <= type(uint248).max, "MockPermit2: WordPos too large");
 
         nonceBitmap[msg.sender][wordPos] |= mask;
@@ -234,9 +191,7 @@ contract MockPermit2 is IPermit2 {
     /// @return bitPos The bit position
     /// @dev The first 248 bits of the nonce value is the index of the desired bitmap
     /// @dev The last 8 bits of the nonce value is the position of the bit in the bitmap
-    function bitmapPositions(
-        uint256 nonce
-    ) private pure returns (uint256 wordPos, uint256 bitPos) {
+    function bitmapPositions(uint256 nonce) private pure returns (uint256 wordPos, uint256 bitPos) {
         wordPos = uint248(nonce >> 8);
         bitPos = uint8(nonce);
     }
@@ -255,11 +210,7 @@ contract MockPermit2 is IPermit2 {
     // ===== AllowanceTransfer Implementation =====
 
     /// @notice Get allowance information
-    function allowance(
-        address user,
-        address token,
-        address spender
-    )
+    function allowance(address user, address token, address spender)
         external
         view
         override
@@ -270,12 +221,7 @@ contract MockPermit2 is IPermit2 {
     }
 
     /// @notice Mock implementation of approve
-    function approve(
-        address token,
-        address spender,
-        uint160 amount,
-        uint48 expiration
-    ) external override {
+    function approve(address token, address spender, uint160 amount, uint48 expiration) external override {
         _allowances[msg.sender][token][spender] = PackedAllowance({
             amount: amount,
             expiration: expiration,
@@ -286,23 +232,14 @@ contract MockPermit2 is IPermit2 {
     }
 
     /// @notice Mock implementation of permit for single token
-    function permit(
-        address owner,
-        PermitSingle memory permitSingle,
-        bytes calldata
-    ) external override {
+    function permit(address owner, PermitSingle memory permitSingle, bytes calldata) external override {
         if (shouldRejectSignature) {
             revert("MockPermit2: Invalid signature");
         }
 
-        require(
-            block.timestamp <= permitSingle.sigDeadline,
-            "MockPermit2: Signature deadline exceeded"
-        );
+        require(block.timestamp <= permitSingle.sigDeadline, "MockPermit2: Signature deadline exceeded");
 
-        _allowances[owner][permitSingle.details.token][
-            permitSingle.spender
-        ] = PackedAllowance({
+        _allowances[owner][permitSingle.details.token][permitSingle.spender] = PackedAllowance({
             amount: permitSingle.details.amount,
             expiration: permitSingle.details.expiration,
             nonce: permitSingle.details.nonce
@@ -319,49 +256,25 @@ contract MockPermit2 is IPermit2 {
     }
 
     /// @notice Mock implementation of permit for batch tokens
-    function permit(
-        address owner,
-        PermitBatch memory permitBatch,
-        bytes calldata
-    ) external override {
+    function permit(address owner, PermitBatch memory permitBatch, bytes calldata) external override {
         if (shouldRejectSignature) {
             revert("MockPermit2: Invalid signature");
         }
 
-        require(
-            block.timestamp <= permitBatch.sigDeadline,
-            "MockPermit2: Signature deadline exceeded"
-        );
+        require(block.timestamp <= permitBatch.sigDeadline, "MockPermit2: Signature deadline exceeded");
 
         for (uint256 i = 0; i < permitBatch.details.length; i++) {
             PermitDetails memory details = permitBatch.details[i];
 
-            _allowances[owner][details.token][
-                permitBatch.spender
-            ] = PackedAllowance({
-                amount: details.amount,
-                expiration: details.expiration,
-                nonce: details.nonce
-            });
+            _allowances[owner][details.token][permitBatch.spender] =
+                PackedAllowance({ amount: details.amount, expiration: details.expiration, nonce: details.nonce });
 
-            emit Permit(
-                owner,
-                details.token,
-                permitBatch.spender,
-                details.amount,
-                details.expiration,
-                details.nonce
-            );
+            emit Permit(owner, details.token, permitBatch.spender, details.amount, details.expiration, details.nonce);
         }
     }
 
     /// @notice Mock implementation of transferFrom
-    function transferFrom(
-        address from,
-        address to,
-        uint160 amount,
-        address token
-    ) external override {
+    function transferFrom(address from, address to, uint160 amount, address token) external override {
         if (shouldTransferRevert) {
             revert("MockPermit2: Transfer reverted");
         }
@@ -387,9 +300,7 @@ contract MockPermit2 is IPermit2 {
     }
 
     /// @notice Mock implementation of batch transferFrom
-    function transferFrom(
-        AllowanceTransferDetails[] calldata transferDetails
-    ) external override {
+    function transferFrom(AllowanceTransferDetails[] calldata transferDetails) external override {
         if (shouldTransferRevert) {
             revert("MockPermit2: Transfer reverted");
         }
@@ -397,9 +308,7 @@ contract MockPermit2 is IPermit2 {
         for (uint256 i = 0; i < transferDetails.length; i++) {
             AllowanceTransferDetails memory details = transferDetails[i];
 
-            PackedAllowance storage allowed = _allowances[details.from][
-                details.token
-            ][msg.sender];
+            PackedAllowance storage allowed = _allowances[details.from][details.token][msg.sender];
 
             if (block.timestamp > allowed.expiration) {
                 revert AllowanceExpired(allowed.expiration);
@@ -414,42 +323,25 @@ contract MockPermit2 is IPermit2 {
                 allowed.amount -= details.amount;
             }
 
-            _mockTransfer(
-                details.from,
-                details.to,
-                details.token,
-                details.amount
-            );
+            _mockTransfer(details.from, details.to, details.token, details.amount);
 
-            emit MockTransfer(
-                details.from,
-                details.to,
-                details.token,
-                details.amount
-            );
+            emit MockTransfer(details.from, details.to, details.token, details.amount);
         }
     }
 
     /// @notice Mock implementation of lockdown
     function lockdown(TokenSpenderPair[] calldata approvals) external override {
         for (uint256 i = 0; i < approvals.length; i++) {
-            _allowances[msg.sender][approvals[i].token][
-                approvals[i].spender
-            ] = PackedAllowance({amount: 0, expiration: 0, nonce: 0});
+            _allowances[msg.sender][approvals[i].token][approvals[i].spender] =
+                PackedAllowance({ amount: 0, expiration: 0, nonce: 0 });
 
             emit Lockdown(msg.sender, approvals[i].token, approvals[i].spender);
         }
     }
 
     /// @notice Mock implementation of invalidateNonces
-    function invalidateNonces(
-        address token,
-        address spender,
-        uint48 newNonce
-    ) external override {
-        PackedAllowance storage allowed = _allowances[msg.sender][token][
-            spender
-        ];
+    function invalidateNonces(address token, address spender, uint48 newNonce) external override {
+        PackedAllowance storage allowed = _allowances[msg.sender][token][spender];
         uint48 oldNonce = allowed.nonce;
 
         if (newNonce <= oldNonce) {
@@ -467,12 +359,7 @@ contract MockPermit2 is IPermit2 {
 
     /// @notice Internal function to simulate token transfer
     /// @dev In a real implementation, this would call the actual ERC20 transfer
-    function _mockTransfer(
-        address from,
-        address to,
-        address token,
-        uint256 amount
-    ) internal {
+    function _mockTransfer(address from, address to, address token, uint256 amount) internal {
         // In testing, you might want to actually perform the transfer
         // IERC20(token).transferFrom(from, to, amount);
         // For now, we just emit an event to indicate the transfer would have happened
@@ -488,19 +375,15 @@ contract MockPermit2 is IPermit2 {
         uint48 expiration,
         uint48 nonce
     ) external {
-        _allowances[owner][token][spender] = PackedAllowance({
-            amount: amount,
-            expiration: expiration,
-            nonce: nonce
-        });
+        _allowances[owner][token][spender] = PackedAllowance({ amount: amount, expiration: expiration, nonce: nonce });
     }
 
     /// @notice Helper function to get mock allowance for testing
-    function getMockAllowance(
-        address owner,
-        address token,
-        address spender
-    ) external view returns (PackedAllowance memory) {
+    function getMockAllowance(address owner, address token, address spender)
+        external
+        view
+        returns (PackedAllowance memory)
+    {
         return _allowances[owner][token][spender];
     }
 }

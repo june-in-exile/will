@@ -4,11 +4,7 @@ pragma solidity ^0.8.17;
 import "src/Will.sol";
 
 interface IWillFactory {
-    event WillCreated(
-        string indexed cid,
-        address indexed testator,
-        address will
-    );
+    event WillCreated(string indexed cid, address indexed testator, address will);
     event CIDUploaded(string indexed cid, uint256 timestamp);
     event CIDNotarized(string indexed cid, uint256 timestamp);
 
@@ -32,19 +28,14 @@ interface IWillFactory {
 
     function wills(string calldata cid) external view returns (address);
 
-    function testatorValidateTimes(
-        string calldata _cid
-    ) external view returns (uint256);
+    function testatorValidateTimes(string calldata _cid) external view returns (uint256);
 
-    function executorValidateTimes(
-        string calldata _cid
-    ) external view returns (uint256);
+    function executorValidateTimes(string calldata _cid) external view returns (uint256);
 
-    function predictWill(
-        address _testator,
-        Will.Estate[] calldata estates,
-        uint256 _salt
-    ) external view returns (address);
+    function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+        external
+        view
+        returns (address);
 
     function uploadCid(
         uint256[2] calldata _pA,
@@ -55,10 +46,7 @@ interface IWillFactory {
         string calldata _cid
     ) external;
 
-    function notarizeCid(
-        string calldata _cid,
-        bytes memory _signature
-    ) external;
+    function notarizeCid(string calldata _cid, bytes memory _signature) external;
 
     function createWill(
         uint256[2] calldata _pA,

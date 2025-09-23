@@ -15,11 +15,10 @@ contract JsonCidVerifierFuzzTest is Test {
     // buildStandardizedJson
     // =============================================================================
 
-    function test_buildStandardizedJson_ValidInputs(
-        uint256 lengthSeed,
-        uint256 keySeed,
-        uint256 valueSeed
-    ) public view {
+    function test_buildStandardizedJson_ValidInputs(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed)
+        public
+        view
+    {
         // Bound the arrays to reasonable sizes (1-5 elements)
         uint256 arrayLength = bound(lengthSeed, 1, 5);
 
@@ -28,25 +27,14 @@ contract JsonCidVerifierFuzzTest is Test {
 
         // Filter out empty keys to avoid invalid JSON
         for (uint256 i = 0; i < arrayLength; i++) {
-            uint256 keyNum = bound(
-                uint256(keccak256(abi.encode(keySeed, i))),
-                0,
-                999
-            );
-            uint256 valueNum = bound(
-                uint256(keccak256(abi.encode(valueSeed, i))),
-                0,
-                999
-            );
+            uint256 keyNum = bound(uint256(keccak256(abi.encode(keySeed, i))), 0, 999);
+            uint256 valueNum = bound(uint256(keccak256(abi.encode(valueSeed, i))), 0, 999);
 
             keys[i] = string.concat("key", vm.toString(keyNum));
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         string memory result = verifier.buildStandardizedJson(jsonObj);
 
@@ -62,10 +50,7 @@ contract JsonCidVerifierFuzzTest is Test {
         }
     }
 
-    function test_buildStandardizedJson_MismatchedLengths(
-        uint256 keyLengthSeed,
-        uint256 valueLengthSeed
-    ) public {
+    function test_buildStandardizedJson_MismatchedLengths(uint256 keyLengthSeed, uint256 valueLengthSeed) public {
         uint256 keyLength = bound(keyLengthSeed, 1, 10);
         uint256 valueLength = bound(valueLengthSeed, 1, 10);
 
@@ -85,18 +70,9 @@ contract JsonCidVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(i));
         }
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                JsonCidVerifier.LengthMismatch.selector,
-                keys.length,
-                values.length
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(JsonCidVerifier.LengthMismatch.selector, keys.length, values.length));
         verifier.buildStandardizedJson(jsonObj);
     }
 
@@ -113,27 +89,16 @@ contract JsonCidVerifierFuzzTest is Test {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
-        JsonCidVerifier.JsonValue[]
-            memory typedValues = new JsonCidVerifier.JsonValue[](arrayLength);
+        JsonCidVerifier.JsonValue[] memory typedValues = new JsonCidVerifier.JsonValue[](arrayLength);
 
         for (uint256 i = 0; i < arrayLength; i++) {
             // Generate keys
-            uint256 keyNum = bound(
-                uint256(keccak256(abi.encode(keySeed, i))),
-                0,
-                999
-            );
+            uint256 keyNum = bound(uint256(keccak256(abi.encode(keySeed, i))), 0, 999);
             keys[i] = string.concat("key", vm.toString(keyNum));
 
             // Generate values and types
-            uint256 valueNum = bound(
-                uint256(keccak256(abi.encode(valueSeed, i))),
-                0,
-                999
-            );
-            uint8 valueType = uint8(
-                bound(uint256(keccak256(abi.encode(typeSeed, i))), 0, 3)
-            );
+            uint256 valueNum = bound(uint256(keccak256(abi.encode(valueSeed, i))), 0, 999);
+            uint8 valueType = uint8(bound(uint256(keccak256(abi.encode(typeSeed, i))), 0, 3));
 
             string memory value;
             if (valueType == 0) {
@@ -150,14 +115,12 @@ contract JsonCidVerifierFuzzTest is Test {
                 value = "";
             }
 
-            typedValues[i] = JsonCidVerifier.JsonValue({
-                value: value,
-                valueType: JsonCidVerifier.JsonValueType(valueType)
-            });
+            typedValues[i] =
+                JsonCidVerifier.JsonValue({ value: value, valueType: JsonCidVerifier.JsonValueType(valueType) });
         }
 
-        JsonCidVerifier.TypedJsonObject memory jsonObj = JsonCidVerifier
-            .TypedJsonObject({keys: keys, values: typedValues});
+        JsonCidVerifier.TypedJsonObject memory jsonObj =
+            JsonCidVerifier.TypedJsonObject({ keys: keys, values: typedValues });
 
         string memory result = verifier.buildStandardizedJson(jsonObj);
 
@@ -176,36 +139,21 @@ contract JsonCidVerifierFuzzTest is Test {
     // CID Generation
     // =============================================================================
 
-    function test_generateCIDString_Consistency(
-        uint256 lengthSeed,
-        uint256 keySeed,
-        uint256 valueSeed
-    ) public view {
+    function test_generateCIDString_Consistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
         string[] memory values = new string[](arrayLength);
 
         for (uint256 i = 0; i < arrayLength; i++) {
-            uint256 keyNum = bound(
-                uint256(keccak256(abi.encode(keySeed, i))),
-                0,
-                999
-            );
-            uint256 valueNum = bound(
-                uint256(keccak256(abi.encode(valueSeed, i))),
-                0,
-                999
-            );
+            uint256 keyNum = bound(uint256(keccak256(abi.encode(keySeed, i))), 0, 999);
+            uint256 valueNum = bound(uint256(keccak256(abi.encode(valueSeed, i))), 0, 999);
 
             keys[i] = string.concat("key", vm.toString(keyNum));
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Generate CID multiple times - should be consistent
         string memory cid1 = verifier.generateCIDString(jsonObj);
@@ -219,36 +167,21 @@ contract JsonCidVerifierFuzzTest is Test {
         assertGt(cidBytes.length, 50); // Reasonable CID length
     }
 
-    function test_verifyCID_SelfConsistency(
-        uint256 lengthSeed,
-        uint256 keySeed,
-        uint256 valueSeed
-    ) public view {
+    function test_verifyCID_SelfConsistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
         string[] memory values = new string[](arrayLength);
 
         for (uint256 i = 0; i < arrayLength; i++) {
-            uint256 keyNum = bound(
-                uint256(keccak256(abi.encode(keySeed, i))),
-                0,
-                999
-            );
-            uint256 valueNum = bound(
-                uint256(keccak256(abi.encode(valueSeed, i))),
-                0,
-                999
-            );
+            uint256 keyNum = bound(uint256(keccak256(abi.encode(keySeed, i))), 0, 999);
+            uint256 valueNum = bound(uint256(keccak256(abi.encode(valueSeed, i))), 0, 999);
 
             keys[i] = string.concat("key", vm.toString(keyNum));
             values[i] = string.concat("value", vm.toString(valueNum));
         }
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Generated CID should verify against the same JSON
         string memory cid = verifier.generateCIDString(jsonObj);
@@ -325,10 +258,7 @@ contract JsonCidVerifierFuzzTest is Test {
             values[i] = string.concat("value", vm.toString(i));
         }
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Should handle larger inputs without reverting
         string memory cid = verifier.generateCIDString(jsonObj);
@@ -352,10 +282,7 @@ contract JsonCidVerifierFuzzTest is Test {
         keys[0] = "test";
         values[0] = string(abi.encodePacked(specialChar));
 
-        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({
-            keys: keys,
-            values: values
-        });
+        JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         string memory cid = verifier.generateCIDString(jsonObj);
 
@@ -366,9 +293,7 @@ contract JsonCidVerifierFuzzTest is Test {
     // HELPER FUNCTIONS
     // =============================================================================
 
-    function _containsInvalidChars(
-        string memory str
-    ) internal pure returns (bool) {
+    function _containsInvalidChars(string memory str) internal pure returns (bool) {
         bytes memory strBytes = bytes(str);
         for (uint256 i = 0; i < strBytes.length; i++) {
             bytes1 char = strBytes[i];
@@ -385,10 +310,7 @@ contract JsonCidVerifierFuzzTest is Test {
         return false;
     }
 
-    function _stringContains(
-        string memory str,
-        string memory substr
-    ) internal pure returns (bool) {
+    function _stringContains(string memory str, string memory substr) internal pure returns (bool) {
         bytes memory strBytes = bytes(str);
         bytes memory substrBytes = bytes(substr);
 

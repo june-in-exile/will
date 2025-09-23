@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {IPermit2} from "permit2/src/interfaces/IPermit2.sol";
+import { IPermit2 } from "permit2/src/interfaces/IPermit2.sol";
 
 interface IWill {
     struct Estate {
@@ -29,18 +29,9 @@ interface IWill {
 
     function executed() external view returns (bool);
 
-    function estates(
-        uint256 index
-    )
-        external
-        view
-        returns (address beneficiary, address token, uint256 amount);
+    function estates(uint256 index) external view returns (address beneficiary, address token, uint256 amount);
 
     function getAllEstates() external view returns (Estate[] memory);
 
-    function signatureTransferToBeneficiaries(
-        uint256 nonce,
-        uint256 deadline,
-        bytes calldata signature
-    ) external;
+    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external;
 }

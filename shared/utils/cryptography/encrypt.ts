@@ -1,5 +1,9 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import { AES_256_CTR, AES_256_GCM, CHACHA20_POLY1305 } from "@shared/constants/cryptography.js";
+import {
+  AES_256_CTR,
+  AES_256_GCM,
+  CHACHA20_POLY1305,
+} from "@shared/constants/cryptography.js";
 import {
   Base64String,
   type SupportedAlgorithm,
@@ -43,10 +47,7 @@ function parseArgs(): EncryptionArgs {
       console.log(chalk.blue("Using algorithm:"), algorithm);
     } else if (args[i] === "--plaintext" && i + 1 < args.length) {
       try {
-        parsed.plaintext = Buffer.from(
-          args[i + 1],
-          "utf8",
-        );
+        parsed.plaintext = Buffer.from(args[i + 1], "utf8");
       } catch (error) {
         throw new Error(
           `Invalid plainttext: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -91,7 +92,11 @@ function parseArgs(): EncryptionArgs {
 
   // generate the missing iv
   if (!parsed.iv) {
-    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(parsed.algorithm!) ? 12 : 16;
+    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(
+      parsed.algorithm!,
+    )
+      ? 12
+      : 16;
     parsed.iv = generateInitializationVector(expectedIVLength);
     console.log(chalk.blue("Generated new initialization vector"));
   }
@@ -132,24 +137,24 @@ function showUsage(): void {
   console.log(chalk.white("\nParameters:"));
   console.log(
     chalk.cyan("  --algorithm") +
-    chalk.gray(
-      "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
-    ),
+      chalk.gray(
+        "    Encryption algorithm (aes-256-gcm | chacha20-poly1305) [default: aes-256-gcm]",
+      ),
   );
   console.log(
     chalk.cyan("  --plaintext") + chalk.gray("    Text to encrypt [required]"),
   );
   console.log(
     chalk.cyan("  --key") +
-    chalk.gray(
-      "         Base64-encoded encryption key [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "         Base64-encoded encryption key [optional - auto-generated if not provided]",
+      ),
   );
   console.log(
     chalk.cyan("  --iv") +
-    chalk.gray(
-      "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
-    ),
+      chalk.gray(
+        "          Base64-encoded initialization vector [optional - auto-generated if not provided]",
+      ),
   );
 
   console.log(chalk.red("\nImportant:"));
@@ -171,7 +176,6 @@ function validateEncryptionParams(
   iv: Buffer,
 ): void {
   try {
-
     // Validate algorithm
     if (!CRYPTO_CONFIG.supportedAlgorithms.includes(algorithm)) {
       throw new Error(
@@ -210,7 +214,11 @@ function validateEncryptionParams(
       throw new Error("IV must be a Buffer");
     }
 
-    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(algorithm) ? 12 : 16;
+    const expectedIVLength = [AES_256_GCM, CHACHA20_POLY1305].includes(
+      algorithm,
+    )
+      ? 12
+      : 16;
     if (iv.length !== expectedIVLength) {
       throw new Error(
         `Invalid IV size: expected ${CRYPTO_CONFIG.ivSize} bytes, got ${iv.length} bytes`,
@@ -305,7 +313,7 @@ async function main(): Promise<void> {
       chalk.cyan("Ciphertext(base64):"),
       chalk.white(Base64String.fromBuffer(result.ciphertext)),
     );
-    if ('authTag' in result) {
+    if ("authTag" in result) {
       console.log(
         chalk.cyan("AuthTag(base64):"),
         chalk.white(Base64String.fromBuffer(result.authTag)),

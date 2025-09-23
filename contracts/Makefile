@@ -51,6 +51,11 @@ clean: clean-address clean-verifiers-and-proofs clean-typechain
 	@forge clean
 	@rm -rf cache broadcast lib
 
+# ---------------- Format Commands -----------------------
+
+format:
+	@forge fmt
+
 # ----------------- CICD Commands -----------------------
 
 install:
