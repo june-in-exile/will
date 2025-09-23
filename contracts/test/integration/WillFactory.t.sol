@@ -5,23 +5,31 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
-import "src/Multiplier2Verifier.sol";
+import "src/CidUploadVerifier.sol";
+import "src/WillCreationVerifier.sol";
 import "src/JsonCidVerifier.sol";
 
 contract WillFactoryIntegrationTest is Test {
     WillFactory willFactory;
-    Multiplier2Verifier cidUploadVerifier;
-    Multiplier2Verifier willCreateVerifier;
+    CidUploadVerifier cidUploadVerifier;
+    WillCreationVerifier willCreateVerifier;
     JsonCidVerifier jsonCidVerifier;
 
     address executor;
     address permit2;
 
-    struct ProofData {
+    struct CidUploadProofData {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[1] pubSignals;
+        uint256[285] pubSignals;
+    }
+
+    struct WillCreationProofData {
+        uint256[2] pA;
+        uint256[2][2] pB;
+        uint256[2] pC;
+        uint256[292] pubSignals;
     }
 
     // Known test vectors (generate with your JavaScript implementation and your wallet)
@@ -32,16 +40,20 @@ contract WillFactoryIntegrationTest is Test {
         uint256 salt;
         JsonCidVerifier.TypedJsonObject willTypedJsonObj;
         string cid;
-        ProofData proof;
+        CidUploadProofData cidUploadProof;
+        WillCreationProofData willCreationProof;
         bytes executorSignature;
     }
 
     TestVector[] testVectors;
 
     function setUp() public {
-        IVerifierConstants constants1 = new VerifierConstants1();
-        cidUploadVerifier = new Multiplier2Verifier(address(constants1));
-        willCreateVerifier = new Multiplier2Verifier(address(constants1));
+        CidUploadVerifierConstants1 cidUploadConstants1 = new CidUploadVerifierConstants1();
+        CidUploadVerifierConstants2 cidUploadConstants2 = new CidUploadVerifierConstants2();
+        cidUploadVerifier = new CidUploadVerifier(address(cidUploadConstants1), address(cidUploadConstants2));
+        WillCreationVerifierConstants1 willCreationConstants1 = new WillCreationVerifierConstants1();
+        WillCreationVerifierConstants2 willCreationConstants2 = new WillCreationVerifierConstants2();
+        willCreateVerifier = new WillCreationVerifier(address(willCreationConstants1), address(willCreationConstants2));
         jsonCidVerifier = new JsonCidVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
@@ -88,7 +100,8 @@ contract WillFactoryIntegrationTest is Test {
                 amount: 5000000 // LINK has 18 decimals
              });
 
-            ProofData memory proof = _getProofDataFromEnvArrays();
+            CidUploadProofData memory cidUploadProof = _getCidUploadProofFromEnvArrays();
+            WillCreationProofData memory willCreationProof = _getWillCreationProofFromEnvArrays();
 
             testVectors.push(
                 TestVector({
@@ -98,7 +111,8 @@ contract WillFactoryIntegrationTest is Test {
                     salt: 1378220706920347,
                     willTypedJsonObj: willTypedJsonObj,
                     cid: "bagaaieraefc2woszrhvcuqmfrnayst7coljauh6rfhcyx3o7pkxg2o3k2yza",
-                    proof: proof,
+                    cidUploadProof: cidUploadProof,
+                    willCreationProof: willCreationProof, 
                     executorSignature: hex"43c146572dc9a4b648659717ae95cedd8ee0f8c93f5b4828d27ea9cb416b90d20ecb5f5f53602b443074295c298979ab3bb6a9c1dd9e9e645371fc914d169e721c"
                 })
             );
@@ -112,7 +126,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, true, false, true);
         emit WillFactory.CIDUploaded(tv.cid, block.timestamp);
 
-        willFactory.uploadCid(tv.proof.pA, tv.proof.pB, tv.proof.pC, tv.proof.pubSignals, tv.willTypedJsonObj, tv.cid);
+        willFactory.uploadCid(tv.cidUploadProof.pA, tv.cidUploadProof.pB, tv.cidUploadProof.pC, tv.cidUploadProof.pubSignals, tv.willTypedJsonObj, tv.cid);
 
         // Verify upload
         vm.prank(executor);
@@ -140,10 +154,10 @@ contract WillFactoryIntegrationTest is Test {
         emit WillFactory.WillCreated(tv.cid, tv.testator, predictedAddress);
 
         address willAddress = willFactory.createWill(
-            tv.proof.pA,
-            tv.proof.pB,
-            tv.proof.pC,
-            tv.proof.pubSignals,
+            tv.willCreationProof.pA,
+            tv.willCreationProof.pB,
+            tv.willCreationProof.pC,
+            tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
@@ -170,15 +184,15 @@ contract WillFactoryIntegrationTest is Test {
 
         // Upload at time T
         uint256 startTime = block.timestamp;
-        willFactory.uploadCid(tv.proof.pA, tv.proof.pB, tv.proof.pC, tv.proof.pubSignals, tv.willTypedJsonObj, tv.cid);
+        willFactory.uploadCid(tv.cidUploadProof.pA, tv.cidUploadProof.pB, tv.cidUploadProof.pC, tv.cidUploadProof.pubSignals, tv.willTypedJsonObj, tv.cid);
 
         // Try to create will without notarization - should fail
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, tv.cid));
         willFactory.createWill(
-            tv.proof.pA,
-            tv.proof.pB,
-            tv.proof.pC,
-            tv.proof.pubSignals,
+            tv.willCreationProof.pA,
+            tv.willCreationProof.pB,
+            tv.willCreationProof.pC,
+            tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
@@ -191,10 +205,10 @@ contract WillFactoryIntegrationTest is Test {
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, tv.cid));
         willFactory.createWill(
-            tv.proof.pA,
-            tv.proof.pB,
-            tv.proof.pC,
-            tv.proof.pubSignals,
+            tv.willCreationProof.pA,
+            tv.willCreationProof.pB,
+            tv.willCreationProof.pC,
+            tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
@@ -207,10 +221,10 @@ contract WillFactoryIntegrationTest is Test {
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         address willAddress = willFactory.createWill(
-            tv.proof.pA,
-            tv.proof.pB,
-            tv.proof.pC,
-            tv.proof.pubSignals,
+            tv.willCreationProof.pA,
+            tv.willCreationProof.pB,
+            tv.willCreationProof.pC,
+            tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
             tv.cid,
             tv.testator,
@@ -221,18 +235,18 @@ contract WillFactoryIntegrationTest is Test {
         assertEq(willFactory.wills(tv.cid), willAddress);
     }
 
-    function _getProofDataFromEnvArrays() public view returns (ProofData memory) {
-        uint256[] memory paArray = vm.envUint("PA_ARRAY", ",");
-        require(paArray.length == 2, "PA_ARRAY must have exactly 2 elements");
+    function _getCidUploadProofFromEnvArrays() public view returns (CidUploadProofData memory) {
+        uint256[] memory paArray = vm.envUint("CID_UPLOAD_PA_ARRAY", ",");
+        require(paArray.length == 2, "CID_UPLOAD_PA_ARRAY must have exactly 2 elements");
 
-        uint256[] memory pbArray = vm.envUint("PB_ARRAY", ",");
-        require(pbArray.length == 4, "PB_ARRAY must have exactly 4 elements");
+        uint256[] memory pbArray = vm.envUint("CID_UPLOAD_PB_ARRAY", ",");
+        require(pbArray.length == 4, "CID_UPLOAD_PB_ARRAY must have exactly 4 elements");
 
-        uint256[] memory pcArray = vm.envUint("PC_ARRAY", ",");
-        require(pcArray.length == 2, "PC_ARRAY must have exactly 2 elements");
+        uint256[] memory pcArray = vm.envUint("CID_UPLOAD_PC_ARRAY", ",");
+        require(pcArray.length == 2, "CID_UPLOAD_PC_ARRAY must have exactly 2 elements");
 
-        uint256[] memory pubArray = vm.envUint("PUBSIGNALS_ARRAY", ",");
-        require(pubArray.length == 1, "PUBSIGNALS_ARRAY must have exactly 1 element");
+        uint256[] memory pubArray = vm.envUint("CID_UPLOAD_PUBSIGNALS_ARRAY", ",");
+        require(pubArray.length == 285, "CID_UPLOAD_PUBSIGNALS_ARRAY must have exactly 285 elements");
 
         uint256[2] memory pA = [paArray[0], paArray[1]];
 
@@ -243,9 +257,42 @@ contract WillFactoryIntegrationTest is Test {
 
         uint256[2] memory pC = [pcArray[0], pcArray[1]];
 
-        uint256[1] memory pubSignals = [pubArray[0]];
+        uint256[285] memory pubSignals;
+        for (uint256 i = 0; i < 285; i++) {
+            pubSignals[i] = pubArray[i];
+        }
 
-        return ProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
+        return CidUploadProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
+    }
+
+    function _getWillCreationProofFromEnvArrays() public view returns (WillCreationProofData memory) {
+        uint256[] memory paArray = vm.envUint("WILL_CREATION_PA_ARRAY", ",");
+        require(paArray.length == 2, "WILL_CREATION_PA_ARRAY must have exactly 2 elements");
+
+        uint256[] memory pbArray = vm.envUint("WILL_CREATION_PB_ARRAY", ",");
+        require(pbArray.length == 4, "WILL_CREATION_PB_ARRAY must have exactly 4 elements");
+
+        uint256[] memory pcArray = vm.envUint("WILL_CREATION_PC_ARRAY", ",");
+        require(pcArray.length == 2, "WILL_CREATION_PC_ARRAY must have exactly 2 elements");
+
+        uint256[] memory pubArray = vm.envUint("WILL_CREATION_PUBSIGNALS_ARRAY", ",");
+        require(pubArray.length == 292, "WILL_CREATION_PUBSIGNALS_ARRAY must have exactly 292 elements");
+
+        uint256[2] memory pA = [paArray[0], paArray[1]];
+
+        uint256[2][2] memory pB = [
+            [pbArray[0], pbArray[1]], // First pair
+            [pbArray[2], pbArray[3]] // Second pair
+        ];
+
+        uint256[2] memory pC = [pcArray[0], pcArray[1]];
+
+        uint256[292] memory pubSignals;
+        for (uint256 i = 0; i < 292; i++) {
+            pubSignals[i] = pubArray[i];
+        }
+
+        return WillCreationProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
     }
 
     function _compareEstateArraysHash(Will.Estate[] memory estates0, Will.Estate[] memory estates1)

@@ -9,8 +9,8 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryFuzzTest is Test {
     WillFactory factory;
-    MockMultiplier2Verifier mockcidUploadVerifier;
-    MockMultiplier2Verifier mockDecryptionVerifier;
+    MockCidUploadVerifier mockcidUploadVerifier;
+    MockWillCreationVerifier mockDecryptionVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
     address executor = makeAddr("executor");
@@ -19,8 +19,8 @@ contract WillFactoryFuzzTest is Test {
     JsonCidVerifier.TypedJsonObject willJson;
 
     function setUp() public {
-        mockcidUploadVerifier = new MockMultiplier2Verifier();
-        mockDecryptionVerifier = new MockMultiplier2Verifier();
+        mockcidUploadVerifier = new MockCidUploadVerifier();
+        mockDecryptionVerifier = new MockWillCreationVerifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
@@ -92,7 +92,10 @@ contract WillFactoryFuzzTest is Test {
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [[uint256(3), uint256(4)], [uint256(5), uint256(6)]];
         uint256[2] memory pC = [uint256(7), uint256(8)];
-        uint256[1] memory pubSignals = [uint256(9)];
+        uint256[285] memory pubSignals;
+        for (uint256 i = 0; i < 285; i++) {
+            pubSignals[i] = i + 1;
+        }
 
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 

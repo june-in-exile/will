@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { Multiplier2Verifier } from "src/Multiplier2Verifier.sol";
-// import {CidUploadVerifier} from "src/CidUploadVerifier/CidUploadVerifier.sol";
-// import {WillCreationVerifier} from  "src/WillCreationVerifier/WillCreationVerifier.sol";
+import { CidUploadVerifier } from "src/CidUploadVerifier.sol";
+import { WillCreationVerifier } from  "src/WillCreationVerifier.sol";
 import { JsonCidVerifier } from "src/JsonCidVerifier.sol";
 import { Will } from "src/Will.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -13,8 +12,8 @@ contract WillFactory {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    Multiplier2Verifier public cidUploadVerifier;
-    Multiplier2Verifier public willCreateVerifier;
+    CidUploadVerifier public cidUploadVerifier;
+    WillCreationVerifier public willCreateVerifier;
     JsonCidVerifier public jsonCidVerifier;
     address public permit2;
     address public executor;
@@ -44,8 +43,8 @@ contract WillFactory {
         address _executor,
         address _permit2
     ) {
-        cidUploadVerifier = Multiplier2Verifier(_cidUploadVerifier);
-        willCreateVerifier = Multiplier2Verifier(_willCreateVerifier);
+        cidUploadVerifier = CidUploadVerifier(_cidUploadVerifier);
+        willCreateVerifier = WillCreationVerifier(_willCreateVerifier);
         jsonCidVerifier = JsonCidVerifier(_jsonCidVerifier);
         executor = _executor;
         permit2 = _permit2;
@@ -77,7 +76,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[1] calldata _pubSignals,
+        uint256[285] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
@@ -127,7 +126,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[1] calldata _pubSignals,
+        uint256[292] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid,
         address _testator,

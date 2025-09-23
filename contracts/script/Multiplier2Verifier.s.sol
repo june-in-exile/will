@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { Script, console } from "forge-std/Script.sol";
-import { Multiplier2Verifier, VerifierConstants1 } from "src/Multiplier2Verifier.sol";
+import { Multiplier2Verifier, Multiplier2VerifierConstants1 } from "src/Multiplier2Verifier.sol";
 
 contract Multiplier2VerifierScript is Script {
     Multiplier2Verifier public verifier;
@@ -12,7 +12,7 @@ contract Multiplier2VerifierScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        VerifierConstants1 constants1 = new VerifierConstants1();
+        Multiplier2VerifierConstants1 constants1 = new Multiplier2VerifierConstants1();
 
         verifier = new Multiplier2Verifier(address(constants1));
 

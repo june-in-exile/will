@@ -8,15 +8,15 @@ import path from "path";
 import fs from "fs";
 import chalk from "chalk";
 
-async function updateEnvironmentVariables(proof: ProofData): Promise<void> {
+async function updateEnvironmentVariables(proof: ProofData, circuitNameUpperCase: string): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
 
     const updates: Array<[string, string]> = [
-      ["PA_ARRAY", bigintArrayToEnvString(proof.pA)],
-      ["PB_ARRAY", bigintArrayToEnvString(proof.pB)],
-      ["PC_ARRAY", bigintArrayToEnvString(proof.pC)],
-      ["PUBSIGNALS_ARRAY", bigintArrayToEnvString(proof.pubSignals)],
+      [`${circuitNameUpperCase}_PA_ARRAY`, bigintArrayToEnvString(proof.pA)],
+      [`${circuitNameUpperCase}_PB_ARRAY`, bigintArrayToEnvString(proof.pB)],
+      [`${circuitNameUpperCase}_PC_ARRAY`, bigintArrayToEnvString(proof.pC)],
+      [`${circuitNameUpperCase}_PUBSIGNALS_ARRAY`, bigintArrayToEnvString(proof.pubSignals)],
     ];
 
     await Promise.all(
@@ -115,9 +115,27 @@ async function main(): Promise<void> {
 
     await copyVerifierContract();
 
-    const proof: ProofData = readProof("multiplier2");
+    const circuits = [
+      {
+        name: "multiplier2",
+        nameUpperCase: "MULTIPLIER2",
+      },
+      {
+        name: "cidUpload",
+        nameUpperCase: "CID_UPLOAD",
+      },
+      {
+        name: "willCreation",
+        nameUpperCase: "WILL_CREATION",
+      },
+    ];
 
-    await updateEnvironmentVariables(proof);
+    await Promise.all(
+      circuits.map(async (circuit) => {
+        const proof: ProofData = readProof(circuit.name as keyof typeof PATHS_CONFIG.zkp);
+        await updateEnvironmentVariables(proof, circuit.nameUpperCase);
+      })
+    );
 
     console.log("✅ Successfully synced proof data to .env file.");
   } catch (error) {

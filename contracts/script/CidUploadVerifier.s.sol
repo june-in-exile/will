@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { Script, console } from "forge-std/Script.sol";
-import { CidUploadVerifier, VerifierConstants1, VerifierConstants2 } from "src/CidUploadVerifier.sol";
+import { CidUploadVerifier, CidUploadVerifierConstants1, CidUploadVerifierConstants2 } from "src/CidUploadVerifier.sol";
 
 contract CidUploadVerifierScript is Script {
     CidUploadVerifier public verifier;
@@ -12,8 +12,8 @@ contract CidUploadVerifierScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        VerifierConstants1 constants1 = new VerifierConstants1();
-        VerifierConstants2 constants2 = new VerifierConstants2();
+        CidUploadVerifierConstants1 constants1 = new CidUploadVerifierConstants1();
+        CidUploadVerifierConstants2 constants2 = new CidUploadVerifierConstants2();
 
         verifier = new CidUploadVerifier(address(constants1), address(constants2));
 
