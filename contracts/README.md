@@ -20,7 +20,9 @@
    make build
    ```
 
-3. Deploy `Groth16Verifier.sol`.
+   If build fails due to `Error: failed to resolve file`, try `make install` first.
+
+3. Deploy `Multiplier2Verifier.sol`.
 
    Check the deployment
 
@@ -31,7 +33,7 @@
    If it returns `true`, skip the deployment. Otherwise, execute the instruction.
 
    ```sh
-   make deploy-groth16verifier
+   make deploy-multiplier2verifier
    ```
 
 4. Deploy `JsonCidVerifier.sol`.

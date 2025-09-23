@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract MockGroth16Verifier {
+contract MockMultiplier2Verifier {
     bool public shouldReturnTrue = true;
 
     function setShouldReturnTrue(bool _shouldReturnTrue) external {

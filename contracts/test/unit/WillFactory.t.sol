@@ -9,8 +9,8 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryUnitTest is Test {
     WillFactory factory;
-    MockGroth16Verifier mockcidUploadVerifier;
-    MockGroth16Verifier mockDecryptionVerifier;
+    MockMultiplier2Verifier mockcidUploadVerifier;
+    MockMultiplier2Verifier mockDecryptionVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
     address executor;
@@ -42,8 +42,8 @@ contract WillFactoryUnitTest is Test {
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
         executor = vm.addr(executorPrivateKey);
 
-        mockcidUploadVerifier = new MockGroth16Verifier();
-        mockDecryptionVerifier = new MockGroth16Verifier();
+        mockcidUploadVerifier = new MockMultiplier2Verifier();
+        mockDecryptionVerifier = new MockMultiplier2Verifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(

@@ -5,13 +5,13 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
-import "src/Groth16Verifier.sol";
+import "src/Multiplier2Verifier.sol";
 import "src/JsonCidVerifier.sol";
 
 contract WillFactoryIntegrationTest is Test {
     WillFactory willFactory;
-    Groth16Verifier cidUploadVerifier;
-    Groth16Verifier willCreateVerifier;
+    Multiplier2Verifier cidUploadVerifier;
+    Multiplier2Verifier willCreateVerifier;
     JsonCidVerifier jsonCidVerifier;
 
     address executor;
@@ -39,8 +39,8 @@ contract WillFactoryIntegrationTest is Test {
     TestVector[] testVectors;
 
     function setUp() public {
-        cidUploadVerifier = new Groth16Verifier();
-        willCreateVerifier = new Groth16Verifier();
+        cidUploadVerifier = new Multiplier2Verifier();
+        willCreateVerifier = new Multiplier2Verifier();
         jsonCidVerifier = new JsonCidVerifier();
 
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;

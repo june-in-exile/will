@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {Script, console} from "forge-std/Script.sol";
 import {Multiplier2Verifier} from "src/Multiplier2Verifier.sol";
 
-contract Groth16VerifierScript is Script {
+contract Multiplier2VerifierScript is Script {
     Multiplier2Verifier public verifier;
 
     function setUp() public {}

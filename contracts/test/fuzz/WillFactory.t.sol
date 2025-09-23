@@ -9,8 +9,8 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryFuzzTest is Test {
     WillFactory factory;
-    MockGroth16Verifier mockcidUploadVerifier;
-    MockGroth16Verifier mockDecryptionVerifier;
+    MockMultiplier2Verifier mockcidUploadVerifier;
+    MockMultiplier2Verifier mockDecryptionVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
     address executor = makeAddr("executor");
@@ -19,8 +19,8 @@ contract WillFactoryFuzzTest is Test {
     JsonCidVerifier.TypedJsonObject willJson;
 
     function setUp() public {
-        mockcidUploadVerifier = new MockGroth16Verifier();
-        mockDecryptionVerifier = new MockGroth16Verifier();
+        mockcidUploadVerifier = new MockMultiplier2Verifier();
+        mockDecryptionVerifier = new MockMultiplier2Verifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
