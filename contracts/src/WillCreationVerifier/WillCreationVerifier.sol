@@ -5,7 +5,7 @@ pragma solidity ^0.8.17;
 import { IVerifierConstants } from "../interfaces/IVerifierConstants.sol";
 import { EllipticCurveOps } from "../libs/EllipticCurveOps.sol";
 
-contract WillCreationVerifier is EllipticCurveOps {
+contract WillCreationVerifier is EllipticCurveOps, IVerifierConstants {
     // Basic curve parameters
     uint256 constant r = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant q = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
@@ -46,6 +46,10 @@ contract WillCreationVerifier is EllipticCurveOps {
         return 293;
     }
 
+    function getICCount() external pure returns (uint256) {
+        return _getICCount();
+    }
+
     function _getIC(uint256 index) internal view returns (uint256 x, uint256 y) {
         if (index == 0) {
             return (IC0x, IC0y);
@@ -67,8 +71,8 @@ contract WillCreationVerifier is EllipticCurveOps {
         view
         returns (uint256[] memory xs, uint256[] memory ys)
     {
-        require(0 < startIdx && startIdx < _getICCount(), "Batch start out of range");
-        require(startIdx + count <= _getICCount(), "Batch out of range");
+        if (startIdx == 0 || startIdx >= _getICCount()) revert BatchStartOutOfRange(startIdx);
+        if (startIdx + count > _getICCount()) revert BatchEndOutOfRange(startIdx, count);
 
         xs = new uint256[](count);
         ys = new uint256[](count);
@@ -81,8 +85,7 @@ contract WillCreationVerifier is EllipticCurveOps {
             uint256 batchEnd = startIdx + count > 151 ? 151 : startIdx + count;
             uint256 batchCount = batchEnd - batchStart;
 
-            (uint256[] memory batchXs, uint256[] memory batchYs) =
-                constants1.getBatchIC(batchStart, batchCount);
+            (uint256[] memory batchXs, uint256[] memory batchYs) = constants1.getBatchIC(batchStart, batchCount);
 
             for (uint256 i = 0; i < batchCount; i++) {
                 xs[processed + i] = batchXs[i];
@@ -96,8 +99,7 @@ contract WillCreationVerifier is EllipticCurveOps {
             uint256 batchStart = startIdx + processed;
             uint256 remaining = count - processed;
 
-            (uint256[] memory batchXs, uint256[] memory batchYs) =
-                constants2.getBatchIC(batchStart, remaining);
+            (uint256[] memory batchXs, uint256[] memory batchYs) = constants2.getBatchIC(batchStart, remaining);
 
             for (uint256 i = 0; i < remaining; i++) {
                 xs[processed + i] = batchXs[i];
@@ -118,10 +120,10 @@ contract WillCreationVerifier is EllipticCurveOps {
     function computeLinearCombination(uint256[292] calldata pubSignals) internal view returns (uint256 x, uint256 y) {
         // Get IC0 as starting point
         (x, y) = _getIC(0);
+        require(isOnCurve(x, y), "IC0 not on curve");
 
-        // Batch process IC constants for better gas efficiency
-        uint256 batchSize = 50; // Adjust based on gas limits
-
+        // Adjust batch size based on gas limits
+        uint256 batchSize = 50;
         uint256 ICCount = _getICCount();
 
         for (uint256 start = 1; start < ICCount; start += batchSize) {
@@ -137,7 +139,7 @@ contract WillCreationVerifier is EllipticCurveOps {
                 if (signalIndex < 292 && pubSignals[signalIndex] != 0) {
                     // Scalar multiplication
                     (uint256 mulX, uint256 mulY) = ecMul(icxs[i], icys[i], pubSignals[signalIndex]);
-                    
+
                     // Point addition
                     (x, y) = ecAdd(x, y, mulX, mulY);
                 }
@@ -151,38 +153,11 @@ contract WillCreationVerifier is EllipticCurveOps {
         uint256[2] calldata _pC,
         uint256[292] calldata _pubSignals
     ) public view returns (bool) {
-        // Compute linear combination of IC constants with public signals
         (uint256 vk_x, uint256 vk_y) = computeLinearCombination(_pubSignals);
 
         assembly {
             function checkField(v) {
                 if iszero(lt(v, r)) {
-                    mstore(0, 0)
-                    return(0, 0x20)
-                }
-            }
-
-            // G1 function to multiply a G1 value(x,y) to value in an address
-            function g1_mulAccC(pR, x, y, s) {
-                let success
-                let mIn := mload(0x40)
-                mstore(mIn, x)
-                mstore(add(mIn, 32), y)
-                mstore(add(mIn, 64), s)
-
-                success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
-
-                if iszero(success) {
-                    mstore(0, 0)
-                    return(0, 0x20)
-                }
-
-                mstore(add(mIn, 64), mload(pR))
-                mstore(add(mIn, 96), mload(add(pR, 32)))
-
-                success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
-
-                if iszero(success) {
                     mstore(0, 0)
                     return(0, 0x20)
                 }
@@ -714,7 +689,9 @@ contract VerifierConstants1 is IVerifierConstants {
     }
 
     function _getIC(uint256 index) public pure returns (uint256 x, uint256 y) {
-        require(index < _getICCount(), "Index out of range");
+        (uint256 start, uint256 end) = _getICRange();
+        if (index < start || index >= end) revert IndexOutOfRange(index);
+
         if (index == 1) return (IC1x, IC1y);
         if (index == 2) return (IC2x, IC2y);
         if (index == 3) return (IC3x, IC3y);
@@ -873,15 +850,14 @@ contract VerifierConstants1 is IVerifierConstants {
         return _getIC(index);
     }
 
-    // Batch getter for gas optimization
     function getBatchIC(uint256 startIdx, uint256 count)
         external
         pure
         returns (uint256[] memory xs, uint256[] memory ys)
     {
         (uint256 start, uint256 end) = _getICRange();
-        require(start <= startIdx && startIdx < end, "Batch start out of range");
-        require(startIdx + count <= end, "Batch out of range");
+        if (startIdx < start || startIdx >= end) revert BatchStartOutOfRange(startIdx);
+        if (startIdx + count > end) revert BatchEndOutOfRange(startIdx, count);
 
         xs = new uint256[](count);
         ys = new uint256[](count);
@@ -1333,7 +1309,9 @@ contract VerifierConstants2 is IVerifierConstants {
     }
 
     function _getIC(uint256 index) internal pure returns (uint256 x, uint256 y) {
-        require(index < 98, "Index out of range");
+        (uint256 start, uint256 end) = _getICRange();
+        if (index < start || index >= end) revert IndexOutOfRange(index);
+
         if (index == 151) return (IC151x, IC151y);
         if (index == 152) return (IC152x, IC152y);
         if (index == 153) return (IC153x, IC153y);
@@ -1484,16 +1462,15 @@ contract VerifierConstants2 is IVerifierConstants {
         return _getIC(index);
     }
 
-    // Batch getter for gas optimization
     function getBatchIC(uint256 startIdx, uint256 count)
         external
         pure
         returns (uint256[] memory xs, uint256[] memory ys)
     {
         (uint256 start, uint256 end) = _getICRange();
-        require(start <= startIdx && startIdx < end, "Batch start out of range");
-        require(startIdx + count <= end, "Batch out of range");
-
+        if (startIdx < start || startIdx >= end) revert BatchStartOutOfRange(startIdx);
+        if (startIdx + count > end) revert BatchEndOutOfRange(startIdx, count);
+        
         xs = new uint256[](count);
         ys = new uint256[](count);
 

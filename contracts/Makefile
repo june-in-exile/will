@@ -143,6 +143,7 @@ deploy-multiplier2verifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Multiplier2Verifier.s.sol:Multiplier2VerifierScript
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts MULTIPLIER2_VERIFIER Multiplier2Verifier $(CHAIN_ID)
 
 deploy-cidUploadVerifier-to-arb-sepolia:
 	@forge script \
@@ -205,6 +206,7 @@ deploy-multiplier2verifier-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/Multiplier2Verifier.s.sol:Multiplier2VerifierScript
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts MULTIPLIER2_VERIFIER Multiplier2Verifier $(CHAIN_ID)
 
 deploy-cidUploadVerifier-to-forked-arb-sepolia:
 	@forge script \

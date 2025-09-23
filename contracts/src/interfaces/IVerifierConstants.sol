@@ -2,10 +2,14 @@
 pragma solidity ^0.8.17;
 
 interface IVerifierConstants {
-    function getIC(uint256 index) external pure returns (uint256 x, uint256 y);
+    error IndexOutOfRange(uint256 index);
+    error BatchStartOutOfRange(uint256 startIdx);
+    error BatchEndOutOfRange(uint256 startIdx, uint256 count);
+
+    function getIC(uint256 index) external view returns (uint256 x, uint256 y);
     function getICCount() external pure returns (uint256);
     function getBatchIC(uint256 startIdx, uint256 count)
         external
-        pure
+        view
         returns (uint256[] memory xs, uint256[] memory ys);
 }

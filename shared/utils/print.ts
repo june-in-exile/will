@@ -86,8 +86,8 @@ function printProof(proof: ProofData): void {
   console.log(chalk.gray("- pC[1]:"), chalk.white(proof.pC[1].toString()));
 
   console.log(
-    chalk.gray("- pubSignals[0]:"),
-    chalk.white(proof.pubSignals[0].toString()),
+    chalk.gray("- pubSignals:"),
+    chalk.white(`[${proof.pubSignals.toString()}]`),
   );
 }
 

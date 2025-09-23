@@ -8,7 +8,7 @@ import chalk from "chalk";
  * 
  * @note G2 point (pB) needs to swap the order 
  */
-export function readProof(
+function readProof(
   circuitName: keyof typeof PATHS_CONFIG.zkp,
 ): ProofData {
   try {
@@ -40,3 +40,5 @@ export function readProof(
     );
   }
 }
+
+export { readProof };
