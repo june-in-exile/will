@@ -1,13 +1,10 @@
 import { PATHS_CONFIG, NETWORK_CONFIG } from "@config";
 import {
-  Multiplier2Verifier,
   Multiplier2Verifier__factory,
-  CidUploadVerifier,
   CidUploadVerifier__factory,
-  WillCreationVerifier,
   WillCreationVerifier__factory,
 } from "@shared/types/typechain-types/index.js";
-import type { ProofData, SubmitProof } from "@shared/types/index.js";
+import type { ProofData, SubmitProof, VerifierContract } from "@shared/types/index.js";
 import { readProof } from "@shared/utils/file/readProof.js";
 import {
   validateFiles,
@@ -94,7 +91,7 @@ function validateEnvironmentVariables(): SubmitProof {
  * @note This function is kept only for debugging purpose
  */
 async function executeProofSubmission(
-  contract: Multiplier2Verifier,
+  contract: VerifierContract,
   proof: ProofData,
 ): Promise<ProcessResult> {
   try {
@@ -144,46 +141,38 @@ async function processProofSubmission(circuitName: keyof typeof PATHS_CONFIG.zkp
       circuitFiles.proof,
       circuitFiles.public,
     ]);
-    const { CID_UPLOAD_VERIFIER, WILL_CREATION_VERIFIER } = validateEnvironmentVariables();
-
-    if (!CID_UPLOAD_VERIFIER && !WILL_CREATION_VERIFIER) {
-      throw new Error("No verifier address available in .env");
-    }
+    const { MULTIPLIER2_VERIFIER, CID_UPLOAD_VERIFIER, WILL_CREATION_VERIFIER } = validateEnvironmentVariables();
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
-    await validateNetwork(provider);
+    const [, proof] = await Promise.all([
+      validateNetwork(provider),
+      readProof(circuitName),
+    ]);
 
-    let contract;
-    switch (circuitName) {
-      case "multiplier2":
-        contract = await createContract<Multiplier2Verifier>(
-          (CID_UPLOAD_VERIFIER ? CID_UPLOAD_VERIFIER : WILL_CREATION_VERIFIER)!,
-          Multiplier2Verifier__factory,
-          provider,
-        );
-        break;
-      case "cidUpload":
-        if (!CID_UPLOAD_VERIFIER) throw new Error(`CID_UPLOAD_VERIFIER not available`);
-        contract = await createContract<CidUploadVerifier>(
-          CID_UPLOAD_VERIFIER,
-          CidUploadVerifier__factory,
-          provider,
-        );
-        break;
-      case "willCreation":
-        if (!WILL_CREATION_VERIFIER) throw new Error(`WILL_CREATION_VERIFIER not available`);
-        contract = await createContract<WillCreationVerifier>(
-          WILL_CREATION_VERIFIER,
-          WillCreationVerifier__factory,
-          provider,
-        );
-        break;
-      default:
-        throw new Error(`Unsupported circuit name: ${circuitName}`);
+    const verifiers = {
+      multiplier2: {
+        address: MULTIPLIER2_VERIFIER,
+        factory: Multiplier2Verifier__factory,
+      },
+      cidUpload: {
+        address: CID_UPLOAD_VERIFIER,
+        factory: CidUploadVerifier__factory,
+      },
+      willCreation: {
+        address: WILL_CREATION_VERIFIER,
+        factory: WillCreationVerifier__factory,
+      },
+    } as const;
+
+    const entry = verifiers[circuitName as keyof typeof verifiers];
+    if (!entry) {
+      throw new Error(`Unsupported circuit name: ${circuitName}`);
     }
-    console.log("contract:", contract);
+    if (!entry.address) {
+      throw new Error(`Unavailable verifier contract: ${circuitName}`);
+    }
 
-    const proof = readProof(circuitName);
+    const contract = await createContract<VerifierContract>(entry.address, entry.factory, provider);
 
     const result = await executeProofSubmission(contract, proof);
 
