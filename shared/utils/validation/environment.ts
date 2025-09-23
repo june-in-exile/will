@@ -113,9 +113,10 @@ const presetValidations = {
   }),
 
   submitProof: (): EnvironmentValidationOptions => ({
-    required: ["UPLOAD_CID_VERIFIER"],
+    optional: ["CID_UPLOAD_VERIFIER", "WILL_CREATION_VERIFIER"],
     validators: {
-      UPLOAD_CID_VERIFIER: validators.ethereumAddress,
+      WILL_CREATION_VERIFIER: validators.ethereumAddress,
+      CID_UPLOAD_VERIFIER: validators.ethereumAddress,
     },
   }),
 

@@ -20,43 +20,43 @@ async function generateZkpProof<T>(
 
   console.log(chalk.blue(`Generating proof for ${circuitName}`));
 
-  const files = PATHS_CONFIG.zkp[circuitName];
+  const circuitFiles = PATHS_CONFIG.zkp[circuitName];
 
   try {
     // Create necessary directories
-    await mkdir(dirname(files.proof), { recursive: true });
-    await mkdir(dirname(files.public), { recursive: true });
-    await mkdir(dirname(files.input), { recursive: true });
-    await mkdir(dirname(files.witness), { recursive: true });
+    await mkdir(dirname(circuitFiles.proof), { recursive: true });
+    await mkdir(dirname(circuitFiles.public), { recursive: true });
+    await mkdir(dirname(circuitFiles.input), { recursive: true });
+    await mkdir(dirname(circuitFiles.witness), { recursive: true });
 
     // Write input file
-    await writeFile(files.input, JSON.stringify(input, null, 2));
-    console.log(chalk.green(`✅ Input file created: ${files.input}`));
+    await writeFile(circuitFiles.input, JSON.stringify(input, null, 2));
+    console.log(chalk.green(`✅ Input file created: ${circuitFiles.input}`));
 
     // Calculate witness
     console.log(chalk.blue("Calculating witness..."));
     await execAsync(
-      `snarkjs wtns calculate ${files.wasm} ${files.input} ${files.witness}`,
+      `snarkjs wtns calculate ${circuitFiles.wasm} ${circuitFiles.input} ${circuitFiles.witness}`,
     );
     console.log(chalk.green("✅ Witness calculated"));
 
     // Generate proof
     console.log(chalk.blue("Generating proof..."));
     await execAsync(
-      `snarkjs groth16 prove ${files.zkey} ${files.witness} ${files.proof} ${files.public}`,
+      `snarkjs groth16 prove ${circuitFiles.zkey} ${circuitFiles.witness} ${circuitFiles.proof} ${circuitFiles.public}`,
     );
     console.log(chalk.green("✅ Proof generated"));
 
     // Read results
-    const proofContent = await import(files.proof, {
+    const proofContent = await import(circuitFiles.proof, {
       assert: { type: "json" },
     });
-    const publicContent = await import(files.public, {
+    const publicContent = await import(circuitFiles.public, {
       assert: { type: "json" },
     });
 
-    console.log(chalk.cyan(`📁 Proof file: ${files.proof}`));
-    console.log(chalk.cyan(`📁 Public signals file: ${files.public}`));
+    console.log(chalk.cyan(`📁 Proof file: ${circuitFiles.proof}`));
+    console.log(chalk.cyan(`📁 Public signals file: ${circuitFiles.public}`));
     console.log(chalk.yellow(`🔍 Public output: ${publicContent.default}`));
 
     return {

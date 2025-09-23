@@ -19,7 +19,8 @@ interface UploadCid {
 }
 
 interface SubmitProof {
-  UPLOAD_CID_VERIFIER: string;
+  WILL_CREATION_VERIFIER?: string;
+  CID_UPLOAD_VERIFIER?: string;
 }
 
 interface IpfsDownload {

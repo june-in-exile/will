@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 /*
- * @ This contract is kept only for debugging purpose and should not be used in production
+ * @note This contract is kept only for debugging purpose and should not be used in production
  */
 contract PermitVerifier {
     /// @notice Thrown when the recovered signer is equal to the zero address

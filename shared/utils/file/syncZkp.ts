@@ -115,7 +115,7 @@ async function main(): Promise<void> {
 
     await copyVerifierContract();
 
-    const proof: ProofData = readProof();
+    const proof: ProofData = readProof("multiplier2");
 
     await updateEnvironmentVariables(proof);
 

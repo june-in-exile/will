@@ -13,8 +13,8 @@ contract WillFactoryScript is Script {
     address private _permit2;
 
     constructor() {
-        _cidUploadVerifier = vm.envAddress("UPLOAD_CID_VERIFIER");
-        _willCreateVerifier = vm.envAddress("CREATE_WILL_VERIFIER");
+        _cidUploadVerifier = vm.envAddress("CID_UPLOAD_VERIFIER");
+        _willCreateVerifier = vm.envAddress("WILL_CREATION_VERIFIER");
         _jsonCidVerifier = vm.envAddress("JSON_CID_VERIFIER");
         _executor = vm.envAddress("EXECUTOR");
         _permit2 = vm.envAddress("PERMIT2");

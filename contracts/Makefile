@@ -36,7 +36,7 @@ sync: sync-anvil sync-zkp
 # ---------------- Clean Commands -----------------------
 
 clean-address:
-	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts UPLOAD_CID_VERIFIER CREATE_WILL_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
+	@pnpm exec tsx ../shared/utils/file/resetEnvVariable.ts CID_UPLOAD_VERIFIER WILL_CREATION_VERIFIER JSON_CID_VERIFIER WILL_FACTORY
 
 clean-verifiers-and-proofs:
 	@rm -rf src/Multiplier2Verifier
@@ -152,7 +152,7 @@ deploy-cidUploadVerifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/CidUploadVerifier.s.sol:CidUploadVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER CidUploadVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CID_UPLOAD_VERIFIER CidUploadVerifier $(CHAIN_ID)
 
 deploy-willCreationVerifier-to-arb-sepolia:
 	@forge script \
@@ -162,7 +162,7 @@ deploy-willCreationVerifier-to-arb-sepolia:
 		--etherscan-api-key $(ARBSCAN_API_KEY) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/WillCreationVerifier.s.sol:WillCreationVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER WillCreationVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_CREATION_VERIFIER WillCreationVerifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-arb-sepolia:
 	@forge script \
@@ -212,7 +212,7 @@ deploy-cidUploadVerifier-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/CidUploadVerifier.s.sol:CidUploadVerifierScript
-	@pnpm exec tsx ../shared/utils/file/syncAddress.ts UPLOAD_CID_VERIFIER CidUploadVerifier $(CHAIN_ID)
+	@pnpm exec tsx ../shared/utils/file/syncAddress.ts CID_UPLOAD_VERIFIER CidUploadVerifier $(CHAIN_ID)
 
 deploy-willCreationVerifier-to-forked-arb-sepolia:
 	forge script \
@@ -220,7 +220,7 @@ deploy-willCreationVerifier-to-forked-arb-sepolia:
 		--fork-url $(ANVIL_RPC_URL) \
 		--private-key $(MY_PRIVATE_KEY) \
 		script/WillCreationVerifier.s.sol:WillCreationVerifierScript
-	pnpm exec tsx ../shared/utils/file/syncAddress.ts CREATE_WILL_VERIFIER WillCreationVerifier $(CHAIN_ID)
+	pnpm exec tsx ../shared/utils/file/syncAddress.ts WILL_CREATION_VERIFIER WillCreationVerifier $(CHAIN_ID)
 
 deploy-jsonCidVerifier-to-forked-arb-sepolia:
 	@forge script \
@@ -244,7 +244,7 @@ deploy-to-forked-arb-sepolia: deploy-multiplier2verifier-to-forked-arb-sepolia d
 # ---------------- Call Groth16 Verifier ----------------
 
 # groth16verify-on-chain:
-# 	cast call $(UPLOAD_CID_VERIFIER) --rpc-url $(RPC_URL) \
+# 	cast call $(CID_UPLOAD_VERIFIER) --rpc-url $(RPC_URL) \
 # 		"verifyProof(uint[2],uint[2][2],uint[2],uint[1])(bool)" \
 # 		$(PA_ARRAY) $(PB_ARRAY) $(PC_ARRAY) $(PUBSIGNALS_ARRAY)
 # 	echo "$(YELLOW)Expect: true$(RESET)"
@@ -273,12 +273,12 @@ generateCIDString:
 cidUploadVerifier:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \
 		"cidUploadVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(UPLOAD_CID_VERIFIER)$(RESET)"
+	@echo "$(YELLOW)Expect: $(CID_UPLOAD_VERIFIER)$(RESET)"
 
 willCreationVerifier:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \
 		"willCreationVerifier()(address)"
-	@echo "$(YELLOW)Expect: $(CREATE_WILL_VERIFIER)$(RESET)"
+	@echo "$(YELLOW)Expect: $(WILL_CREATION_VERIFIER)$(RESET)"
 
 executor:
 	@cast call $(WILL_FACTORY) --rpc-url $(RPC_URL) \

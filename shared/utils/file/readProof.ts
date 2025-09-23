@@ -5,9 +5,11 @@ import chalk from "chalk";
 
 /**
  * Read proof data from file
+ * 
+ * @note G2 point (pB) needs to swap the order 
  */
 export function readProof(
-  circuitName: keyof typeof PATHS_CONFIG.zkp = "multiplier2",
+  circuitName: keyof typeof PATHS_CONFIG.zkp,
 ): ProofData {
   try {
     console.log(chalk.blue("Reading testator proof data..."));
@@ -20,7 +22,7 @@ export function readProof(
     const proofData: ProofData = {
       pA: [proof.pi_a[0], proof.pi_a[1]],
       pB: [
-        [proof.pi_b[0][1], proof.pi_b[0][0]], // @note G2 point needs to swap the order
+        [proof.pi_b[0][1], proof.pi_b[0][0]],
         [proof.pi_b[1][1], proof.pi_b[1][0]],
       ],
       pC: [proof.pi_c[0], proof.pi_c[1]],

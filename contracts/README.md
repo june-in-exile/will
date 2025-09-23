@@ -60,7 +60,7 @@
    > make executor
    > ```
 
-   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `UPLOAD_CID_VERIFIER`, `CREATE_WILL_VERIFIER` in the `.env` are set. Then, execute the instruction.
+   If it returns the expected value, skip the deployment. Otherwise, ensure that the `JSON_CID_VERIFIER`, `CID_UPLOAD_VERIFIER`, `WILL_CREATION_VERIFIER` in the `.env` are set. Then, execute the instruction.
 
    ```sh
    make deploy-willFactory

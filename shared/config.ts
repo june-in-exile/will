@@ -617,8 +617,8 @@ export const ENV_CONFIG: EnvConfig = {
   // Required environment variables
   required: [
     "PERMIT2",
-    "UPLOAD_CID_VERIFIER",
-    "CREATE_WILL_VERIFIER",
+    "CID_UPLOAD_VERIFIER",
+    "WILL_CREATION_VERIFIER",
     "JSON_CID_VERIFIER",
     "WILL_FACTORY",
     "TESTATOR_PRIVATE_KEY",
@@ -635,8 +635,8 @@ export const ENV_CONFIG: EnvConfig = {
   // Validation patterns
   validation: {
     PERMIT2: /^0x[0-9a-fA-F]{40}$/,
-    UPLOAD_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
-    CREATE_WILL_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    CID_UPLOAD_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
+    WILL_CREATION_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
     JSON_CID_VERIFIER: /^0x[0-9a-fA-F]{40}$/,
     WILL_FACTORY: /^0x[0-9a-fA-F]{40}$/,
     TESTATOR_PRIVATE_KEY: /^(0x)?[0-9a-fA-F]{64}$/,
