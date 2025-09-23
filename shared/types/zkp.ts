@@ -4,16 +4,30 @@ import {
   WillCreationVerifier,
 } from "./typechain-types/index.js";
 
-import { BigNumberish } from "ethers";
+type VerifierContract =
+  | Multiplier2Verifier
+  | CidUploadVerifier
+  | WillCreationVerifier;
 
 interface Groth16Proof {
   proof: object;
   publicSignals: string[];
 }
 
-type VerifierContract =
-  | Multiplier2Verifier
-  | CidUploadVerifier
-  | WillCreationVerifier;
+interface CidUploadProofData {
+  pA: [bigint, bigint];
+  pB: [[bigint, bigint], [bigint, bigint]];
+  pC: [bigint, bigint];
+  pubSignals: bigint[] & { length: 285 };
+}
 
-export type { Groth16Proof, VerifierContract };
+interface WillCreationProofData {
+  pA: [bigint, bigint];
+  pB: [[bigint, bigint], [bigint, bigint]];
+  pC: [bigint, bigint];
+  pubSignals: bigint[] & { length: 292 };
+}
+
+type ProofData = CidUploadProofData | WillCreationProofData;
+
+export type { VerifierContract, Groth16Proof, CidUploadProofData, WillCreationProofData, ProofData };

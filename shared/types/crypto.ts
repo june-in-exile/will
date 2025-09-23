@@ -20,12 +20,6 @@ interface DecryptionArgs {
   iv: Buffer;
   authTag: Buffer;
 }
-interface ProofData {
-  pA: [bigint, bigint];
-  pB: [[bigint, bigint], [bigint, bigint]];
-  pC: [bigint, bigint];
-  pubSignals: [bigint];
-}
 
 type SupportedAlgorithm = (typeof CRYPTO_CONFIG.supportedAlgorithms)[number];
 
@@ -33,7 +27,6 @@ export type {
   HashArgs,
   EncryptionArgs,
   DecryptionArgs,
-  ProofData,
   HashableInput,
   SupportedAlgorithm,
 };

@@ -1,5 +1,5 @@
 import { PATHS_CONFIG } from "@config";
-import { ProofData } from "@shared/types/crypto.js";
+import { ProofData } from "@shared/types/zkp.js";
 import { readFileSync } from "fs";
 import chalk from "chalk";
 

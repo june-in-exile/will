@@ -5,7 +5,7 @@ import {
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
 import type {
-  ProofData,
+  CidUploadProofData,
   EncryptedWill,
   UploadCid,
 } from "@shared/types/index.js";
@@ -29,7 +29,7 @@ import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 interface UploadCidData {
-  proof: ProofData;
+  proof: CidUploadProofData;
   will: JsonCidVerifier.TypedJsonObject;
   cid: string;
 }
@@ -140,7 +140,7 @@ async function processUploadCid(): Promise<ProcessResult> {
       wallet,
     );
 
-    const proof: ProofData = readProof("cidUpload");
+    const proof = readProof("cidUpload") as CidUploadProofData;
     const willData: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const will: JsonCidVerifier.TypedJsonObject =
       encryptedWillToTypedJsonObject(willData);

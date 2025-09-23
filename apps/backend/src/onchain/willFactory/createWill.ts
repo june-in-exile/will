@@ -6,7 +6,7 @@ import {
 } from "@shared/types/typechain-types/index.js";
 import type {
   Estate,
-  ProofData,
+  WillCreationProofData,
   EncryptedWill,
   CreateWill,
 } from "@shared/types/index.js";
@@ -31,7 +31,7 @@ import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
 
 interface CreateWillData {
-  proof: ProofData;
+  proof: WillCreationProofData;
   will: JsonCidVerifier.TypedJsonObjectStruct;
   cid: string;
   testator: string;
@@ -169,7 +169,7 @@ async function processCreateWill(): Promise<ProcessResult> {
       wallet,
     );
 
-    const proof: ProofData = readProof("willCreation");
+    const proof = readProof("willCreation") as WillCreationProofData;
     const encryptedWill: EncryptedWill = readWill(WILL_TYPE.ENCRYPTED);
     const encryptedWillKeyValues: JsonCidVerifier.TypedJsonObjectStruct =
       encryptedWillToTypedJsonObject(encryptedWill);
