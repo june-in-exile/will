@@ -16,6 +16,7 @@ contract WillFactory {
     WillCreationVerifier public willCreateVerifier;
     JsonCidVerifier public jsonCidVerifier;
     address public permit2;
+    address public notary;
     address public executor;
 
     mapping(string => uint256) private _testatorValidateTimes;
@@ -29,7 +30,7 @@ contract WillFactory {
     error UnauthorizedCaller(address caller, address expectedCaller);
     error JsonCidInvalid(string cid);
     error CidUploadProofInvalid();
-    error ExecutorSignatureInvalid();
+    error SignatureInvalid();
     error WillCreationProofInvalid();
     error CidNotValidatedByTestator(string cid);
     error CidNotValidatedByExecutor(string cid);
@@ -40,12 +41,14 @@ contract WillFactory {
         address _cidUploadVerifier,
         address _willCreateVerifier,
         address _jsonCidVerifier,
+        address _notary,
         address _executor,
         address _permit2
     ) {
         cidUploadVerifier = CidUploadVerifier(_cidUploadVerifier);
         willCreateVerifier = WillCreationVerifier(_willCreateVerifier);
         jsonCidVerifier = JsonCidVerifier(_jsonCidVerifier);
+        notary = _notary;
         executor = _executor;
         permit2 = _permit2;
     }
@@ -57,11 +60,19 @@ contract WillFactory {
         _;
     }
 
-    function verifyExecutorSignature(string calldata message, bytes memory signature) external view returns (bool) {
+    function _recoverSigner(string calldata message, bytes memory signature) internal pure returns (address) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-        address recoveredSigner = ethSignedMessageHash.recover(signature);
-        return recoveredSigner == executor;
+        return ethSignedMessageHash.recover(signature);
+    }
+
+    function _verifySignature(string calldata message, bytes memory signature, address expectedSigner) internal pure returns (bool) {
+        address signer = _recoverSigner(message, signature);
+        return (signer == expectedSigner);
+    }
+
+    function verifySignature(string calldata message, bytes memory signature, address expectedSigner) external pure returns (bool) {
+        return _verifySignature(message, signature, expectedSigner);
     }
 
     function testatorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
@@ -99,20 +110,14 @@ contract WillFactory {
             revert CidNotValidatedByTestator(_cid);
         }
 
-        bool isValidSignature;
-        try this.verifyExecutorSignature(_cid, _signature) returns (bool result) {
-            isValidSignature = result;
-        } catch {
-            isValidSignature = false;
-        }
-        if (!isValidSignature) revert ExecutorSignatureInvalid();
+        if (!_verifySignature(_cid, _signature, notary)) revert SignatureInvalid();
 
         _executorValidateTimes[_cid] = block.timestamp;
         emit CidNotarized(_cid, block.timestamp);
     }
 
-    function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
-        public
+    function _predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+        internal
         view
         returns (address)
     {
@@ -122,6 +127,14 @@ contract WillFactory {
         bytes32 hash = keccak256(abi.encodePacked(bytes1(0xff), address(this), _salt, keccak256(bytecode)));
 
         return address(uint160(uint256(hash)));
+    }
+
+    function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+        external
+        view
+        returns (address)
+    {
+        return _predictWill(_testator, estates, _salt);
     }
 
     function createWill(
@@ -155,7 +168,7 @@ contract WillFactory {
         }
 
         Will will = new Will{ salt: bytes32(_salt) }(permit2, _testator, executor, _estates);
-        address predictedAddress = predictWill(_testator, _estates, _salt);
+        address predictedAddress = _predictWill(_testator, _estates, _salt);
         if (address(will) != predictedAddress) {
             revert WillAddressInconsistent(predictedAddress, address(will));
         }

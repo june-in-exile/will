@@ -47,7 +47,7 @@ async function updateEnvironmentVariable(signature: string): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
 
-    updateEnvVariable("EXECUTOR_SIGNATURE", signature);
+    updateEnvVariable("NOTARY_SIGNATURE", signature);
 
     console.log(chalk.green("✅ Environment variable updated successfully"));
   } catch (error) {
@@ -108,25 +108,25 @@ async function executeCidSigning(
  */
 async function processCidSigning(): Promise<ProcessResult> {
   try {
-    const { CID, EXECUTOR_PRIVATE_KEY, EXECUTOR } =
+    const { CID, NOTARY_PRIVATE_KEY, NOTARY } =
       validateEnvironmentVariables();
 
     if (!validateCidv1(CID)) {
       throw new Error(`Invalid cid v1: ${CID}`);
     }
 
-    if (!validateEthereumAddress(EXECUTOR)) {
-      throw new Error(`Invalid executor address: ${EXECUTOR}`);
+    if (!validateEthereumAddress(NOTARY)) {
+      throw new Error(`Invalid address: ${NOTARY}`);
     }
 
-    if (!validatePrivateKey(EXECUTOR_PRIVATE_KEY)) {
+    if (!validatePrivateKey(NOTARY_PRIVATE_KEY)) {
       throw new Error(`Invalid private key.`);
     }
 
     const signature = await executeCidSigning({
       cid: CID,
-      signer: EXECUTOR as EthereumAddress,
-      privateKey: EXECUTOR_PRIVATE_KEY,
+      signer: NOTARY as EthereumAddress,
+      privateKey: NOTARY_PRIVATE_KEY,
     });
 
     await updateEnvironmentVariable(signature);
@@ -137,7 +137,7 @@ async function processCidSigning(): Promise<ProcessResult> {
 
     return {
       cid: CID,
-      signer: EXECUTOR,
+      signer: NOTARY,
       signature,
     };
   } catch (error) {

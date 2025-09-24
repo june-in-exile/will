@@ -332,7 +332,7 @@ predictWill:
 notarizeCid:
 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
 		"notarizeCid(string,bytes)" \
-		$(CID) $(EXECUTOR_SIGNATURE)
+		$(CID) $(NOTARY_SIGNATURE)
 
 # @deprecated
 # createWill:

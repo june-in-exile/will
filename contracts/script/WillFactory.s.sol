@@ -9,6 +9,7 @@ contract WillFactoryScript is Script {
     address private _cidUploadVerifier;
     address private _willCreateVerifier;
     address private _jsonCidVerifier;
+    address private _notary;
     address private _executor;
     address private _permit2;
 
@@ -16,6 +17,7 @@ contract WillFactoryScript is Script {
         _cidUploadVerifier = vm.envAddress("CID_UPLOAD_VERIFIER");
         _willCreateVerifier = vm.envAddress("WILL_CREATION_VERIFIER");
         _jsonCidVerifier = vm.envAddress("JSON_CID_VERIFIER");
+        _notary = vm.envAddress("NOTARY");
         _executor = vm.envAddress("EXECUTOR");
         _permit2 = vm.envAddress("PERMIT2");
     }
@@ -25,7 +27,7 @@ contract WillFactoryScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        willFactory = new WillFactory(_cidUploadVerifier, _willCreateVerifier, _jsonCidVerifier, _executor, _permit2);
+        willFactory = new WillFactory(_cidUploadVerifier, _willCreateVerifier, _jsonCidVerifier, _notary, _executor, _permit2);
 
         vm.stopBroadcast();
     }

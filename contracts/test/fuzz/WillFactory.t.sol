@@ -13,6 +13,7 @@ contract WillFactoryFuzzTest is Test {
     MockWillCreationVerifier mockWillCreationVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
+    address notary = makeAddr("notary");
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
 
@@ -27,6 +28,7 @@ contract WillFactoryFuzzTest is Test {
             address(mockCidUploadVerifier),
             address(mockWillCreationVerifier),
             address(mockJsonCidVerifier),
+            notary,
             executor,
             permit2
         );
@@ -82,9 +84,12 @@ contract WillFactoryFuzzTest is Test {
         assertTrue(predicted1 != predicted2);
     }
 
-    function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, bytes calldata invalidSignature) public {
+    function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, uint256 wrongPrivateKey) public {
         vm.assume(bytes(cid).length > 0);
-        vm.assume(invalidSignature.length > 0);
+        vm.assume(wrongPrivateKey > 0 && wrongPrivateKey < 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);
+
+        address wrongSigner = vm.addr(wrongPrivateKey);
+        vm.assume(wrongSigner != notary);
 
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockCidUploadVerifier.setShouldReturnTrue(true);
@@ -99,9 +104,15 @@ contract WillFactoryFuzzTest is Test {
 
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
-        vm.expectRevert(WillFactory.ExecutorSignatureInvalid.selector);
+        // Create a valid signature but from wrong signer
+        bytes32 messageHash = keccak256(abi.encodePacked(cid));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPrivateKey, ethSignedMessageHash);
+        bytes memory wrongSignature = abi.encodePacked(r, s, v);
+
+        vm.expectRevert(WillFactory.SignatureInvalid.selector);
         vm.prank(executor);
-        factory.notarizeCid(cid, invalidSignature);
+        factory.notarizeCid(cid, wrongSignature);
     }
 
     function test_OnlyAuthorizedModifier(address unauthorizedCaller, string calldata cid) public {

@@ -133,11 +133,11 @@ const presetValidations = {
   }),
 
   cidSigning: (): EnvironmentValidationOptions => ({
-    required: ["CID", "EXECUTOR_PRIVATE_KEY", "EXECUTOR"],
+    required: ["CID", "NOTARY_PRIVATE_KEY", "NOTARY"],
     validators: {
       CID: validators.cidv1,
-      EXECUTOR_PRIVATE_KEY: validators.privateKey,
-      EXECUTOR: validators.ethereumAddress,
+      NOTARY_PRIVATE_KEY: validators.privateKey,
+      NOTARY: validators.ethereumAddress,
     },
   }),
 
@@ -146,13 +146,13 @@ const presetValidations = {
       "WILL_FACTORY",
       "EXECUTOR_PRIVATE_KEY",
       "CID",
-      "EXECUTOR_SIGNATURE",
+      "NOTARY_SIGNATURE",
     ],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
       EXECUTOR_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
-      EXECUTOR_SIGNATURE: (value: string) => validators.signature(value),
+      NOTARY_SIGNATURE: (value: string) => validators.signature(value),
     },
   }),
 

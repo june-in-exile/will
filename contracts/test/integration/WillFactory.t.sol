@@ -15,6 +15,7 @@ contract WillFactoryIntegrationTest is Test {
     WillCreationVerifier willCreateVerifier;
     JsonCidVerifier jsonCidVerifier;
 
+    address notary;
     address executor;
     address permit2;
 
@@ -41,8 +42,8 @@ contract WillFactoryIntegrationTest is Test {
         JsonCidVerifier.TypedJsonObject willTypedJsonObj;
         string cid;
         CidUploadProofData cidUploadProof;
+        bytes notarySignature;
         WillCreationProofData willCreationProof;
-        bytes executorSignature;
     }
 
     TestVector[] testVectors;
@@ -56,11 +57,12 @@ contract WillFactoryIntegrationTest is Test {
         willCreateVerifier = new WillCreationVerifier(address(willCreationConstants1), address(willCreationConstants2));
         jsonCidVerifier = new JsonCidVerifier();
 
+        notary = 0xc052e703B3e22987c4e9AbA03549D7C3236bE5d3;
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
         permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 
         willFactory = new WillFactory(
-            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), executor, permit2
+            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, executor, permit2
         );
 
         _setupTestVectors();
@@ -76,15 +78,15 @@ contract WillFactoryIntegrationTest is Test {
             willTypedJsonObj.keys[2] = "authTag";
             willTypedJsonObj.keys[3] = "ciphertext";
             willTypedJsonObj.keys[4] = "timestamp";
-            willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue("aes-256-gcm", JsonCidVerifier.JsonValueType(0));
-            willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("b6Ybk5mYz0p+7CkZ", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue("aes-256-ctr", JsonCidVerifier.JsonValueType(0));
+            willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("CLmM4F7Y3P53nEXYbwUxdw==", JsonCidVerifier.JsonValueType(0));
             willTypedJsonObj.values[2] =
-                JsonCidVerifier.JsonValue("/28t2nOpVOKNk/XQYkf47A==", JsonCidVerifier.JsonValueType(0));
+                JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType(0));
             willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue(
-                "SZkfuZ69jkYe7O5ErjyM7OvPbaB/y486aCb7O48dM9MjHAfHDG6ZlGZUN7BIrTFbbfktPwPi2GMDkabKVXZDc3MUfwoDo3DYUsUzgorblbLh5vAmYaY7P9rr7D4t/WDUxsg7HCKiPLF32gbC9QJ1u1WAJpv3sWSh43iaTxAkBKH6gWD1K6smihBrLCGR4Iy7DV5+o3d0jlVulsc+g2wmc1yRW3c7HTXV/BO56mU/NC3z7eH4x8M/4j3H6CzCZ99StjSts9er1VvtMgzZuO989j435lGmtDsy48/gONuz8JKXsyO5QuNcUIoGZ5YsuCzAok2EfvBr/fqrbEphEotMs2B7x5v/NNt2Xb4YQu1bTUbEb5hMaMCNGrkCQVd2Fb9ITK9fe9vsfIhmf3pN/4aQY8MyHSUNtw5JtDT32F2DmC48A4L1NUtIgSyvJpJW/o3rURRF+vAYvlzXkyeVUHfpYoWcQEY9WnlGfIQ9hT6RVJ4ibgpc3hCMcOOHfyR5Y2n+guJyfsvsygTCjktGJOR5IoySJdWpK58riw3ZGJNlpQxgn7i9vEEQpODTO28yTMUH8jv5P8/QT4YVBBbnDBN8aca3zA7MMuOJEcoF4ihoZASs5l4Ifgbd0k31AT1rJN+HpgBy/cdAGpJLmlllz1CJLjtg25SH+3TeplaXuoBzb7rFslCGcP3nMhyS4nmxP94zpz4K5Vg90agbmFod3PEfdoBgC7T1t/2S0SwZ7zwosO9Ddi9pvAgtSX0Uv9L+knACLrHdPk034lXJJ5H97tO6i5U7S1XjGn2gtzPB6WwhV1fFU20=",
+                "WHiJloqVh+sLSneyEWbLGLQkCTWGVi1x9X8yegF0ZLM6vqkwX7Q9T/iDz8SdFtA0eqPp2YvNJSLwHg2MRG4yq09RSINXv1A9y12G7/DxJAOaD9F+mvR6L6pC5SM0kYvswIyVC+flHM6FsKXGG0/eYwLhryVWPj3Julm26BLen2vE+L2qWrUZK7to8zuvKGwU/miGLdhOHchdYIBXLAtRV5K+cjB15OvJyZ75t853fE2Jnm/bqP5cVupLC4eDU9BQlL/nKM0DMff6Noo5x0Njg4y5V6GwahDNxNhiDyoVFHl3fXKU4zkDsa634Av2KyokB7OyxOzt3wg98j7io4FiLQAaa4E8Otw5HWg2t78=",
                 JsonCidVerifier.JsonValueType(0)
             );
-            willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue("1753839518", JsonCidVerifier.JsonValueType(1));
+            willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue("1758740919", JsonCidVerifier.JsonValueType(1));
 
             Will.Estate[] memory estates = new Will.Estate[](2);
 
@@ -105,15 +107,15 @@ contract WillFactoryIntegrationTest is Test {
 
             testVectors.push(
                 TestVector({
-                    name: "20250730 Will",
+                    name: "20250925 Will",
                     testator: address(0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc),
                     estates: estates,
-                    salt: 1378220706920347,
+                    salt: 50975579764360880106236920062598993488283553682642442441465735635811502740393,
                     willTypedJsonObj: willTypedJsonObj,
-                    cid: "bagaaieraefc2woszrhvcuqmfrnayst7coljauh6rfhcyx3o7pkxg2o3k2yza",
+                    cid: "bagaaieragn2kj6lh3zew2jthnxvdwvjtvdtbnbycwlp43fc5fe2izdu66bwa",
                     cidUploadProof: cidUploadProof,
-                    willCreationProof: willCreationProof,
-                    executorSignature: hex"43c146572dc9a4b648659717ae95cedd8ee0f8c93f5b4828d27ea9cb416b90d20ecb5f5f53602b443074295c298979ab3bb6a9c1dd9e9e645371fc914d169e721c"
+                    notarySignature: hex"ff83a0645588e5e2ffc9a6aa0766d1160747a2b7ce1bcbaf32f75741cda159b153c0ad960cdd68cbbb3587b6877f591562ce37a829d6b853031dfbe180d491991b",
+                    willCreationProof: willCreationProof
                 })
             );
         }
@@ -123,7 +125,7 @@ contract WillFactoryIntegrationTest is Test {
         TestVector memory tv = testVectors[0];
 
         // Step 1: Upload CID
-        vm.expectEmit(true, true, false, true);
+        vm.expectEmit(true, false, false, true);
         emit WillFactory.CidUploaded(tv.cid, block.timestamp);
 
         willFactory.uploadCid(
@@ -147,7 +149,7 @@ contract WillFactoryIntegrationTest is Test {
         emit WillFactory.CidNotarized(tv.cid, block.timestamp);
 
         vm.prank(executor);
-        willFactory.notarizeCid(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
         // Verify notarization
         vm.prank(executor);
@@ -219,7 +221,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Notarize at time T (same as upload) - should fail creation
         vm.prank(executor);
-        willFactory.notarizeCid(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, tv.cid));
         vm.prank(executor);
@@ -238,7 +240,7 @@ contract WillFactoryIntegrationTest is Test {
         // Fast forward time and re-notarize - should succeed
         vm.warp(startTime + 100);
         vm.prank(executor);
-        willFactory.notarizeCid(tv.cid, tv.executorSignature);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
         vm.prank(executor);
         address willAddress = willFactory.createWill(

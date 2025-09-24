@@ -13,6 +13,8 @@ contract WillFactoryUnitTest is Test {
     MockWillCreationVerifier mockWillCreationVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
+    address notary;
+    uint256 notaryPrivateKey;
     address executor;
     uint256 executorPrivateKey;
     address permit2 = makeAddr("permit2");
@@ -40,6 +42,9 @@ contract WillFactoryUnitTest is Test {
     Will.Estate[] estates;
 
     function setUp() public {
+        notaryPrivateKey = 0x0123456789012345678901234567890123456789012345678901234567890123;
+        notary = vm.addr(notaryPrivateKey);
+
         executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
         executor = vm.addr(executorPrivateKey);
 
@@ -51,6 +56,7 @@ contract WillFactoryUnitTest is Test {
             address(mockcidUploadVerifier),
             address(mockWillCreationVerifier),
             address(mockJsonCidVerifier),
+            notary,
             executor,
             permit2
         );
@@ -123,7 +129,7 @@ contract WillFactoryUnitTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidNotarized(cid, block.timestamp);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
     }
@@ -133,7 +139,7 @@ contract WillFactoryUnitTest is Test {
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, address(this), executor));
         factory.notarizeCid(cid, executorSignature);
     }
@@ -154,7 +160,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
@@ -180,7 +186,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
@@ -213,7 +219,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
@@ -233,7 +239,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _executorSign(cid);
+        bytes memory executorSignature = _notarySign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
@@ -283,7 +289,7 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid1);
         vm.warp(block.timestamp + 1);
 
-        bytes memory signature1 = _executorSign(cid1);
+        bytes memory signature1 = _notarySign(cid1);
         vm.prank(executor);
         factory.notarizeCid(cid1, signature1);
         vm.warp(block.timestamp + 1);
@@ -298,7 +304,7 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid2);
         vm.warp(block.timestamp + 1);
 
-        bytes memory signature2 = _executorSign(cid2);
+        bytes memory signature2 = _notarySign(cid2);
         vm.prank(executor);
         factory.notarizeCid(cid2, signature2);
         vm.warp(block.timestamp + 1);
@@ -313,10 +319,17 @@ contract WillFactoryUnitTest is Test {
         assertTrue(willContract1 != willContract2);
     }
 
-    function _executorSign(string memory message) internal view returns (bytes memory) {
+    function _notarySign(string memory message) internal view returns (bytes memory) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(executorPrivateKey, ethSignedMessageHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
         return abi.encodePacked(r, s, v);
     }
+
+    // function _executorSign(string memory message) internal view returns (bytes memory) {
+    //     bytes32 messageHash = keccak256(abi.encodePacked(message));
+    //     bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(executorPrivateKey, ethSignedMessageHash);
+    //     return abi.encodePacked(r, s, v);
+    // }
 }

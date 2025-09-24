@@ -106,7 +106,7 @@ async function executeNotarizeCID(
  */
 async function processNotarizeCID(): Promise<ProcessResult> {
   try {
-    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, EXECUTOR_SIGNATURE } =
+    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID, NOTARY_SIGNATURE } =
       validateEnvironmentVariables();
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
@@ -122,7 +122,7 @@ async function processNotarizeCID(): Promise<ProcessResult> {
 
     const result = await executeNotarizeCID(contract, {
       cid: CID,
-      signature: EXECUTOR_SIGNATURE,
+      signature: NOTARY_SIGNATURE,
     });
 
     await updateEnvironmentVariables([

@@ -30,15 +30,15 @@ interface IpfsDownload {
 
 interface CidSigning {
   CID: string;
-  EXECUTOR_PRIVATE_KEY: string;
-  EXECUTOR: string;
+  NOTARY_PRIVATE_KEY: string;
+  NOTARY: string;
 }
 
 interface NotarizeCid {
   WILL_FACTORY: string;
   EXECUTOR_PRIVATE_KEY: string;
   CID: string;
-  EXECUTOR_SIGNATURE: string;
+  NOTARY_SIGNATURE: string;
 }
 
 interface CreateWill {

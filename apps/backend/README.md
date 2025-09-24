@@ -162,7 +162,7 @@ make sign-cid
 ```
 
 - **Updates**: The following `.env` variables are automatically updated:
-  - `EXECUTOR_SIGNATURE`
+  - `NOTARY_SIGNATURE`
 
 ### Step 5: Notarize CID
 
