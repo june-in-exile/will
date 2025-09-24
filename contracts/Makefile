@@ -99,7 +99,7 @@ test: sync-zkp
 
 # --------------- Conditional Deployment ----------------
 
-deploy-multiplier2verifier:
+deploy-multiplier2verifier: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-multiplier2verifier-to-forked-arb-sepolia; \
@@ -107,7 +107,7 @@ deploy-multiplier2verifier:
 		$(MAKE) deploy-multiplier2verifier-to-arb-sepolia; \
 	fi
 
-deploy-cidUploadVerifier:
+deploy-cidUploadVerifier: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-cidUploadVerifier-to-forked-arb-sepolia; \
@@ -115,7 +115,7 @@ deploy-cidUploadVerifier:
 		$(MAKE) deploy-cidUploadVerifier-to-arb-sepolia; \
 	fi
 
-deploy-willCreationVerifier:
+deploy-willCreationVerifier: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-willCreationVerifier-to-forked-arb-sepolia; \
@@ -123,7 +123,7 @@ deploy-willCreationVerifier:
 		$(MAKE) deploy-willCreationVerifier-to-arb-sepolia; \
 	fi
 
-deploy-jsonCidVerifier:
+deploy-jsonCidVerifier: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-jsonCidVerifier-to-forked-arb-sepolia; \
@@ -131,7 +131,7 @@ deploy-jsonCidVerifier:
 		$(MAKE) deploy-jsonCidVerifier-to-arb-sepolia; \
 	fi
 
-deploy-willFactory:
+deploy-willFactory: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-willFactory-to-forked-arb-sepolia; \
@@ -139,7 +139,7 @@ deploy-willFactory:
 		$(MAKE) deploy-willFactory-to-arb-sepolia; \
 	fi
 
-deploy:
+deploy: sync-anvil
 	@source $(ENV_FILE) && \
 	if [ "$$USE_ANVIL" = "true" ]; then \
 		$(MAKE) deploy-to-forked-arb-sepolia; \

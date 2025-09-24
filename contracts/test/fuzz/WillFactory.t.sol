@@ -100,6 +100,7 @@ contract WillFactoryFuzzTest is Test {
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
 
         vm.expectRevert(WillFactory.ExecutorSignatureInvalid.selector);
+        vm.prank(executor);
         factory.notarizeCid(cid, invalidSignature);
     }
 

@@ -125,6 +125,7 @@ contract WillFactoryUnitTest is Test {
         emit WillFactory.CIDNotarized(cid, block.timestamp);
 
         bytes memory executorSignature = _executorSign(cid);
+        vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
     }
 
@@ -133,6 +134,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByTestator.selector, cid));
 
+        vm.prank(executor);
         factory.notarizeCid(cid, signature);
     }
 
@@ -144,6 +146,7 @@ contract WillFactoryUnitTest is Test {
         vm.warp(block.timestamp + 1);
 
         bytes memory executorSignature = _executorSign(cid);
+        vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
@@ -183,6 +186,7 @@ contract WillFactoryUnitTest is Test {
         vm.warp(block.timestamp + 1);
 
         bytes memory executorSignature = _executorSign(cid);
+        vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
         mockWillCreationVerifier.setShouldReturnTrue(false);
@@ -202,6 +206,7 @@ contract WillFactoryUnitTest is Test {
         vm.warp(block.timestamp + 1);
 
         bytes memory executorSignature = _executorSign(cid);
+        vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
 
         // Create first will
@@ -249,6 +254,7 @@ contract WillFactoryUnitTest is Test {
         vm.warp(block.timestamp + 1);
 
         bytes memory signature1 = _executorSign(cid1);
+        vm.prank(executor);
         factory.notarizeCid(cid1, signature1);
         vm.warp(block.timestamp + 1);
 
@@ -261,6 +267,7 @@ contract WillFactoryUnitTest is Test {
         vm.warp(block.timestamp + 1);
 
         bytes memory signature2 = _executorSign(cid2);
+        vm.prank(executor);
         factory.notarizeCid(cid2, signature2);
         vm.warp(block.timestamp + 1);
 

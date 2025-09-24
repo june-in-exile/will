@@ -146,8 +146,8 @@ async function executeCreateWill(
 async function processCreateWill(): Promise<ProcessResult> {
   try {
     validateFiles([
-      PATHS_CONFIG.zkp.multiplier2.proof,
-      PATHS_CONFIG.zkp.multiplier2.public,
+      PATHS_CONFIG.zkp.willCreation.proof,
+      PATHS_CONFIG.zkp.willCreation.public,
     ]);
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();

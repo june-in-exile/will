@@ -22,9 +22,9 @@ contract WillFactory {
     mapping(string => uint256) private _executorValidateTimes;
     mapping(string => address) public wills;
 
-    event WillCreated(string indexed cid, address indexed testator, address will);
     event CIDUploaded(string indexed cid, uint256 timestamp);
     event CIDNotarized(string indexed cid, uint256 timestamp);
+    event WillCreated(string indexed cid, address indexed testator, address will);
 
     error UnauthorizedCaller(address caller, address expectedExecutor);
     error JsonCidInvalid(string cid);
@@ -88,11 +88,13 @@ contract WillFactory {
             revert TestatorProofInvalid();
         }
 
+        // @todo should check if the testator in pubSignals is the msg.sender
+
         _testatorValidateTimes[_cid] = block.timestamp;
         emit CIDUploaded(_cid, block.timestamp);
     }
 
-    function notarizeCid(string calldata _cid, bytes memory _signature) external {
+    function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
         if (_testatorValidateTimes[_cid] == 0) {
             revert CIDNotValidatedByTestator(_cid);
         }
@@ -143,6 +145,8 @@ contract WillFactory {
         bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
 
         if (!isValid) revert JsonCidInvalid(_cid);
+
+        // @todo should check if (testator,estates) in pubSignals is the same as in pubSignals
         if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
             revert DecryptionProofInvalid();
         }

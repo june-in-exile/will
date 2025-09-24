@@ -122,9 +122,9 @@ async function executeUploadCid(
 async function processUploadCid(): Promise<ProcessResult> {
   try {
     validateFiles([
-      PATHS_CONFIG.zkp.multiplier2.verifier,
-      PATHS_CONFIG.zkp.multiplier2.proof,
-      PATHS_CONFIG.zkp.multiplier2.public,
+      PATHS_CONFIG.zkp.cidUpload.verifier,
+      PATHS_CONFIG.zkp.cidUpload.proof,
+      PATHS_CONFIG.zkp.cidUpload.public,
     ]);
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();

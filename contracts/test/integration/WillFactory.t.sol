@@ -139,6 +139,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CIDNotarized(tv.cid, block.timestamp);
 
+        vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         // Verify notarization
@@ -201,6 +202,7 @@ contract WillFactoryIntegrationTest is Test {
         );
 
         // Notarize at time T (same as upload) - should fail creation
+        vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, tv.cid));
@@ -218,6 +220,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Fast forward time and re-notarize - should succeed
         vm.warp(startTime + 100);
+        vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
         address willAddress = willFactory.createWill(
