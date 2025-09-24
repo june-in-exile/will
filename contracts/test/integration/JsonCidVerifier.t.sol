@@ -16,8 +16,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         string name;
         JsonCidVerifier.JsonObject jsonObj;
         JsonCidVerifier.TypedJsonObject typedJsonObj;
-        string expectedCIDSimple;
-        string expectedCIDTyped;
+        string expectedCidSimple;
+        string expectedCidTyped;
         string expectedJSON;
         string expectedTypedJSON;
     }
@@ -54,8 +54,8 @@ contract JsonCidVerifierIntegrationTest is Test {
                     name: "Simple Name-Age Object",
                     jsonObj: simpleObj,
                     typedJsonObj: typedObj,
-                    expectedCIDSimple: "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a",
-                    expectedCIDTyped: "bagaaierahyt2wszp67wmtf4u6sppuwsmqtkhq7ecozarv7dgnkna55zpxg4a", // To be filled with actual CID
+                    expectedCidSimple: "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a",
+                    expectedCidTyped: "bagaaierahyt2wszp67wmtf4u6sppuwsmqtkhq7ecozarv7dgnkna55zpxg4a", // To be filled with actual CID
                     expectedJSON: '{"name":"Alice","age":"30"}',
                     expectedTypedJSON: '{"name":"Alice","age":30}'
                 })
@@ -93,8 +93,8 @@ contract JsonCidVerifierIntegrationTest is Test {
                     name: "Complex All-Types Object",
                     jsonObj: simpleObj,
                     typedJsonObj: typedObj,
-                    expectedCIDSimple: "bagaaierawedn3djabwgj3lxctpkxk3jg3wkc7ywqveexclgfxwgy4nn6lpaa",
-                    expectedCIDTyped: "bagaaieragimrcyhoitiwmqhqker3zaj2gaqwlh2ccpfm2l3wpybljwpqghmq",
+                    expectedCidSimple: "bagaaierawedn3djabwgj3lxctpkxk3jg3wkc7ywqveexclgfxwgy4nn6lpaa",
+                    expectedCidTyped: "bagaaieragimrcyhoitiwmqhqker3zaj2gaqwlh2ccpfm2l3wpybljwpqghmq",
                     expectedJSON: '{"active":"true","count":"42","data":"","name":"test"}',
                     expectedTypedJSON: '{"active":true,"count":42,"data":null,"name":"test"}'
                 })
@@ -114,20 +114,20 @@ contract JsonCidVerifierIntegrationTest is Test {
         assertEq(actualJSON, tv.expectedJSON, "JSON format mismatch");
 
         // 2. Generate CID
-        string memory generatedCID = verifier.generateCIDString(tv.jsonObj);
+        string memory generatedCid = verifier.generateCidString(tv.jsonObj);
 
         // 3. Verify CID
-        bytes memory cidBytes = bytes(generatedCID);
+        bytes memory cidBytes = bytes(generatedCid);
         assertEq(cidBytes[0], "b", "CID should start with 'b'");
         assertGt(cidBytes.length, 50, "CID should be reasonably long");
-        assertEq(generatedCID, tv.expectedCIDSimple);
+        assertEq(generatedCid, tv.expectedCidSimple);
 
         // 4. Verify self-consistency
-        assertTrue(verifier.verifyCID(tv.jsonObj, generatedCID), "Self-verification failed");
+        assertTrue(verifier.verifyCid(tv.jsonObj, generatedCid), "Self-verification failed");
 
         // 5. Test immutability - same input should give same CID
-        string memory secondCID = verifier.generateCIDString(tv.jsonObj);
-        assertTrue(verifier.stringEquals(generatedCID, secondCID), "CID generation not deterministic");
+        string memory secondCid = verifier.generateCidString(tv.jsonObj);
+        assertTrue(verifier.stringEquals(generatedCid, secondCid), "CID generation not deterministic");
     }
 
     function test_completeWorkflow_Typed() public view {
@@ -138,32 +138,32 @@ contract JsonCidVerifierIntegrationTest is Test {
         assertEq(actualJSON, tv.expectedTypedJSON, "Typed JSON format mismatch");
 
         // 2. Generate CID
-        string memory generatedCID = verifier.generateCIDString(tv.typedJsonObj);
+        string memory generatedCid = verifier.generateCidString(tv.typedJsonObj);
 
         // 3. Verify CID
-        bytes memory cidBytes = bytes(generatedCID);
+        bytes memory cidBytes = bytes(generatedCid);
         assertEq(cidBytes[0], "b", "CID should start with 'b'");
         assertGt(cidBytes.length, 50, "CID should be reasonably long");
-        assertEq(generatedCID, tv.expectedCIDTyped);
+        assertEq(generatedCid, tv.expectedCidTyped);
 
         // 4. Verify self-consistency
-        assertTrue(verifier.verifyCID(tv.typedJsonObj, generatedCID), "Self-verification failed");
+        assertTrue(verifier.verifyCid(tv.typedJsonObj, generatedCid), "Self-verification failed");
 
         // 5. Test immutability
-        string memory secondCID = verifier.generateCIDString(tv.typedJsonObj);
-        assertTrue(verifier.stringEquals(generatedCID, secondCID), "CID generation not deterministic");
+        string memory secondCid = verifier.generateCidString(tv.typedJsonObj);
+        assertTrue(verifier.stringEquals(generatedCid, secondCid), "CID generation not deterministic");
     }
 
-    function test_simpleVsTyped_DifferentCIDs() public view {
+    function test_simpleVsTyped_DifferentCids() public view {
         TestVector memory tv = testVectors[0];
 
-        string memory simpleCID = verifier.generateCIDString(tv.jsonObj);
-        string memory typedCID = verifier.generateCIDString(tv.typedJsonObj);
+        string memory simpleCid = verifier.generateCidString(tv.jsonObj);
+        string memory typedCid = verifier.generateCidString(tv.typedJsonObj);
 
         // These should be different because the JSON representations are different
         // Simple: {"name":"Alice","age":"30"}
         // Typed:  {"name":"Alice","age":30}
-        assertFalse(verifier.stringEquals(simpleCID, typedCID), "Simple and typed CIDs should differ");
+        assertFalse(verifier.stringEquals(simpleCid, typedCid), "Simple and typed CIDs should differ");
     }
 
     // =============================================================================
@@ -188,8 +188,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         profile.values[4] = "Alice Johnson";
         profile.values[5] = "admin";
 
-        string memory cid = verifier.generateCIDString(profile);
-        assertTrue(verifier.verifyCID(profile, cid));
+        string memory cid = verifier.generateCidString(profile);
+        assertTrue(verifier.verifyCid(profile, cid));
 
         // Should produce valid JSON
         string memory json = verifier.buildStandardizedJson(profile);
@@ -212,8 +212,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         response.values[2] = JsonCidVerifier.JsonValue("200", JsonCidVerifier.JsonValueType.NUMBER);
         response.values[3] = JsonCidVerifier.JsonValue("1640995200", JsonCidVerifier.JsonValueType.NUMBER);
 
-        string memory cid = verifier.generateCIDString(response);
-        assertTrue(verifier.verifyCID(response, cid));
+        string memory cid = verifier.generateCidString(response);
+        assertTrue(verifier.verifyCid(response, cid));
 
         // Should produce valid typed JSON
         string memory json = verifier.buildStandardizedJson(response);
@@ -237,8 +237,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         config.values[3] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
         config.values[4] = JsonCidVerifier.JsonValue("1.2.3", JsonCidVerifier.JsonValueType.STRING);
 
-        string memory cid = verifier.generateCIDString(config);
-        assertTrue(verifier.verifyCID(config, cid));
+        string memory cid = verifier.generateCidString(config);
+        assertTrue(verifier.verifyCid(config, cid));
 
         string memory json = verifier.buildStandardizedJson(config);
         string memory expectedJSON =
@@ -250,40 +250,40 @@ contract JsonCidVerifierIntegrationTest is Test {
     // Cross-verification
     // =============================================================================
 
-    function test_crossVerification_InvalidCIDs() public view {
+    function test_crossVerification_InvalidCids() public view {
         TestVector memory tv = testVectors[0];
 
         // Generate valid CID
-        string memory validCID = verifier.generateCIDString(tv.jsonObj);
+        string memory validCid = verifier.generateCidString(tv.jsonObj);
 
         // Test with invalid CIDs
-        assertFalse(verifier.verifyCID(tv.jsonObj, "invalid_cid"));
-        assertFalse(verifier.verifyCID(tv.jsonObj, ""));
-        assertFalse(verifier.verifyCID(tv.jsonObj, "bafkreiinvalid"));
+        assertFalse(verifier.verifyCid(tv.jsonObj, "invalid_cid"));
+        assertFalse(verifier.verifyCid(tv.jsonObj, ""));
+        assertFalse(verifier.verifyCid(tv.jsonObj, "bafkreiinvalid"));
 
         // Test with valid format but wrong content
-        string memory differentCID = "bafkreiabcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstuvwx";
-        assertFalse(verifier.verifyCID(tv.jsonObj, differentCID));
+        string memory differentCid = "bafkreiabcdefghijklmnopqrstuvwxyz234567abcdefghijklmnopqrstuvwx";
+        assertFalse(verifier.verifyCid(tv.jsonObj, differentCid));
 
         // Original should still work
-        assertTrue(verifier.verifyCID(tv.jsonObj, validCID));
+        assertTrue(verifier.verifyCid(tv.jsonObj, validCid));
     }
 
     function test_crossVerification_ModifiedObjects() public view {
         TestVector memory tv = testVectors[0];
-        string memory originalCID = verifier.generateCIDString(tv.jsonObj);
+        string memory originalCid = verifier.generateCidString(tv.jsonObj);
 
         // Modify keys
         JsonCidVerifier.JsonObject memory modifiedObj = tv.jsonObj;
         modifiedObj.keys[0] = "modified_name";
 
-        assertFalse(verifier.verifyCID(modifiedObj, originalCID));
+        assertFalse(verifier.verifyCid(modifiedObj, originalCid));
 
         // Modify values
         modifiedObj = tv.jsonObj;
         modifiedObj.values[0] = "Bob";
 
-        assertFalse(verifier.verifyCID(modifiedObj, originalCID));
+        assertFalse(verifier.verifyCid(modifiedObj, originalCid));
 
         // Add extra field
         modifiedObj.keys = new string[](3);
@@ -295,7 +295,7 @@ contract JsonCidVerifierIntegrationTest is Test {
         modifiedObj.values[1] = tv.jsonObj.values[1];
         modifiedObj.values[2] = "field";
 
-        assertFalse(verifier.verifyCID(modifiedObj, originalCID));
+        assertFalse(verifier.verifyCid(modifiedObj, originalCid));
     }
 
     // =============================================================================
@@ -315,11 +315,11 @@ contract JsonCidVerifierIntegrationTest is Test {
 
         // Should handle large objects without issues
         uint256 gasBefore = gasleft();
-        string memory cid = verifier.generateCIDString(largeObj);
+        string memory cid = verifier.generateCidString(largeObj);
         uint256 gasUsed = gasBefore - gasleft();
 
         // Verify it works
-        assertTrue(verifier.verifyCID(largeObj, cid));
+        assertTrue(verifier.verifyCid(largeObj, cid));
 
         // Log gas usage for analysis
         console.log("Gas used for 20-field object:", gasUsed);
@@ -332,18 +332,18 @@ contract JsonCidVerifierIntegrationTest is Test {
         TestVector memory tv = testVectors[0];
 
         // Generate CID multiple times - should be consistent and efficient
-        string memory cid1 = verifier.generateCIDString(tv.jsonObj);
-        string memory cid2 = verifier.generateCIDString(tv.jsonObj);
-        string memory cid3 = verifier.generateCIDString(tv.jsonObj);
+        string memory cid1 = verifier.generateCidString(tv.jsonObj);
+        string memory cid2 = verifier.generateCidString(tv.jsonObj);
+        string memory cid3 = verifier.generateCidString(tv.jsonObj);
 
         // All should be identical
         assertTrue(verifier.stringEquals(cid1, cid2));
         assertTrue(verifier.stringEquals(cid2, cid3));
 
         // Verification should be consistent
-        assertTrue(verifier.verifyCID(tv.jsonObj, cid1));
-        assertTrue(verifier.verifyCID(tv.jsonObj, cid2));
-        assertTrue(verifier.verifyCID(tv.jsonObj, cid3));
+        assertTrue(verifier.verifyCid(tv.jsonObj, cid1));
+        assertTrue(verifier.verifyCid(tv.jsonObj, cid2));
+        assertTrue(verifier.verifyCid(tv.jsonObj, cid3));
     }
 
     // =============================================================================
@@ -360,8 +360,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         string memory json = verifier.buildStandardizedJson(singleField);
         assertEq(json, '{"single":"value"}');
 
-        string memory cid = verifier.generateCIDString(singleField);
-        assertTrue(verifier.verifyCID(singleField, cid));
+        string memory cid = verifier.generateCidString(singleField);
+        assertTrue(verifier.verifyCid(singleField, cid));
     }
 
     function test_edgeCase_EmptyStringValues() public view {
@@ -376,8 +376,8 @@ contract JsonCidVerifierIntegrationTest is Test {
         string memory json = verifier.buildStandardizedJson(emptyValues);
         assertEq(json, '{"empty":"","blank":""}');
 
-        string memory cid = verifier.generateCIDString(emptyValues);
-        assertTrue(verifier.verifyCID(emptyValues, cid));
+        string memory cid = verifier.generateCidString(emptyValues);
+        assertTrue(verifier.verifyCid(emptyValues, cid));
     }
 
     function test_edgeCase_SpecialCharacters() public view {
@@ -394,7 +394,7 @@ contract JsonCidVerifierIntegrationTest is Test {
         string memory json = verifier.buildStandardizedJson(specialChars);
         assertTrue(bytes(json).length > 0);
 
-        string memory cid = verifier.generateCIDString(specialChars);
-        assertTrue(verifier.verifyCID(specialChars, cid));
+        string memory cid = verifier.generateCidString(specialChars);
+        assertTrue(verifier.verifyCid(specialChars, cid));
     }
 }

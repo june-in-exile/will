@@ -12,8 +12,8 @@ contract JsonCidVerifierUnitTest is Test {
     JsonCidVerifier.TypedJsonObject typedJson;
 
     // Generated from JavaScript implementation
-    string expectedCIDSimple;
-    string expectedCIDTyped;
+    string expectedCidSimple;
+    string expectedCidTyped;
 
     function setUp() public {
         verifier = new JsonCidVerifier();
@@ -25,7 +25,7 @@ contract JsonCidVerifierUnitTest is Test {
         simpleJson.keys[1] = "age";
         simpleJson.values[0] = "Alice";
         simpleJson.values[1] = "30";
-        expectedCIDSimple = "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a";
+        expectedCidSimple = "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a";
 
         // Setup typed JSON: {"name":"Alice","age":30,"active":true,"data":null}
         typedJson.keys = new string[](4);
@@ -34,7 +34,7 @@ contract JsonCidVerifierUnitTest is Test {
         typedJson.keys[1] = "age";
         typedJson.keys[2] = "active";
         typedJson.keys[3] = "data";
-        expectedCIDTyped = "bagaaierahuwddmix3id4x7qhonchbuyofmsbiij46stacr6uia7gz5keaj7q";
+        expectedCidTyped = "bagaaierahuwddmix3id4x7qhonchbuyofmsbiij46stacr6uia7gz5keaj7q";
 
         typedJson.values[0] = JsonCidVerifier.JsonValue("Alice", JsonCidVerifier.JsonValueType.STRING);
         typedJson.values[1] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
@@ -177,9 +177,9 @@ contract JsonCidVerifierUnitTest is Test {
         }
     }
 
-    function test_getCIDBytes() public view {
+    function test_getCidBytes() public view {
         bytes memory multihash = hex"12201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
-        bytes memory cidBytes = verifier.getCIDBytes(multihash);
+        bytes memory cidBytes = verifier.getCidBytes(multihash);
 
         // Check CID format: [0x01][0x80][0x04][multihash]
         assertEq(cidBytes.length, 37);
@@ -193,11 +193,11 @@ contract JsonCidVerifierUnitTest is Test {
         }
     }
 
-    function test_getCIDString_ValidInput() public view {
+    function test_getCidString_ValidInput() public view {
         // Valid CID bytes: CIDv1 + JSON codec + SHA-256 multihash
         bytes memory validCidBytes = hex"01800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
-        string memory result = verifier.getCIDString(validCidBytes);
+        string memory result = verifier.getCidString(validCidBytes);
 
         // Should start with 'b' (base32 multibase prefix)
         bytes memory resultBytes = bytes(result);
@@ -205,25 +205,25 @@ contract JsonCidVerifierUnitTest is Test {
         assertGt(resultBytes.length, 1);
     }
 
-    function test_getCIDString_RevertOnInvalidLength() public {
+    function test_getCidString_RevertOnInvalidLength() public {
         bytes memory invalidCidBytes = hex"0180041220"; // Too short
 
         vm.expectRevert("Invalid CID bytes length for json codec");
-        verifier.getCIDString(invalidCidBytes);
+        verifier.getCidString(invalidCidBytes);
     }
 
-    function test_getCIDString_RevertOnInvalidVersion() public {
+    function test_getCidString_RevertOnInvalidVersion() public {
         bytes memory invalidCidBytes = hex"00800412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
         vm.expectRevert("Not CIDv1");
-        verifier.getCIDString(invalidCidBytes);
+        verifier.getCidString(invalidCidBytes);
     }
 
-    function test_getCIDString_RevertOnInvalidCodec() public {
+    function test_getCidString_RevertOnInvalidCodec() public {
         bytes memory invalidCidBytes = hex"01700412201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
 
         vm.expectRevert("Not Varint-encoded json codec (first byte)");
-        verifier.getCIDString(invalidCidBytes);
+        verifier.getCidString(invalidCidBytes);
     }
 
     function test_stringEquals() public view {
@@ -237,33 +237,33 @@ contract JsonCidVerifierUnitTest is Test {
     // Integration Functions
     // =============================================================================
 
-    function test_generateCIDString_SimpleObject() public view {
-        string memory cid = verifier.generateCIDString(simpleJson);
+    function test_generateCidString_SimpleObject() public view {
+        string memory cid = verifier.generateCidString(simpleJson);
 
         bytes memory cidBytes = bytes(cid);
         assertEq(cidBytes[0], "b");
         assertGt(cidBytes.length, 50);
 
-        assertEq(cid, expectedCIDSimple, "The CID is different from expected");
+        assertEq(cid, expectedCidSimple, "The CID is different from expected");
     }
 
-    function test_generateCIDStringTyped_TypedObject() public view {
-        string memory cid = verifier.generateCIDString(typedJson);
+    function test_generateCidStringTyped_TypedObject() public view {
+        string memory cid = verifier.generateCidString(typedJson);
 
         bytes memory cidBytes = bytes(cid);
         assertEq(cidBytes[0], "b");
         assertGt(cidBytes.length, 50);
 
-        assertEq(cid, expectedCIDTyped, "The CID is different from expected");
+        assertEq(cid, expectedCidTyped, "The CID is different from expected");
     }
 
-    function test_verifyCID_ValidPair() public view {
-        string memory cid = verifier.generateCIDString(simpleJson);
-        assertTrue(verifier.verifyCID(simpleJson, cid));
+    function test_verifyCid_ValidPair() public view {
+        string memory cid = verifier.generateCidString(simpleJson);
+        assertTrue(verifier.verifyCid(simpleJson, cid));
     }
 
-    function test_verifyCID_InvalidPair() public view {
-        string memory cid = verifier.generateCIDString(simpleJson);
+    function test_verifyCid_InvalidPair() public view {
+        string memory cid = verifier.generateCidString(simpleJson);
 
         // Create different JSON object
         JsonCidVerifier.JsonObject memory differentJson;
@@ -272,16 +272,16 @@ contract JsonCidVerifierUnitTest is Test {
         differentJson.keys[0] = "different";
         differentJson.values[0] = "value";
 
-        assertFalse(verifier.verifyCID(differentJson, cid));
+        assertFalse(verifier.verifyCid(differentJson, cid));
     }
 
-    function test_verifyCIDTyped_ValidPair() public view {
-        string memory cid = verifier.generateCIDString(typedJson);
-        assertTrue(verifier.verifyCID(typedJson, cid));
+    function test_verifyCidTyped_ValidPair() public view {
+        string memory cid = verifier.generateCidString(typedJson);
+        assertTrue(verifier.verifyCid(typedJson, cid));
     }
 
-    function test_verifyCIDTyped_InvalidPair() public view {
-        string memory cid = verifier.generateCIDString(typedJson);
+    function test_verifyCidTyped_InvalidPair() public view {
+        string memory cid = verifier.generateCidString(typedJson);
 
         // Create different typed JSON object
         JsonCidVerifier.TypedJsonObject memory differentJson;
@@ -290,28 +290,28 @@ contract JsonCidVerifierUnitTest is Test {
         differentJson.keys[0] = "different";
         differentJson.values[0] = JsonCidVerifier.JsonValue("value", JsonCidVerifier.JsonValueType.STRING);
 
-        assertFalse(verifier.verifyCID(differentJson, cid));
+        assertFalse(verifier.verifyCid(differentJson, cid));
     }
 
     // =============================================================================
     // Consistency
     // =============================================================================
 
-    function test_consistency_SameInputSameCID() public view {
-        string memory cid1 = verifier.generateCIDString(simpleJson);
-        string memory cid2 = verifier.generateCIDString(simpleJson);
+    function test_consistency_SameInputSameCid() public view {
+        string memory cid1 = verifier.generateCidString(simpleJson);
+        string memory cid2 = verifier.generateCidString(simpleJson);
         assertEq(cid1, cid2);
     }
 
-    function test_consistency_DifferentInputDifferentCID() public view {
+    function test_consistency_DifferentInputDifferentCid() public view {
         JsonCidVerifier.JsonObject memory differentJson;
         differentJson.keys = new string[](1);
         differentJson.values = new string[](1);
         differentJson.keys[0] = "different";
         differentJson.values[0] = "data";
 
-        string memory cid1 = verifier.generateCIDString(simpleJson);
-        string memory cid2 = verifier.generateCIDString(differentJson);
+        string memory cid1 = verifier.generateCidString(simpleJson);
+        string memory cid2 = verifier.generateCidString(differentJson);
 
         assertFalse(verifier.stringEquals(cid1, cid2));
     }

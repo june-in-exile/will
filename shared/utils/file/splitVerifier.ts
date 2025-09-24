@@ -207,16 +207,17 @@ ${constructorAssignments}
     function _getIC(uint256 index) internal view returns (uint256 x, uint256 y) {
         if (index == 0) {
             return (IC0x, IC0y);
-        }${constantsContracts.length === 1
-      ? ` else if (index < _getICCount()) {
+        }${
+          constantsContracts.length === 1
+            ? ` else if (index < _getICCount()) {
             return constants1.getIC(index);
         }`
-      : ` else if (index <= 150) {
+            : ` else if (index <= 150) {
             return constants1.getIC(index);
         } else if (index < _getICCount()) {
             return constants2.getIC(index);
         }`
-    } else {
+        } else {
             revert IndexOutOfRange(index);
         }
     }
@@ -238,8 +239,9 @@ ${constructorAssignments}
 
         uint256 processed = 0;
 
-        ${constantsContracts.length === 1
-      ? `// Process constants1 range (1+)
+        ${
+          constantsContracts.length === 1
+            ? `// Process constants1 range (1+)
         if (processed < count) {
             uint256 batchStart = startIdx;
             uint256 remaining = count - processed;
@@ -251,7 +253,7 @@ ${constructorAssignments}
                 ys[processed + i] = batchYs[i];
             }
         }`
-      : `// Process constants1 range (1-150)
+            : `// Process constants1 range (1-150)
         if (startIdx <= 150 && processed < count) {
             uint256 batchStart = startIdx;
             uint256 batchEnd = startIdx + count > 151 ? 151 : startIdx + count;
@@ -278,7 +280,7 @@ ${constructorAssignments}
                 ys[processed + i] = batchYs[i];
             }
         }`
-    }
+        }
     }
 
     function getBatchIC(uint256 startIdx, uint256 count)

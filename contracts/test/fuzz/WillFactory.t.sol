@@ -9,8 +9,8 @@ import "mock/MockContracts.sol";
 
 contract WillFactoryFuzzTest is Test {
     WillFactory factory;
-    MockCidUploadVerifier mockcidUploadVerifier;
-    MockWillCreationVerifier mockDecryptionVerifier;
+    MockCidUploadVerifier mockCidUploadVerifier;
+    MockWillCreationVerifier mockWillCreationVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
     address executor = makeAddr("executor");
@@ -19,13 +19,13 @@ contract WillFactoryFuzzTest is Test {
     JsonCidVerifier.TypedJsonObject willJson;
 
     function setUp() public {
-        mockcidUploadVerifier = new MockCidUploadVerifier();
-        mockDecryptionVerifier = new MockWillCreationVerifier();
+        mockCidUploadVerifier = new MockCidUploadVerifier();
+        mockWillCreationVerifier = new MockWillCreationVerifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
 
         factory = new WillFactory(
-            address(mockcidUploadVerifier),
-            address(mockDecryptionVerifier),
+            address(mockCidUploadVerifier),
+            address(mockWillCreationVerifier),
             address(mockJsonCidVerifier),
             executor,
             permit2
@@ -82,12 +82,12 @@ contract WillFactoryFuzzTest is Test {
         assertTrue(predicted1 != predicted2);
     }
 
-    function test_NotarizeCID_RevertOnInvalidSignature(string calldata cid, bytes calldata invalidSignature) public {
+    function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, bytes calldata invalidSignature) public {
         vm.assume(bytes(cid).length > 0);
         vm.assume(invalidSignature.length > 0);
 
         mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockcidUploadVerifier.setShouldReturnTrue(true);
+        mockCidUploadVerifier.setShouldReturnTrue(true);
 
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [[uint256(3), uint256(4)], [uint256(5), uint256(6)]];

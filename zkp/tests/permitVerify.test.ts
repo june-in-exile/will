@@ -273,62 +273,57 @@ describe("VerifyPermit Circuit", function () {
       }
     });
 
-    it(
-      "should accept the verification for valid permit",
-      async function (): Promise<void> {
-        const testWills = [
-          {
-            testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
-            estates: [
-              {
-                beneficiary: BigInt(
-                  "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
-                ),
-                token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
-                amount: 1000n,
-              },
-            ] as Estate[],
-            salt: 34923565688810067994128788310589615222681366992060360220693714303919665482853n,
-            will: BigInt("0x3FeBe97292fC5B32903c88D561Cd1E701228199C"),
-            nonce: 244376007658491587519721798548739170223n as Nonce,
-            deadline: 1789798304 as Timestamp,
-            signature: {
-              r: splitBigInt(
-                BigInt(
-                  "0xa5ffc2a554b20c9d9dc7760cf0046881ee8899022e41ffc5652ba7c18848ad9e",
-                ),
+    it("should accept the verification for valid permit", async function (): Promise<void> {
+      const testWills = [
+        {
+          testator: BigInt("0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc"),
+          estates: [
+            {
+              beneficiary: BigInt("0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c"),
+              token: BigInt("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"),
+              amount: 1000n,
+            },
+          ] as Estate[],
+          salt: 34923565688810067994128788310589615222681366992060360220693714303919665482853n,
+          will: BigInt("0x3FeBe97292fC5B32903c88D561Cd1E701228199C"),
+          nonce: 244376007658491587519721798548739170223n as Nonce,
+          deadline: 1789798304 as Timestamp,
+          signature: {
+            r: splitBigInt(
+              BigInt(
+                "0xa5ffc2a554b20c9d9dc7760cf0046881ee8899022e41ffc5652ba7c18848ad9e",
               ),
-              s: splitBigInt(
-                BigInt(
-                  "0x5336e7e82553e531bd45518baf61c5438c98e61c7d0067baa523e47c7f58fe9c",
-                ),
+            ),
+            s: splitBigInt(
+              BigInt(
+                "0x5336e7e82553e531bd45518baf61c5438c98e61c7d0067baa523e47c7f58fe9c",
               ),
-              v: 28,
-            } as EcdsaSignature,
-          },
-        ];
+            ),
+            v: 28,
+          } as EcdsaSignature,
+        },
+      ];
 
-        for (const {
+      for (const {
+        testator,
+        estates,
+        will,
+        nonce,
+        deadline,
+        signature,
+      } of testWills) {
+        const permitted: TokenPermission[] = estates.map((e) => ({
+          token: e.token,
+          amount: e.amount,
+        }));
+        await circuit.expectPass({
           testator,
-          estates,
+          permit: [...flattenTokenPermissions(permitted), nonce, deadline],
           will,
-          nonce,
-          deadline,
-          signature,
-        } of testWills) {
-          const permitted: TokenPermission[] = estates.map((e) => ({
-            token: e.token,
-            amount: e.amount,
-          }));
-          await circuit.expectPass({
-            testator,
-            permit: [...flattenTokenPermissions(permitted), nonce, deadline],
-            will,
-            signature: flattenEcdsaSignature(signature),
-          });
-        }
-      },
-    );
+          signature: flattenEcdsaSignature(signature),
+        });
+      }
+    });
 
     it("should reject the verification for invalid permit", async function (): Promise<void> {
       const testWills = [

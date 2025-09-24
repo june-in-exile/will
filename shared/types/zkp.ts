@@ -30,4 +30,10 @@ interface WillCreationProofData {
 
 type ProofData = CidUploadProofData | WillCreationProofData;
 
-export type { VerifierContract, Groth16Proof, CidUploadProofData, WillCreationProofData, ProofData };
+export type {
+  VerifierContract,
+  Groth16Proof,
+  CidUploadProofData,
+  WillCreationProofData,
+  ProofData,
+};

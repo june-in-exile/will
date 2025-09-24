@@ -34,29 +34,29 @@ contract JsonCidVerifier {
 
     constructor() { }
 
-    function verifyCID(JsonObject memory jsonObj, string memory cid) external pure returns (bool) {
-        return stringEquals(generateCIDString(jsonObj), cid);
+    function verifyCid(JsonObject memory jsonObj, string memory cid) external pure returns (bool) {
+        return stringEquals(generateCidString(jsonObj), cid);
     }
 
-    function verifyCID(TypedJsonObject memory typedJsonObj, string memory cid) external pure returns (bool) {
-        return stringEquals(generateCIDString(typedJsonObj), cid);
+    function verifyCid(TypedJsonObject memory typedJsonObj, string memory cid) external pure returns (bool) {
+        return stringEquals(generateCidString(typedJsonObj), cid);
     }
 
-    function generateCIDString(JsonObject memory jsonObj) public pure returns (string memory) {
+    function generateCidString(JsonObject memory jsonObj) public pure returns (string memory) {
         string memory json = buildStandardizedJson(jsonObj);
-        return _generateCIDString(json);
+        return _generateCidString(json);
     }
 
-    function generateCIDString(TypedJsonObject memory typedJsonObj) public pure returns (string memory) {
+    function generateCidString(TypedJsonObject memory typedJsonObj) public pure returns (string memory) {
         string memory json = buildStandardizedJson(typedJsonObj);
-        return _generateCIDString(json);
+        return _generateCidString(json);
     }
 
-    function _generateCIDString(string memory json) internal pure returns (string memory) {
+    function _generateCidString(string memory json) internal pure returns (string memory) {
         bytes memory jsonBytes = getJsonBytes(json);
         bytes memory multihash = getMultihash(jsonBytes);
-        bytes memory cidBytes = getCIDBytes(multihash);
-        return getCIDString(cidBytes);
+        bytes memory cidBytes = getCidBytes(multihash);
+        return getCidString(cidBytes);
     }
 
     function buildStandardizedJson(JsonObject memory jsonObj) public pure returns (string memory) {
@@ -130,7 +130,7 @@ contract JsonCidVerifier {
         return multihash;
     }
 
-    function getCIDBytes(bytes memory multihash) public pure returns (bytes memory) {
+    function getCidBytes(bytes memory multihash) public pure returns (bytes memory) {
         bytes memory result = new bytes(37);
 
         result[0] = 0x01; // CIDv1
@@ -145,7 +145,7 @@ contract JsonCidVerifier {
         return result;
     }
 
-    function getCIDString(bytes memory cidBytes) public pure returns (string memory) {
+    function getCidString(bytes memory cidBytes) public pure returns (string memory) {
         // CIDv1 byte format: [version][codec][hash_type][hash_length][hash_bytes]
         require(cidBytes.length == 37, "Invalid CID bytes length for json codec");
         require(cidBytes[0] == 0x01, "Not CIDv1");

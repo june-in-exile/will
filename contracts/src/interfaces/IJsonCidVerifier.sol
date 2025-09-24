@@ -61,7 +61,7 @@ interface IJsonCidVerifier {
      * @param cid Expected CID string
      * @return success Whether verification succeeded
      */
-    function verifyCID(JsonObject memory jsonObj, string memory cid) external pure returns (bool success);
+    function verifyCid(JsonObject memory jsonObj, string memory cid) external pure returns (bool success);
 
     /**
      * @dev Complete verification workflow for typed JSON object
@@ -69,7 +69,7 @@ interface IJsonCidVerifier {
      * @param cid Expected CID string
      * @return success Whether verification succeeded
      */
-    function verifyCID(TypedJsonObject memory jsonObj, string memory cid) external pure returns (bool success);
+    function verifyCid(TypedJsonObject memory jsonObj, string memory cid) external pure returns (bool success);
 
     // =============================================================================
     // CID GENERATION FUNCTIONS
@@ -80,14 +80,14 @@ interface IJsonCidVerifier {
      * @param jsonObj The JSON object to generate CID for
      * @return Generated CID string
      */
-    function generateCIDString(JsonObject memory jsonObj) external pure returns (string memory);
+    function generateCidString(JsonObject memory jsonObj) external pure returns (string memory);
 
     /**
      * @dev Generate CID string for given typed JSON object
      * @param jsonObj The typed JSON object to generate CID for
      * @return Generated CID string
      */
-    function generateCIDString(TypedJsonObject memory jsonObj) external pure returns (string memory);
+    function generateCidString(TypedJsonObject memory jsonObj) external pure returns (string memory);
 
     // =============================================================================
     // JSON BUILDING FUNCTIONS
@@ -130,14 +130,14 @@ interface IJsonCidVerifier {
      * @param multihash The multihash bytes
      * @return CID bytes
      */
-    function getCIDBytes(bytes memory multihash) external pure returns (bytes memory);
+    function getCidBytes(bytes memory multihash) external pure returns (bytes memory);
 
     /**
      * @dev Convert CID bytes to base32 string
      * @param cidBytes Binary CID representation
      * @return Base32 encoded CID string
      */
-    function getCIDString(bytes memory cidBytes) external pure returns (string memory);
+    function getCidString(bytes memory cidBytes) external pure returns (string memory);
 
     /**
      * @dev Compare two strings for equality

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { CidUploadVerifier } from "src/CidUploadVerifier.sol";
-import { WillCreationVerifier } from  "src/WillCreationVerifier.sol";
+import { WillCreationVerifier } from "src/WillCreationVerifier.sol";
 import { JsonCidVerifier } from "src/JsonCidVerifier.sol";
 import { Will } from "src/Will.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -22,17 +22,17 @@ contract WillFactory {
     mapping(string => uint256) private _executorValidateTimes;
     mapping(string => address) public wills;
 
-    event CIDUploaded(string indexed cid, uint256 timestamp);
-    event CIDNotarized(string indexed cid, uint256 timestamp);
+    event CidUploaded(string indexed cid, uint256 timestamp);
+    event CidNotarized(string indexed cid, uint256 timestamp);
     event WillCreated(string indexed cid, address indexed testator, address will);
 
-    error UnauthorizedCaller(address caller, address expectedExecutor);
+    error UnauthorizedCaller(address caller, address expectedCaller);
     error JsonCidInvalid(string cid);
-    error TestatorProofInvalid();
+    error CidUploadProofInvalid();
     error ExecutorSignatureInvalid();
-    error DecryptionProofInvalid();
-    error CIDNotValidatedByTestator(string cid);
-    error CIDNotValidatedByExecutor(string cid);
+    error WillCreationProofInvalid();
+    error CidNotValidatedByTestator(string cid);
+    error CidNotValidatedByExecutor(string cid);
     error WillAlreadyExists(string cid, address existingWill);
     error WillAddressInconsistent(address predicted, address actual);
 
@@ -80,23 +80,23 @@ contract WillFactory {
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
-        bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
+        bool isValid = jsonCidVerifier.verifyCid(_will, _cid);
 
         if (!isValid) revert JsonCidInvalid(_cid);
 
         if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
-            revert TestatorProofInvalid();
+            revert CidUploadProofInvalid();
         }
 
         // @todo should check if the testator in pubSignals is the msg.sender
 
         _testatorValidateTimes[_cid] = block.timestamp;
-        emit CIDUploaded(_cid, block.timestamp);
+        emit CidUploaded(_cid, block.timestamp);
     }
 
     function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
         if (_testatorValidateTimes[_cid] == 0) {
-            revert CIDNotValidatedByTestator(_cid);
+            revert CidNotValidatedByTestator(_cid);
         }
 
         bool isValidSignature;
@@ -108,7 +108,7 @@ contract WillFactory {
         if (!isValidSignature) revert ExecutorSignatureInvalid();
 
         _executorValidateTimes[_cid] = block.timestamp;
-        emit CIDNotarized(_cid, block.timestamp);
+        emit CidNotarized(_cid, block.timestamp);
     }
 
     function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
@@ -134,21 +134,21 @@ contract WillFactory {
         address _testator,
         Will.Estate[] calldata _estates,
         uint256 _salt
-    ) external returns (address) {
+    ) external onlyAuthorized returns (address) {
         if (_testatorValidateTimes[_cid] == 0) {
-            revert CIDNotValidatedByTestator(_cid);
+            revert CidNotValidatedByTestator(_cid);
         }
         if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]) {
-            revert CIDNotValidatedByExecutor(_cid);
+            revert CidNotValidatedByExecutor(_cid);
         }
 
-        bool isValid = jsonCidVerifier.verifyCID(_will, _cid);
+        bool isValid = jsonCidVerifier.verifyCid(_will, _cid);
 
         if (!isValid) revert JsonCidInvalid(_cid);
 
         // @todo should check if (testator,estates) in pubSignals is the same as in pubSignals
         if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
-            revert DecryptionProofInvalid();
+            revert WillCreationProofInvalid();
         }
         if (wills[_cid] != address(0)) {
             revert WillAlreadyExists(_cid, wills[_cid]);

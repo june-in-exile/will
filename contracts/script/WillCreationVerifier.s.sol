@@ -2,7 +2,11 @@
 pragma solidity ^0.8.24;
 
 import { Script, console } from "forge-std/Script.sol";
-import { WillCreationVerifier, WillCreationVerifierConstants1, WillCreationVerifierConstants2 } from "src/WillCreationVerifier.sol";
+import {
+    WillCreationVerifier,
+    WillCreationVerifierConstants1,
+    WillCreationVerifierConstants2
+} from "src/WillCreationVerifier.sol";
 
 contract WillCreationVerifierScript is Script {
     WillCreationVerifier public verifier;

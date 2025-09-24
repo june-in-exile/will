@@ -139,7 +139,7 @@ contract JsonCidVerifierFuzzTest is Test {
     // CID Generation
     // =============================================================================
 
-    function test_generateCIDString_Consistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
+    function test_generateCidString_Consistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
@@ -156,8 +156,8 @@ contract JsonCidVerifierFuzzTest is Test {
         JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Generate CID multiple times - should be consistent
-        string memory cid1 = verifier.generateCIDString(jsonObj);
-        string memory cid2 = verifier.generateCIDString(jsonObj);
+        string memory cid1 = verifier.generateCidString(jsonObj);
+        string memory cid2 = verifier.generateCidString(jsonObj);
 
         assertTrue(verifier.stringEquals(cid1, cid2));
 
@@ -167,7 +167,7 @@ contract JsonCidVerifierFuzzTest is Test {
         assertGt(cidBytes.length, 50); // Reasonable CID length
     }
 
-    function test_verifyCID_SelfConsistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
+    function test_verifyCid_SelfConsistency(uint256 lengthSeed, uint256 keySeed, uint256 valueSeed) public view {
         uint256 arrayLength = bound(lengthSeed, 1, 3);
 
         string[] memory keys = new string[](arrayLength);
@@ -184,8 +184,8 @@ contract JsonCidVerifierFuzzTest is Test {
         JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Generated CID should verify against the same JSON
-        string memory cid = verifier.generateCIDString(jsonObj);
-        assertTrue(verifier.verifyCID(jsonObj, cid));
+        string memory cid = verifier.generateCidString(jsonObj);
+        assertTrue(verifier.verifyCid(jsonObj, cid));
     }
 
     // =============================================================================
@@ -214,7 +214,7 @@ contract JsonCidVerifierFuzzTest is Test {
         }
     }
 
-    function test_getCIDBytes(bytes32 hashValue) public view {
+    function test_getCidBytes(bytes32 hashValue) public view {
         // Create valid multihash
         bytes memory multihash = new bytes(34);
         multihash[0] = 0x12; // SHA-256
@@ -223,7 +223,7 @@ contract JsonCidVerifierFuzzTest is Test {
             multihash[2 + i] = hashValue[i];
         }
 
-        bytes memory cidBytes = verifier.getCIDBytes(multihash);
+        bytes memory cidBytes = verifier.getCidBytes(multihash);
 
         // Check CID format
         assertEq(cidBytes.length, 37);
@@ -261,8 +261,8 @@ contract JsonCidVerifierFuzzTest is Test {
         JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
         // Should handle larger inputs without reverting
-        string memory cid = verifier.generateCIDString(jsonObj);
-        assertTrue(verifier.verifyCID(jsonObj, cid));
+        string memory cid = verifier.generateCidString(jsonObj);
+        assertTrue(verifier.verifyCid(jsonObj, cid));
 
         bytes memory cidBytes = bytes(cid);
         assertEq(cidBytes[0], "b");
@@ -284,9 +284,9 @@ contract JsonCidVerifierFuzzTest is Test {
 
         JsonCidVerifier.JsonObject memory jsonObj = JsonCidVerifier.JsonObject({ keys: keys, values: values });
 
-        string memory cid = verifier.generateCIDString(jsonObj);
+        string memory cid = verifier.generateCidString(jsonObj);
 
-        assertTrue(verifier.verifyCID(jsonObj, cid));
+        assertTrue(verifier.verifyCid(jsonObj, cid));
     }
 
     // =============================================================================

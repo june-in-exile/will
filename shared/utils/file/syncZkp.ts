@@ -8,7 +8,10 @@ import path from "path";
 import fs from "fs";
 import chalk from "chalk";
 
-async function updateEnvironmentVariables(proof: ProofData, circuitNameUpperCase: string): Promise<void> {
+async function updateEnvironmentVariables(
+  proof: ProofData,
+  circuitNameUpperCase: string,
+): Promise<void> {
   try {
     console.log(chalk.blue("Updating environment variables..."));
 
@@ -16,7 +19,10 @@ async function updateEnvironmentVariables(proof: ProofData, circuitNameUpperCase
       [`${circuitNameUpperCase}_PA_ARRAY`, bigintArrayToEnvString(proof.pA)],
       [`${circuitNameUpperCase}_PB_ARRAY`, bigintArrayToEnvString(proof.pB)],
       [`${circuitNameUpperCase}_PC_ARRAY`, bigintArrayToEnvString(proof.pC)],
-      [`${circuitNameUpperCase}_PUBSIGNALS_ARRAY`, bigintArrayToEnvString(proof.pubSignals)],
+      [
+        `${circuitNameUpperCase}_PUBSIGNALS_ARRAY`,
+        bigintArrayToEnvString(proof.pubSignals),
+      ],
     ];
 
     await Promise.all(
@@ -132,9 +138,11 @@ async function main(): Promise<void> {
 
     await Promise.all(
       circuits.map(async (circuit) => {
-        const proof: ProofData = readProof(circuit.name as keyof typeof PATHS_CONFIG.zkp);
+        const proof: ProofData = readProof(
+          circuit.name as keyof typeof PATHS_CONFIG.zkp,
+        );
         await updateEnvironmentVariables(proof, circuit.nameUpperCase);
-      })
+      }),
     );
 
     console.log("✅ Successfully synced proof data to .env file.");

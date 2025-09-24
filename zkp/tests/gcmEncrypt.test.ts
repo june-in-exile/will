@@ -73,33 +73,30 @@ describe("GcmEncrypt Circuits", function () {
           }
         });
 
-        it(
-          "should work with custom test vector",
-          async function (): Promise<void> {
-            const plaintext = [
-              0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
-              0x21,
-            ] as Byte[]; // "Hello World!"
-            const key = [
-              { bytes: [0x2b, 0x7e, 0x15, 0x16] },
-              { bytes: [0x28, 0xae, 0xd2, 0xa6] },
-              { bytes: [0xab, 0xf7, 0x15, 0x88] },
-              { bytes: [0x09, 0xcf, 0x4f, 0x3c] },
-            ] as Word[];
-            const iv = [
-              0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa,
-              0xfb,
-            ] as Byte[];
-            const aad = [] as Byte[];
+        it("should work with custom test vector", async function (): Promise<void> {
+          const plaintext = [
+            0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
+            0x21,
+          ] as Byte[]; // "Hello World!"
+          const key = [
+            { bytes: [0x2b, 0x7e, 0x15, 0x16] },
+            { bytes: [0x28, 0xae, 0xd2, 0xa6] },
+            { bytes: [0xab, 0xf7, 0x15, 0x88] },
+            { bytes: [0x09, 0xcf, 0x4f, 0x3c] },
+          ] as Word[];
+          const iv = [
+            0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa,
+            0xfb,
+          ] as Byte[];
+          const aad = [] as Byte[];
 
-            const { ciphertext, authTag } = gcmEncrypt(plaintext, key, iv, aad);
+          const { ciphertext, authTag } = gcmEncrypt(plaintext, key, iv, aad);
 
-            await circuit.expectPass(
-              { plaintext, key: wordToByte(key), iv, aad },
-              { ciphertext, authTag },
-            );
-          },
-        );
+          await circuit.expectPass(
+            { plaintext, key: wordToByte(key), iv, aad },
+            { ciphertext, authTag },
+          );
+        });
       });
 
       describe("1-Block Plaintext, No AAD", function () {
@@ -162,37 +159,34 @@ describe("GcmEncrypt Circuits", function () {
           }
         });
 
-        it(
-          "should work with custom test vector with 1-block AAD",
-          async function (): Promise<void> {
-            const plaintext = [
-              0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09,
-              0xc5, 0xaf, 0xf5, 0x26, 0x9a, 0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34,
-              0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
-            ] as Byte[];
-            const key = [
-              { bytes: [0xfe, 0xff, 0xe9, 0x92] },
-              { bytes: [0x86, 0x65, 0x73, 0x1c] },
-              { bytes: [0x6d, 0x6a, 0x8f, 0x94] },
-              { bytes: [0x67, 0x30, 0x83, 0x08] },
-            ] as Word[];
-            const iv = [
-              0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8,
-              0x88,
-            ] as Byte[];
-            const aad = [
-              0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa,
-              0xce, 0xde, 0xad, 0xbe, 0xef,
-            ] as Byte[];
+        it("should work with custom test vector with 1-block AAD", async function (): Promise<void> {
+          const plaintext = [
+            0xd9, 0x31, 0x32, 0x25, 0xf8, 0x84, 0x06, 0xe5, 0xa5, 0x59, 0x09,
+            0xc5, 0xaf, 0xf5, 0x26, 0x9a, 0x86, 0xa7, 0xa9, 0x53, 0x15, 0x34,
+            0xf7, 0xda, 0x2e, 0x4c, 0x30, 0x3d, 0x8a, 0x31, 0x8a, 0x72,
+          ] as Byte[];
+          const key = [
+            { bytes: [0xfe, 0xff, 0xe9, 0x92] },
+            { bytes: [0x86, 0x65, 0x73, 0x1c] },
+            { bytes: [0x6d, 0x6a, 0x8f, 0x94] },
+            { bytes: [0x67, 0x30, 0x83, 0x08] },
+          ] as Word[];
+          const iv = [
+            0xca, 0xfe, 0xba, 0xbe, 0xfa, 0xce, 0xdb, 0xad, 0xde, 0xca, 0xf8,
+            0x88,
+          ] as Byte[];
+          const aad = [
+            0xfe, 0xed, 0xfa, 0xce, 0xde, 0xad, 0xbe, 0xef, 0xfe, 0xed, 0xfa,
+            0xce, 0xde, 0xad, 0xbe, 0xef,
+          ] as Byte[];
 
-            const { ciphertext, authTag } = gcmEncrypt(plaintext, key, iv, aad);
+          const { ciphertext, authTag } = gcmEncrypt(plaintext, key, iv, aad);
 
-            await circuit.expectPass(
-              { plaintext, key: wordToByte(key), iv, aad },
-              { ciphertext, authTag },
-            );
-          },
-        );
+          await circuit.expectPass(
+            { plaintext, key: wordToByte(key), iv, aad },
+            { ciphertext, authTag },
+          );
+        });
       });
 
       describe("2-Block Plaintext, 30-Byte AAD", function () {

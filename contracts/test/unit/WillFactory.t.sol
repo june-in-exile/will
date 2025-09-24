@@ -85,13 +85,12 @@ contract WillFactoryUnitTest is Test {
         assertEq(factory.permit2(), permit2);
     }
 
-    function test_UploadCID_Success() public {
+    function test_UploadCid_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
 
-        uint256 expectedTimestamp = block.timestamp;
-        vm.expectEmit(false, false, false, false);
-        emit WillFactory.CIDUploaded(cid, expectedTimestamp);
+        vm.expectEmit(true, false, false, false);
+        emit WillFactory.CidUploaded(cid, block.timestamp);
 
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
@@ -99,40 +98,50 @@ contract WillFactoryUnitTest is Test {
         assertEq(factory.testatorValidateTimes(cid), block.timestamp);
     }
 
-    function test_UploadCID_JsonCidInvalid() public {
+    function test_UploadCid_JsonCidInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(false);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.JsonCidInvalid.selector, cid, "Invalid format"));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.JsonCidInvalid.selector, cid));
 
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
-    function test_UploadCID_TestatorProofInvalid() public {
+    function test_UploadCid_CidUploadProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(false);
 
-        vm.expectRevert(WillFactory.TestatorProofInvalid.selector);
+        vm.expectRevert(WillFactory.CidUploadProofInvalid.selector);
 
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
-    function test_NotarizeCID_Success() public {
+    function test_NotarizeCid_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.expectEmit(true, false, false, true);
-        emit WillFactory.CIDNotarized(cid, block.timestamp);
+        emit WillFactory.CidNotarized(cid, block.timestamp);
 
         bytes memory executorSignature = _executorSign(cid);
         vm.prank(executor);
         factory.notarizeCid(cid, executorSignature);
     }
 
-    function test_NotarizeCID_CIDNotValidatedByTestator() public {
+    function test_NotarizeCid_UnauthorizedCaller() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        bytes memory executorSignature = _executorSign(cid);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, address(this), executor));
+        factory.notarizeCid(cid, executorSignature);
+    }
+
+    function test_NotarizeCid_CidNotValidatedByTestator() public {
         bytes memory signature = abi.encodePacked(bytes32(0), bytes32(0), uint8(0));
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByTestator.selector, cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, cid));
 
         vm.prank(executor);
         factory.notarizeCid(cid, signature);
@@ -156,29 +165,48 @@ contract WillFactoryUnitTest is Test {
         vm.expectEmit(true, true, false, true);
         emit WillFactory.WillCreated(cid, testator, predictedAddress);
 
-        address willAddress = factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
+        vm.prank(executor);
+        address willAddress =
+            factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
 
         assertEq(factory.wills(cid), willAddress);
         assertEq(willAddress, predictedAddress);
     }
 
-    function test_CreateWill_CIDNotValidatedByTestator() public {
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByTestator.selector, cid));
-
-        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
-    }
-
-    function test_CreateWill_CIDNotValidatedByExecutor() public {
+    function test_CreateWillCid_UnauthorizedCaller() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, cid));
+        vm.warp(block.timestamp + 1);
 
+        bytes memory executorSignature = _executorSign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, executorSignature);
+
+        mockWillCreationVerifier.setShouldReturnTrue(true);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, address(this), executor));
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
     }
 
-    function test_CreateWill_DecryptionProofInvalid() public {
+    function test_CreateWill_CidNotValidatedByTestator() public {
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, cid));
+        vm.prank(executor);
+        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
+    }
+
+    function test_CreateWill_CidNotValidatedByExecutor() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, cid));
+        vm.prank(executor);
+        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
+    }
+
+    function test_CreateWill_WillCreationProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
@@ -191,13 +219,13 @@ contract WillFactoryUnitTest is Test {
 
         mockWillCreationVerifier.setShouldReturnTrue(false);
 
-        vm.expectRevert(WillFactory.DecryptionProofInvalid.selector);
-
+        vm.expectRevert(WillFactory.WillCreationProofInvalid.selector);
+        vm.prank(executor);
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
     }
 
     function test_CreateWill_WillAlreadyExists() public {
-        // Upload and notarize CID
+        // Upload and notarize Cid
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         mockWillCreationVerifier.setShouldReturnTrue(true);
@@ -210,11 +238,13 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid, executorSignature);
 
         // Create first will
-        address firstWill = factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
+        vm.prank(executor);
+        address firstWill =
+            factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
 
-        // Try to create second will with same CID
+        // Try to create second will with same Cid
         vm.expectRevert(abi.encodeWithSelector(WillFactory.WillAlreadyExists.selector, cid, firstWill));
-
+        vm.prank(executor);
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt + 1);
     }
 
@@ -258,7 +288,9 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid1, signature1);
         vm.warp(block.timestamp + 1);
 
-        address willContract1 = factory.createWill(pA, pB, pC, willCreationPubSignals, willJson1, cid1, testator, estates, salt1);
+        vm.prank(executor);
+        address willContract1 =
+            factory.createWill(pA, pB, pC, willCreationPubSignals, willJson1, cid1, testator, estates, salt1);
 
         // Create second will
         vm.warp(block.timestamp + 1);
@@ -271,7 +303,9 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid2, signature2);
         vm.warp(block.timestamp + 1);
 
-        address willContract2 = factory.createWill(pA, pB, pC, willCreationPubSignals, willJson2, cid2, testator, estates, salt2);
+        vm.prank(executor);
+        address willContract2 =
+            factory.createWill(pA, pB, pC, willCreationPubSignals, willJson2, cid2, testator, estates, salt2);
 
         // Verify both wills exist and are different
         assertEq(factory.wills(cid1), willContract1);

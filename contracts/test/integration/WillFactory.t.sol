@@ -112,7 +112,7 @@ contract WillFactoryIntegrationTest is Test {
                     willTypedJsonObj: willTypedJsonObj,
                     cid: "bagaaieraefc2woszrhvcuqmfrnayst7coljauh6rfhcyx3o7pkxg2o3k2yza",
                     cidUploadProof: cidUploadProof,
-                    willCreationProof: willCreationProof, 
+                    willCreationProof: willCreationProof,
                     executorSignature: hex"43c146572dc9a4b648659717ae95cedd8ee0f8c93f5b4828d27ea9cb416b90d20ecb5f5f53602b443074295c298979ab3bb6a9c1dd9e9e645371fc914d169e721c"
                 })
             );
@@ -124,9 +124,16 @@ contract WillFactoryIntegrationTest is Test {
 
         // Step 1: Upload CID
         vm.expectEmit(true, true, false, true);
-        emit WillFactory.CIDUploaded(tv.cid, block.timestamp);
+        emit WillFactory.CidUploaded(tv.cid, block.timestamp);
 
-        willFactory.uploadCid(tv.cidUploadProof.pA, tv.cidUploadProof.pB, tv.cidUploadProof.pC, tv.cidUploadProof.pubSignals, tv.willTypedJsonObj, tv.cid);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
 
         // Verify upload
         vm.prank(executor);
@@ -137,7 +144,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.warp(block.timestamp + 1);
 
         vm.expectEmit(true, false, false, true);
-        emit WillFactory.CIDNotarized(tv.cid, block.timestamp);
+        emit WillFactory.CidNotarized(tv.cid, block.timestamp);
 
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
@@ -154,6 +161,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, true, false, true);
         emit WillFactory.WillCreated(tv.cid, tv.testator, predictedAddress);
 
+        vm.prank(executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -185,10 +193,18 @@ contract WillFactoryIntegrationTest is Test {
 
         // Upload at time T
         uint256 startTime = block.timestamp;
-        willFactory.uploadCid(tv.cidUploadProof.pA, tv.cidUploadProof.pB, tv.cidUploadProof.pC, tv.cidUploadProof.pubSignals, tv.willTypedJsonObj, tv.cid);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
 
         // Try to create will without notarization - should fail
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, tv.cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, tv.cid));
+        vm.prank(executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -205,7 +221,8 @@ contract WillFactoryIntegrationTest is Test {
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CIDNotValidatedByExecutor.selector, tv.cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, tv.cid));
+        vm.prank(executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -223,6 +240,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.executorSignature);
 
+        vm.prank(executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,

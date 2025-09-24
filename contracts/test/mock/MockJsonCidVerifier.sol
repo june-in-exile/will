@@ -15,17 +15,17 @@ contract MockJsonCidVerifier {
         shouldRevert = _shouldRevert;
     }
 
-    function verifyCID(JsonCidVerifier.JsonObject memory, string memory) external view returns (bool) {
+    function verifyCid(JsonCidVerifier.JsonObject memory, string memory) external view returns (bool) {
         if (shouldRevert) {
-            revert("MockJsonCidVerifier: verifyCID reverted");
+            revert("MockJsonCidVerifier: verifyCid reverted");
         }
 
         return shouldReturnTrue;
     }
 
-    function verifyCID(JsonCidVerifier.TypedJsonObject memory, string memory) external view returns (bool) {
+    function verifyCid(JsonCidVerifier.TypedJsonObject memory, string memory) external view returns (bool) {
         if (shouldRevert) {
-            revert("MockJsonCidVerifier: verifyCIDTyped reverted");
+            revert("MockJsonCidVerifier: verifyCidTyped reverted");
         }
 
         return shouldReturnTrue;
