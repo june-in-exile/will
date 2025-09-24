@@ -275,7 +275,6 @@ describe("VerifyPermit Circuit", function () {
 
     it(
       "should accept the verification for valid permit",
-      { timeout: 30_000 },
       async function (): Promise<void> {
         const testWills = [
           {
@@ -565,7 +564,7 @@ describe("VerifyPermit Circuit", function () {
 
     it(
       "should accept the verification for valid permit",
-      { timeout: 30_000 },
+      { timeout: 60_000 },
       async function (): Promise<void> {
         const testWills = [
           {

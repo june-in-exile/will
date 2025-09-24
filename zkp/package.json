@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS='--max-old-space-size=8192' vitest run",
-    "test:auto": "NODE_OPTIONS='--max-old-space-size=8192' vitest run --exclude '**/*.manual.test.ts'",
+    "test:auto": "vitest run --exclude '**/*.manual.test.ts'",
     "test:manual": "vitest run .manual.test.ts",
     "test:abiEncoder": "pnpm exec tsx ./tests/logic/modules/abiEncoder.ts",
     "test:keccak256": "pnpm exec tsx ./tests/logic/modules/keccak256.ts",
@@ -14,7 +14,7 @@
     "test:permitVerify": "pnpm exec tsx ./tests/logic/modules/permitVerify.ts",
     "test:modules": "pnpm exec tsx ./tests/logic/modules/runTests.ts",
     "test:all": "pnpm test:modules && pnpm test:auto --reporter=basic",
-    "e2e": "make circuit",
+    "e2e": "make circuit CIRCUIT=multiplier2 TEMPLATE=Multiplier2",
     "lint": "eslint '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "clean": "make clean-test"

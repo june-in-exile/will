@@ -351,9 +351,7 @@
     "Secp256k1Double": {
       "point doubling on secp256k1 curve": 2955
     },
-    "Secp256k1ScalarMult": {
-      "point multiplication by scalar on secp256k1 curve": 1399441
-    }
+    "Secp256k1ScalarMult": {}
   },
   "sponge": {
     "Padding": {
@@ -390,12 +388,6 @@
     "Utf8StringEncoder": {
       "3-character utf8 string encoder": 882,
       "15-character utf8 string encoder": 15198
-    }
-  },
-  "permitVerify.manual": {
-    "VerifyPermit": {
-      "permit with 1 estate": 2202599,
-      "permit with 2 estates": 2318311
     }
   },
   "willCreation": {

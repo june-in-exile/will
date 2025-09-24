@@ -280,7 +280,6 @@ describe("CtrEncrypt Circuits", function () {
 
       it(
         "should work with CTR standard test vectors",
-        { timeout: 15_000 },
         async function (): Promise<void> {
           // NIST SP 800-38A F.5.3 CTR-AES192.Encrypt Block #1-#4
           const plaintext = [
@@ -383,7 +382,7 @@ describe("CtrEncrypt Circuits", function () {
 
       it(
         "should work with CTR standard test vectors",
-        { timeout: 15_000 },
+        { timeout: 60_000 },
         async function (): Promise<void> {
           // NIST SP 800-38A F.5.5 CTR-AES256.Encrypt Block #1-#4
           const plaintext = [

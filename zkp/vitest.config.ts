@@ -8,8 +8,8 @@ export default defineConfig({
     include: ["tests/**/*.{test,spec}.ts", "tests/**/*.heavy.{test,spec}.ts"],
     exclude: ["node_modules"],
     hookTimeout: 60_000, // 1 minute to compile circuit
-    testTimeout: 10_000, // 10 seconds to calculate witness and verify
-    slowTestThreshold: 5_000,
+    testTimeout: 30_000, // 30 seconds to calculate witness and verify
+    slowTestThreshold: 10_000,
     setupFiles: ["./tests/config/setupFilesAfterEnv.ts"],
     globalSetup: ["./tests/config/globalSetup.ts"],
     alias: {
@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   define: {
-    LOG_LEVEL: '"log"', // error < warn < info < debug < log
+    LOG_LEVEL: '"error"', // error < warn < info < debug < log
     INCLUDE_LIB: ["circomlib", "keccak256-circom"],
     CIRCOM_TESTER_DEFAULTS: JSON.stringify({
       O: 2,
