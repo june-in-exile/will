@@ -191,6 +191,77 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
+    function test_RevokeUnnortarizedCid_Success() public {
+        // Setup: Upload CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.UploadedCidRevoked(cid, block.timestamp);
+
+        // Test: Revoke the unnotarized CID
+        vm.prank(testator);
+        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+
+        // Verify: CID is revoked (upload time reset to 0)
+        vm.prank(executor);
+        assertEq(factory.cidUploadedTimes(cid), 0);
+    }
+
+    function test_RevokeUnnortarizedCid_UnauthorizedCaller() public {
+        // Setup: Upload CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        // Test: Wrong caller should revert
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, executor, testator));
+        vm.prank(executor);
+        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+    }
+
+    function test_RevokeUnnortarizedCid_CidNotUploaded() public {
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, cid));
+
+        vm.prank(testator);
+        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+    }
+
+    function test_RevokeUnnortarizedCid_AlreadyNotarized() public {
+        // Setup: Upload and notarize CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
+
+        // Test: Should revert because CID is already notarized
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, cid));
+        vm.prank(testator);
+        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+    }
+
+    function test_RevokeUnnortarizedCid_CidUploadProofInvalid() public {
+        // Setup: Upload CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        // Test: Invalid proof should revert
+        mockcidUploadVerifier.setShouldReturnTrue(false);
+        vm.expectRevert(WillFactory.CidUploadProofInvalid.selector);
+        vm.prank(testator);
+        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+    }
+
     function test_NotarizeCid_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -410,72 +481,89 @@ contract WillFactoryUnitTest is Test {
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
     }
 
-    // function test_CreateWill_DifferentSalts() public {
-    //     uint256 salt1 = 13579;
-    //     uint256 salt2 = 24680;
+    function test_RevokeNortarizedCid_Success() public {
+        // Setup: Upload and notarize CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-    //     // Different salts result in different wills
-    //     string[] memory keys1 = new string[](1);
-    //     keys1[0] = "salt";
+        vm.warp(block.timestamp + 1);
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
 
-    //     JsonCidVerifier.JsonValue[] memory values1 = new JsonCidVerifier.JsonValue[](1);
-    //     values1[0] = JsonCidVerifier.JsonValue("13579", JsonCidVerifier.JsonValueType(1));
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.NotarizedCidRevoked(cid, block.timestamp);
 
-    //     JsonCidVerifier.TypedJsonObject memory willJson1 =
-    //         JsonCidVerifier.TypedJsonObject({ keys: keys1, values: values1 });
+        // Test: Revoke the notarized CID
+        string memory revokeMessage = string(abi.encodePacked("revoke ", cid));
+        bytes memory revokeSignature = _notarySign(revokeMessage);
+        vm.prank(executor);
+        factory.revokeNortarizedCid(cid, revokeSignature);
 
-    //     string[] memory keys2 = new string[](1);
-    //     keys2[0] = "salt";
+        // Verify: Both upload and notarization times are reset to 0
+        vm.prank(executor);
+        assertEq(factory.cidUploadedTimes(cid), 0);
+        vm.prank(executor);
+        assertEq(factory.cidNotarizedTimes(cid), 0);
+    }
 
-    //     JsonCidVerifier.JsonValue[] memory values2 = new JsonCidVerifier.JsonValue[](1);
-    //     values2[0] = JsonCidVerifier.JsonValue("24680", JsonCidVerifier.JsonValueType(1));
+    function test_RevokeNortarizedCid_UnauthorizedCaller() public {
+        // Setup: Upload and notarize CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-    //     JsonCidVerifier.TypedJsonObject memory willJson2 =
-    //         JsonCidVerifier.TypedJsonObject({ keys: keys2, values: values2 });
+        vm.warp(block.timestamp + 1);
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
 
-    //     // Different wills result in different cids
-    //     string memory cid1 = "cid1";
-    //     string memory cid2 = "cid2";
+        string memory revokeMessage = string(abi.encodePacked("revoke ", cid));
+        bytes memory revokeSignature = _notarySign(revokeMessage);
 
-    //     mockJsonCidVerifier.setShouldReturnTrue(true);
-    //     mockcidUploadVerifier.setShouldReturnTrue(true);
-    //     mockWillCreationVerifier.setShouldReturnTrue(true);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, testator, executor));
+        vm.prank(testator);
+        factory.revokeNortarizedCid(cid, revokeSignature);
+    }
 
-    //     // Create first will
-    //     vm.prank(testator);
-    //     factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid1);
-    //     vm.warp(block.timestamp + 1);
+    function test_RevokeNortarizedCid_CidNotNotarized() public {
+        // Setup: Upload CID but don't notarize
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-    //     bytes memory signature1 = _notarySign(cid1);
-    //     vm.prank(executor);
-    //     factory.notarizeCid(cid1, signature1);
-    //     vm.warp(block.timestamp + 1);
+        string memory revokeMessage = string(abi.encodePacked("revoke ", cid));
+        bytes memory revokeSignature = _notarySign(revokeMessage);
 
-    //     vm.prank(executor);
-    //     address willContract1 =
-    //         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson1, cid1, testator, estates, salt1);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
+        vm.prank(executor);
+        factory.revokeNortarizedCid(cid, revokeSignature);
+    }
 
-    //     // Create second will
-    //     vm.warp(block.timestamp + 1);
+    function test_RevokeNortarizedCid_SignatureInvalid() public {
+        // Setup: Upload and notarize CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-    //     vm.prank(testator);
-    //     factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid2);
-    //     vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 1);
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
 
-    //     bytes memory signature2 = _notarySign(cid2);
-    //     vm.prank(executor);
-    //     factory.notarizeCid(cid2, signature2);
-    //     vm.warp(block.timestamp + 1);
+        // Test: Wrong signature should revert
+        string memory revokeMessage = string(abi.encodePacked("revoke ", cid));
+        bytes memory executorSignature = _executorSign(revokeMessage);
 
-    //     vm.prank(executor);
-    //     address willContract2 =
-    //         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson2, cid2, testator, estates, salt2);
-
-    //     // Verify both wills exist and are different
-    //     assertEq(factory.wills(cid1), willContract1);
-    //     assertEq(factory.wills(cid2), willContract2);
-    //     assertTrue(willContract1 != willContract2);
-    // }
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.SignatureInvalid.selector, cid, executorSignature, notary));
+        vm.prank(executor);
+        factory.revokeNortarizedCid(cid, executorSignature);
+    }
 
     function _notarySign(string memory message) internal view returns (bytes memory) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));

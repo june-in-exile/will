@@ -38,6 +38,7 @@ contract WillFactoryIntegrationTest is Test {
     JsonCidVerifier jsonCidVerifier;
 
     address notary;
+    uint256 notaryPrivateKey;
     address executor;
     address permit2;
     uint8 maxEstates;
@@ -65,10 +66,12 @@ contract WillFactoryIntegrationTest is Test {
         willCreateVerifier = new WillCreationVerifier(address(willCreationConstants1), address(willCreationConstants2));
         jsonCidVerifier = new JsonCidVerifier();
 
-        notary = 0xc052e703B3e22987c4e9AbA03549D7C3236bE5d3;
-        executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
-        permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
-        maxEstates = 2;
+        // Read addresses from environment variables
+        notaryPrivateKey = uint256(vm.envBytes32("NOTARY_PRIVATE_KEY"));
+        notary = vm.addr(notaryPrivateKey);
+        executor = vm.envAddress("EXECUTOR");
+        permit2 = vm.envAddress("PERMIT2");
+        maxEstates = uint8(vm.envUint("MAX_ESTATES"));
 
         willFactory = new WillFactory(
             address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, executor, permit2, maxEstates
@@ -240,6 +243,159 @@ contract WillFactoryIntegrationTest is Test {
         );
 
         assertEq(willFactory.wills(tv.cid), willAddress);
+    }
+
+    function test_RevokeUnnortarizedCid_Integration() public {
+        TestVector memory tv = testVectors[0];
+
+        // Step 1: Upload CID
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+
+        // Verify upload
+        vm.prank(executor);
+        uint256 uploadTime = willFactory.cidUploadedTimes(tv.cid);
+        assertEq(uploadTime, block.timestamp);
+
+        // Step 2: Revoke the unnotarized CID
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.UploadedCidRevoked(tv.cid, block.timestamp);
+
+        vm.prank(tv.testator);
+        willFactory.revokeUnnortarizedCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.cid
+        );
+
+        // Verify revocation - upload time should be reset to 0
+        vm.prank(executor);
+        assertEq(willFactory.cidUploadedTimes(tv.cid), 0);
+
+        // Step 3: Verify that after revocation, we can upload the same CID again
+        vm.warp(block.timestamp + 1);
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+
+        vm.prank(executor);
+        uint256 newUploadTime = willFactory.cidUploadedTimes(tv.cid);
+        assertEq(newUploadTime, block.timestamp);
+        assertTrue(newUploadTime > uploadTime);
+    }
+
+    function test_RevokeNortarizedCid_Integration() public {
+        TestVector memory tv = testVectors[0];
+
+        // Step 1: Upload CID
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+
+        // Step 2: Notarize CID
+        vm.warp(block.timestamp + 1);
+        vm.prank(executor);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
+
+        // Verify notarization
+        vm.prank(executor);
+        uint256 notarizeTime = willFactory.cidNotarizedTimes(tv.cid);
+        assertTrue(notarizeTime > 0);
+
+        // Step 3: Revoke the notarized CID with proper notary signature
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.NotarizedCidRevoked(tv.cid, block.timestamp);
+
+        // Create notary signature for revocation message "revoke {cid}"
+        string memory revokeMessage = string(abi.encodePacked("revoke ", tv.cid));
+        bytes32 messageHash = keccak256(abi.encodePacked(revokeMessage));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+
+        // Use the actual notary private key from environment
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
+        bytes memory revokeSignature = abi.encodePacked(r, s, v);
+
+        vm.prank(executor);
+        willFactory.revokeNortarizedCid(tv.cid, revokeSignature);
+
+        // Verify revocation - both times should be reset to 0
+        vm.prank(executor);
+        assertEq(willFactory.cidUploadedTimes(tv.cid), 0);
+        vm.prank(executor);
+        assertEq(willFactory.cidNotarizedTimes(tv.cid), 0);
+
+        // Step 4: Verify that after revocation, we can upload and notarize the same CID again
+        vm.warp(block.timestamp + 1);
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(executor);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
+
+        // Verify re-upload and re-notarization worked
+        vm.prank(executor);
+        assertTrue(willFactory.cidUploadedTimes(tv.cid) > 0);
+        vm.prank(executor);
+        assertTrue(willFactory.cidNotarizedTimes(tv.cid) > 0);
+    }
+
+    function test_RevokeWorkflow_CannotRevokeNotarizedWithUnnortarizedFunction() public {
+        TestVector memory tv = testVectors[0];
+
+        // Upload and notarize CID
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(executor);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
+
+        // Try to revoke notarized CID with revokeUnnortarizedCid - should fail
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, tv.cid));
+        vm.prank(tv.testator);
+        willFactory.revokeUnnortarizedCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.cid
+        );
     }
 
     function _getTestDataFromEnv() internal view returns (

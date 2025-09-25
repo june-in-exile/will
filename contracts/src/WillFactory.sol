@@ -28,6 +28,9 @@ contract WillFactory {
     event CidNotarized(string indexed cid, uint256 timestamp);
     event WillCreated(string indexed cid, address indexed testator, address will);
 
+    event UploadedCidRevoked(string indexed cid, uint256 timestamp);
+    event NotarizedCidRevoked(string indexed cid, uint256 timestamp);
+
     error UnauthorizedCaller(address caller, address expectedCaller);
 
     error AlreadyUploaded(string cid);
@@ -82,13 +85,13 @@ contract WillFactory {
         return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
     }
 
-    function _recoverSigner(string calldata message, bytes memory signature) internal pure returns (address) {
+    function _recoverSigner(string memory message, bytes memory signature) internal pure returns (address) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
         return ethSignedMessageHash.recover(signature);
     }
 
-    function _verifySignature(string calldata message, bytes memory signature, address expectedSigner)
+    function _verifySignature(string memory message, bytes memory signature, address expectedSigner)
         internal
         pure
         returns (bool)
@@ -160,7 +163,28 @@ contract WillFactory {
         emit CidUploaded(_cid, block.timestamp);
     }
 
+    function revokeUnnortarizedCid(
+        uint256[2] calldata _pA,
+        uint256[2][2] calldata _pB,
+        uint256[2] calldata _pC,
+        uint256[286] calldata _pubSignals,
+        string calldata _cid
+    ) external {
+        address testator = address(uint160(_pubSignals[0]));
+        if (msg.sender != testator) revert UnauthorizedCaller(msg.sender, testator);
+
+        if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
+        /* Notarized CID should be revoked by executor */
+        if (_cidNotarizedTimes[_cid] > _cidUploadedTimes[_cid]) revert AlreadyNotarized(_cid);
+
+        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
+
+        _cidUploadedTimes[_cid] = 0;
+        emit UploadedCidRevoked(_cid, block.timestamp);
+    }
+
     function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
+        /* Upload and notarization of CID cannot be in the same block */
         if (_cidUploadedTimes[_cid] == 0 || _cidUploadedTimes[_cid] >= block.timestamp) revert CidNotUploaded(_cid);
 
         if (_cidNotarizedTimes[_cid] > _cidUploadedTimes[_cid]) revert AlreadyNotarized(_cid);
@@ -169,6 +193,17 @@ contract WillFactory {
 
         _cidNotarizedTimes[_cid] = block.timestamp;
         emit CidNotarized(_cid, block.timestamp);
+    }
+
+    function revokeNortarizedCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
+        if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
+
+        string memory message = string(abi.encodePacked("revoke ", _cid));
+        if (!_verifySignature(message, _signature, notary)) revert SignatureInvalid(_cid, _signature, notary);
+
+        _cidUploadedTimes[_cid] = 0;
+        _cidNotarizedTimes[_cid] = 0;
+        emit NotarizedCidRevoked(_cid, block.timestamp);
     }
 
     function createWill(
