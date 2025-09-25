@@ -111,7 +111,7 @@ contract WillFactoryFuzzTest is Test {
 
     function test_UploadCid_RevertOnWrongCiphertext(uint256 seed) public {
         vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
-
+        
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockCidUploadVerifier.setShouldReturnTrue(true);
 
@@ -119,10 +119,12 @@ contract WillFactoryFuzzTest is Test {
 
         // Create a modified will JSON with wrong ciphertext
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
-        // Modify the ciphertext array to create a mismatch
-        if (modifiedWill.values[3].numberArray.length > 0) {
-            modifiedWill.values[3].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
-        }
+        // Store original value and ensure we modify it to something different
+        require(modifiedWill.values[3].numberArray.length > 0, "Ciphertext array is empty");
+        uint256 originalValue = modifiedWill.values[3].numberArray[0];
+        // Ensure the new value is different from the original
+        vm.assume(seed != originalValue);
+        modifiedWill.values[3].numberArray[0] = seed;
 
         vm.prank(testator);
         vm.expectRevert(WillFactory.WrongCiphertext.selector);
@@ -146,13 +148,15 @@ contract WillFactoryFuzzTest is Test {
 
         // Create a modified will JSON with wrong initialization vector
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
-        // Modify the IV array (values[1]) to create a mismatch
-        if (modifiedWill.values[1].numberArray.length > 0) {
-            modifiedWill.values[1].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
-        }
+        // Store original value and ensure we modify it to something different
+        require(modifiedWill.values[1].numberArray.length > 0, "IV array is empty");
+        uint256 originalValue = modifiedWill.values[1].numberArray[0];
+        // Ensure the new value is different from the original
+        vm.assume(seed != originalValue);
+        modifiedWill.values[1].numberArray[0] = seed;
 
-        vm.prank(testator);
         vm.expectRevert(WillFactory.WrongInitializationVector.selector);
+        vm.prank(testator);
         factory.uploadCid(
             cidUploadProof.pA,
             cidUploadProof.pB,
@@ -163,35 +167,6 @@ contract WillFactoryFuzzTest is Test {
         );
     }
 
-    function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, uint256 wrongPrivateKey) public {
-        vm.assume(bytes(cid).length > 0);
-        vm.assume(
-            wrongPrivateKey > 0 && wrongPrivateKey < 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
-        );
-
-        address wrongSigner = vm.addr(wrongPrivateKey);
-        vm.assume(wrongSigner != notary);
-
-        mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockCidUploadVerifier.setShouldReturnTrue(true);
-
-        address testator = address(uint160(cidUploadProof.pubSignals[0]));
-        vm.prank(testator);
-        factory.uploadCid(cidUploadProof.pA, cidUploadProof.pB, cidUploadProof.pC, cidUploadProof.pubSignals, willJson, cid);
-
-        vm.warp(block.timestamp + 1);
-
-        // Create a valid signature but from wrong signer
-        bytes32 messageHash = keccak256(abi.encodePacked(cid));
-        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPrivateKey, ethSignedMessageHash);
-        bytes memory wrongSignature = abi.encodePacked(r, s, v);
-
-        // vm.expectRevert(WillFactory.SignatureInvalid.selector);
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.SignatureInvalid.selector, cid, wrongSignature, notary));
-        vm.prank(executor);
-        factory.notarizeCid(cid, wrongSignature);
-    }
 
     function test_CreateWill_RevertOnWrongCiphertext(uint256 seed) public {
         vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
@@ -216,24 +191,21 @@ contract WillFactoryFuzzTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes32 messageHash = keccak256(abi.encodePacked(cid));
-        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
-        bytes memory signature = abi.encodePacked(r, s, v);
-
-        vm.prank(executor);
-        factory.notarizeCid(cid, signature);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
 
         vm.warp(block.timestamp + 1);
 
         // Create a modified will JSON with wrong ciphertext
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
-        if (modifiedWill.values[3].numberArray.length > 0) {
-            modifiedWill.values[3].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
-        }
+        require(modifiedWill.values[3].numberArray.length > 0, "Ciphertext array is empty");
+        uint256 originalValue = modifiedWill.values[3].numberArray[0];
+        // Ensure the new value is different from the original
+        vm.assume(seed != originalValue);
+        modifiedWill.values[3].numberArray[0] = seed;
 
-        vm.prank(executor);
         vm.expectRevert(WillFactory.WrongCiphertext.selector);
+        vm.prank(executor);
         factory.createWill(
             willCreationProof.pA,
             willCreationProof.pB,
@@ -246,7 +218,7 @@ contract WillFactoryFuzzTest is Test {
 
     function test_CreateWill_RevertOnWrongInitializationVector(uint256 seed) public {
         vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
-
+        
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockCidUploadVerifier.setShouldReturnTrue(true);
         mockWillCreationVerifier.setShouldReturnTrue(true);
@@ -267,22 +239,18 @@ contract WillFactoryFuzzTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes32 messageHash = keccak256(abi.encodePacked(cid));
-        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
-        bytes memory signature = abi.encodePacked(r, s, v);
-
-        vm.prank(executor);
-        factory.notarizeCid(cid, signature);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
 
         vm.warp(block.timestamp + 1);
 
         // Create a modified will JSON with wrong initialization vector
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
-        // Modify the IV array (values[1]) to create a mismatch
-        if (modifiedWill.values[1].numberArray.length > 0) {
-            modifiedWill.values[1].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
-        }
+        require(modifiedWill.values[1].numberArray.length > 0, "IV array is empty");
+        uint256 originalValue = modifiedWill.values[1].numberArray[0];
+        // Ensure the new value is different from the original
+        vm.assume(seed != originalValue);
+        modifiedWill.values[1].numberArray[0] = seed;
 
         vm.prank(executor);
         vm.expectRevert(WillFactory.WrongInitializationVector.selector);
@@ -294,18 +262,6 @@ contract WillFactoryFuzzTest is Test {
             modifiedWill,
             cid
         );
-    }
-
-    function test_OnlyAuthorizedModifier(address unauthorizedCaller, string calldata cid) public {
-        vm.assume(unauthorizedCaller != executor);
-        vm.assume(bytes(cid).length > 0);
-
-        vm.prank(unauthorizedCaller);
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, unauthorizedCaller, executor));
-        factory.cidUploadedTimes(cid);
-
-        vm.prank(executor);
-        factory.cidUploadedTimes(cid); // Should not revert
     }
 
     function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {

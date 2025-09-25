@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: clean phase1 phase2 phase3
+all: clean testatorUploadsEncryptedWill notarySignsCid executorTransfersEstates
 
 clean:
 	@echo "Resetting environment variables..."
@@ -28,7 +28,7 @@ clean:
 	@@echo "Initialization completed"
 
 
-phase1: approve-permit2 predict-address sign-permit serialize-will encrypt-will prove-for-cid-upload upload-will upload-cid
+testatorUploadsEncryptedWill: approve-permit2 predict-address sign-permit serialize-will encrypt-will prove-for-cid-upload upload-will upload-cid
 
 approve-permit2:
 	@pnpm exec tsx src/onchain/permit2/approveTokenPermit2.ts
@@ -55,7 +55,7 @@ upload-cid:
 	@pnpm exec tsx src/onchain/willFactory/uploadCid.ts
 
 
-phase2: download-will decrypt-will deserialize-will sign-cid notarize-cid
+notarySignsCid: download-will decrypt-will deserialize-will sign-cid notarize-cid
 
 download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
@@ -76,7 +76,7 @@ notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
-phase3: prove-for-will-creation create-will signature-transfer
+executorTransfersEstates: prove-for-will-creation create-will signature-transfer
 
 prove-for-will-creation:
 	@pnpm exec tsx src/offchain/zkp/willCreation.ts

@@ -65,7 +65,7 @@ interface CryptoConfig {
   maxPlaintextSize: number;
   maxCiphertextSize: number;
   plaintextEncoding: Encoding;
-  ciphertextEncoding: Encoding;
+  // ciphertextEncoding: Encoding;
   paths: {
     keyFile: string;
   };
@@ -409,7 +409,7 @@ export const SALT_CONFIG: SaltConfig = {
 // ================================
 export const PERMIT2_CONFIG: Permit2Config = {
   // Default duration
-  defaultDuration: 365 * 24 * 60 * 60 * 1000, // 1 year in milliseconds
+  defaultDuration: 100 * 365 * 24 * 60 * 60 * 1000, // 100 year in milliseconds
 
   // Nonce generation
   maxNonceBytes: 16,
