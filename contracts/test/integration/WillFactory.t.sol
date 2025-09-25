@@ -219,7 +219,8 @@ contract WillFactoryIntegrationTest is Test {
             tv.salt
         );
 
-        // Notarize at time T (same as upload) - should fail creation
+        // Notarize at time T (same as upload) - should fail
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, tv.cid));
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
@@ -237,11 +238,18 @@ contract WillFactoryIntegrationTest is Test {
             tv.salt
         );
 
-        // Fast forward time and re-notarize - should succeed
-        vm.warp(startTime + 100);
+        // Fast forward time and notarize - should success
+        vm.warp(startTime + 1);
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
+        // Fast forward time and re-notarize - should fail
+        vm.warp(startTime + 1);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, tv.cid));
+        vm.prank(executor);
+        willFactory.notarizeCid(tv.cid, tv.notarySignature);
+
+        // Create Will with "notarization time > upload time" - should success
         vm.prank(executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,

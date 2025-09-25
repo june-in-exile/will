@@ -104,6 +104,16 @@ contract WillFactoryUnitTest is Test {
         assertEq(factory.testatorValidateTimes(cid), block.timestamp);
     }
 
+    function test_UploadCid_AlreadyUploaded() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyUploaded.selector, cid));
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+    }
+
     function test_UploadCid_JsonCidInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(false);
 
@@ -126,12 +136,14 @@ contract WillFactoryUnitTest is Test {
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
+        vm.warp(block.timestamp + 1);
+
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidNotarized(cid, block.timestamp);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.prank(executor);
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
     }
 
     function test_NotarizeCid_UnauthorizedCaller() public {
@@ -139,9 +151,25 @@ contract WillFactoryUnitTest is Test {
         mockcidUploadVerifier.setShouldReturnTrue(true);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, address(this), executor));
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
+    }
+
+    function test_NotarizeCid_AlreadyNotarized() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, cid));
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
     }
 
     function test_NotarizeCid_CidNotValidatedByTestator() public {
@@ -153,6 +181,19 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid, signature);
     }
 
+    function test_NotarizeCid_SignatureInvalid() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        bytes memory executorSignature = _executorSign(cid);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.SignatureInvalid.selector, cid, executorSignature, notary));
+        vm.prank(executor);
+        factory.notarizeCid(cid, executorSignature);
+    }
+
     function test_CreateWill_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -160,9 +201,9 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.prank(executor);
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
@@ -186,9 +227,9 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.prank(executor);
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
@@ -219,9 +260,9 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.prank(executor);
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
 
         mockWillCreationVerifier.setShouldReturnTrue(false);
 
@@ -239,9 +280,9 @@ contract WillFactoryUnitTest is Test {
 
         vm.warp(block.timestamp + 1);
 
-        bytes memory executorSignature = _notarySign(cid);
+        bytes memory notarySignature = _notarySign(cid);
         vm.prank(executor);
-        factory.notarizeCid(cid, executorSignature);
+        factory.notarizeCid(cid, notarySignature);
 
         // Create first will
         vm.prank(executor);
@@ -326,10 +367,10 @@ contract WillFactoryUnitTest is Test {
         return abi.encodePacked(r, s, v);
     }
 
-    // function _executorSign(string memory message) internal view returns (bytes memory) {
-    //     bytes32 messageHash = keccak256(abi.encodePacked(message));
-    //     bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(executorPrivateKey, ethSignedMessageHash);
-    //     return abi.encodePacked(r, s, v);
-    // }
+    function _executorSign(string memory message) internal view returns (bytes memory) {
+        bytes32 messageHash = keccak256(abi.encodePacked(message));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(executorPrivateKey, ethSignedMessageHash);
+        return abi.encodePacked(r, s, v);
+    }
 }

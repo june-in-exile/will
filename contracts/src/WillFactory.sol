@@ -28,12 +28,18 @@ contract WillFactory {
     event WillCreated(string indexed cid, address indexed testator, address will);
 
     error UnauthorizedCaller(address caller, address expectedCaller);
-    error JsonCidInvalid(string cid);
-    error CidUploadProofInvalid();
-    error SignatureInvalid();
-    error WillCreationProofInvalid();
+    
+    error AlreadyUploaded(string cid);
+    error AlreadyNotarized(string cid);
+
     error CidNotValidatedByTestator(string cid);
     error CidNotValidatedByExecutor(string cid);
+
+    error JsonCidInvalid(string cid);
+    error CidUploadProofInvalid();
+    error SignatureInvalid(string _cid, bytes _signature, address signer);
+    error WillCreationProofInvalid();
+
     error WillAlreadyExists(string cid, address existingWill);
     error WillAddressInconsistent(address predicted, address actual);
 
@@ -54,10 +60,16 @@ contract WillFactory {
     }
 
     modifier onlyAuthorized() {
-        if (msg.sender != executor) {
-            revert UnauthorizedCaller(msg.sender, executor);
-        }
+        if (msg.sender != executor) revert UnauthorizedCaller(msg.sender, executor);
         _;
+    }
+
+    function testatorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
+        return _testatorValidateTimes[_cid];
+    }
+
+    function executorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
+        return _executorValidateTimes[_cid];
     }
 
     function _recoverSigner(string calldata message, bytes memory signature) internal pure returns (address) {
@@ -73,47 +85,6 @@ contract WillFactory {
 
     function verifySignature(string calldata message, bytes memory signature, address expectedSigner) external pure returns (bool) {
         return _verifySignature(message, signature, expectedSigner);
-    }
-
-    function testatorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
-        return _testatorValidateTimes[_cid];
-    }
-
-    function executorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
-        return _executorValidateTimes[_cid];
-    }
-
-    function uploadCid(
-        uint256[2] calldata _pA,
-        uint256[2][2] calldata _pB,
-        uint256[2] calldata _pC,
-        uint256[285] calldata _pubSignals,
-        JsonCidVerifier.TypedJsonObject memory _will,
-        string calldata _cid
-    ) external {
-        bool isValid = jsonCidVerifier.verifyCid(_will, _cid);
-
-        if (!isValid) revert JsonCidInvalid(_cid);
-
-        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
-            revert CidUploadProofInvalid();
-        }
-
-        // @todo should check if the testator in pubSignals is the msg.sender
-
-        _testatorValidateTimes[_cid] = block.timestamp;
-        emit CidUploaded(_cid, block.timestamp);
-    }
-
-    function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
-        if (_testatorValidateTimes[_cid] == 0) {
-            revert CidNotValidatedByTestator(_cid);
-        }
-
-        if (!_verifySignature(_cid, _signature, notary)) revert SignatureInvalid();
-
-        _executorValidateTimes[_cid] = block.timestamp;
-        emit CidNotarized(_cid, block.timestamp);
     }
 
     function _predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
@@ -137,6 +108,37 @@ contract WillFactory {
         return _predictWill(_testator, estates, _salt);
     }
 
+    function uploadCid(
+        uint256[2] calldata _pA,
+        uint256[2][2] calldata _pB,
+        uint256[2] calldata _pC,
+        uint256[285] calldata _pubSignals,
+        JsonCidVerifier.TypedJsonObject memory _will,
+        string calldata _cid
+    ) external {
+        if (_testatorValidateTimes[_cid] > 0) revert AlreadyUploaded(_cid);
+
+        if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
+
+        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
+
+        // @todo should check if the testator in pubSignals is the msg.sender
+
+        _testatorValidateTimes[_cid] = block.timestamp;
+        emit CidUploaded(_cid, block.timestamp);
+    }
+
+    function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
+        if (_testatorValidateTimes[_cid] == 0 || _testatorValidateTimes[_cid] >= block.timestamp) revert CidNotValidatedByTestator(_cid);
+
+        if (_executorValidateTimes[_cid] > _testatorValidateTimes[_cid]) revert AlreadyNotarized(_cid);
+
+        if (!_verifySignature(_cid, _signature, notary)) revert SignatureInvalid(_cid, _signature, notary);
+
+        _executorValidateTimes[_cid] = block.timestamp;
+        emit CidNotarized(_cid, block.timestamp);
+    }
+
     function createWill(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
@@ -148,30 +150,18 @@ contract WillFactory {
         Will.Estate[] calldata _estates,
         uint256 _salt
     ) external onlyAuthorized returns (address) {
-        if (_testatorValidateTimes[_cid] == 0) {
-            revert CidNotValidatedByTestator(_cid);
-        }
-        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]) {
-            revert CidNotValidatedByExecutor(_cid);
-        }
+        if (_testatorValidateTimes[_cid] == 0) revert CidNotValidatedByTestator(_cid);
+        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]) revert CidNotValidatedByExecutor(_cid);
 
-        bool isValid = jsonCidVerifier.verifyCid(_will, _cid);
-
-        if (!isValid) revert JsonCidInvalid(_cid);
+        if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
         // @todo should check if (testator,estates) in pubSignals is the same as in pubSignals
-        if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) {
-            revert WillCreationProofInvalid();
-        }
-        if (wills[_cid] != address(0)) {
-            revert WillAlreadyExists(_cid, wills[_cid]);
-        }
+        if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert WillCreationProofInvalid();
+        if (wills[_cid] != address(0)) revert WillAlreadyExists(_cid, wills[_cid]);
 
         Will will = new Will{ salt: bytes32(_salt) }(permit2, _testator, executor, _estates);
         address predictedAddress = _predictWill(_testator, _estates, _salt);
-        if (address(will) != predictedAddress) {
-            revert WillAddressInconsistent(predictedAddress, address(will));
-        }
+        if (address(will) != predictedAddress) revert WillAddressInconsistent(predictedAddress, address(will));
 
         wills[_cid] = address(will);
         emit WillCreated(_cid, _testator, address(will));

@@ -103,6 +103,8 @@ contract WillFactoryFuzzTest is Test {
         }
 
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
+        
+        vm.warp(block.timestamp + 1);
 
         // Create a valid signature but from wrong signer
         bytes32 messageHash = keccak256(abi.encodePacked(cid));
@@ -110,7 +112,8 @@ contract WillFactoryFuzzTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(wrongPrivateKey, ethSignedMessageHash);
         bytes memory wrongSignature = abi.encodePacked(r, s, v);
 
-        vm.expectRevert(WillFactory.SignatureInvalid.selector);
+        // vm.expectRevert(WillFactory.SignatureInvalid.selector);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.SignatureInvalid.selector, cid, wrongSignature, notary));
         vm.prank(executor);
         factory.notarizeCid(cid, wrongSignature);
     }
