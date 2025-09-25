@@ -12,9 +12,7 @@ function getJsonValueTypeString(valueType: number): string {
     case 1:
       return "NUMBER";
     case 2:
-      return "BOOLEAN";
-    case 3:
-      return "NULL";
+      return "NUMBER_ARRAY";
     default:
       throw new Error("Invalid JsonValueType");
   }
@@ -35,7 +33,7 @@ function printEncryptedWillJson(
       chalk.gray(`  [${index}]`),
       chalk.cyan(key),
       chalk.gray("=>"),
-      chalk.white(`{value: ${jsonValue.value}, valueType: ${valueType}}`),
+      chalk.white(`{value: ${jsonValue.value}, numberArray: ${jsonValue.numberArray}, valueType: ${valueType}}`),
     );
   });
 }

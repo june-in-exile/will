@@ -23,7 +23,7 @@ import {
 } from "@shared/utils/file/index.js";
 import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
-import { printProof } from "@shared/utils/print.js";
+import { printEncryptedWillJson, printProof } from "@shared/utils/print.js";
 import preview from "@shared/utils/transform/preview.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
@@ -63,6 +63,8 @@ function printUploadCidData(uploadData: UploadCidData): void {
 
   console.log(chalk.blue("\n📋 CID Information:"));
   console.log(chalk.gray("- CID:"), chalk.white(uploadData.cid));
+
+  printEncryptedWillJson(uploadData.will);
 
   printProof(uploadData.proof);
 

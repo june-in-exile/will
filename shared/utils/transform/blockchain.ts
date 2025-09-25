@@ -39,13 +39,13 @@ function encryptedWillToJsonObject(
     values.push(encryptedWillData.algorithm);
 
     keys.push("iv");
-    values.push(encryptedWillData.iv);
+    values.push(JSON.stringify(encryptedWillData.iv));
 
     keys.push("authTag");
-    values.push(encryptedWillData.authTag);
+    values.push(JSON.stringify(encryptedWillData.authTag));
 
     keys.push("ciphertext");
-    values.push(encryptedWillData.ciphertext);
+    values.push(JSON.stringify(encryptedWillData.ciphertext));
 
     keys.push("timestamp");
     values.push(encryptedWillData.timestamp.toString());
@@ -76,30 +76,35 @@ function encryptedWillToTypedJsonObject(
     keys.push("algorithm");
     values.push({
       value: encryptedWillData.algorithm,
+      numberArray: [],
       valueType: 0, // JsonValueType.STRING
     });
 
     keys.push("iv");
     values.push({
-      value: encryptedWillData.iv,
-      valueType: 0, // JsonValueType.STRING
+      value: "",
+      numberArray: encryptedWillData.iv,
+      valueType: 2, // JsonValueType.NUMBER_ARRAY
     });
 
     keys.push("authTag");
     values.push({
-      value: encryptedWillData.authTag,
-      valueType: 0, // JsonValueType.STRING
+      value: "",
+      numberArray: encryptedWillData.authTag,
+      valueType: 2, // JsonValueType.NUMBER_ARRAY
     });
 
     keys.push("ciphertext");
     values.push({
-      value: encryptedWillData.ciphertext,
-      valueType: 0, // JsonValueType.STRING
+      value: "",
+      numberArray: encryptedWillData.ciphertext,
+      valueType: 2, // JsonValueType.NUMBER_ARRAY
     });
 
     keys.push("timestamp");
     values.push({
       value: encryptedWillData.timestamp.toString(),
+      numberArray: [],
       valueType: 1, // JsonValueType.NUMBER
     });
 
