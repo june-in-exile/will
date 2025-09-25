@@ -23,10 +23,10 @@ function getDecryptionArgs(type: WillType): DecryptionArgs {
   const encryptedWill: EncryptedWill | DownloadedWill = readWill(type);
 
   const algorithm: SupportedAlgorithm = encryptedWill.algorithm;
-  const ciphertext = Buffer.from(encryptedWill.ciphertext, "base64");
+  const ciphertext = Buffer.from(encryptedWill.ciphertext);
   const key = getKey();
-  const iv = Buffer.from(encryptedWill.iv, "base64");
-  const authTag = Buffer.from(encryptedWill.authTag, "base64");
+  const iv = Buffer.from(encryptedWill.iv);
+  const authTag = Buffer.from(encryptedWill.authTag);
 
   return { algorithm, ciphertext, key, iv, authTag };
 }

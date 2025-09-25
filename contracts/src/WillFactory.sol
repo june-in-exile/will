@@ -36,6 +36,9 @@ contract WillFactory {
     error CidNotUploaded(string cid);
     error CidNotNotarized(string cid);
 
+    error WrongCiphertext();
+    error WrongInitializationVector();
+
     error JsonCidInvalid(string cid);
     error CidUploadProofInvalid();
     error SignatureInvalid(string _cid, bytes _signature, address signer);

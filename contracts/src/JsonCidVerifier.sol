@@ -18,12 +18,12 @@ contract JsonCidVerifier {
     enum JsonValueType {
         STRING,
         NUMBER,
-        BOOLEAN,
-        NULL
+        NUMBER_ARRAY
     }
 
     struct JsonValue {
         string value;
+        uint256[] numberArray;
         JsonValueType valueType;
     }
 
@@ -35,25 +35,35 @@ contract JsonCidVerifier {
     constructor() { }
 
     function verifyCid(JsonObject memory jsonObj, string memory cid) external pure returns (bool) {
-        return stringEquals(generateCidString(jsonObj), cid);
+        return stringEquals(_generateCidString(jsonObj), cid);
     }
 
     function verifyCid(TypedJsonObject memory typedJsonObj, string memory cid) external pure returns (bool) {
-        return stringEquals(generateCidString(typedJsonObj), cid);
+        return stringEquals(_generateCidString(typedJsonObj), cid);
     }
 
-    function generateCidString(JsonObject memory jsonObj) public pure returns (string memory) {
+    function generateCidString(JsonObject memory jsonObj) external pure returns (string memory) {
         string memory json = buildStandardizedJson(jsonObj);
         return _generateCidString(json);
     }
 
-    function generateCidString(TypedJsonObject memory typedJsonObj) public pure returns (string memory) {
+    function _generateCidString(JsonObject memory jsonObj) internal pure returns (string memory) {
+        string memory json = buildStandardizedJson(jsonObj);
+        return _generateCidString(json);
+    }
+
+    function generateCidString(TypedJsonObject memory typedJsonObj) external pure returns (string memory) {
+        string memory json = buildStandardizedJson(typedJsonObj);
+        return _generateCidString(json);
+    }
+
+    function _generateCidString(TypedJsonObject memory typedJsonObj) internal pure returns (string memory) {
         string memory json = buildStandardizedJson(typedJsonObj);
         return _generateCidString(json);
     }
 
     function _generateCidString(string memory json) internal pure returns (string memory) {
-        bytes memory jsonBytes = getJsonBytes(json);
+        bytes memory jsonBytes = bytes(json);
         bytes memory multihash = getMultihash(jsonBytes);
         bytes memory cidBytes = getCidBytes(multihash);
         return getCidString(cidBytes);
@@ -100,10 +110,8 @@ contract JsonCidVerifier {
                 json = string.concat(json, '"', val.value, '"');
             } else if (val.valueType == JsonValueType.NUMBER) {
                 json = string.concat(json, val.value);
-            } else if (val.valueType == JsonValueType.BOOLEAN) {
-                json = string.concat(json, val.value); // "true" or "false"
-            } else if (val.valueType == JsonValueType.NULL) {
-                json = string.concat(json, "null");
+            } else if (val.valueType == JsonValueType.NUMBER_ARRAY) {
+                json = string.concat(json, buildNumberArray(val.numberArray));
             }
         }
 
@@ -111,8 +119,41 @@ contract JsonCidVerifier {
         return json;
     }
 
-    function getJsonBytes(string memory json) public pure returns (bytes memory) {
-        return bytes(json);
+    function buildNumberArray(uint256[] memory numbers) internal pure returns (string memory) {
+        string memory result = "[";
+        
+        for (uint256 i = 0; i < numbers.length; i++) {
+            if (i > 0) {
+                result = string.concat(result, ",");
+            }
+            result = string.concat(result, uint256ToString(numbers[i]));
+        }
+        
+        result = string.concat(result, "]");
+        return result;
+    }
+
+    function uint256ToString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+        
+        uint256 temp = value;
+        uint256 digits;
+        
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        
+        return string(buffer);
     }
 
     function getMultihash(bytes memory jsonBytes) public pure returns (bytes memory) {

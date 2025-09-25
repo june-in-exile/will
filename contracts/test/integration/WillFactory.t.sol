@@ -114,13 +114,6 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidUploaded(tv.cid, block.timestamp);
 
-        console.log(tv.cidUploadProof.pA[0]);
-        console.log(tv.cidUploadProof.pA[1]);
-
-        console.log(tv.cidUploadProof.pubSignals[0]);
-        console.log(tv.cidUploadProof.pubSignals[1]);
-        console.log(tv.cidUploadProof.pubSignals[2]);
-
         vm.prank(tv.testator);
         willFactory.uploadCid(
             tv.cidUploadProof.pA,
@@ -292,16 +285,16 @@ contract WillFactoryIntegrationTest is Test {
         willTypedJsonObj.keys[4] = "timestamp";
 
         string memory algorithm = abi.decode(vm.parseJson(encryptedJson, ".algorithm"), (string));
-        string memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (string));
-        string memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (string));
-        string memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (string));
+        uint256[] memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (uint256[]));
+        uint256[] memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (uint256[]));
+        uint256[] memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (uint256[]));
         uint256 timestamp = abi.decode(vm.parseJson(encryptedJson, ".timestamp"), (uint256));
 
-        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, JsonCidVerifier.JsonValueType(0));
-        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue(iv, JsonCidVerifier.JsonValueType(0));
-        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue(authTag, JsonCidVerifier.JsonValueType(0));
-        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue(ciphertext, JsonCidVerifier.JsonValueType(0));
-        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), JsonCidVerifier.JsonValueType(1));
+        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, new uint[](0), JsonCidVerifier.JsonValueType.STRING);
+        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("", iv, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue("", authTag, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue("", ciphertext, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), new uint[](0), JsonCidVerifier.JsonValueType.NUMBER);
 
         return willTypedJsonObj;
     }

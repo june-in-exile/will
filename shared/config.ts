@@ -241,7 +241,7 @@ export const CRYPTO_CONFIG: CryptoConfig = {
 
   // Encodings
   plaintextEncoding: "hex",
-  ciphertextEncoding: "base64",
+  // ciphertextEncoding: "number[]",
 
   // File paths (relative to utils/cryptography/)
   paths: {

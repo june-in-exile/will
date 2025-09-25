@@ -17,10 +17,10 @@ function uint8ArrayToHex(
   return addPrefix ? "0x" + finalHex : finalHex;
 }
 
-function base64ToBytes(base64: string): number[] {
-  const binary = atob(base64);
-  return Array.from(binary, (char) => char.charCodeAt(0));
-}
+// function base64ToBytes(base64: string): number[] {
+//   const binary = atob(base64);
+//   return Array.from(binary, (char) => char.charCodeAt(0));
+// }
 
 // function flattenEstates(estates: Estate[]): string[] {
 //   return estates.flatMap((estate) => [
@@ -30,4 +30,4 @@ function base64ToBytes(base64: string): number[] {
 //   ]);
 // }
 
-export { uint8ArrayToHex, base64ToBytes };
+export { uint8ArrayToHex };

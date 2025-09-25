@@ -18,28 +18,32 @@ contract JsonCidVerifierUnitTest is Test {
     function setUp() public {
         verifier = new JsonCidVerifier();
 
-        // Setup simple JSON: {"name":"Alice","age":"30"}
-        simpleJson.keys = new string[](2);
-        simpleJson.values = new string[](2);
+        // Setup simple JSON: {"name":"Alice","age":"30","measurements":"[84,61,90]"}
+        simpleJson.keys = new string[](3);
+        simpleJson.values = new string[](3);
         simpleJson.keys[0] = "name";
         simpleJson.keys[1] = "age";
+        simpleJson.keys[2] = "measurements";
         simpleJson.values[0] = "Alice";
         simpleJson.values[1] = "30";
-        expectedCidSimple = "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a";
+        simpleJson.values[2] = "[84,61,90]";
+        expectedCidSimple = "bagaaierayeldai4jgkbslacut6yde7sjbuqw4zwg755usm2fw5hs35che74q";
 
-        // Setup typed JSON: {"name":"Alice","age":30,"active":true,"data":null}
-        typedJson.keys = new string[](4);
-        typedJson.values = new JsonCidVerifier.JsonValue[](4);
+        // Setup typed JSON: {"name":"Alice","age":30,"measurements":[84,61,90]}
+        typedJson.keys = new string[](3);
+        typedJson.values = new JsonCidVerifier.JsonValue[](3);
         typedJson.keys[0] = "name";
         typedJson.keys[1] = "age";
-        typedJson.keys[2] = "active";
-        typedJson.keys[3] = "data";
-        expectedCidTyped = "bagaaierahuwddmix3id4x7qhonchbuyofmsbiij46stacr6uia7gz5keaj7q";
+        typedJson.keys[2] = "measurements";
+        expectedCidTyped = "bagaaiera6cn3wl6afd25fjk7g2pfk4vkaolb3u7adzw4wfgi4r3m7cwarhbq";
 
-        typedJson.values[0] = JsonCidVerifier.JsonValue("Alice", JsonCidVerifier.JsonValueType.STRING);
-        typedJson.values[1] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
-        typedJson.values[2] = JsonCidVerifier.JsonValue("true", JsonCidVerifier.JsonValueType.BOOLEAN);
-        typedJson.values[3] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
+        typedJson.values[0] = JsonCidVerifier.JsonValue("Alice", new uint256[](0),  JsonCidVerifier.JsonValueType.STRING);
+        typedJson.values[1] = JsonCidVerifier.JsonValue("30", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
+        uint256[] memory measurementsArr = new uint256[](3);
+        measurementsArr[0] = 84;
+        measurementsArr[1] = 61;
+        measurementsArr[2] = 90;
+        typedJson.values[2] = JsonCidVerifier.JsonValue("", measurementsArr, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
     }
 
     // =============================================================================
@@ -48,7 +52,7 @@ contract JsonCidVerifierUnitTest is Test {
 
     function test_buildStandardizedJson_SimpleObject() public view {
         string memory result = verifier.buildStandardizedJson(simpleJson);
-        assertEq(result, '{"name":"Alice","age":"30"}');
+        assertEq(result, '{"name":"Alice","age":"30","measurements":"[84,61,90]"}');
     }
 
     function test_buildStandardizedJson_SingleKeyValue() public view {
@@ -102,7 +106,7 @@ contract JsonCidVerifierUnitTest is Test {
 
     function test_buildStandardizedJsonTyped_AllTypes() public view {
         string memory result = verifier.buildStandardizedJson(typedJson);
-        assertEq(result, '{"name":"Alice","age":30,"active":true,"data":null}');
+        assertEq(result, '{"name":"Alice","age":30,"measurements":[84,61,90]}');
     }
 
     function test_buildStandardizedJsonTyped_StringOnly() public view {
@@ -110,7 +114,7 @@ contract JsonCidVerifierUnitTest is Test {
         stringOnlyJson.keys = new string[](1);
         stringOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
         stringOnlyJson.keys[0] = "text";
-        stringOnlyJson.values[0] = JsonCidVerifier.JsonValue("hello", JsonCidVerifier.JsonValueType.STRING);
+        stringOnlyJson.values[0] = JsonCidVerifier.JsonValue("hello", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
 
         string memory result = verifier.buildStandardizedJson(stringOnlyJson);
         assertEq(result, '{"text":"hello"}');
@@ -121,45 +125,30 @@ contract JsonCidVerifierUnitTest is Test {
         numberOnlyJson.keys = new string[](1);
         numberOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
         numberOnlyJson.keys[0] = "count";
-        numberOnlyJson.values[0] = JsonCidVerifier.JsonValue("42", JsonCidVerifier.JsonValueType.NUMBER);
+        numberOnlyJson.values[0] = JsonCidVerifier.JsonValue("42", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
 
         string memory result = verifier.buildStandardizedJson(numberOnlyJson);
         assertEq(result, '{"count":42}');
     }
 
-    function test_buildStandardizedJsonTyped_BooleanOnly() public view {
-        JsonCidVerifier.TypedJsonObject memory boolOnlyJson;
-        boolOnlyJson.keys = new string[](2);
-        boolOnlyJson.values = new JsonCidVerifier.JsonValue[](2);
-        boolOnlyJson.keys[0] = "isTrue";
-        boolOnlyJson.keys[1] = "isFalse";
-        boolOnlyJson.values[0] = JsonCidVerifier.JsonValue("true", JsonCidVerifier.JsonValueType.BOOLEAN);
-        boolOnlyJson.values[1] = JsonCidVerifier.JsonValue("false", JsonCidVerifier.JsonValueType.BOOLEAN);
+    function test_buildStandardizedJsonTyped_NumberArrayOnly() public view {
+        JsonCidVerifier.TypedJsonObject memory numberOnlyJson;
+        numberOnlyJson.keys = new string[](1);
+        numberOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
+        numberOnlyJson.keys[0] = "counts";
+        uint256[] memory countsArr = new uint256[](5);
+        for (uint8 i = 0; i < 5; i++) {
+            countsArr[i] = i + 1;
+        }
+        numberOnlyJson.values[0] = JsonCidVerifier.JsonValue("", countsArr, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
 
-        string memory result = verifier.buildStandardizedJson(boolOnlyJson);
-        assertEq(result, '{"isTrue":true,"isFalse":false}');
-    }
-
-    function test_buildStandardizedJsonTyped_NullOnly() public view {
-        JsonCidVerifier.TypedJsonObject memory nullOnlyJson;
-        nullOnlyJson.keys = new string[](1);
-        nullOnlyJson.values = new JsonCidVerifier.JsonValue[](1);
-        nullOnlyJson.keys[0] = "empty";
-        nullOnlyJson.values[0] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
-
-        string memory result = verifier.buildStandardizedJson(nullOnlyJson);
-        assertEq(result, '{"empty":null}');
+        string memory result = verifier.buildStandardizedJson(numberOnlyJson);
+        assertEq(result, '{"counts":[1,2,3,4,5]}');
     }
 
     // =============================================================================
     // Utility Functions
     // =============================================================================
-
-    function test_getJsonBytes() public view {
-        string memory json = '{"test":"value"}';
-        bytes memory result = verifier.getJsonBytes(json);
-        assertEq(result, bytes(json));
-    }
 
     function test_getMultihash() public view {
         bytes memory jsonBytes = bytes('{"test":"value"}');
@@ -288,7 +277,7 @@ contract JsonCidVerifierUnitTest is Test {
         differentJson.keys = new string[](1);
         differentJson.values = new JsonCidVerifier.JsonValue[](1);
         differentJson.keys[0] = "different";
-        differentJson.values[0] = JsonCidVerifier.JsonValue("value", JsonCidVerifier.JsonValueType.STRING);
+        differentJson.values[0] = JsonCidVerifier.JsonValue("value", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
 
         assertFalse(verifier.verifyCid(differentJson, cid));
     }

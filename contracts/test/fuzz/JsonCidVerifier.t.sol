@@ -7,6 +7,8 @@ import "src/JsonCidVerifier.sol";
 contract JsonCidVerifierFuzzTest is Test {
     JsonCidVerifier verifier;
 
+    error UnsupportedType(uint8 valueType);
+
     function setUp() public {
         verifier = new JsonCidVerifier();
     }
@@ -98,25 +100,37 @@ contract JsonCidVerifierFuzzTest is Test {
 
             // Generate values and types
             uint256 valueNum = bound(uint256(keccak256(abi.encode(valueSeed, i))), 0, 999);
-            uint8 valueType = uint8(bound(uint256(keccak256(abi.encode(typeSeed, i))), 0, 3));
+            uint8 valueType = uint8(bound(uint256(keccak256(abi.encode(typeSeed, i))), 0, 2));
 
-            string memory value;
             if (valueType == 0) {
                 // STRING
-                value = string.concat("str", vm.toString(valueNum));
+                string memory value = string.concat("str", vm.toString(valueNum));
+                typedValues[i] = JsonCidVerifier.JsonValue({
+                    value: value,
+                    numberArray: new uint256[](0),
+                    valueType: JsonCidVerifier.JsonValueType.STRING
+                });
             } else if (valueType == 1) {
                 // NUMBER
-                value = vm.toString(valueNum);
+                string memory value = vm.toString(valueNum);
+                typedValues[i] = JsonCidVerifier.JsonValue({
+                    value: value,
+                    numberArray: new uint256[](0),
+                    valueType: JsonCidVerifier.JsonValueType.NUMBER
+                });
             } else if (valueType == 2) {
-                // BOOLEAN
-                value = (valueNum % 2 == 0) ? "true" : "false";
+                // NUMBER_ARRAY
+                uint256[] memory numberArray = new uint256[](2);
+                numberArray[0] = valueNum;
+                numberArray[1] = valueNum + 1;
+                typedValues[i] = JsonCidVerifier.JsonValue({
+                    value: "",
+                    numberArray: numberArray,
+                    valueType: JsonCidVerifier.JsonValueType.NUMBER_ARRAY
+                });
             } else {
-                // NULL
-                value = "";
+                revert UnsupportedType(valueType);
             }
-
-            typedValues[i] =
-                JsonCidVerifier.JsonValue({ value: value, valueType: JsonCidVerifier.JsonValueType(valueType) });
         }
 
         JsonCidVerifier.TypedJsonObject memory jsonObj =
@@ -191,11 +205,6 @@ contract JsonCidVerifierFuzzTest is Test {
     // =============================================================================
     // Utility Functions
     // =============================================================================
-
-    function test_getJsonBytes(string memory input) public view {
-        bytes memory result = verifier.getJsonBytes(input);
-        assertEq(result, bytes(input));
-    }
 
     function test_getMultihash(bytes memory input) public view {
         vm.assume(input.length <= 1000); // Reasonable size limit

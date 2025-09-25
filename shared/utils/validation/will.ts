@@ -218,8 +218,16 @@ function validateEncryptedWill(
     "iv" | "authTag" | "ciphertext"
   >)[] = ["iv", "authTag", "ciphertext"];
   for (const field of base64Fields) {
-    if (!Base64String.isValid(willData[field])) {
-      throw new Error(`Invalid Base64 format for field: ${field}`);
+    const items = willData[field];
+    
+    if (!Array.isArray(items)) {
+      throw new Error(`Not an array: ${field}`);
+    }
+    if (!items.every(item => typeof item === 'number')) {
+      throw new Error(`Not all elements in ${field} are number type`);
+    }
+    if (!items.every(item => !isNaN(item) && 0 <= item && item < 256)) {
+      throw new Error(`Not all elements in ${field} are valid byte`);
     }
   }
 

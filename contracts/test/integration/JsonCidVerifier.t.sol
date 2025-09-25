@@ -30,73 +30,41 @@ contract JsonCidVerifierIntegrationTest is Test {
     }
 
     function _setupTestVectors() internal {
-        // Test Vector 1: Simple object
         {
             JsonCidVerifier.JsonObject memory simpleObj;
-            simpleObj.keys = new string[](2);
-            simpleObj.values = new string[](2);
+            simpleObj.keys = new string[](3);
+            simpleObj.values = new string[](3);
             simpleObj.keys[0] = "name";
             simpleObj.keys[1] = "age";
+            simpleObj.keys[2] = "measurements";
             simpleObj.values[0] = "Alice";
             simpleObj.values[1] = "30";
+            simpleObj.values[2] = "[84,61,90]";
 
             JsonCidVerifier.TypedJsonObject memory typedObj;
-            typedObj.keys = new string[](2);
-            typedObj.values = new JsonCidVerifier.JsonValue[](2);
+            typedObj.keys = new string[](3);
+            typedObj.values = new JsonCidVerifier.JsonValue[](3);
             typedObj.keys[0] = "name";
             typedObj.keys[1] = "age";
-            typedObj.values[0] = JsonCidVerifier.JsonValue("Alice", JsonCidVerifier.JsonValueType.STRING);
-            typedObj.values[1] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
+            typedObj.keys[2] = "measurements";
+            typedObj.values[0] = JsonCidVerifier.JsonValue("Alice", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
+            typedObj.values[1] = JsonCidVerifier.JsonValue("30", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
+            uint256[] memory measurementsArr = new uint256[](3);
+            measurementsArr[0] = 84;
+            measurementsArr[1] = 61;
+            measurementsArr[2] = 90;
+            typedObj.values[2] = JsonCidVerifier.JsonValue("", measurementsArr, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
 
-            // Note: The CIDs are Generated from JavaScript implementation
+            // @note The CIDs are Generated from TypeScript implementation
             testVectors.push(
                 TestVector({
                     name: "Simple Name-Age Object",
                     jsonObj: simpleObj,
                     typedJsonObj: typedObj,
-                    expectedCidSimple: "bagaaiera6ngbuvxsgagyxdm57ezcxhaejaouxn3f4maackcasdhquv4dt56a",
-                    expectedCidTyped: "bagaaierahyt2wszp67wmtf4u6sppuwsmqtkhq7ecozarv7dgnkna55zpxg4a", // To be filled with actual CID
-                    expectedJSON: '{"name":"Alice","age":"30"}',
-                    expectedTypedJSON: '{"name":"Alice","age":30}'
-                })
-            );
-        }
-
-        // Test Vector 2: Complex object with all types
-        {
-            JsonCidVerifier.JsonObject memory simpleObj;
-            simpleObj.keys = new string[](4);
-            simpleObj.values = new string[](4);
-            simpleObj.keys[0] = "active";
-            simpleObj.keys[1] = "count";
-            simpleObj.keys[2] = "data";
-            simpleObj.keys[3] = "name";
-            simpleObj.values[0] = "true";
-            simpleObj.values[1] = "42";
-            simpleObj.values[2] = "";
-            simpleObj.values[3] = "test";
-
-            JsonCidVerifier.TypedJsonObject memory typedObj;
-            typedObj.keys = new string[](4);
-            typedObj.values = new JsonCidVerifier.JsonValue[](4);
-            typedObj.keys[0] = "active";
-            typedObj.keys[1] = "count";
-            typedObj.keys[2] = "data";
-            typedObj.keys[3] = "name";
-            typedObj.values[0] = JsonCidVerifier.JsonValue("true", JsonCidVerifier.JsonValueType.BOOLEAN);
-            typedObj.values[1] = JsonCidVerifier.JsonValue("42", JsonCidVerifier.JsonValueType.NUMBER);
-            typedObj.values[2] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
-            typedObj.values[3] = JsonCidVerifier.JsonValue("test", JsonCidVerifier.JsonValueType.STRING);
-
-            testVectors.push(
-                TestVector({
-                    name: "Complex All-Types Object",
-                    jsonObj: simpleObj,
-                    typedJsonObj: typedObj,
-                    expectedCidSimple: "bagaaierawedn3djabwgj3lxctpkxk3jg3wkc7ywqveexclgfxwgy4nn6lpaa",
-                    expectedCidTyped: "bagaaieragimrcyhoitiwmqhqker3zaj2gaqwlh2ccpfm2l3wpybljwpqghmq",
-                    expectedJSON: '{"active":"true","count":"42","data":"","name":"test"}',
-                    expectedTypedJSON: '{"active":true,"count":42,"data":null,"name":"test"}'
+                    expectedCidSimple: "bagaaierayeldai4jgkbslacut6yde7sjbuqw4zwg755usm2fw5hs35che74q",
+                    expectedCidTyped: "bagaaiera6cn3wl6afd25fjk7g2pfk4vkaolb3u7adzw4wfgi4r3m7cwarhbq",
+                    expectedJSON: '{"name":"Alice","age":"30","measurements":"[84,61,90]"}',
+                    expectedTypedJSON: '{"name":"Alice","age":30,"measurements":[84,61,90]}'
                 })
             );
         }
@@ -131,7 +99,7 @@ contract JsonCidVerifierIntegrationTest is Test {
     }
 
     function test_completeWorkflow_Typed() public view {
-        TestVector memory tv = testVectors[1];
+        TestVector memory tv = testVectors[0];
 
         // 1. Build standardized JSON
         string memory actualJSON = verifier.buildStandardizedJson(tv.typedJsonObj);
@@ -161,89 +129,9 @@ contract JsonCidVerifierIntegrationTest is Test {
         string memory typedCid = verifier.generateCidString(tv.typedJsonObj);
 
         // These should be different because the JSON representations are different
-        // Simple: {"name":"Alice","age":"30"}
-        // Typed:  {"name":"Alice","age":30}
+        // Simple: {"name":"Alice","age":"30","measurements":"[84,61,90]"}
+        // Typed:  {"name":"Alice","age":30,"measurements":[84,61,90]}
         assertFalse(verifier.stringEquals(simpleCid, typedCid), "Simple and typed CIDs should differ");
-    }
-
-    // =============================================================================
-    // Real-world Scenarios
-    // =============================================================================
-
-    function test_realWorld_UserProfile() public view {
-        // Simulate a user profile object
-        JsonCidVerifier.JsonObject memory profile;
-        profile.keys = new string[](6);
-        profile.values = new string[](6);
-        profile.keys[0] = "email";
-        profile.keys[1] = "id";
-        profile.keys[2] = "isVerified";
-        profile.keys[3] = "lastLogin";
-        profile.keys[4] = "name";
-        profile.keys[5] = "role";
-        profile.values[0] = "alice@example.com";
-        profile.values[1] = "12345";
-        profile.values[2] = "true";
-        profile.values[3] = "1640995200";
-        profile.values[4] = "Alice Johnson";
-        profile.values[5] = "admin";
-
-        string memory cid = verifier.generateCidString(profile);
-        assertTrue(verifier.verifyCid(profile, cid));
-
-        // Should produce valid JSON
-        string memory json = verifier.buildStandardizedJson(profile);
-        string memory expectedJSON =
-            '{"email":"alice@example.com","id":"12345","isVerified":"true","lastLogin":"1640995200","name":"Alice Johnson","role":"admin"}';
-        assertEq(json, expectedJSON);
-    }
-
-    function test_realWorld_APIResponse() public view {
-        // Simulate an API response object
-        JsonCidVerifier.TypedJsonObject memory response;
-        response.keys = new string[](4);
-        response.values = new JsonCidVerifier.JsonValue[](4);
-        response.keys[0] = "data";
-        response.keys[1] = "error";
-        response.keys[2] = "status";
-        response.keys[3] = "timestamp";
-        response.values[0] = JsonCidVerifier.JsonValue("user_data_here", JsonCidVerifier.JsonValueType.STRING);
-        response.values[1] = JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType.NULL);
-        response.values[2] = JsonCidVerifier.JsonValue("200", JsonCidVerifier.JsonValueType.NUMBER);
-        response.values[3] = JsonCidVerifier.JsonValue("1640995200", JsonCidVerifier.JsonValueType.NUMBER);
-
-        string memory cid = verifier.generateCidString(response);
-        assertTrue(verifier.verifyCid(response, cid));
-
-        // Should produce valid typed JSON
-        string memory json = verifier.buildStandardizedJson(response);
-        string memory expectedJSON = '{"data":"user_data_here","error":null,"status":200,"timestamp":1640995200}';
-        assertEq(json, expectedJSON);
-    }
-
-    function test_realWorld_ConfigurationFile() public view {
-        // Simulate a configuration file
-        JsonCidVerifier.TypedJsonObject memory config;
-        config.keys = new string[](5);
-        config.values = new JsonCidVerifier.JsonValue[](5);
-        config.keys[0] = "debug";
-        config.keys[1] = "maxConnections";
-        config.keys[2] = "serverName";
-        config.keys[3] = "timeout";
-        config.keys[4] = "version";
-        config.values[0] = JsonCidVerifier.JsonValue("false", JsonCidVerifier.JsonValueType.BOOLEAN);
-        config.values[1] = JsonCidVerifier.JsonValue("100", JsonCidVerifier.JsonValueType.NUMBER);
-        config.values[2] = JsonCidVerifier.JsonValue("prod-server-01", JsonCidVerifier.JsonValueType.STRING);
-        config.values[3] = JsonCidVerifier.JsonValue("30", JsonCidVerifier.JsonValueType.NUMBER);
-        config.values[4] = JsonCidVerifier.JsonValue("1.2.3", JsonCidVerifier.JsonValueType.STRING);
-
-        string memory cid = verifier.generateCidString(config);
-        assertTrue(verifier.verifyCid(config, cid));
-
-        string memory json = verifier.buildStandardizedJson(config);
-        string memory expectedJSON =
-            '{"debug":false,"maxConnections":100,"serverName":"prod-server-01","timeout":30,"version":"1.2.3"}';
-        assertEq(json, expectedJSON);
     }
 
     // =============================================================================

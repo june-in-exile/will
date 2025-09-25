@@ -68,13 +68,19 @@ contract WillFactoryUnitTest is Test {
 
         estates.push(Will.Estate({ beneficiary: beneficiary1, token: token1, amount: amount1 }));
 
-        string[] memory keys = new string[](2);
+        string[] memory keys = new string[](3);
         keys[0] = "text";
         keys[1] = "timestamp";
+        keys[2] = "ids";
 
-        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](2);
-        values[0] = JsonCidVerifier.JsonValue("hello world", JsonCidVerifier.JsonValueType(0));
-        values[1] = JsonCidVerifier.JsonValue("1753824424", JsonCidVerifier.JsonValueType(1));
+        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](3);
+        values[0] = JsonCidVerifier.JsonValue("hello world", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
+        values[1] = JsonCidVerifier.JsonValue("1753824424", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
+        uint256[] memory ids = new uint256[](3);
+        ids[0] = 1;
+        ids[1] = 2;
+        ids[2] = 3;
+        values[2] = JsonCidVerifier.JsonValue("", ids, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
 
@@ -149,6 +155,14 @@ contract WillFactoryUnitTest is Test {
         vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, executor, testator));
         vm.prank(executor);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+    }
+
+    function test_UploadCid_WrongCiphertext() public {
+
+    }
+
+    function test_UploadCid_WrongInitializationVector() public {
+        
     }
 
     function test_UploadCid_CidUploadProofInvalid() public {
@@ -288,6 +302,14 @@ contract WillFactoryUnitTest is Test {
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
         vm.prank(executor);
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
+    }
+
+    function test_CreateWill_WrongCiphertext() public {
+
+    }
+
+    function test_CreateWill_WrongInitializationVector() public {
+        
     }
 
     function test_CreateWill_WillCreationProofInvalid() public {

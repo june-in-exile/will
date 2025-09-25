@@ -39,7 +39,7 @@ contract WillFactoryFuzzTest is Test {
         keys[0] = "salt";
 
         JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](1);
-        values[0] = JsonCidVerifier.JsonValue("12345", JsonCidVerifier.JsonValueType(1));
+        values[0] = JsonCidVerifier.JsonValue("12345", new uint256[](0), JsonCidVerifier.JsonValueType(1));
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
     }

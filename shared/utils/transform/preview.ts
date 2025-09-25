@@ -14,4 +14,16 @@ function timestamp(timestamp: number) {
   return `${timestamp} (${new Date(timestamp).toISOString()})`;
 }
 
-export default { longString, timestamp };
+function numbers(
+  arr: number[],
+  startLength: number = 10,
+  endLength: number = 5,
+): string {
+  if (arr.length <= startLength + endLength) {
+    return `[${arr.join(', ')}]`;
+  }
+
+  return `[${arr.slice(0, startLength).join(', ')}, ..., ${arr.slice(-endLength).join(', ')}] (${arr.length} elements)`;
+}
+
+export default { longString, timestamp, numbers };

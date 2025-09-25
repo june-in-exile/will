@@ -7,7 +7,6 @@ import { WILL_TYPE } from "@shared/constants/index.js";
 import {
   readWill,
   getKey,
-  base64ToBytes,
 } from "@shared/utils/index.js";
 import chalk from "chalk";
 
@@ -18,9 +17,9 @@ async function proveForWillCreation(): Promise<Groth16Proof> {
   return generateZkpProof({
     circuitName: "willCreation",
     input: {
-      ciphertext: base64ToBytes(downloadedWill.ciphertext),
-      key: base64ToBytes(key.toString("base64")),
-      iv: base64ToBytes(downloadedWill.iv),
+      ciphertext: downloadedWill.ciphertext,
+      key: Array.from(key),
+      iv: downloadedWill.iv,
     },
   });
 }

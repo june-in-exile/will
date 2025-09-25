@@ -1,7 +1,7 @@
 import type { Groth16Proof, EncryptedWill } from "@shared/types/index.js";
 import { generateZkpProof } from "@shared/utils/cryptography/zkp.js";
 import { WILL_TYPE } from "@shared/constants/index.js";
-import { readWill, getKey, base64ToBytes } from "@shared/utils/index.js";
+import { readWill, getKey } from "@shared/utils/index.js";
 import chalk from "chalk";
 
 async function proveForCidUpload(): Promise<Groth16Proof> {
@@ -11,9 +11,9 @@ async function proveForCidUpload(): Promise<Groth16Proof> {
   return generateZkpProof({
     circuitName: "cidUpload",
     input: {
-      ciphertext: base64ToBytes(encryptedWill.ciphertext),
-      key: base64ToBytes(key.toString("base64")),
-      iv: base64ToBytes(encryptedWill.iv),
+      ciphertext: encryptedWill.ciphertext,
+      key: Array.from(key),
+      iv: encryptedWill.iv,
     },
   });
 }

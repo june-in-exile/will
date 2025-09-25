@@ -1,9 +1,8 @@
 import { PATHS_CONFIG, CRYPTO_CONFIG } from "@config";
-import {
-  Base64String,
-  type EncryptionArgs,
-  type SerializedWill,
-  type EncryptedWill,
+import type {
+  EncryptionArgs,
+  SerializedWill,
+  EncryptedWill,
 } from "@shared/types/index.js";
 import { WILL_TYPE } from "@shared/constants/will.js";
 import {
@@ -47,12 +46,12 @@ async function processWillEncryption(): Promise<ProcessResult> {
 
     const encryptedWill: EncryptedWill = {
       algorithm: algorithm,
-      iv: Base64String.fromBuffer(iv),
+      iv: Array.from(iv),
       authTag:
         "authTag" in result
-          ? Base64String.fromBuffer(result.authTag)
-          : Base64String.fromBuffer(Buffer.alloc(0)),
-      ciphertext: Base64String.fromBuffer(result.ciphertext),
+          ? Array.from(result.authTag)
+          : Array.from(Buffer.alloc(0)),
+      ciphertext: Array.from(result.ciphertext),
       timestamp: Math.floor(Date.now() / 1000),
     };
 
@@ -87,7 +86,7 @@ async function main(): Promise<void> {
     console.log(chalk.green.bold("\n✅ Process completed successfully!"));
     console.log(chalk.gray("Results:"), {
       ...result,
-      ciphertext: `${preview.longString(result.ciphertext)}`,
+      ciphertext: `${preview.numbers(result.ciphertext)}`,
       timestamp: `${preview.timestamp(result.timestamp * 1000)}`,
     });
   } catch (error) {

@@ -62,44 +62,6 @@ function parseArgs(): Args {
 }
 
 /**
- * Read and parse JSON data from a file
- * @param path - Path to the JSON file to read
- * @returns Parsed JSON data from the file
- * @throws Error if file doesn't exist, can't be read, or contains invalid JSON
- */
-function readJsonFromFile(path: string) {
-  try {
-    // Check if file exists
-    if (!fs.existsSync(path)) {
-      throw new Error(`File does not exist: ${path}`);
-    }
-
-    // Check if it's a file (not a directory)
-    const stats = fs.statSync(path);
-    if (!stats.isFile()) {
-      throw new Error(`Path is not a file: ${path}`);
-    }
-
-    // Read file content
-    const fileContent = fs.readFileSync(path, "utf8");
-    console.log(chalk.green(`Successfully read file: ${path}`));
-
-    // Parse JSON
-    const json = JSON.parse(fileContent);
-    console.log(chalk.blue("Parsed JSON data from file:"), json);
-
-    return json;
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(
-        chalk.red(`Failed to read JSON from file: ${error.message}`),
-      );
-    }
-    throw error;
-  }
-}
-
-/**
  * Get JSON data from either command line arguments or file path
  * @returns JSON data object (from CLI or file)
  * @throws Error if file operations fail or arguments are invalid
@@ -109,7 +71,8 @@ function getJsonData() {
   if (data) {
     return data;
   } else if (path) {
-    return readJsonFromFile(path);
+    const fileContent = fs.readFileSync(path, "utf8");
+    return JSON.parse(fileContent);
   } else {
     throw new Error("Nothing to be hashed");
   }

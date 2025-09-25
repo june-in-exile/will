@@ -35,9 +35,9 @@ interface SerializedWill {
 
 interface EncryptedWill {
   algorithm: SupportedAlgorithm;
-  iv: Base64String;
-  authTag: Base64String;
-  ciphertext: Base64String;
+  iv: number[];
+  authTag: number[];
+  ciphertext: number[];
   timestamp: number;
 }
 
