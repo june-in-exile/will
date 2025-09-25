@@ -104,10 +104,10 @@ const presetValidations = {
   }),
 
   uploadCid: (): EnvironmentValidationOptions => ({
-    required: ["WILL_FACTORY", "EXECUTOR_PRIVATE_KEY", "CID"],
+    required: ["WILL_FACTORY", "TESTATOR_PRIVATE_KEY", "CID"],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      TESTATOR_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
     },
   }),

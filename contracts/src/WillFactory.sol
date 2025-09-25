@@ -32,8 +32,8 @@ contract WillFactory {
     error AlreadyUploaded(string cid);
     error AlreadyNotarized(string cid);
 
-    error CidNotValidatedByTestator(string cid);
-    error CidNotValidatedByExecutor(string cid);
+    error CidNotUploaded(string cid);
+    error CidNotNotarized(string cid);
 
     error JsonCidInvalid(string cid);
     error CidUploadProofInvalid();
@@ -112,7 +112,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[285] calldata _pubSignals,
+        uint256[286] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
@@ -121,15 +121,17 @@ contract WillFactory {
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
         if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
+        
+        address testator = address(uint160(_pubSignals[0]));
 
-        // @todo should check if the testator in pubSignals is the msg.sender
+        if (msg.sender != testator) revert UnauthorizedCaller(msg.sender, testator);
 
         _cidUploadedTimes[_cid] = block.timestamp;
         emit CidUploaded(_cid, block.timestamp);
     }
 
     function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
-        if (_cidUploadedTimes[_cid] == 0 || _cidUploadedTimes[_cid] >= block.timestamp) revert CidNotValidatedByTestator(_cid);
+        if (_cidUploadedTimes[_cid] == 0 || _cidUploadedTimes[_cid] >= block.timestamp) revert CidNotUploaded(_cid);
 
         if (_cidNotarizedTimes[_cid] > _cidUploadedTimes[_cid]) revert AlreadyNotarized(_cid);
 
@@ -150,12 +152,12 @@ contract WillFactory {
         Will.Estate[] calldata _estates,
         uint256 _salt
     ) external onlyAuthorized returns (address) {
-        if (_cidUploadedTimes[_cid] == 0) revert CidNotValidatedByTestator(_cid);
-        if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotValidatedByExecutor(_cid);
+        if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
+        if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
-        // @todo should check if (testator,estates) in pubSignals is the same as in pubSignals
+        // @todo should acquire (testator,estates) from pubSignals
         if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert WillCreationProofInvalid();
         if (wills[_cid] != address(0)) revert WillAlreadyExists(_cid, wills[_cid]);
 

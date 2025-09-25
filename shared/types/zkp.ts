@@ -18,7 +18,7 @@ interface CidUploadProofData {
   pA: [bigint, bigint];
   pB: [[bigint, bigint], [bigint, bigint]];
   pC: [bigint, bigint];
-  pubSignals: bigint[] & { length: 285 };
+  pubSignals: bigint[] & { length: 286 };
 }
 
 interface WillCreationProofData {

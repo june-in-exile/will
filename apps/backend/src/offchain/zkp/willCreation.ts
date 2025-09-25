@@ -1,21 +1,18 @@
 import type {
   Groth16Proof,
   DownloadedWill,
-  DeserializedWill,
 } from "@shared/types/index.js";
-import { generateZkpProof } from "./generator.js";
+import { generateZkpProof } from "@shared/utils/cryptography/zkp.js";
 import { WILL_TYPE } from "@shared/constants/index.js";
 import {
   readWill,
   getKey,
   base64ToBytes,
-  flattenEstates,
 } from "@shared/utils/index.js";
 import chalk from "chalk";
 
 async function proveForWillCreation(): Promise<Groth16Proof> {
   const downloadedWill: DownloadedWill = readWill(WILL_TYPE.DOWNLOADED);
-  const deserializedWill: DeserializedWill = readWill(WILL_TYPE.DESERIALIZED);
   const key = getKey();
 
   return generateZkpProof({
@@ -24,8 +21,6 @@ async function proveForWillCreation(): Promise<Groth16Proof> {
       ciphertext: base64ToBytes(downloadedWill.ciphertext),
       key: base64ToBytes(key.toString("base64")),
       iv: base64ToBytes(downloadedWill.iv),
-      expectedTestator: BigInt(deserializedWill.testator).toString(),
-      expectedEstates: flattenEstates(deserializedWill.estates),
     },
   });
 }

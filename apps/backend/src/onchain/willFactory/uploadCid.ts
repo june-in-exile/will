@@ -126,13 +126,13 @@ async function processUploadCid(): Promise<ProcessResult> {
       PATHS_CONFIG.zkp.cidUpload.proof,
       PATHS_CONFIG.zkp.cidUpload.public,
     ]);
-    const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
+    const { WILL_FACTORY, TESTATOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
-    const wallet = createWallet(EXECUTOR_PRIVATE_KEY, provider);
+    const wallet = createWallet(TESTATOR_PRIVATE_KEY, provider);
 
     const contract = await createContract<WillFactory>(
       WILL_FACTORY,

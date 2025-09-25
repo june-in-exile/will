@@ -1,5 +1,5 @@
 import type { Groth16Proof } from "@shared/types/index.js";
-import { generateZkpProof } from "./generator.js";
+import { generateZkpProof } from "@shared/utils/cryptography/zkp.js";
 import chalk from "chalk";
 
 async function generateMultiplier2Proof(): Promise<Groth16Proof> {

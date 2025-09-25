@@ -1,5 +1,5 @@
 import type { Groth16Proof, EncryptedWill } from "@shared/types/index.js";
-import { generateZkpProof } from "./generator.js";
+import { generateZkpProof } from "@shared/utils/cryptography/zkp.js";
 import { WILL_TYPE } from "@shared/constants/index.js";
 import { readWill, getKey, base64ToBytes } from "@shared/utils/index.js";
 import chalk from "chalk";

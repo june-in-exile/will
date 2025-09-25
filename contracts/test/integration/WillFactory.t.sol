@@ -23,7 +23,7 @@ contract WillFactoryIntegrationTest is Test {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[285] pubSignals;
+        uint256[286] pubSignals;
     }
 
     struct WillCreationProofData {
@@ -128,6 +128,7 @@ contract WillFactoryIntegrationTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidUploaded(tv.cid, block.timestamp);
 
+        vm.prank(tv.testator);
         willFactory.uploadCid(
             tv.cidUploadProof.pA,
             tv.cidUploadProof.pB,
@@ -195,6 +196,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Upload at time T
         uint256 startTime = block.timestamp;
+        vm.prank(tv.testator);
         willFactory.uploadCid(
             tv.cidUploadProof.pA,
             tv.cidUploadProof.pB,
@@ -205,7 +207,7 @@ contract WillFactoryIntegrationTest is Test {
         );
 
         // Try to create will without notarization - should fail
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, tv.cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
         vm.prank(executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
@@ -220,11 +222,11 @@ contract WillFactoryIntegrationTest is Test {
         );
 
         // Notarize at time T (same as upload) - should fail
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, tv.cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, tv.cid));
         vm.prank(executor);
         willFactory.notarizeCid(tv.cid, tv.notarySignature);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, tv.cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
         vm.prank(executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
@@ -277,7 +279,7 @@ contract WillFactoryIntegrationTest is Test {
         require(pcArray.length == 2, "CID_UPLOAD_PC_ARRAY must have exactly 2 elements");
 
         uint256[] memory pubArray = vm.envUint("CID_UPLOAD_PUBSIGNALS_ARRAY", ",");
-        require(pubArray.length == 285, "CID_UPLOAD_PUBSIGNALS_ARRAY must have exactly 285 elements");
+        require(pubArray.length == 286, "CID_UPLOAD_PUBSIGNALS_ARRAY must have exactly 286 elements");
 
         uint256[2] memory pA = [paArray[0], paArray[1]];
 
@@ -288,8 +290,8 @@ contract WillFactoryIntegrationTest is Test {
 
         uint256[2] memory pC = [pcArray[0], pcArray[1]];
 
-        uint256[285] memory pubSignals;
-        for (uint256 i = 0; i < 285; i++) {
+        uint256[286] memory pubSignals;
+        for (uint256 i = 0; i < 286; i++) {
             pubSignals[i] = pubArray[i];
         }
 

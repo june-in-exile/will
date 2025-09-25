@@ -97,11 +97,13 @@ contract WillFactoryFuzzTest is Test {
         uint256[2] memory pA = [uint256(1), uint256(2)];
         uint256[2][2] memory pB = [[uint256(3), uint256(4)], [uint256(5), uint256(6)]];
         uint256[2] memory pC = [uint256(7), uint256(8)];
-        uint256[285] memory pubSignals;
-        for (uint256 i = 0; i < 285; i++) {
+        uint256[286] memory pubSignals;
+        for (uint256 i = 0; i < 286; i++) {
             pubSignals[i] = i + 1;
         }
 
+        address testator = address(uint160(pubSignals[0]));
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
         
         vm.warp(block.timestamp + 1);

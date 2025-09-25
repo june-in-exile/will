@@ -14,7 +14,7 @@ interface PermitSigning {
 
 interface UploadCid {
   WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
+  TESTATOR_PRIVATE_KEY: string;
   CID: string;
 }
 

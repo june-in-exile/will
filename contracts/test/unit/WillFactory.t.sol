@@ -36,7 +36,7 @@ contract WillFactoryUnitTest is Test {
     uint256[2] pA = [1, 2];
     uint256[2][2] pB = [[3, 4], [5, 6]];
     uint256[2] pC = [7, 8];
-    uint256[285] cidUploadPubSignals;
+    uint256[286] cidUploadPubSignals;
     uint256[292] willCreationPubSignals;
 
     Will.Estate[] estates;
@@ -75,7 +75,8 @@ contract WillFactoryUnitTest is Test {
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
 
-        for (uint256 i = 0; i < 285; i++) {
+        cidUploadPubSignals[0] = uint160(testator);
+        for (uint256 i = 1; i < 286; i++) {
             cidUploadPubSignals[i] = i + 1;
         }
         for (uint256 i = 0; i < 292; i++) {
@@ -98,6 +99,7 @@ contract WillFactoryUnitTest is Test {
         vm.expectEmit(true, false, false, false);
         emit WillFactory.CidUploaded(cid, block.timestamp);
 
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.prank(executor);
@@ -108,9 +110,11 @@ contract WillFactoryUnitTest is Test {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
 
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyUploaded.selector, cid));
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
@@ -119,6 +123,7 @@ contract WillFactoryUnitTest is Test {
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.JsonCidInvalid.selector, cid));
 
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
@@ -128,12 +133,23 @@ contract WillFactoryUnitTest is Test {
 
         vm.expectRevert(WillFactory.CidUploadProofInvalid.selector);
 
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+    }
+
+    function test_UploadCid_UnauthorizedCaller() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, executor, testator));
+        vm.prank(executor);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
     function test_NotarizeCid_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -149,6 +165,7 @@ contract WillFactoryUnitTest is Test {
     function test_NotarizeCid_UnauthorizedCaller() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         bytes memory notarySignature = _notarySign(cid);
@@ -159,6 +176,7 @@ contract WillFactoryUnitTest is Test {
     function test_NotarizeCid_AlreadyNotarized() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -172,10 +190,10 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid, notarySignature);
     }
 
-    function test_NotarizeCid_CidNotValidatedByTestator() public {
+    function test_NotarizeCid_CidNotUploaded() public {
         bytes memory signature = abi.encodePacked(bytes32(0), bytes32(0), uint8(0));
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, cid));
 
         vm.prank(executor);
         factory.notarizeCid(cid, signature);
@@ -184,6 +202,7 @@ contract WillFactoryUnitTest is Test {
     function test_NotarizeCid_SignatureInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -197,6 +216,7 @@ contract WillFactoryUnitTest is Test {
     function test_CreateWill_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -223,6 +243,7 @@ contract WillFactoryUnitTest is Test {
     function test_CreateWillCid_UnauthorizedCaller() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -237,18 +258,19 @@ contract WillFactoryUnitTest is Test {
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
     }
 
-    function test_CreateWill_CidNotValidatedByTestator() public {
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByTestator.selector, cid));
+    function test_CreateWill_CidNotUploaded() public {
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, cid));
         vm.prank(executor);
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
     }
 
-    function test_CreateWill_CidNotValidatedByExecutor() public {
+    function test_CreateWill_CidNotNotarized() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotValidatedByExecutor.selector, cid));
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
         vm.prank(executor);
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid, testator, estates, salt);
     }
@@ -256,6 +278,7 @@ contract WillFactoryUnitTest is Test {
     function test_CreateWill_WillCreationProofInvalid() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -276,6 +299,7 @@ contract WillFactoryUnitTest is Test {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         mockWillCreationVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
@@ -327,6 +351,7 @@ contract WillFactoryUnitTest is Test {
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
         // Create first will
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid1);
         vm.warp(block.timestamp + 1);
 
@@ -342,6 +367,7 @@ contract WillFactoryUnitTest is Test {
         // Create second will
         vm.warp(block.timestamp + 1);
 
+        vm.prank(testator);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid2);
         vm.warp(block.timestamp + 1);
 
