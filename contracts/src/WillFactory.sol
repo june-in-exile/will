@@ -19,8 +19,8 @@ contract WillFactory {
     address public notary;
     address public executor;
 
-    mapping(string => uint256) private _testatorValidateTimes;
-    mapping(string => uint256) private _executorValidateTimes;
+    mapping(string => uint256) private _cidUploadedTimes;
+    mapping(string => uint256) private _cidNotarizedTimes;
     mapping(string => address) public wills;
 
     event CidUploaded(string indexed cid, uint256 timestamp);
@@ -64,12 +64,12 @@ contract WillFactory {
         _;
     }
 
-    function testatorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
-        return _testatorValidateTimes[_cid];
+    function cidUploadedTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
+        return _cidUploadedTimes[_cid];
     }
 
-    function executorValidateTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
-        return _executorValidateTimes[_cid];
+    function cidNotarizedTimes(string calldata _cid) external view onlyAuthorized returns (uint256) {
+        return _cidNotarizedTimes[_cid];
     }
 
     function _recoverSigner(string calldata message, bytes memory signature) internal pure returns (address) {
@@ -116,7 +116,7 @@ contract WillFactory {
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
-        if (_testatorValidateTimes[_cid] > 0) revert AlreadyUploaded(_cid);
+        if (_cidUploadedTimes[_cid] > 0) revert AlreadyUploaded(_cid);
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
@@ -124,18 +124,18 @@ contract WillFactory {
 
         // @todo should check if the testator in pubSignals is the msg.sender
 
-        _testatorValidateTimes[_cid] = block.timestamp;
+        _cidUploadedTimes[_cid] = block.timestamp;
         emit CidUploaded(_cid, block.timestamp);
     }
 
     function notarizeCid(string calldata _cid, bytes memory _signature) external onlyAuthorized {
-        if (_testatorValidateTimes[_cid] == 0 || _testatorValidateTimes[_cid] >= block.timestamp) revert CidNotValidatedByTestator(_cid);
+        if (_cidUploadedTimes[_cid] == 0 || _cidUploadedTimes[_cid] >= block.timestamp) revert CidNotValidatedByTestator(_cid);
 
-        if (_executorValidateTimes[_cid] > _testatorValidateTimes[_cid]) revert AlreadyNotarized(_cid);
+        if (_cidNotarizedTimes[_cid] > _cidUploadedTimes[_cid]) revert AlreadyNotarized(_cid);
 
         if (!_verifySignature(_cid, _signature, notary)) revert SignatureInvalid(_cid, _signature, notary);
 
-        _executorValidateTimes[_cid] = block.timestamp;
+        _cidNotarizedTimes[_cid] = block.timestamp;
         emit CidNotarized(_cid, block.timestamp);
     }
 
@@ -150,8 +150,8 @@ contract WillFactory {
         Will.Estate[] calldata _estates,
         uint256 _salt
     ) external onlyAuthorized returns (address) {
-        if (_testatorValidateTimes[_cid] == 0) revert CidNotValidatedByTestator(_cid);
-        if (_executorValidateTimes[_cid] <= _testatorValidateTimes[_cid]) revert CidNotValidatedByExecutor(_cid);
+        if (_cidUploadedTimes[_cid] == 0) revert CidNotValidatedByTestator(_cid);
+        if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotValidatedByExecutor(_cid);
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 

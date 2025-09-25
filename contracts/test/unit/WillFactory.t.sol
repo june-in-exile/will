@@ -101,7 +101,7 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         vm.prank(executor);
-        assertEq(factory.testatorValidateTimes(cid), block.timestamp);
+        assertEq(factory.cidUploadedTimes(cid), block.timestamp);
     }
 
     function test_UploadCid_AlreadyUploaded() public {

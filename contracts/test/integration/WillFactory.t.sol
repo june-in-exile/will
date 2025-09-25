@@ -139,7 +139,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Verify upload
         vm.prank(executor);
-        uint256 uploadTime = willFactory.testatorValidateTimes(tv.cid);
+        uint256 uploadTime = willFactory.cidUploadedTimes(tv.cid);
         assertEq(uploadTime, block.timestamp);
 
         // Step 2: Notarize CID
@@ -153,7 +153,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Verify notarization
         vm.prank(executor);
-        uint256 notarizeTime = willFactory.executorValidateTimes(tv.cid);
+        uint256 notarizeTime = willFactory.cidNotarizedTimes(tv.cid);
         assertEq(notarizeTime, block.timestamp);
         assertTrue(notarizeTime > uploadTime);
 

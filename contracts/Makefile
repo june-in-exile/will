@@ -293,17 +293,17 @@ executor:
 		"executor()(address)"
 	@echo "$(YELLOW)Expect: $(EXECUTOR)$(RESET)"
 
-testatorValidateTime:
+cidUploadedTime:
 	@cast call --from $(EXECUTOR) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"testatorValidateTimes(string)(uint256)" \
+		"cidUploadedTimes(string)(uint256)" \
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"
 	@echo "$(YELLOW)Expect: UTC+8 time of calling uploadCid$(RESET)"
 
-executorValidateTime:
+cidNotarizedTimes:
 	@cast call --from $(EXECUTOR)  $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"executorValidateTimes(string)(uint256)" \
+		"cidNotarizedTimes(string)(uint256)" \
 		$(CID) | \
 		sed 's/.*\([0-9]\{10\}\).*/\1/' | \
 		xargs -I {} gdate -d "@{}" "+%Y-%m-%d %H:%M:%S"

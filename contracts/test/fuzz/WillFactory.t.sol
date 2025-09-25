@@ -124,9 +124,9 @@ contract WillFactoryFuzzTest is Test {
 
         vm.prank(unauthorizedCaller);
         vm.expectRevert(abi.encodeWithSelector(WillFactory.UnauthorizedCaller.selector, unauthorizedCaller, executor));
-        factory.testatorValidateTimes(cid);
+        factory.cidUploadedTimes(cid);
 
         vm.prank(executor);
-        factory.testatorValidateTimes(cid); // Should not revert
+        factory.cidUploadedTimes(cid); // Should not revert
     }
 }
