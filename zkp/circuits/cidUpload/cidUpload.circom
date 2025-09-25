@@ -19,6 +19,7 @@ template UploadCid(keyBits, ciphertextBytes) {
     signal input {byte} ciphertext[ciphertextBytes];
     input Word() key[Nk];
     signal input {byte} iv[16];
+    signal output {address} testator;
 
     // decryption
     var plaintextBytes = ciphertextBytes;
@@ -26,7 +27,6 @@ template UploadCid(keyBits, ciphertextBytes) {
     
     // deserialization
     var numEstates = calNumEstates(plaintextBytes);
-    signal {address} testator;
     Estate() estates[numEstates];
     signal {address} will;
     signal {uint128} nonce;
@@ -47,7 +47,7 @@ template UploadCid(keyBits, ciphertextBytes) {
 }
 
 
-// Auto updated: 2025-09-20T14:05:17.901Z
+// Auto updated: 2025-09-25T07:20:50.671Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -66,6 +66,7 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
     signal input ciphertext[ciphertextBytes];
     input UntaggedWord() key[Nk];
     signal input iv[16];
+    signal output {address} testator;
 
     signal {byte} _ciphertext[ciphertextBytes];
     _ciphertext <== ciphertext;
@@ -83,6 +84,7 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
     uploadcidComponent.ciphertext <== _ciphertext;
     uploadcidComponent.key <== _key;
     uploadcidComponent.iv <== _iv;
+    testator <== uploadcidComponent.testator;
 }
 
 component main {public [ciphertext, iv]} = UntaggedUploadCid(256, 269);

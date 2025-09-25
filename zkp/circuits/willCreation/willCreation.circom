@@ -20,29 +20,21 @@ template CreateWill(keyBits, ciphertextBytes) {
     signal input {byte} ciphertext[ciphertextBytes];
     input Word() key[Nk];
     signal input {byte} iv[16];
-    signal input {address} expectedTestator;
-    input Estate() expectedEstates[numEstates];
+    signal output {address} testator;
+    output Estate() estates[numEstates];
 
     // decryption
     var plaintextBytes = ciphertextBytes;
     signal {byte} plaintext[plaintextBytes] <== CtrDecrypt(256, ciphertextBytes)(ciphertext, key, iv);
     
     // deserialization
-    signal {address} testator;
-    Estate() estates[numEstates];
     (testator, estates, _, _, _, _, _) <== Deserialize(plaintextBytes)(plaintext);
-
-    expectedTestator === testator;
-
-    for (var i = 0; i < numEstates; i++) {
-        expectedEstates[i].beneficiary === estates[i].beneficiary;
-        expectedEstates[i].token === estates[i].token;
-        expectedEstates[i].amount === estates[i].amount;
-    }
 }
 
 
-// Auto updated: 2025-09-21T09:51:34.083Z
+
+
+// Auto updated: 2025-09-25T07:22:08.535Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -68,26 +60,18 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
     signal input ciphertext[ciphertextBytes];
     input UntaggedWord() key[Nk];
     signal input iv[16];
-    signal input expectedTestator;
-    input UntaggedEstate() expectedEstates[numEstates];
+    signal output {address} testator;
+    output Estate() estates[numEstates];
 
     signal {byte} _ciphertext[ciphertextBytes];
     _ciphertext <== ciphertext;
     signal {byte} _iv[16];
     _iv <== iv;
-    signal {address} _expectedTestator <== expectedTestator;
 
     Word() _key[Nk];
-    Estate() _expectedEstates[numEstates];
 
     for (var i = 0; i < Nk; i++) {
         _key[i].bytes <== key[i].bytes;
-    }
-
-    for (var i = 0; i < numEstates; i++) {
-        _expectedEstates[i].beneficiary <== expectedEstates[i].beneficiary;
-        _expectedEstates[i].token <== expectedEstates[i].token;
-        _expectedEstates[i].amount <== expectedEstates[i].amount;
     }
 
 
@@ -95,8 +79,8 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
     createwillComponent.ciphertext <== _ciphertext;
     createwillComponent.key <== _key;
     createwillComponent.iv <== _iv;
-    createwillComponent.expectedTestator <== _expectedTestator;
-    createwillComponent.expectedEstates <== _expectedEstates;
+    testator <== createwillComponent.testator;
+    estates <== createwillComponent.estates;
 }
 
-component main {public [ciphertext, iv, expectedTestator, expectedEstates]} = UntaggedCreateWill(256, 269);
+component main {public [ciphertext, iv]} = UntaggedCreateWill(256, 269);
