@@ -78,6 +78,10 @@ contract WillFactory {
         return _cidNotarizedTimes[_cid];
     }
 
+    function _comapreArray(uint256[] memory a, uint256[] memory b) internal pure returns (bool) {
+        return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
+    }
+
     function _recoverSigner(string calldata message, bytes memory signature) internal pure returns (address) {
         bytes32 messageHash = keccak256(abi.encodePacked(message));
         bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
@@ -134,10 +138,21 @@ contract WillFactory {
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
-        address testator = address(uint160(_pubSignals[0]));
+        uint16 pubSignalsIdx = 0;
+        address testator = address(uint160(_pubSignals[pubSignalsIdx++]));
         if (msg.sender != testator) revert UnauthorizedCaller(msg.sender, testator);
 
-        // todo check the cyphertext and iv in _will corresponds to the fields in _pubSignals;
+        uint256[16] memory iv;
+        for (uint256 i = 0; i < 16; i++) {
+            iv[i] = _pubSignals[pubSignalsIdx++];
+        }
+        uint256[269] memory ciphertext;
+        for (uint256 i = 0; i < 269; i++) {
+            ciphertext[i] = _pubSignals[pubSignalsIdx++];
+        }
+
+        if (keccak256(abi.encodePacked(iv)) != keccak256(abi.encodePacked(_will.values[1].numberArray))) revert WrongInitializationVector();
+        if (keccak256(abi.encodePacked(ciphertext)) != keccak256(abi.encodePacked(_will.values[3].numberArray))) revert WrongCiphertext();
 
         if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
 
@@ -169,8 +184,6 @@ contract WillFactory {
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
-        // todo check the cyphertext and iv in _will corresponds to the fields in _pubSignals;
-
         if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert WillCreationProofInvalid();
         if (wills[_cid] != address(0)) revert WillAlreadyExists(_cid, wills[_cid]);
 
@@ -184,6 +197,18 @@ contract WillFactory {
         }
         uint256 salt = _pubSignals[pubSignalsIdx++] | (_pubSignals[pubSignalsIdx++] << 64) | (_pubSignals[pubSignalsIdx++] << 128)
             | (_pubSignals[pubSignalsIdx++] << 192);
+
+        uint256[16] memory iv;
+        for (uint256 i = 0; i < 16; i++) {
+            iv[i] = _pubSignals[pubSignalsIdx++];
+        }
+        uint256[269] memory ciphertext;
+        for (uint256 i = 0; i < 269; i++) {
+            ciphertext[i] = _pubSignals[pubSignalsIdx++];
+        }
+
+        if (keccak256(abi.encodePacked(iv)) != keccak256(abi.encodePacked(_will.values[1].numberArray))) revert WrongInitializationVector();
+        if (keccak256(abi.encodePacked(ciphertext)) != keccak256(abi.encodePacked(_will.values[3].numberArray))) revert WrongCiphertext();
 
         Will will = new Will{ salt: bytes32(salt) }(permit2, testator, executor, estates);
         address predictedAddress = _predictWill(testator, estates, salt);

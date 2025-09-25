@@ -16,9 +16,9 @@ template UploadCid(keyBits, ciphertextBytes) {
         Nk = 8;
     }
 
+    signal input {byte} iv[16];
     signal input {byte} ciphertext[ciphertextBytes];
     input Word() key[Nk];
-    signal input {byte} iv[16];
     signal output {address} testator;
 
     // decryption
@@ -46,8 +46,7 @@ template UploadCid(keyBits, ciphertextBytes) {
     VerifyPermit(numPermission)(testator, permit, will, signature);
 }
 
-
-// Auto updated: 2025-09-25T07:20:50.671Z
+// Auto updated: 2025-09-25T18:53:05.145Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -63,15 +62,15 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
         Nk = 8;
     }
 
+    signal input iv[16];
     signal input ciphertext[ciphertextBytes];
     input UntaggedWord() key[Nk];
-    signal input iv[16];
     signal output {address} testator;
 
-    signal {byte} _ciphertext[ciphertextBytes];
-    _ciphertext <== ciphertext;
     signal {byte} _iv[16];
     _iv <== iv;
+    signal {byte} _ciphertext[ciphertextBytes];
+    _ciphertext <== ciphertext;
 
     Word() _key[Nk];
 
@@ -81,10 +80,10 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
 
 
     component uploadcidComponent = UploadCid(keyBits, ciphertextBytes);
+    uploadcidComponent.iv <== _iv;
     uploadcidComponent.ciphertext <== _ciphertext;
     uploadcidComponent.key <== _key;
-    uploadcidComponent.iv <== _iv;
     testator <== uploadcidComponent.testator;
 }
 
-component main {public [ciphertext, iv]} = UntaggedUploadCid(256, 269);
+component main {public [iv, ciphertext]} = UntaggedUploadCid(256, 269);

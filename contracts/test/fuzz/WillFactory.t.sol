@@ -5,22 +5,49 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
+import "src/CidUploadVerifier.sol";
+import "src/WillCreationVerifier.sol";
 import "mock/MockContracts.sol";
 
+/*
+ * @note Prerequisite for this test:
+ *  1. `make fork` a virtual env
+ *  2. `make deploy` necessary contracts
+ *  3. `make all` in apps/backend to generate test data (e.g., encrypted will, ZKP).
+ */
 contract WillFactoryFuzzTest is Test {
+    struct CidUploadProofData {
+        uint256[2] pA;
+        uint256[2][2] pB;
+        uint256[2] pC;
+        uint256[286] pubSignals;
+    }
+
+    struct WillCreationProofData {
+        uint256[2] pA;
+        uint256[2][2] pB;
+        uint256[2] pC;
+        uint256[296] pubSignals;
+    }
+
     WillFactory factory;
     MockCidUploadVerifier mockCidUploadVerifier;
     MockWillCreationVerifier mockWillCreationVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
-    address notary = makeAddr("notary");
+    uint256 notaryPrivateKey = 0x1111111111111111111111111111111111111111111111111111111111111111;
+    address notary;
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
     uint8 maxEstates = 2;
 
     JsonCidVerifier.TypedJsonObject willJson;
+    CidUploadProofData cidUploadProof = _getCidUploadProofFromFiles();
+    WillCreationProofData willCreationProof = _getWillCreationProofFromFiles();
 
     function setUp() public {
+        notary = vm.addr(notaryPrivateKey);
+
         mockCidUploadVerifier = new MockCidUploadVerifier();
         mockWillCreationVerifier = new MockWillCreationVerifier();
         mockJsonCidVerifier = new MockJsonCidVerifier();
@@ -35,13 +62,9 @@ contract WillFactoryFuzzTest is Test {
             maxEstates
         );
 
-        string[] memory keys = new string[](1);
-        keys[0] = "salt";
-
-        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](1);
-        values[0] = JsonCidVerifier.JsonValue("12345", new uint256[](0), JsonCidVerifier.JsonValueType(1));
-
-        willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
+        willJson = _getEncryptedWillFromFile();
+        cidUploadProof = _getCidUploadProofFromFiles();
+        willCreationProof = _getWillCreationProofFromFiles();
     }
 
     function test_PredictWill_DeterministicOutput(
@@ -86,6 +109,60 @@ contract WillFactoryFuzzTest is Test {
         assertTrue(predicted1 != predicted2);
     }
 
+    function test_UploadCid_RevertOnWrongCiphertext(uint256 seed) public {
+        vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
+
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockCidUploadVerifier.setShouldReturnTrue(true);
+
+        address testator = address(uint160(cidUploadProof.pubSignals[0]));
+
+        // Create a modified will JSON with wrong ciphertext
+        JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
+        // Modify the ciphertext array to create a mismatch
+        if (modifiedWill.values[3].numberArray.length > 0) {
+            modifiedWill.values[3].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
+        }
+
+        vm.prank(testator);
+        vm.expectRevert(WillFactory.WrongCiphertext.selector);
+        factory.uploadCid(
+            cidUploadProof.pA,
+            cidUploadProof.pB,
+            cidUploadProof.pC,
+            cidUploadProof.pubSignals,
+            modifiedWill,
+            "test_cid"
+        );
+    }
+
+    function test_UploadCid_RevertOnWrongInitializationVector(uint256 seed) public {
+        vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
+
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockCidUploadVerifier.setShouldReturnTrue(true);
+
+        address testator = address(uint160(cidUploadProof.pubSignals[0]));
+
+        // Create a modified will JSON with wrong initialization vector
+        JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
+        // Modify the IV array (values[1]) to create a mismatch
+        if (modifiedWill.values[1].numberArray.length > 0) {
+            modifiedWill.values[1].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
+        }
+
+        vm.prank(testator);
+        vm.expectRevert(WillFactory.WrongInitializationVector.selector);
+        factory.uploadCid(
+            cidUploadProof.pA,
+            cidUploadProof.pB,
+            cidUploadProof.pC,
+            cidUploadProof.pubSignals,
+            modifiedWill,
+            "test_cid"
+        );
+    }
+
     function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, uint256 wrongPrivateKey) public {
         vm.assume(bytes(cid).length > 0);
         vm.assume(
@@ -98,17 +175,9 @@ contract WillFactoryFuzzTest is Test {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockCidUploadVerifier.setShouldReturnTrue(true);
 
-        uint256[2] memory pA = [uint256(1), uint256(2)];
-        uint256[2][2] memory pB = [[uint256(3), uint256(4)], [uint256(5), uint256(6)]];
-        uint256[2] memory pC = [uint256(7), uint256(8)];
-        uint256[286] memory pubSignals;
-        for (uint256 i = 0; i < 286; i++) {
-            pubSignals[i] = i + 1;
-        }
-
-        address testator = address(uint160(pubSignals[0]));
+        address testator = address(uint160(cidUploadProof.pubSignals[0]));
         vm.prank(testator);
-        factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
+        factory.uploadCid(cidUploadProof.pA, cidUploadProof.pB, cidUploadProof.pC, cidUploadProof.pubSignals, willJson, cid);
 
         vm.warp(block.timestamp + 1);
 
@@ -124,6 +193,109 @@ contract WillFactoryFuzzTest is Test {
         factory.notarizeCid(cid, wrongSignature);
     }
 
+    function test_CreateWill_RevertOnWrongCiphertext(uint256 seed) public {
+        vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
+
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockCidUploadVerifier.setShouldReturnTrue(true);
+        mockWillCreationVerifier.setShouldReturnTrue(true);
+
+        string memory cid = "test_cid";
+        address testator = address(uint160(cidUploadProof.pubSignals[0]));
+
+        // First upload and notarize the CID
+        vm.prank(testator);
+        factory.uploadCid(
+            cidUploadProof.pA,
+            cidUploadProof.pB,
+            cidUploadProof.pC,
+            cidUploadProof.pubSignals,
+            willJson,
+            cid
+        );
+
+        vm.warp(block.timestamp + 1);
+
+        bytes32 messageHash = keccak256(abi.encodePacked(cid));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        vm.prank(executor);
+        factory.notarizeCid(cid, signature);
+
+        vm.warp(block.timestamp + 1);
+
+        // Create a modified will JSON with wrong ciphertext
+        JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
+        if (modifiedWill.values[3].numberArray.length > 0) {
+            modifiedWill.values[3].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
+        }
+
+        vm.prank(executor);
+        vm.expectRevert(WillFactory.WrongCiphertext.selector);
+        factory.createWill(
+            willCreationProof.pA,
+            willCreationProof.pB,
+            willCreationProof.pC,
+            willCreationProof.pubSignals,
+            modifiedWill,
+            cid
+        );
+    }
+
+    function test_CreateWill_RevertOnWrongInitializationVector(uint256 seed) public {
+        vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
+
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockCidUploadVerifier.setShouldReturnTrue(true);
+        mockWillCreationVerifier.setShouldReturnTrue(true);
+
+        string memory cid = "test_cid";
+        address testator = address(uint160(cidUploadProof.pubSignals[0]));
+
+        // First upload and notarize the CID
+        vm.prank(testator);
+        factory.uploadCid(
+            cidUploadProof.pA,
+            cidUploadProof.pB,
+            cidUploadProof.pC,
+            cidUploadProof.pubSignals,
+            willJson,
+            cid
+        );
+
+        vm.warp(block.timestamp + 1);
+
+        bytes32 messageHash = keccak256(abi.encodePacked(cid));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        vm.prank(executor);
+        factory.notarizeCid(cid, signature);
+
+        vm.warp(block.timestamp + 1);
+
+        // Create a modified will JSON with wrong initialization vector
+        JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
+        // Modify the IV array (values[1]) to create a mismatch
+        if (modifiedWill.values[1].numberArray.length > 0) {
+            modifiedWill.values[1].numberArray[0] = seed + 1; // Simple assignment to avoid overflow
+        }
+
+        vm.prank(executor);
+        vm.expectRevert(WillFactory.WrongInitializationVector.selector);
+        factory.createWill(
+            willCreationProof.pA,
+            willCreationProof.pB,
+            willCreationProof.pC,
+            willCreationProof.pubSignals,
+            modifiedWill,
+            cid
+        );
+    }
+
     function test_OnlyAuthorizedModifier(address unauthorizedCaller, string calldata cid) public {
         vm.assume(unauthorizedCaller != executor);
         vm.assume(bytes(cid).length > 0);
@@ -134,5 +306,108 @@ contract WillFactoryFuzzTest is Test {
 
         vm.prank(executor);
         factory.cidUploadedTimes(cid); // Should not revert
+    }
+
+    function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
+        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.json";
+        string memory encryptedJson = vm.readFile(encryptedJsonPath);
+
+        JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
+        willTypedJsonObj.keys = new string[](5);
+        willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
+
+        willTypedJsonObj.keys[0] = "algorithm";
+        willTypedJsonObj.keys[1] = "iv";
+        willTypedJsonObj.keys[2] = "authTag";
+        willTypedJsonObj.keys[3] = "ciphertext";
+        willTypedJsonObj.keys[4] = "timestamp";
+
+        string memory algorithm = abi.decode(vm.parseJson(encryptedJson, ".algorithm"), (string));
+        uint256[] memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (uint256[]));
+        uint256[] memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (uint256[]));
+        uint256[] memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (uint256[]));
+        uint256 timestamp = abi.decode(vm.parseJson(encryptedJson, ".timestamp"), (uint256));
+
+        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, new uint[](0), JsonCidVerifier.JsonValueType.STRING);
+        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("", iv, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue("", authTag, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue("", ciphertext, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), new uint[](0), JsonCidVerifier.JsonValueType.NUMBER);
+
+        return willTypedJsonObj;
+    }
+
+    function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
+        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.json";
+        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.json";
+
+        string memory proofJson = vm.readFile(proofPath);
+        string memory publicJson = vm.readFile(publicPath);
+
+        // Parse proof.json
+        uint256[2] memory pA;
+        uint256[2][2] memory pB;
+        uint256[2] memory pC;
+
+        string memory pA0Str = abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string));
+        string memory pA1Str = abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string));
+        pA[0] = vm.parseUint(pA0Str);
+        pA[1] = vm.parseUint(pA1Str);
+
+        // @note G2 point (pB) needs to swap the order
+        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
+        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
+        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
+        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
+
+        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
+        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
+
+        // Parse public.json
+        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
+        require(pubStringArray.length == 286, "Public signals array must have exactly 286 elements");
+
+        uint256[286] memory pubSignals;
+        for (uint256 i = 0; i < 286; i++) {
+            pubSignals[i] = vm.parseUint(pubStringArray[i]);
+        }
+
+        return CidUploadProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
+    }
+
+    function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
+        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.json";
+        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.json";
+
+        string memory proofJson = vm.readFile(proofPath);
+        string memory publicJson = vm.readFile(publicPath);
+
+        // Parse proof.json
+        uint256[2] memory pA;
+        uint256[2][2] memory pB;
+        uint256[2] memory pC;
+
+        pA[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string)));
+        pA[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string)));
+
+        // @note G2 point (pB) needs to swap the order
+        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
+        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
+        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
+        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
+
+        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
+        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
+
+        // Parse public.json
+        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
+        require(pubStringArray.length == 296, "Public signals array must have exactly 296 elements");
+
+        uint256[296] memory pubSignals;
+        for (uint256 i = 0; i < 296; i++) {
+            pubSignals[i] = vm.parseUint(pubStringArray[i]);
+        }
+
+        return WillCreationProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
     }
 }

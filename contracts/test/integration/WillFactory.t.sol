@@ -18,16 +18,6 @@ import "src/JsonCidVerifier.sol";
  *  3. `make all` in apps/backend to generate test data (e.g., encrypted will, ZKP).
  */
 contract WillFactoryIntegrationTest is Test {
-    WillFactory willFactory;
-    CidUploadVerifier cidUploadVerifier;
-    WillCreationVerifier willCreateVerifier;
-    JsonCidVerifier jsonCidVerifier;
-
-    address notary;
-    address executor;
-    address permit2;
-    uint8 maxEstates;
-
     struct CidUploadProofData {
         uint256[2] pA;
         uint256[2][2] pB;
@@ -41,6 +31,16 @@ contract WillFactoryIntegrationTest is Test {
         uint256[2] pC;
         uint256[296] pubSignals;
     }
+
+    WillFactory willFactory;
+    CidUploadVerifier cidUploadVerifier;
+    WillCreationVerifier willCreateVerifier;
+    JsonCidVerifier jsonCidVerifier;
+
+    address notary;
+    address executor;
+    address permit2;
+    uint8 maxEstates;
 
     struct TestVector {
         string name;
@@ -79,7 +79,7 @@ contract WillFactoryIntegrationTest is Test {
 
     function _setupTestVectors() internal {
         {
-            JsonCidVerifier.TypedJsonObject memory willTypedJsonObj = _getWillTypedJsonObjFromFile();
+            JsonCidVerifier.TypedJsonObject memory willTypedJsonObj = _getEncryptedWillFromFile();
             CidUploadProofData memory cidUploadProof = _getCidUploadProofFromFiles();
             WillCreationProofData memory willCreationProof = _getWillCreationProofFromFiles();
 
@@ -270,7 +270,7 @@ contract WillFactoryIntegrationTest is Test {
         notarySignature = vm.envBytes("NOTARY_SIGNATURE");
     }
 
-    function _getWillTypedJsonObjFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
+    function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
         string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.json";
         string memory encryptedJson = vm.readFile(encryptedJsonPath);
 

@@ -111,9 +111,9 @@ async function executeCreateWill(
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
     };
-  } catch (error) {
+  } catch {
     throw new Error(
-      `Failed to execute createWill: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to execute createWill`,
     );
   }
 }

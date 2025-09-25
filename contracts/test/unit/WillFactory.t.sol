@@ -68,19 +68,19 @@ contract WillFactoryUnitTest is Test {
 
         estates.push(Will.Estate({ beneficiary: beneficiary1, token: token1, amount: amount1 }));
 
-        string[] memory keys = new string[](3);
-        keys[0] = "text";
-        keys[1] = "timestamp";
-        keys[2] = "ids";
+        string[] memory keys = new string[](5);
+        keys[0] = "key0";
+        keys[1] = "key1";
+        keys[2] = "key2";
+        keys[3] = "key3";
+        keys[4] = "key4";
 
-        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](3);
-        values[0] = JsonCidVerifier.JsonValue("hello world", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
-        values[1] = JsonCidVerifier.JsonValue("1753824424", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
-        uint256[] memory ids = new uint256[](3);
-        ids[0] = 1;
-        ids[1] = 2;
-        ids[2] = 3;
-        values[2] = JsonCidVerifier.JsonValue("", ids, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        JsonCidVerifier.JsonValue[] memory values = new JsonCidVerifier.JsonValue[](5);
+        values[0] = JsonCidVerifier.JsonValue("value0", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
+        values[1] = JsonCidVerifier.JsonValue("", new uint256[](16), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        values[2] = JsonCidVerifier.JsonValue("", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        values[3] = JsonCidVerifier.JsonValue("", new uint256[](269), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        values[4] = JsonCidVerifier.JsonValue("1234567890", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
 
@@ -158,11 +158,27 @@ contract WillFactoryUnitTest is Test {
     }
 
     function test_UploadCid_WrongCiphertext() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
 
+        // Change first element of ciphertext
+        willJson.values[3].numberArray[0] = 999;
+
+        vm.expectRevert(WillFactory.WrongCiphertext.selector);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
     function test_UploadCid_WrongInitializationVector() public {
-        
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+
+        // Change first element of IV
+        willJson.values[1].numberArray[0] = 888;
+
+        vm.expectRevert(WillFactory.WrongInitializationVector.selector);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
     function test_UploadCid_CidUploadProofInvalid() public {
@@ -305,11 +321,49 @@ contract WillFactoryUnitTest is Test {
     }
 
     function test_CreateWill_WrongCiphertext() public {
+        // Setup: Upload and notarize the CID first
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
+        vm.warp(block.timestamp + 1);
+
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
+
+        mockWillCreationVerifier.setShouldReturnTrue(true);
+
+         // Change first element of ciphertext
+        willJson.values[3].numberArray[0] = 777;
+
+        vm.expectRevert(WillFactory.WrongCiphertext.selector);
+        vm.prank(executor);
+        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
     }
 
     function test_CreateWill_WrongInitializationVector() public {
-        
+        // Setup: Upload and notarize the CID first
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        bytes memory notarySignature = _notarySign(cid);
+        vm.prank(executor);
+        factory.notarizeCid(cid, notarySignature);
+
+        mockWillCreationVerifier.setShouldReturnTrue(true);
+
+        // Change first element of IV
+        willJson.values[1].numberArray[0] = 666;
+
+        vm.expectRevert(WillFactory.WrongInitializationVector.selector);
+        vm.prank(executor);
+        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
     }
 
     function test_CreateWill_WillCreationProofInvalid() public {

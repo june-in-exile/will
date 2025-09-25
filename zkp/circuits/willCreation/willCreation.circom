@@ -17,9 +17,9 @@ template CreateWill(keyBits, ciphertextBytes) {
 
     var numEstates = calNumEstates(ciphertextBytes);
 
+    signal input {byte} iv[16];
     signal input {byte} ciphertext[ciphertextBytes];
     input Word() key[Nk];
-    signal input {byte} iv[16];
     signal output {address} testator;
     output Estate() estates[numEstates];
     signal output {uint256} salt[4];
@@ -32,9 +32,7 @@ template CreateWill(keyBits, ciphertextBytes) {
     (testator, estates, salt, _, _, _, _) <== Deserialize(plaintextBytes)(plaintext);
 }
 
-
-
-// Auto updated: 2025-09-25T10:59:30.866Z
+// Auto updated: 2025-09-25T19:39:22.636Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -57,17 +55,17 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
     }
     var numEstates = calNumEstates(ciphertextBytes);
 
+    signal input iv[16];
     signal input ciphertext[ciphertextBytes];
     input UntaggedWord() key[Nk];
-    signal input iv[16];
     signal output {address} testator;
     output Estate() estates[numEstates];
     signal output {uint256} salt[4];
 
-    signal {byte} _ciphertext[ciphertextBytes];
-    _ciphertext <== ciphertext;
     signal {byte} _iv[16];
     _iv <== iv;
+    signal {byte} _ciphertext[ciphertextBytes];
+    _ciphertext <== ciphertext;
 
     Word() _key[Nk];
 
@@ -77,12 +75,12 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
 
 
     component createwillComponent = CreateWill(keyBits, ciphertextBytes);
+    createwillComponent.iv <== _iv;
     createwillComponent.ciphertext <== _ciphertext;
     createwillComponent.key <== _key;
-    createwillComponent.iv <== _iv;
     testator <== createwillComponent.testator;
     estates <== createwillComponent.estates;
     salt <== createwillComponent.salt;
 }
 
-component main {public [ciphertext, iv]} = UntaggedCreateWill(256, 269);
+component main {public [iv, ciphertext]} = UntaggedCreateWill(256, 269);
