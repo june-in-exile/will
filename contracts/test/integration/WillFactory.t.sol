@@ -3,12 +3,20 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
+import "forge-std/console.sol";
 import "src/WillFactory.sol";
 import "src/Will.sol";
 import "src/CidUploadVerifier.sol";
 import "src/WillCreationVerifier.sol";
 import "src/JsonCidVerifier.sol";
 
+
+/*
+ * @note Prerequisite for this test:
+ *  1. `make fork` a virtual env
+ *  2. `make deploy` necessary contracts
+ *  3. `make all` in apps/backend to generate test data (e.g., encrypted will, ZKP).
+ */
 contract WillFactoryIntegrationTest is Test {
     WillFactory willFactory;
     CidUploadVerifier cidUploadVerifier;
@@ -18,6 +26,7 @@ contract WillFactoryIntegrationTest is Test {
     address notary;
     address executor;
     address permit2;
+    uint8 maxEstates;
 
     struct CidUploadProofData {
         uint256[2] pA;
@@ -30,10 +39,9 @@ contract WillFactoryIntegrationTest is Test {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[292] pubSignals;
+        uint256[296] pubSignals;
     }
 
-    // Known test vectors (generate with your JavaScript implementation and your wallet)
     struct TestVector {
         string name;
         address testator;
@@ -60,9 +68,10 @@ contract WillFactoryIntegrationTest is Test {
         notary = 0xc052e703B3e22987c4e9AbA03549D7C3236bE5d3;
         executor = 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a;
         permit2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
+        maxEstates = 2;
 
         willFactory = new WillFactory(
-            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, executor, permit2
+            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, executor, permit2, maxEstates
         );
 
         _setupTestVectors();
@@ -70,51 +79,28 @@ contract WillFactoryIntegrationTest is Test {
 
     function _setupTestVectors() internal {
         {
-            JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
-            willTypedJsonObj.keys = new string[](5);
-            willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
-            willTypedJsonObj.keys[0] = "algorithm";
-            willTypedJsonObj.keys[1] = "iv";
-            willTypedJsonObj.keys[2] = "authTag";
-            willTypedJsonObj.keys[3] = "ciphertext";
-            willTypedJsonObj.keys[4] = "timestamp";
-            willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue("aes-256-ctr", JsonCidVerifier.JsonValueType(0));
-            willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("CLmM4F7Y3P53nEXYbwUxdw==", JsonCidVerifier.JsonValueType(0));
-            willTypedJsonObj.values[2] =
-                JsonCidVerifier.JsonValue("", JsonCidVerifier.JsonValueType(0));
-            willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue(
-                "WHiJloqVh+sLSneyEWbLGLQkCTWGVi1x9X8yegF0ZLM6vqkwX7Q9T/iDz8SdFtA0eqPp2YvNJSLwHg2MRG4yq09RSINXv1A9y12G7/DxJAOaD9F+mvR6L6pC5SM0kYvswIyVC+flHM6FsKXGG0/eYwLhryVWPj3Julm26BLen2vE+L2qWrUZK7to8zuvKGwU/miGLdhOHchdYIBXLAtRV5K+cjB15OvJyZ75t853fE2Jnm/bqP5cVupLC4eDU9BQlL/nKM0DMff6Noo5x0Njg4y5V6GwahDNxNhiDyoVFHl3fXKU4zkDsa634Av2KyokB7OyxOzt3wg98j7io4FiLQAaa4E8Otw5HWg2t78=",
-                JsonCidVerifier.JsonValueType(0)
-            );
-            willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue("1758740919", JsonCidVerifier.JsonValueType(1));
+            JsonCidVerifier.TypedJsonObject memory willTypedJsonObj = _getWillTypedJsonObjFromFile();
+            CidUploadProofData memory cidUploadProof = _getCidUploadProofFromFiles();
+            WillCreationProofData memory willCreationProof = _getWillCreationProofFromFiles();
 
-            Will.Estate[] memory estates = new Will.Estate[](2);
-
-            estates[0] = Will.Estate({
-                beneficiary: address(0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c),
-                token: 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d, // Arbitrum Sepolia USDC
-                amount: 1000 // USDC has 6 decimals
-             });
-
-            estates[1] = Will.Estate({
-                beneficiary: address(0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c),
-                token: 0xb1D4538B4571d411F07960EF2838Ce337FE1E80E, // Arbitrum Sepolia LINK
-                amount: 5000000 // LINK has 18 decimals
-             });
-
-            CidUploadProofData memory cidUploadProof = _getCidUploadProofFromEnvArrays();
-            WillCreationProofData memory willCreationProof = _getWillCreationProofFromEnvArrays();
+            (
+                address testator,
+                Will.Estate[] memory estates,
+                uint256 salt,
+                string memory cid,
+                bytes memory notarySignature
+            ) = _getTestDataFromEnv();
 
             testVectors.push(
                 TestVector({
                     name: "20250925 Will",
-                    testator: address(0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc),
+                    testator: testator,
                     estates: estates,
-                    salt: 50975579764360880106236920062598993488283553682642442441465735635811502740393,
+                    salt: salt,
                     willTypedJsonObj: willTypedJsonObj,
-                    cid: "bagaaieragn2kj6lh3zew2jthnxvdwvjtvdtbnbycwlp43fc5fe2izdu66bwa",
+                    cid: cid,
                     cidUploadProof: cidUploadProof,
-                    notarySignature: hex"ff83a0645588e5e2ffc9a6aa0766d1160747a2b7ce1bcbaf32f75741cda159b153c0ad960cdd68cbbb3587b6877f591562ce37a829d6b853031dfbe180d491991b",
+                    notarySignature: notarySignature,
                     willCreationProof: willCreationProof
                 })
             );
@@ -127,6 +113,13 @@ contract WillFactoryIntegrationTest is Test {
         // Step 1: Upload CID
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidUploaded(tv.cid, block.timestamp);
+
+        console.log(tv.cidUploadProof.pA[0]);
+        console.log(tv.cidUploadProof.pA[1]);
+
+        console.log(tv.cidUploadProof.pubSignals[0]);
+        console.log(tv.cidUploadProof.pubSignals[1]);
+        console.log(tv.cidUploadProof.pubSignals[2]);
 
         vm.prank(tv.testator);
         willFactory.uploadCid(
@@ -171,10 +164,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.willCreationProof.pC,
             tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
-            tv.cid,
-            tv.testator,
-            tv.estates,
-            tv.salt
+            tv.cid
         );
 
         // Verify will creation
@@ -215,10 +205,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.willCreationProof.pC,
             tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
-            tv.cid,
-            tv.testator,
-            tv.estates,
-            tv.salt
+            tv.cid
         );
 
         // Notarize at time T (same as upload) - should fail
@@ -234,10 +221,7 @@ contract WillFactoryIntegrationTest is Test {
             tv.willCreationProof.pC,
             tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
-            tv.cid,
-            tv.testator,
-            tv.estates,
-            tv.salt
+            tv.cid
         );
 
         // Fast forward time and notarize - should success
@@ -259,70 +243,138 @@ contract WillFactoryIntegrationTest is Test {
             tv.willCreationProof.pC,
             tv.willCreationProof.pubSignals,
             tv.willTypedJsonObj,
-            tv.cid,
-            tv.testator,
-            tv.estates,
-            tv.salt
+            tv.cid
         );
 
         assertEq(willFactory.wills(tv.cid), willAddress);
     }
 
-    function _getCidUploadProofFromEnvArrays() public view returns (CidUploadProofData memory) {
-        uint256[] memory paArray = vm.envUint("CID_UPLOAD_PA_ARRAY", ",");
-        require(paArray.length == 2, "CID_UPLOAD_PA_ARRAY must have exactly 2 elements");
+    function _getTestDataFromEnv() internal view returns (
+        address testator,
+        Will.Estate[] memory estates,
+        uint256 salt,
+        string memory cid,
+        bytes memory notarySignature
+    ) {
+        // Read values from environment variables
+        testator = vm.envAddress("TESTATOR");
 
-        uint256[] memory pbArray = vm.envUint("CID_UPLOAD_PB_ARRAY", ",");
-        require(pbArray.length == 4, "CID_UPLOAD_PB_ARRAY must have exactly 4 elements");
+        estates = new Will.Estate[](maxEstates);
+        estates[0] = Will.Estate({
+            beneficiary: vm.envAddress("BENEFICIARY0"),
+            token: vm.envAddress("TOKEN0"),
+            amount: vm.envUint("AMOUNT0")
+        });
 
-        uint256[] memory pcArray = vm.envUint("CID_UPLOAD_PC_ARRAY", ",");
-        require(pcArray.length == 2, "CID_UPLOAD_PC_ARRAY must have exactly 2 elements");
+        estates[1] = Will.Estate({
+            beneficiary: vm.envAddress("BENEFICIARY1"),
+            token: vm.envAddress("TOKEN1"),
+            amount: vm.envUint("AMOUNT1")
+        });
 
-        uint256[] memory pubArray = vm.envUint("CID_UPLOAD_PUBSIGNALS_ARRAY", ",");
-        require(pubArray.length == 286, "CID_UPLOAD_PUBSIGNALS_ARRAY must have exactly 286 elements");
+        salt = vm.envUint("SALT");
+        cid = vm.envString("CID");
+        notarySignature = vm.envBytes("NOTARY_SIGNATURE");
+    }
 
-        uint256[2] memory pA = [paArray[0], paArray[1]];
+    function _getWillTypedJsonObjFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
+        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.json";
+        string memory encryptedJson = vm.readFile(encryptedJsonPath);
 
-        uint256[2][2] memory pB = [
-            [pbArray[0], pbArray[1]], // First pair
-            [pbArray[2], pbArray[3]] // Second pair
-        ];
+        JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
+        willTypedJsonObj.keys = new string[](5);
+        willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
 
-        uint256[2] memory pC = [pcArray[0], pcArray[1]];
+        willTypedJsonObj.keys[0] = "algorithm";
+        willTypedJsonObj.keys[1] = "iv";
+        willTypedJsonObj.keys[2] = "authTag";
+        willTypedJsonObj.keys[3] = "ciphertext";
+        willTypedJsonObj.keys[4] = "timestamp";
+
+        string memory algorithm = abi.decode(vm.parseJson(encryptedJson, ".algorithm"), (string));
+        string memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (string));
+        string memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (string));
+        string memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (string));
+        uint256 timestamp = abi.decode(vm.parseJson(encryptedJson, ".timestamp"), (uint256));
+
+        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, JsonCidVerifier.JsonValueType(0));
+        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue(iv, JsonCidVerifier.JsonValueType(0));
+        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue(authTag, JsonCidVerifier.JsonValueType(0));
+        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue(ciphertext, JsonCidVerifier.JsonValueType(0));
+        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), JsonCidVerifier.JsonValueType(1));
+
+        return willTypedJsonObj;
+    }
+
+    function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
+        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.json";
+        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.json";
+
+        string memory proofJson = vm.readFile(proofPath);
+        string memory publicJson = vm.readFile(publicPath);
+
+        // Parse proof.json
+        uint256[2] memory pA;
+        uint256[2][2] memory pB;
+        uint256[2] memory pC;
+
+        string memory pA0Str = abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string));
+        string memory pA1Str = abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string));
+        pA[0] = vm.parseUint(pA0Str);
+        pA[1] = vm.parseUint(pA1Str);
+
+        // @note G2 point (pB) needs to swap the order
+        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
+        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
+        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
+        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
+
+        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
+        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
+
+        // Parse public.json
+        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
+        require(pubStringArray.length == 286, "Public signals array must have exactly 286 elements");
 
         uint256[286] memory pubSignals;
         for (uint256 i = 0; i < 286; i++) {
-            pubSignals[i] = pubArray[i];
+            pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 
         return CidUploadProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
     }
 
-    function _getWillCreationProofFromEnvArrays() public view returns (WillCreationProofData memory) {
-        uint256[] memory paArray = vm.envUint("WILL_CREATION_PA_ARRAY", ",");
-        require(paArray.length == 2, "WILL_CREATION_PA_ARRAY must have exactly 2 elements");
+    function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
+        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.json";
+        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.json";
 
-        uint256[] memory pbArray = vm.envUint("WILL_CREATION_PB_ARRAY", ",");
-        require(pbArray.length == 4, "WILL_CREATION_PB_ARRAY must have exactly 4 elements");
+        string memory proofJson = vm.readFile(proofPath);
+        string memory publicJson = vm.readFile(publicPath);
 
-        uint256[] memory pcArray = vm.envUint("WILL_CREATION_PC_ARRAY", ",");
-        require(pcArray.length == 2, "WILL_CREATION_PC_ARRAY must have exactly 2 elements");
+        // Parse proof.json
+        uint256[2] memory pA;
+        uint256[2][2] memory pB;
+        uint256[2] memory pC;
 
-        uint256[] memory pubArray = vm.envUint("WILL_CREATION_PUBSIGNALS_ARRAY", ",");
-        require(pubArray.length == 292, "WILL_CREATION_PUBSIGNALS_ARRAY must have exactly 292 elements");
+        pA[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string)));
+        pA[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string)));
 
-        uint256[2] memory pA = [paArray[0], paArray[1]];
+        // @note G2 point (pB) needs to swap the order
+        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
+        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
+        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
+        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
 
-        uint256[2][2] memory pB = [
-            [pbArray[0], pbArray[1]], // First pair
-            [pbArray[2], pbArray[3]] // Second pair
-        ];
+        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
+        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
 
-        uint256[2] memory pC = [pcArray[0], pcArray[1]];
+        // Parse public.json
+        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
+        require(pubStringArray.length == 296, "Public signals array must have exactly 296 elements");
 
-        uint256[292] memory pubSignals;
-        for (uint256 i = 0; i < 292; i++) {
-            pubSignals[i] = pubArray[i];
+        uint256[296] memory pubSignals;
+        for (uint256 i = 0; i < 296; i++) {
+            pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 
         return WillCreationProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });

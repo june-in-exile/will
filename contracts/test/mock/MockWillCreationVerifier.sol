@@ -8,7 +8,7 @@ contract MockWillCreationVerifier {
         shouldReturnTrue = _shouldReturnTrue;
     }
 
-    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[292] calldata)
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[296] calldata)
         external
         view
         returns (bool)

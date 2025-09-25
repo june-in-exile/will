@@ -25,7 +25,7 @@ interface WillCreationProofData {
   pA: [bigint, bigint];
   pB: [[bigint, bigint], [bigint, bigint]];
   pC: [bigint, bigint];
-  pubSignals: bigint[] & { length: 292 };
+  pubSignals: bigint[] & { length: 296 };
 }
 
 type ProofData = CidUploadProofData | WillCreationProofData;

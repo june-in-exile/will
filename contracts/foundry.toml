@@ -8,6 +8,10 @@ optimizer = true
 optimizer_runs = 200
 via_ir = true
 fuzz = { runs = 256 }
+fs_permissions = [
+    { access = "read", path = "../zkp/circuits/" },
+    { access = "read", path = "../apps/backend/" }
+]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",

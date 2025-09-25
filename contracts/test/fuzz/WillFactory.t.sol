@@ -16,6 +16,7 @@ contract WillFactoryFuzzTest is Test {
     address notary = makeAddr("notary");
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
+    uint8 maxEstates = 2;
 
     JsonCidVerifier.TypedJsonObject willJson;
 
@@ -30,7 +31,8 @@ contract WillFactoryFuzzTest is Test {
             address(mockJsonCidVerifier),
             notary,
             executor,
-            permit2
+            permit2,
+            maxEstates
         );
 
         string[] memory keys = new string[](1);
@@ -86,7 +88,9 @@ contract WillFactoryFuzzTest is Test {
 
     function test_NotarizeCid_RevertOnInvalidSignature(string calldata cid, uint256 wrongPrivateKey) public {
         vm.assume(bytes(cid).length > 0);
-        vm.assume(wrongPrivateKey > 0 && wrongPrivateKey < 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141);
+        vm.assume(
+            wrongPrivateKey > 0 && wrongPrivateKey < 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+        );
 
         address wrongSigner = vm.addr(wrongPrivateKey);
         vm.assume(wrongSigner != notary);
@@ -105,7 +109,7 @@ contract WillFactoryFuzzTest is Test {
         address testator = address(uint160(pubSignals[0]));
         vm.prank(testator);
         factory.uploadCid(pA, pB, pC, pubSignals, willJson, cid);
-        
+
         vm.warp(block.timestamp + 1);
 
         // Create a valid signature but from wrong signer

@@ -5,7 +5,6 @@ import {
   JsonCidVerifier,
 } from "@shared/types/typechain-types/index.js";
 import type {
-  Estate,
   WillCreationProofData,
   EncryptedWill,
   CreateWill,
@@ -21,11 +20,10 @@ import {
   updateEnvironmentVariables,
   readProof,
   readWill,
-  readWillFields,
 } from "@shared/utils/file/index.js";
 import { createWallet, createContract } from "@shared/utils/blockchain.js";
 import { encryptedWillToTypedJsonObject } from "@shared/utils/transform/blockchain.js";
-import { printEstates, printProof } from "@shared/utils/print.js";
+import { printProof } from "@shared/utils/print.js";
 import preview from "@shared/utils/transform/preview.js";
 import { JsonRpcProvider } from "ethers";
 import chalk from "chalk";
@@ -34,9 +32,6 @@ interface CreateWillData {
   proof: WillCreationProofData;
   will: JsonCidVerifier.TypedJsonObjectStruct;
   cid: string;
-  testator: string;
-  estates: Estate[];
-  salt: bigint;
 }
 
 interface ProcessResult {
@@ -71,14 +66,6 @@ function printCreateWillData(createData: CreateWillData): void {
   console.log(chalk.blue("\n📋 CID Information:"));
   console.log(chalk.gray("- CID:"), chalk.white(createData.cid));
 
-  console.log(chalk.blue("\n👤 Testator Information:"));
-  console.log(chalk.gray("- Testator:"), chalk.white(createData.testator));
-
-  console.log(chalk.blue("\n🧂 Salt Information:"));
-  console.log(chalk.gray("- Salt:"), chalk.white(createData.salt.toString()));
-
-  printEstates(createData.estates);
-
   printProof(createData.proof);
 
   console.log(chalk.cyan("\n=== End of CreateWillData Details ===\n"));
@@ -96,12 +83,6 @@ async function executeCreateWill(
 
     printCreateWillData(createData);
 
-    const contractEstates = createData.estates.map((estate) => ({
-      beneficiary: estate.beneficiary,
-      token: estate.token,
-      amount: estate.amount,
-    }));
-
     const tx = await contract.createWill(
       createData.proof.pA,
       createData.proof.pB,
@@ -109,9 +90,6 @@ async function executeCreateWill(
       createData.proof.pubSignals,
       createData.will,
       createData.cid,
-      createData.testator,
-      contractEstates,
-      createData.salt,
     );
 
     const receipt = await tx.wait();
@@ -152,12 +130,6 @@ async function processCreateWill(): Promise<ProcessResult> {
     const { WILL_FACTORY, EXECUTOR_PRIVATE_KEY, CID } =
       validateEnvironmentVariables();
 
-    const fields = readWillFields(WILL_TYPE.DESERIALIZED, [
-      "testator",
-      "estates",
-      "salt",
-    ]);
-
     const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
     await validateNetwork(provider);
 
@@ -178,9 +150,6 @@ async function processCreateWill(): Promise<ProcessResult> {
       proof,
       will: encryptedWillKeyValues,
       cid: CID,
-      testator: fields.testator,
-      estates: fields.estates,
-      salt: BigInt(fields.salt),
     });
 
     await updateEnvironmentVariables([

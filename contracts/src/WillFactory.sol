@@ -15,9 +15,10 @@ contract WillFactory {
     CidUploadVerifier public cidUploadVerifier;
     WillCreationVerifier public willCreateVerifier;
     JsonCidVerifier public jsonCidVerifier;
-    address public permit2;
     address public notary;
     address public executor;
+    address public permit2;
+    uint8 public maxEstates;
 
     mapping(string => uint256) private _cidUploadedTimes;
     mapping(string => uint256) private _cidNotarizedTimes;
@@ -28,7 +29,7 @@ contract WillFactory {
     event WillCreated(string indexed cid, address indexed testator, address will);
 
     error UnauthorizedCaller(address caller, address expectedCaller);
-    
+
     error AlreadyUploaded(string cid);
     error AlreadyNotarized(string cid);
 
@@ -49,7 +50,8 @@ contract WillFactory {
         address _jsonCidVerifier,
         address _notary,
         address _executor,
-        address _permit2
+        address _permit2,
+        uint8 _maxEstates
     ) {
         cidUploadVerifier = CidUploadVerifier(_cidUploadVerifier);
         willCreateVerifier = WillCreationVerifier(_willCreateVerifier);
@@ -57,6 +59,7 @@ contract WillFactory {
         notary = _notary;
         executor = _executor;
         permit2 = _permit2;
+        maxEstates = _maxEstates;
     }
 
     modifier onlyAuthorized() {
@@ -78,16 +81,24 @@ contract WillFactory {
         return ethSignedMessageHash.recover(signature);
     }
 
-    function _verifySignature(string calldata message, bytes memory signature, address expectedSigner) internal pure returns (bool) {
+    function _verifySignature(string calldata message, bytes memory signature, address expectedSigner)
+        internal
+        pure
+        returns (bool)
+    {
         address signer = _recoverSigner(message, signature);
         return (signer == expectedSigner);
     }
 
-    function verifySignature(string calldata message, bytes memory signature, address expectedSigner) external pure returns (bool) {
+    function verifySignature(string calldata message, bytes memory signature, address expectedSigner)
+        external
+        pure
+        returns (bool)
+    {
         return _verifySignature(message, signature, expectedSigner);
     }
 
-    function _predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+    function _predictWill(address _testator, Will.Estate[] memory estates, uint256 _salt)
         internal
         view
         returns (address)
@@ -120,11 +131,12 @@ contract WillFactory {
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
-        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
-        
         address testator = address(uint160(_pubSignals[0]));
-
         if (msg.sender != testator) revert UnauthorizedCaller(msg.sender, testator);
+
+        // todo check the cyphertext and iv in _will corresponds to the fields in _pubSignals;
+
+        if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
 
         _cidUploadedTimes[_cid] = block.timestamp;
         emit CidUploaded(_cid, block.timestamp);
@@ -145,28 +157,37 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[292] calldata _pubSignals,
+        uint256[296] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
-        string calldata _cid,
-        address _testator,
-        Will.Estate[] calldata _estates,
-        uint256 _salt
+        string calldata _cid
     ) external onlyAuthorized returns (address) {
         if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
         if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
-        // @todo should acquire (testator,estates) from pubSignals
+        // todo check the cyphertext and iv in _will corresponds to the fields in _pubSignals;
+
         if (!willCreateVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert WillCreationProofInvalid();
         if (wills[_cid] != address(0)) revert WillAlreadyExists(_cid, wills[_cid]);
 
-        Will will = new Will{ salt: bytes32(_salt) }(permit2, _testator, executor, _estates);
-        address predictedAddress = _predictWill(_testator, _estates, _salt);
+        uint16 pubSignalsIdx = 0;
+        address testator = address(uint160(_pubSignals[pubSignalsIdx++]));
+        Will.Estate[] memory estates = new Will.Estate[](maxEstates);
+        for (uint8 i = 0; i < maxEstates; i++) {
+            estates[i].beneficiary = address(uint160(_pubSignals[pubSignalsIdx++]));
+            estates[i].token = address(uint160(_pubSignals[pubSignalsIdx++]));
+            estates[i].amount = _pubSignals[pubSignalsIdx++];
+        }
+        uint256 salt = _pubSignals[pubSignalsIdx++] | (_pubSignals[pubSignalsIdx++] << 64) | (_pubSignals[pubSignalsIdx++] << 128)
+            | (_pubSignals[pubSignalsIdx++] << 192);
+
+        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, executor, estates);
+        address predictedAddress = _predictWill(testator, estates, salt);
         if (address(will) != predictedAddress) revert WillAddressInconsistent(predictedAddress, address(will));
 
         wills[_cid] = address(will);
-        emit WillCreated(_cid, _testator, address(will));
+        emit WillCreated(_cid, testator, address(will));
 
         return address(will);
     }

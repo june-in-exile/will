@@ -44,13 +44,9 @@ contract Will {
         if (_executor == address(0)) revert ExecutorAddressZero();
         executor = _executor;
 
-        for (uint256 i = 0; i < _estates.length; i++) {
-            if (_estates[i].beneficiary == address(0)) {
-                revert BeneficiaryAddressZero();
-            }
-            if (_estates[i].beneficiary == _testator) {
-                revert BeneficiaryCannotBeTestator(_estates[i].beneficiary);
-            }
+        for (uint8 i = 0; i < _estates.length; i++) {
+            if (_estates[i].beneficiary == address(0)) revert BeneficiaryAddressZero();
+            if (_estates[i].beneficiary == _testator) revert BeneficiaryCannotBeTestator(_estates[i].beneficiary);
             if (_estates[i].token == address(0)) revert InvalidTokenAddress();
             if (_estates[i].amount == 0) revert AmountMustBeGreaterThanZero();
         }
