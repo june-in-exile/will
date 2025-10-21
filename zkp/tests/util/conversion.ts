@@ -14,8 +14,8 @@ import {
 import { assert } from "console";
 
 function base64ToBytes(base64: string): Byte[] {
-  const binary = atob(base64);
-  return Array.from(binary, (char) => char.charCodeAt(0)) as Byte[];
+  const buffer = Buffer.from(base64, "base64");
+  return Array.from(buffer) as Byte[];
 }
 
 /**

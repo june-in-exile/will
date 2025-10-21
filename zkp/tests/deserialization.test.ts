@@ -21,7 +21,7 @@ describe("Deserialize Circuits", function () {
         "circuits/shared/components/deserialization.circom",
         "Deserialize",
         {
-          templateParams: ["269"],
+          templateParams: ["273"],
         },
       );
       circuit.setConstraint("will deserialization");
@@ -37,7 +37,7 @@ describe("Deserialize Circuits", function () {
       const testCases = [
         {
           serializedBytes: hexToByte(
-            "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40709090f298f23a5c179aee70b7f4ad6ec3784f273e414889c99c4d1f7710d8f51555c060bdD2ac0D37F1460f6B556b05BEc6149767081bdc013ef6355b4ce401235f874d6a9e7b0f6a530998e973a4c19078304df656de49a06ecc74988b94410ec605295db015dd2823d3fe682f8f1b6437c982d46cba08d1761a9721303da16185fcef17123e751b",
+            "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40da59efefbc349fb23fd469d73af8716e7227f46d8344c723778c30e50300dbbc4b15DBB82edfE204B919b954d203aDA3B9fd4b6C6c7aeee77bb72f1584e64b0c0853bea80000000124f00249ca22900e456b5d491d395a5a33f0b21c1ceb50725431055e6b79275cf0cd82f423fd47592e237ba9bfa69f8462601f315d340d6d445f230d10209ef7f35483fd1b",
           ) as Byte[],
           testator: BigInt(
             "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
@@ -56,21 +56,21 @@ describe("Deserialize Circuits", function () {
           ] as Estate[],
           salt: splitBigInt(
             BigInt(
-              "0x709090f298f23a5c179aee70b7f4ad6ec3784f273e414889c99c4d1f7710d8f5",
+              "0xda59efefbc349fb23fd469d73af8716e7227f46d8344c723778c30e50300dbbc",
             ),
           ) as Uint256,
-          will: BigInt("0x1555c060bdD2ac0D37F1460f6B556b05BEc61497") as Address,
-          nonce: 136952586996355266360424646101069432653n as Nonce,
-          deadline: 1788771087 as Timestamp,
+          will: BigInt("0x4b15DBB82edfE204B919b954d203aDA3B9fd4b6C") as Address,
+          nonce: 144194929314991485118112431802946928296n as Nonce,
+          deadline: 4914676297 as Timestamp,
           signature: {
             r: splitBigInt(
               BigInt(
-                "0x6a530998e973a4c19078304df656de49a06ecc74988b94410ec605295db015dd",
+                "0xca22900e456b5d491d395a5a33f0b21c1ceb50725431055e6b79275cf0cd82f4",
               ),
             ),
             s: splitBigInt(
               BigInt(
-                "0x2823d3fe682f8f1b6437c982d46cba08d1761a9721303da16185fcef17123e75",
+                "0x23fd47592e237ba9bfa69f8462601f315d340d6d445f230d10209ef7f35483fd",
               ),
             ),
             v: 27,
@@ -78,7 +78,7 @@ describe("Deserialize Circuits", function () {
         },
         {
           serializedBytes: hexToByte(
-            "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40b1f48bd14750374db91306c88bc537b49fd7e3d9b8a79a1a2283e6db18f1ab7cf34F996Ba6FcBa4286aBCC4b1B39e5F4378233584f9540afb18a930371a6be8b044aa36b6a9686188795d3e26d5166091b9b25a260022e46311ae45cc9d1cc744b787a6e406fecd13f4a6eb5d3ae1a3c2a60590ed36b7a0220b84af1436f435d798b21e0ec4891871c",
+            "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b403cd13c1652fcdbb66cf8d893375e7bac9b9874288bfa1380830bbf634fdb5b843D62e5d3CF0010229bDD13cc47ADF43485d12e9B48a1df3bf2a06aa520251a75085781740000000124f0033fbe0bf30e20e9ae0f6cbf9a0bcb688eb9bb26f206ecf82c0dbb4fb239ffdd5af374049f630a2d035429cfb5722c805e7308839e8dfbb1e8675f8a41e85f232a5d1c",
           ) as Byte[],
           testator: BigInt(
             "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
@@ -97,21 +97,21 @@ describe("Deserialize Circuits", function () {
           ] as Estate[],
           salt: splitBigInt(
             BigInt(
-              "0xb1f48bd14750374db91306c88bc537b49fd7e3d9b8a79a1a2283e6db18f1ab7c",
+              "0x3cd13c1652fcdbb66cf8d893375e7bac9b9874288bfa1380830bbf634fdb5b84",
             ),
           ) as Uint256,
-          will: BigInt("0xf34F996Ba6FcBa4286aBCC4b1B39e5F437823358") as Address,
-          nonce: 105783975893019489732105565735546954603n as Nonce,
-          deadline: 1788249624 as Timestamp,
+          will: BigInt("0x3D62e5d3CF0010229bDD13cc47ADF43485d12e9B") as Address,
+          nonce: 96544903217630556886148066822443204980n as Nonce,
+          deadline: 4914676543 as Timestamp,
           signature: {
             r: splitBigInt(
               BigInt(
-                "0x8795d3e26d5166091b9b25a260022e46311ae45cc9d1cc744b787a6e406fecd1",
+                "0xbe0bf30e20e9ae0f6cbf9a0bcb688eb9bb26f206ecf82c0dbb4fb239ffdd5af3",
               ),
             ),
             s: splitBigInt(
               BigInt(
-                "0x3f4a6eb5d3ae1a3c2a60590ed36b7a0220b84af1436f435d798b21e0ec489187",
+                "0x74049f630a2d035429cfb5722c805e7308839e8dfbb1e8675f8a41e85f232a5d",
               ),
             ),
             v: 28,
@@ -146,7 +146,7 @@ describe("Deserialize Circuits", function () {
 
     it("should reject the serialized bytes of invalid length", async function (): Promise<void> {
       const validSerializedBytes: Byte[] = hexToByte(
-        "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b40709090f298f23a5c179aee70b7f4ad6ec3784f273e414889c99c4d1f7710d8f51555c060bdD2ac0D37F1460f6B556b05BEc6149767081bdc013ef6355b4ce401235f874d6a9e7b0f6a530998e973a4c19078304df656de49a06ecc74988b94410ec605295db015dd2823d3fe682f8f1b6437c982d46cba08d1761a9721303da16185fcef17123e751b",
+        "041F57c4492760aaE44ECed29b49a30DaAD3D4Cc3fF1F826E1180d151200A4d5431a3Aa3142C4A8c75faf114eafb1BDbe2F0316DF893fd58CE46AA4d000000000000000000000000000003e83fF1F826E1180d151200A4d5431a3Aa3142C4A8cb1D4538B4571d411F07960EF2838Ce337FE1E80E000000000000000000000000004c4b403cd13c1652fcdbb66cf8d893375e7bac9b9874288bfa1380830bbf634fdb5b843D62e5d3CF0010229bDD13cc47ADF43485d12e9B48a1df3bf2a06aa520251a75085781740000000124f0033fbe0bf30e20e9ae0f6cbf9a0bcb688eb9bb26f206ecf82c0dbb4fb239ffdd5af374049f630a2d035429cfb5722c805e7308839e8dfbb1e8675f8a41e85f232a5d1c",
       );
 
       const serializedBytesLack1Byte = validSerializedBytes.slice(1); // lacks 1 byte

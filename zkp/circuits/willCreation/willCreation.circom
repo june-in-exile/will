@@ -83,4 +83,4 @@ template UntaggedCreateWill(keyBits, ciphertextBytes) {
     salt <== createwillComponent.salt;
 }
 
-component main {public [iv, ciphertext]} = UntaggedCreateWill(256, 269);
+component main {public [iv, ciphertext]} = UntaggedCreateWill(256, 273);

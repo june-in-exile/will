@@ -1,53 +1,115 @@
-# Tests for Circuits
+# Circuit Testing Guide
 
-1. How the test works?
-   1. `workflow.test.ts` tests with the CLI. The other tests are based on `circom_tester`.
-      - some of the `circom_tester` function are replaced:
-        - release(): the original one doesn't work
-        - assertOut() && loadSymbols(): built-in loadSymbols() failed when reading large `.sym` files.
-      - `circom_tester` is configured in `vitest.config.ts`
-   2. The class WitnessTester is an extension of `circom_tester` and is modified from circomkit.
-      - [./util/construction.ts](./util/construction.ts)
-        - find the correct `circomlib` path in `zkp/node_modules`
-        - generate untagged template
-          - Why needs untag? the input of main template cannot have tag
-        - construct the wasm_tester through the API provided by `circom_tester`.
+## Overview
 
-2. The functions in [./logic](./logic) simulate the behavior of the circuits.
-   - The input and output types of the functions are aligned with the circuits (except for the functions in modules).
-   - [./logic/modules](./logic/modules) contain simulated implementations of key ZKP components in our will system.
-     - e.g., AES-CTR(GCM), ECDSA, Kaccak256, etc.
-     - Each of the module contain test inside it.
-     - The implementations are not used for production (worse performance compared to official modules, incomplete functioning). Rather, they are only used for debuggin and testing the circom.
-   - For exmaple, there are two `ecdsa.ts` files under the logic directory.
-     - [./logic/modules/ecdsa.ts](./logic/modules/ecdsa.ts): Naive inplementation of ECDSA. You can observe ECDSA signing scheme's behavior with this ECDSA class.
-     - [./logic/ecdsa.ts](./logic/ecdsa.ts): plays as interface for testing the ecdsa circuits and calling [./logic/modules/ecdsa.ts](./logic/modules/ecdsa.ts) under the hood.
+This directory contains tests for ZKP circuits used in the will system. Tests are divided into automatic tests (using `circom_tester`) and manual tests (for memory-intensive circuits).
 
-3. Test commands can be found in package.json:
+## Test Infrastructure
 
-   ```json
-    "test": ...,
-    "test:auto": ...,
-    "test:manual": ...,
-    "test:abiEncoder": ...,
-    "test:keccak256": ...,
-    "test:aesgcm": ...,
-    "test:ecdsa": ...,
-    "test:permitVerify": ...,
-    "test:modules": ...,
-    "test:all": ...,
+### Test Framework
+
+- **Main Framework**: `circom_tester` configured in `vitest.config.ts`
+- **Special Case**: `workflow.test.ts` uses CLI-based testing
+- **Custom Modifications**:
+  - `release()`: Replaced due to issues in original implementation
+  - `assertOut()` & `loadSymbols()`: Custom implementations to handle large `.sym` files
+
+### WitnessTester Class
+
+Extended from `circom_tester` and modified from circomkit. Implementation in [./util/construction.ts](./util/construction.ts):
+
+- Locates correct `circomlib` path in `zkp/node_modules`
+- Generates untagged templates (required because main template inputs cannot have tags)
+- Constructs `wasm_tester` through `circom_tester` API
+
+## Logic Simulation
+
+The [./logic](./logic) directory contains TypeScript simulations of circuit behavior:
+
+### Structure
+
+- Function signatures align with circuits (except module functions)
+- Used for debugging and testing circom implementations
+- Not production-ready (performance and completeness trade-offs)
+
+### Modules Directory
+
+[./logic/modules](./logic/modules) contains simulated implementations of cryptographic components:
+
+- **Components**: AES-CTR(GCM), ECDSA, Keccak256, etc.
+- **Testing**: Each module includes internal tests
+- **Purpose**: Debugging and testing only, not for production
+
+### Example: ECDSA Implementation
+
+Two `ecdsa.ts` files serve different purposes:
+
+- **[./logic/modules/ecdsa.ts](./logic/modules/ecdsa.ts)**: Naive ECDSA implementation for observing signing scheme behavior
+- **[./logic/ecdsa.ts](./logic/ecdsa.ts)**: Interface for testing ECDSA circuits, calls the module implementation
+
+## Running Tests
+
+### Available Commands
+
+See `package.json` for full list:
+
+```bash
+pnpm test              # Run default tests
+pnpm test:auto         # Automatic tests only
+pnpm test:manual       # Manual tests only
+pnpm test:modules      # All module tests
+pnpm test:all          # All tests
+
+# Component-specific tests
+pnpm test:abiEncoder
+pnpm test:keccak256
+pnpm test:aesgcm
+pnpm test:ecdsa
+pnpm test:permitVerify
+```
+
+### Automatic Tests
+
+Run directly with `circom_tester`:
+
+```bash
+pnpm test <test_file>.test.ts
+```
+
+### Manual Tests
+
+For memory-intensive circuits (files with `.manual.test.ts` suffix):
+
+1. Generate inputs:
+
+   ```bash
+   pnpm test cidUpload.manual.test.ts
    ```
 
-   - Tests of circuits are devided into manual tests (with `.manual` in suffix) and automatic tests. Manual tests consume too much momeries for circom_tester to afford. To handle these situations, the `<filename>.manual.test.ts` only print inputs to the circuits and left the job of compilation to the devepoler.
-     - For example, to test `UploadCid` template in [../circuits/cidUpload/cidUpload.circom](../circuits/cidUpload/cidUpload.circom)
-       1. `pnpm test cidUpload.manual.test.ts`
-       2. Copy the inputs to [../circuits/cidUpload/inputs/example.json](../circuits/cidUpload/inputs/example.json)
-       3. Run the script in [../Makefile](../Makefile) to compile the circuit and generate the witness.
-          - Note: Some of the inputs are expected to "fail".
-   
-   - Tests of modules can be runned at once by `pnpm test:modules`.
-   - If you run all the tests at once (`pnpm test` or `pnpm test:all`), some of the tests might fail not due to issues about circuits but due to running out of memory. In that case you can run the failed tests independently: `pnpm test <test_file>.test.ts`.
+2. Copy printed inputs to the appropriate input file:
 
-4. After running the tests, you can find the number of constrains for each circuit (template) in [../constrainCounts.json](../constrainCounts.json)
-   - The order of the constrain counts can be rearranged [./config/constraintCounts.json](./config/constraintCounts.json)
-     - Delete the original [../constraintCounts.json](../constraintCounts.json) so that the new arrangement can take effect.
+   ```
+   ../circuits/cidUpload/inputs/input.json
+   ```
+
+3. Compile and generate witness using [../Makefile](../Makefile)
+
+**Note**: Some inputs are expected to fail (for negative test cases)
+
+### Memory Considerations
+
+When running `pnpm test:all`:
+
+- Some tests may fail due to memory constraints, not circuit issues
+- Solution: Run failed tests independently
+- Use manual tests for particularly large circuits
+
+## Constraint Counts
+
+After running tests, view constraint counts in [../constraintCounts.json](../constraintCounts.json)
+
+### Customizing Output Order
+
+1. Edit [./config/constraintCounts.json](./config/constraintCounts.json)
+2. Delete [../constraintCounts.json](../constraintCounts.json)
+3. Re-run tests to apply new arrangement

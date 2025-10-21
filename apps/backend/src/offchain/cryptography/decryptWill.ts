@@ -45,8 +45,16 @@ async function processWillDecryption(
     const { algorithm, ciphertext, key, iv, authTag } = getDecryptionArgs(type);
 
     const dcryptedWillBuffer = decrypt(algorithm, ciphertext, key, iv, authTag);
+
+    let hexString = dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding);
+    // If last char of hex string is '0', remove it (compensate for padding during encryption)
+    if (hexString.endsWith('0') && hexString.length % 2 === 0) {
+      hexString = hexString.slice(0, -1);
+      console.log(chalk.yellow("Info: Removed trailing '0' from decrypted hex string"));
+    }
+
     const decryptedWill: DecryptedWill = {
-      hex: dcryptedWillBuffer.toString(CRYPTO_CONFIG.plaintextEncoding),
+      hex: hexString,
     };
     saveWill(WILL_TYPE.DECRYPTED, decryptedWill);
 

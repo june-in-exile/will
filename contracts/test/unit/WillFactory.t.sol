@@ -79,7 +79,7 @@ contract WillFactoryUnitTest is Test {
         values[0] = JsonCidVerifier.JsonValue("value0", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
         values[1] = JsonCidVerifier.JsonValue("", new uint256[](16), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
         values[2] = JsonCidVerifier.JsonValue("", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        values[3] = JsonCidVerifier.JsonValue("", new uint256[](269), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        values[3] = JsonCidVerifier.JsonValue("", new uint256[](273), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
         values[4] = JsonCidVerifier.JsonValue("1234567890", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });

@@ -25,8 +25,8 @@
   },
   "cidUpload": {
     "UploadCid": {
-      "213-byte ciphertext": 3887244,
-      "269-byte ciphertext": 4364207
+      "217-byte ciphertext": 3887244,
+      "273-byte ciphertext": 4364207
     }
   },
   "counter": {
@@ -79,10 +79,7 @@
     "HashPermit": {}
   },
   "permitVerify": {
-    "VerifyPermit": {
-      "permit with 1 estate": 2202599,
-      "permit with 2 estates": 2318311
-    }
+    "VerifyPermit": {}
   },
   "pubkeyRecover": {
     "RecoverEcdsaPubkey": {}
@@ -108,8 +105,8 @@
   "utf8": { "Utf8ByteLength": {}, "Utf8Encoder": {}, "Utf8StringEncoder": {} },
   "willCreation": {
     "createWill": {
-      "213-byte ciphertext": 1684645,
-      "269-byte ciphertext": 2045896
+      "217-byte ciphertext": 1684645,
+      "273-byte ciphertext": 2045896
     }
   }
 }

@@ -11,7 +11,7 @@ function calNumEstates(bytesLength) {
     var saltBytesLength = 32;
     var willBytesLength = 20;
     var nonceBytesLength = 16;
-    var deadlineBytesLength = 4;
+    var deadlineBytesLength = 8;
     var signatureBytesLength = 65;
     var totalEstatesLength = bytesLength - (testatorBytesLength + saltBytesLength + willBytesLength + nonceBytesLength + deadlineBytesLength + signatureBytesLength);
     var perEstateLength = beneficiaryBytesLength + tokenBytesLength + amountBytesLength;
@@ -48,7 +48,7 @@ template Deserialize(bytesLength) {
     var saltBytesLength = 32;
     var willBytesLength = 20;
     var nonceBytesLength = 16;
-    var deadlineBytesLength = 4;
+    var deadlineBytesLength = 8;
     var signatureBytesLength = 65;
 
     signal {byte} testatorBytes[testatorBytesLength];

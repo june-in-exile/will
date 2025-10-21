@@ -129,8 +129,8 @@ contract WillFactory {
         for (uint256 i = 0; i < 16; i++) {
             iv[i] = _pubSignals[pubSignalsIdx++];
         }
-        uint256[269] memory ciphertext;
-        for (uint256 i = 0; i < 269; i++) {
+        uint256[273] memory ciphertext;
+        for (uint256 i = 0; i < 273; i++) {
             ciphertext[i] = _pubSignals[pubSignalsIdx++];
         }
 
@@ -212,8 +212,8 @@ contract WillFactory {
         for (uint256 i = 0; i < 16; i++) {
             iv[i] = _pubSignals[pubSignalsIdx++];
         }
-        uint256[269] memory ciphertext;
-        for (uint256 i = 0; i < 269; i++) {
+        uint256[273] memory ciphertext;
+        for (uint256 i = 0; i < 273; i++) {
             ciphertext[i] = _pubSignals[pubSignalsIdx++];
         }
 
