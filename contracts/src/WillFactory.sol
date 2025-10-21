@@ -88,33 +88,6 @@ contract WillFactory {
         return _cidNotarizedTimes[_cid];
     }
 
-    function _comapreArray(uint256[] memory a, uint256[] memory b) internal pure returns (bool) {
-        return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
-    }
-
-    function _recoverSigner(string memory message, bytes memory signature) internal pure returns (address) {
-        bytes32 messageHash = keccak256(abi.encodePacked(message));
-        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-        return ethSignedMessageHash.recover(signature);
-    }
-
-    function _verifySignature(string memory message, bytes memory signature, address expectedSigner)
-        internal
-        pure
-        returns (bool)
-    {
-        address signer = _recoverSigner(message, signature);
-        return (signer == expectedSigner);
-    }
-
-    function verifySignature(string calldata message, bytes memory signature, address expectedSigner)
-        external
-        pure
-        returns (bool)
-    {
-        return _verifySignature(message, signature, expectedSigner);
-    }
-
     function _predictWill(address _testator, Will.Estate[] memory estates, uint256 _salt)
         internal
         view

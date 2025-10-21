@@ -11,7 +11,7 @@ This ZKP module is a core component of the Web3 will management system, implemen
 | Circuit                | Scenario                                                                                                          | Components                                                                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **uploadCid Circuit**  | Testator uploads encrypted will to IPFS and proves its validity to the blockchain without revealing will content. | 1. **Decryption**: Decrypt ciphertext (public) to plaintext (private)<br>2. **Permit2 signature verification**: Validate permit2 signature (private) within the decrypted content       |
-| **createWill Circuit** | After testator's death, executor creates will contract with verified decryption.                                  | 1. **Decryption**: Decrypt ciphertext (public) to plaintext (public)<br>2. **Field validation**: Verify that the given fields (public) correspond to specific sections of the plaintext |
+| **createWill Circuit** | After testator's death, executor creates will contract with verified decryption.                                  | 1. **Decryption**: Decrypt ciphertext (public) to plaintext (public)<br> |
 
 ### Shared Infrastructure
 
