@@ -112,6 +112,7 @@ zkp/circuits/*/inputs
 zkp/circuits/shared/keys/*
 zkp/circuits/*/keys/*.zkey
 zkp/circuits/*/proofs
+!zkp/circuits/*/proofs/*.example.json
 zkp/circuits/test
 
 # =============================================================================
