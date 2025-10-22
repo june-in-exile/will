@@ -30,7 +30,7 @@ interface IpfsDownload {
 
 interface NotarizeCid {
   WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
+  NOTARY_PRIVATE_KEY: string;
   CID: string;
 }
 

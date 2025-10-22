@@ -144,12 +144,12 @@ const presetValidations = {
   notarizeCid: (): EnvironmentValidationOptions => ({
     required: [
       "WILL_FACTORY",
-      "EXECUTOR_PRIVATE_KEY",
+      "NOTARY_PRIVATE_KEY",
       "CID",
     ],
     validators: {
       WILL_FACTORY: validators.ethereumAddress,
-      EXECUTOR_PRIVATE_KEY: validators.privateKey,
+      NOTARY_PRIVATE_KEY: validators.privateKey,
       CID: validators.cidv1,
     },
   }),

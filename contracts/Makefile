@@ -74,9 +74,9 @@ format:
 
 install:
 	@rm -rf lib
-	@forge install foundry-rs/forge-std
-	@forge install OpenZeppelin/openzeppelin-contracts
-	@forge install Uniswap/permit2
+	@forge install foundry-rs/forge-std --no-commit
+	@forge install OpenZeppelin/openzeppelin-contracts --no-commit
+	@forge install Uniswap/permit2 --no-commit
 
 build: sync
 	@forge build
