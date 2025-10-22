@@ -8,7 +8,7 @@ contract MockCidUploadVerifier {
         shouldReturnTrue = _shouldReturnTrue;
     }
 
-    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[286] calldata)
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[290] calldata)
         external
         view
         returns (bool)

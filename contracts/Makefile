@@ -320,25 +320,6 @@ predictWill:
 		"predictWill(address,(address,address,uint256)[],uint256)(address)" \
 		$(TESTATOR) $(ESTATES) $(SALT)
 	@echo "$(YELLOW)Expect: $(WILL)$(RESET)"
-
-# ----------------------- Write -------------------------
-
-# @deprecated
-# uploadCid:
-# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-# 		"uploadCid(uint[2],uint[2][2],uint[2],uint[1],bytes,string)" \
-# 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID)
-
-notarizeCid:
-	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-		"notarizeCid(string,bytes)" \
-		$(CID) $(NOTARY_SIGNATURE)
-
-# @deprecated
-# createWill:
-# 	@cast send --from $(EXECUTOR) --private-key $(EXECUTOR_PRIVATE_KEY) $(WILL_FACTORY) --rpc-url $(RPC_URL) \
-# 		"createWill(uint[2],uint[2][2],uint[2],uint[1],bytes,string,address,(address,address,uint256)[],uint256)(address)" \
-# 		$(PA) $(PB) $(PC) $(PUBSIGNALS) $(CID) $(TESTATOR) $(ESTATES) $(SALT)
 	
 # ------------------- Verify Contract -------------------
 

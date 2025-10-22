@@ -38,8 +38,8 @@ contract WillFactoryUnitTest is Test {
     uint256[2] pA = [1, 2];
     uint256[2][2] pB = [[3, 4], [5, 6]];
     uint256[2] pC = [7, 8];
-    uint256[286] cidUploadPubSignals;
-    uint256[296] willCreationPubSignals;
+    uint256[290] cidUploadPubSignals;
+    uint256[300] willCreationPubSignals;
 
     Will.Estate[] estates;
 
@@ -85,7 +85,7 @@ contract WillFactoryUnitTest is Test {
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
 
         cidUploadPubSignals[0] = uint160(testator);
-        for (uint256 i = 1; i < 286; i++) {
+        for (uint256 i = 1; i < 290; i++) {
             cidUploadPubSignals[i] = 0;
         }
 
@@ -100,7 +100,7 @@ contract WillFactoryUnitTest is Test {
         willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 64);
         willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 128);
         willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 192);
-        while (pubSignalIdx < 296) {
+        while (pubSignalIdx < 300) {
             willCreationPubSignals[pubSignalIdx++] = 0;
         }
     }

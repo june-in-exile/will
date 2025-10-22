@@ -94,8 +94,6 @@ For memory-intensive circuits (files with `.manual.test.ts` suffix):
 
 3. Compile and generate witness using [../Makefile](../Makefile)
 
-**Note**: Some inputs are expected to fail (for negative test cases)
-
 ### Memory Considerations
 
 When running `pnpm test:all`:

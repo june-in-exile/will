@@ -111,9 +111,9 @@ async function executeUploadCid(
       timestamp: Math.floor(Date.now() / 1000),
       gasUsed: receipt.gasUsed,
     };
-  } catch {
+  } catch (error) {
     throw new Error(
-      `Failed to execute uploadCid`,
+      `Failed to execute uploadCid: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }

@@ -20,14 +20,14 @@ contract WillFactoryFuzzTest is Test {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[286] pubSignals;
+        uint256[290] pubSignals;
     }
 
     struct WillCreationProofData {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[296] pubSignals;
+        uint256[300] pubSignals;
     }
 
     WillFactory factory;
@@ -321,10 +321,10 @@ contract WillFactoryFuzzTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 286, "Public signals array must have exactly 286 elements");
+        require(pubStringArray.length == 290, "Public signals array must have exactly 290 elements");
 
-        uint256[286] memory pubSignals;
-        for (uint256 i = 0; i < 286; i++) {
+        uint256[290] memory pubSignals;
+        for (uint256 i = 0; i < 290; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 
@@ -357,10 +357,10 @@ contract WillFactoryFuzzTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 296, "Public signals array must have exactly 296 elements");
+        require(pubStringArray.length == 300, "Public signals array must have exactly 300 elements");
 
-        uint256[296] memory pubSignals;
-        for (uint256 i = 0; i < 296; i++) {
+        uint256[300] memory pubSignals;
+        for (uint256 i = 0; i < 300; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 

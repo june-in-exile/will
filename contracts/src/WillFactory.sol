@@ -113,7 +113,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[286] calldata _pubSignals,
+        uint256[290] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
@@ -147,7 +147,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[286] calldata _pubSignals,
+        uint256[290] calldata _pubSignals,
         string calldata _cid
     ) external {
         address testator = address(uint160(_pubSignals[0]));
@@ -185,7 +185,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[296] calldata _pubSignals,
+        uint256[300] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external onlyExecutor returns (address) {

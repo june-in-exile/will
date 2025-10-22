@@ -7,8 +7,7 @@ clean:
 	@pnpm exec tsx ../../shared/utils/file/resetEnvVariable.ts SALT WILL \
         BENEFICIARY0 TOKEN0 AMOUNT0 \
         BENEFICIARY1 TOKEN1 AMOUNT1 \
-        NONCE DEADLINE PERMIT2_SIGNATURE \
-        CID NOTARY_SIGNATURE \
+        NONCE DEADLINE PERMIT2_SIGNATURE CID \
 		UPLOAD_TX_HASH UPLOAD_TIMESTAMP \
 		NOTARIZE_TX_HASH NOTARIZE_TIMESTAMP \
 		CREATE_WILL_TX_HASH CREATE_WILL_TIMESTAMP \
@@ -55,7 +54,7 @@ upload-cid:
 	@pnpm exec tsx src/onchain/willFactory/uploadCid.ts
 
 
-notarySignsCid: download-will decrypt-will deserialize-will sign-cid notarize-cid
+notarySignsCid: download-will decrypt-will deserialize-will notarize-cid
 
 download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
@@ -68,9 +67,6 @@ decrypt-will-local:
 
 deserialize-will:
 	@pnpm exec tsx src/offchain/serialization/deserialize.ts
-
-sign-cid:
-	@pnpm exec tsx src/offchain/signature/cid.ts
 
 notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
