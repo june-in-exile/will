@@ -44,6 +44,7 @@
        2. Copy the inputs to [../circuits/cidUpload/inputs/example.json](../circuits/cidUpload/inputs/example.json)
        3. Run the script in [../Makefile](../Makefile) to compile the circuit and generate the witness.
           - Note: Some of the inputs are expected to "fail".
+   
    - Tests of modules can be runned at once by `pnpm test:modules`.
    - If you run all the tests at once (`pnpm test` or `pnpm test:all`), some of the tests might fail not due to issues about circuits but due to running out of memory. In that case you can run the failed tests independently: `pnpm test <test_file>.test.ts`.
 
