@@ -81,8 +81,8 @@ contract WillFactoryFuzzTest is Test {
         Will.Estate[] memory estates = new Will.Estate[](1);
         estates[0] = Will.Estate({ token: token, amount: amount, beneficiary: beneficiary });
 
-        address predicted1 = factory.predictWill(testator, estates, salt);
-        address predicted2 = factory.predictWill(testator, estates, salt);
+        address predicted1 = factory.predictWill(testator, executor, estates, salt);
+        address predicted2 = factory.predictWill(testator, executor, estates, salt);
 
         assertEq(predicted1, predicted2);
     }
@@ -103,8 +103,8 @@ contract WillFactoryFuzzTest is Test {
         Will.Estate[] memory estates = new Will.Estate[](1);
         estates[0] = Will.Estate({ token: token, amount: amount, beneficiary: beneficiary });
 
-        address predicted1 = factory.predictWill(testator, estates, salt1);
-        address predicted2 = factory.predictWill(testator, estates, salt2);
+        address predicted1 = factory.predictWill(testator, executor, estates, salt1);
+        address predicted2 = factory.predictWill(testator, executor, estates, salt2);
 
         assertTrue(predicted1 != predicted2);
     }

@@ -13,33 +13,38 @@ contract Will {
         uint256 amount;
     }
 
-    address public testator;
-    address public executor;
+    address immutable public testator;
+    address immutable public oracle;
+    address immutable public executor;
     Estate[] public estates;
 
-    // This boolean is used to prevent re-entrancy attacks
-    // Can be removed since the nonce brings the same effect
-    bool public executed = false;
+    bool public validProofOfDeath = false;
 
+    event DeathProved();
     event WillExecuted();
 
-    error OnlyExecutor();
-    error AlreadyExecuted();
+    error NotOracle(address caller, address notary);
+    error NotExecutor(address caller, address executor);
+    error NotDead();
 
     error Permit2AddressZero();
     error TestatorAddressZero();
+    error OracleAddressZero();
     error ExecutorAddressZero();
     error BeneficiaryAddressZero();
     error BeneficiaryCannotBeTestator(address beneficiary);
     error InvalidTokenAddress();
     error AmountMustBeGreaterThanZero();
 
-    constructor(address _permit2, address _testator, address _executor, Estate[] memory _estates) {
+    constructor(address _permit2, address _testator, address _oracle, address _executor, Estate[] memory _estates) {
         if (_permit2 == address(0)) revert Permit2AddressZero();
         permit2 = IPermit2(_permit2);
 
         if (_testator == address(0)) revert TestatorAddressZero();
         testator = _testator;
+
+        if (_oracle == address(0)) revert OracleAddressZero();
+        oracle = _oracle;
 
         if (_executor == address(0)) revert ExecutorAddressZero();
         executor = _executor;
@@ -53,13 +58,28 @@ contract Will {
         estates = _estates;
     }
 
+    modifier onlyOracle() {
+        if (msg.sender != oracle) revert NotOracle(msg.sender, oracle);
+        _;
+    }
+
+    modifier onlyExecutor() {
+        if (msg.sender != executor) revert NotExecutor(msg.sender, executor);
+        _;
+    }
+
     function getAllEstates() external view returns (Estate[] memory) {
         return estates;
     }
 
-    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external {
-        if (msg.sender != executor) revert OnlyExecutor();
-        if (executed) revert AlreadyExecuted();
+    function submitProofOfDeath() external onlyOracle {
+        // TODO: proof of death verification
+        validProofOfDeath = true;
+        emit DeathProved();
+    }
+
+    function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external onlyExecutor {
+        if (!validProofOfDeath) revert NotDead();
 
         ISignatureTransfer.TokenPermissions[] memory permitted =
             new ISignatureTransfer.TokenPermissions[](estates.length);
@@ -80,7 +100,6 @@ contract Will {
 
         permit2.permitTransferFrom(permit, transferDetails, testator, signature);
 
-        executed = true;
         emit WillExecuted();
     }
 }

@@ -15,10 +15,12 @@ contract WillFactoryUnitTest is Test {
 
     address notary;
     uint256 notaryPrivateKey;
-    address executor;
-    uint256 executorPrivateKey;
+    address oracle;
+    uint256 oraclePrivateKey;
     address permit2 = makeAddr("permit2");
     address testator = makeAddr("testator");
+    address executor = makeAddr("executor");
+    address random = makeAddr("random");
 
     uint8 maxEstates = 2;
 
@@ -47,8 +49,8 @@ contract WillFactoryUnitTest is Test {
         notaryPrivateKey = 0x0123456789012345678901234567890123456789012345678901234567890123;
         notary = vm.addr(notaryPrivateKey);
 
-        executorPrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
-        executor = vm.addr(executorPrivateKey);
+        oraclePrivateKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
+        oracle = vm.addr(oraclePrivateKey);
 
         mockcidUploadVerifier = new MockCidUploadVerifier();
         mockWillCreationVerifier = new MockWillCreationVerifier();
@@ -59,7 +61,7 @@ contract WillFactoryUnitTest is Test {
             address(mockWillCreationVerifier),
             address(mockJsonCidVerifier),
             notary,
-            executor,
+            oracle,
             permit2,
             maxEstates
         );
@@ -109,7 +111,7 @@ contract WillFactoryUnitTest is Test {
         assertEq(address(factory.cidUploadVerifier()), address(mockcidUploadVerifier));
         assertEq(address(factory.willCreateVerifier()), address(mockWillCreationVerifier));
         assertEq(address(factory.jsonCidVerifier()), address(mockJsonCidVerifier));
-        assertEq(factory.executor(), executor);
+        assertEq(factory.oracle(), oracle);
         assertEq(factory.permit2(), permit2);
     }
 
@@ -151,8 +153,8 @@ contract WillFactoryUnitTest is Test {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotTestator.selector, executor, testator));
-        vm.prank(executor);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotTestator.selector, random, testator));
+        vm.prank(random);
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
@@ -216,8 +218,8 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
 
         // Test: Wrong caller should revert
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotTestator.selector, executor, testator));
-        vm.prank(executor);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotTestator.selector, random, testator));
+        vm.prank(random);
         factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
     }
 
@@ -321,7 +323,7 @@ contract WillFactoryUnitTest is Test {
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
-        address predictedAddress = factory.predictWill(testator, estates, salt);
+        address predictedAddress = factory.predictWill(testator, executor, estates, salt);
 
         vm.expectEmit(true, true, false, true);
         emit WillFactory.WillCreated(cid, testator, predictedAddress);
@@ -332,23 +334,6 @@ contract WillFactoryUnitTest is Test {
 
         assertEq(factory.wills(cid), willAddress);
         assertEq(willAddress, predictedAddress);
-    }
-
-    function test_CreateWillCid_NotExecutor() public {
-        mockJsonCidVerifier.setShouldReturnTrue(true);
-        mockcidUploadVerifier.setShouldReturnTrue(true);
-        vm.prank(testator);
-        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
-
-        vm.warp(block.timestamp + 1);
-
-        vm.prank(notary);
-        factory.notarizeCid(cid);
-
-        mockWillCreationVerifier.setShouldReturnTrue(true);
-
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotExecutor.selector, address(this), executor));
-        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
     }
 
     function test_CreateWill_CidNotUploaded() public {
@@ -503,20 +488,5 @@ contract WillFactoryUnitTest is Test {
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
         vm.prank(notary);
         factory.revokeNortarizedCid(cid);
-    }
-
-
-    function _notarySign(string memory message) internal view returns (bytes memory) {
-        bytes32 messageHash = keccak256(abi.encodePacked(message));
-        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(notaryPrivateKey, ethSignedMessageHash);
-        return abi.encodePacked(r, s, v);
-    }
-
-    function _executorSign(string memory message) internal view returns (bytes memory) {
-        bytes32 messageHash = keccak256(abi.encodePacked(message));
-        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(executorPrivateKey, ethSignedMessageHash);
-        return abi.encodePacked(r, s, v);
     }
 }

@@ -15,8 +15,8 @@ contract WillFactory {
     CidUploadVerifier public cidUploadVerifier;
     WillCreationVerifier public willCreateVerifier;
     JsonCidVerifier public jsonCidVerifier;
-    address public notary;
-    address public executor;
+    address immutable public notary;
+    address immutable public oracle;
     address public permit2;
     uint8 public maxEstates;
 
@@ -33,7 +33,6 @@ contract WillFactory {
 
     error NotTestator(address caller, address testator);
     error NotNotary(address caller, address notary);
-    error NotExecutor(address caller, address executor);
 
     error AlreadyUploaded(string cid);
     error AlreadyNotarized(string cid);
@@ -57,7 +56,7 @@ contract WillFactory {
         address _willCreateVerifier,
         address _jsonCidVerifier,
         address _notary,
-        address _executor,
+        address _oracle,
         address _permit2,
         uint8 _maxEstates
     ) {
@@ -65,18 +64,13 @@ contract WillFactory {
         willCreateVerifier = WillCreationVerifier(_willCreateVerifier);
         jsonCidVerifier = JsonCidVerifier(_jsonCidVerifier);
         notary = _notary;
-        executor = _executor;
+        oracle = _oracle;
         permit2 = _permit2;
         maxEstates = _maxEstates;
     }
 
     modifier onlyNotary() {
         if (msg.sender != notary) revert NotNotary(msg.sender, notary);
-        _;
-    }
-
-    modifier onlyExecutor() {
-        if (msg.sender != executor) revert NotExecutor(msg.sender, executor);
         _;
     }
 
@@ -88,25 +82,25 @@ contract WillFactory {
         return _cidNotarizedTimes[_cid];
     }
 
-    function _predictWill(address _testator, Will.Estate[] memory estates, uint256 _salt)
+    function _predictWill(address _testator, address _executor, Will.Estate[] memory estates, uint256 _salt)
         internal
         view
         returns (address)
     {
         bytes memory bytecode =
-            abi.encodePacked(type(Will).creationCode, abi.encode(permit2, _testator, executor, estates));
+            abi.encodePacked(type(Will).creationCode, abi.encode(permit2, _testator, oracle, _executor, estates));
 
         bytes32 hash = keccak256(abi.encodePacked(bytes1(0xff), address(this), _salt, keccak256(bytecode)));
 
         return address(uint160(uint256(hash)));
     }
 
-    function predictWill(address _testator, Will.Estate[] calldata estates, uint256 _salt)
+    function predictWill(address _testator, address _executor, Will.Estate[] calldata estates, uint256 _salt)
         external
         view
         returns (address)
     {
-        return _predictWill(_testator, estates, _salt);
+        return _predictWill(_testator, _executor, estates, _salt);
     }
 
     function uploadCid(
@@ -188,7 +182,7 @@ contract WillFactory {
         uint256[300] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
-    ) external onlyExecutor returns (address) {
+    ) external returns (address) {
         if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
         if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
 
@@ -220,8 +214,8 @@ contract WillFactory {
         if (keccak256(abi.encodePacked(iv)) != keccak256(abi.encodePacked(_will.values[1].numberArray))) revert WrongInitializationVector();
         if (keccak256(abi.encodePacked(ciphertext)) != keccak256(abi.encodePacked(_will.values[3].numberArray))) revert WrongCiphertext();
 
-        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, executor, estates);
-        address predictedAddress = _predictWill(testator, estates, salt);
+        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, oracle, msg.sender, estates);
+        address predictedAddress = _predictWill(testator, msg.sender, estates, salt);
         if (address(will) != predictedAddress) revert WillAddressInconsistent(predictedAddress, address(will));
 
         wills[_cid] = address(will);

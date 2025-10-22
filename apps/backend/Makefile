@@ -72,13 +72,16 @@ notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
-executorTransfersEstates: prove-for-will-creation create-will signature-transfer
+executorTransfersEstates: prove-for-will-creation create-will prove-death signature-transfer
 
 prove-for-will-creation:
 	@pnpm exec tsx src/offchain/zkp/willCreation.ts
 
 create-will:
 	@pnpm exec tsx src/onchain/willFactory/createWill.ts
+
+prove-death:
+	@pnpm exec tsx src/onchain/will/submitProofOfDeath.ts
 
 signature-transfer:
 	@pnpm exec tsx src/onchain/will/signatureTransfer.ts

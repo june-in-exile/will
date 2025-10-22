@@ -13,6 +13,7 @@ contract WillUnitTest is Test {
     MockPermit2 mockPermit2;
 
     address testator = makeAddr("testator");
+    address oracle = makeAddr("oracle");
     address executor = makeAddr("executor");
     address beneficiary0 = makeAddr("beneficiary0");
     address beneficiary1 = makeAddr("beneficiary1");
@@ -28,7 +29,7 @@ contract WillUnitTest is Test {
         estates.push(Will.Estate({ beneficiary: beneficiary0, token: address(token0), amount: 1000e18 }));
         estates.push(Will.Estate({ beneficiary: beneficiary1, token: address(token1), amount: 500e18 }));
 
-        will = new Will(address(mockPermit2), testator, executor, estates);
+        will = new Will(address(mockPermit2), testator, oracle, executor, estates);
 
         token0.mint(testator, 10000e18);
         token1.mint(testator, 5000e18);
@@ -39,7 +40,7 @@ contract WillUnitTest is Test {
         Will.Estate[] memory newEstates = new Will.Estate[](1);
         newEstates[0] = Will.Estate({ beneficiary: beneficiary0, token: address(token0), amount: 100e18 });
 
-        Will newWill = new Will(address(mockPermit2), testator, executor, newEstates);
+        Will newWill = new Will(address(mockPermit2), testator, oracle, executor, newEstates);
 
         assertEq(newWill.testator(), testator);
         assertEq(newWill.executor(), executor);
@@ -58,35 +59,38 @@ contract WillUnitTest is Test {
 
         // Test zero address validations
         vm.expectRevert(Will.Permit2AddressZero.selector);
-        new Will(address(0), testator, executor, _estates);
+        new Will(address(0), testator, oracle, executor, _estates);
 
         vm.expectRevert(Will.TestatorAddressZero.selector);
-        new Will(address(mockPermit2), address(0), executor, _estates);
+        new Will(address(mockPermit2), address(0), oracle, executor, _estates);
+
+        vm.expectRevert(Will.OracleAddressZero.selector);
+        new Will(address(mockPermit2), testator, address(0), executor, _estates);
 
         vm.expectRevert(Will.ExecutorAddressZero.selector);
-        new Will(address(mockPermit2), testator, address(0), _estates);
+        new Will(address(mockPermit2), testator, oracle, address(0), _estates);
 
         // Test beneficiary cannot be testator
         _estates[0].beneficiary = testator;
         vm.expectRevert(abi.encodeWithSelector(Will.BeneficiaryCannotBeTestator.selector, testator));
-        new Will(address(mockPermit2), testator, executor, _estates);
+        new Will(address(mockPermit2), testator, oracle, executor, _estates);
 
         // Test zero beneficiary address
         _estates[0].beneficiary = address(0);
         vm.expectRevert(Will.BeneficiaryAddressZero.selector);
-        new Will(address(mockPermit2), testator, executor, _estates);
+        new Will(address(mockPermit2), testator, oracle, executor, _estates);
 
         // Test invalid token address
         _estates[0].beneficiary = beneficiary0;
         _estates[0].token = address(0);
         vm.expectRevert(Will.InvalidTokenAddress.selector);
-        new Will(address(mockPermit2), testator, executor, _estates);
+        new Will(address(mockPermit2), testator, oracle, executor, _estates);
 
         // Test zero amount
         _estates[0].token = address(token0);
         _estates[0].amount = 0;
         vm.expectRevert(Will.AmountMustBeGreaterThanZero.selector);
-        new Will(address(mockPermit2), testator, executor, _estates);
+        new Will(address(mockPermit2), testator, oracle, executor, _estates);
     }
 
     // View Functions Tests
@@ -114,7 +118,11 @@ contract WillUnitTest is Test {
 
     // Transfer Tests
     function test_SignatureTransferSuccess() public {
-        assertFalse(will.executed());
+        vm.expectEmit(false, false, false, false);
+        emit Will.DeathProved();
+
+        vm.prank(oracle);
+        will.submitProofOfDeath();
 
         vm.expectEmit(true, true, true, true);
         emit MockPermit2.MockTransfer(testator, beneficiary0, address(token0), 1000e18);
@@ -122,31 +130,32 @@ contract WillUnitTest is Test {
         vm.expectEmit(true, true, true, true);
         emit MockPermit2.MockTransfer(testator, beneficiary1, address(token1), 500e18);
 
-        vm.expectEmit(true, false, false, false);
+        vm.expectEmit(false, false, false, false);
         emit Will.WillExecuted();
 
         vm.prank(executor);
         will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature");
+    }
 
-        assertTrue(will.executed());
+    function test_SignatureTransferFailsNotDead() public {
+        vm.expectRevert(Will.NotDead.selector);
+        vm.prank(executor);
+        will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature0");
     }
 
     function test_SignatureTransferFailsWithExpiredDeadline() public {
+        vm.prank(oracle);
+        will.submitProofOfDeath();
+        
         vm.expectRevert(abi.encodeWithSelector(MockPermit2.SignatureExpired.selector, block.timestamp - 1));
         vm.prank(executor);
         will.signatureTransferToBeneficiaries(1, block.timestamp - 1, "signature");
     }
 
-    function test_SignatureTransferFailsAlreadyExecuted() public {
-        vm.prank(executor);
-        will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature0");
-
-        vm.expectRevert(Will.AlreadyExecuted.selector);
-        vm.prank(executor);
-        will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature0");
-    }
-
     function test_SignatureTransferFailsInvalidSignature() public {
+        vm.prank(oracle);
+        will.submitProofOfDeath();
+
         mockPermit2.setShouldRejectSignature(true);
 
         vm.expectRevert("MockPermit2: Invalid signature");
@@ -155,6 +164,9 @@ contract WillUnitTest is Test {
     }
 
     function test_SignatureTransferFailsWithTransferReverted() public {
+        vm.prank(oracle);
+        will.submitProofOfDeath();
+
         mockPermit2.setShouldTransferRevert(true);
 
         vm.expectRevert("MockPermit2: Transfer reverted");
@@ -165,7 +177,7 @@ contract WillUnitTest is Test {
     // Edge Cases
     function test_EmptyEstatesArray() public {
         Will.Estate[] memory emptyEstates = new Will.Estate[](0);
-        Will emptyWill = new Will(address(mockPermit2), testator, executor, emptyEstates);
+        Will emptyWill = new Will(address(mockPermit2), testator, oracle, executor, emptyEstates);
 
         assertEq(emptyWill.getAllEstates().length, 0);
     }
@@ -175,7 +187,7 @@ contract WillUnitTest is Test {
         sameEstates[0] = Will.Estate({ beneficiary: beneficiary0, token: address(token0), amount: 100e18 });
         sameEstates[1] = Will.Estate({ beneficiary: beneficiary0, token: address(token1), amount: 200e18 });
 
-        Will sameWill = new Will(address(mockPermit2), testator, executor, sameEstates);
+        Will sameWill = new Will(address(mockPermit2), testator, oracle, executor, sameEstates);
         Will.Estate[] memory retrieved = sameWill.getAllEstates();
 
         assertEq(retrieved.length, 2);
@@ -188,7 +200,7 @@ contract WillUnitTest is Test {
         sameTokenEstates[0] = Will.Estate({ beneficiary: beneficiary0, token: address(token0), amount: 100e18 });
         sameTokenEstates[1] = Will.Estate({ beneficiary: beneficiary1, token: address(token0), amount: 200e18 });
 
-        Will sameTokenWill = new Will(address(mockPermit2), testator, executor, sameTokenEstates);
+        Will sameTokenWill = new Will(address(mockPermit2), testator, oracle, executor, sameTokenEstates);
         Will.Estate[] memory retrieved = sameTokenWill.getAllEstates();
 
         assertEq(retrieved.length, 2);

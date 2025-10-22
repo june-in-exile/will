@@ -39,13 +39,15 @@ contract WillFactoryIntegrationTest is Test {
 
     address notary;
     uint256 notaryPrivateKey;
-    address executor;
+    address oracle;
+    uint256 oraclePrivateKey;
     address permit2;
     uint8 maxEstates;
 
     struct TestVector {
         string name;
         address testator;
+        address executor;
         Will.Estate[] estates;
         uint256 salt;
         JsonCidVerifier.TypedJsonObject willTypedJsonObj;
@@ -68,12 +70,13 @@ contract WillFactoryIntegrationTest is Test {
         // Read addresses from environment variables
         notaryPrivateKey = uint256(vm.envBytes32("NOTARY_PRIVATE_KEY"));
         notary = vm.addr(notaryPrivateKey);
-        executor = vm.envAddress("EXECUTOR");
+        oraclePrivateKey = uint256(vm.envBytes32("ORACLE_PRIVATE_KEY"));
+        oracle = vm.addr(oraclePrivateKey);
         permit2 = vm.envAddress("PERMIT2");
         maxEstates = uint8(vm.envUint("MAX_ESTATES"));
 
         willFactory = new WillFactory(
-            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, executor, permit2, maxEstates
+            address(cidUploadVerifier), address(willCreateVerifier), address(jsonCidVerifier), notary, oracle, permit2, maxEstates
         );
 
         _setupTestVectors();
@@ -87,6 +90,7 @@ contract WillFactoryIntegrationTest is Test {
 
             (
                 address testator,
+                address executor,
                 Will.Estate[] memory estates,
                 uint256 salt,
                 string memory cid
@@ -94,8 +98,9 @@ contract WillFactoryIntegrationTest is Test {
 
             testVectors.push(
                 TestVector({
-                    name: "20250925 Will",
+                    name: "20251023 Will",
                     testator: testator,
+                    executor: executor,
                     estates: estates,
                     salt: salt,
                     willTypedJsonObj: willTypedJsonObj,
@@ -143,12 +148,12 @@ contract WillFactoryIntegrationTest is Test {
         assertTrue(notarizeTime > uploadTime);
 
         // Step 3: Create Will
-        address predictedAddress = willFactory.predictWill(tv.testator, tv.estates, tv.salt);
+        address predictedAddress = willFactory.predictWill(tv.testator, tv.executor, tv.estates, tv.salt);
 
         vm.expectEmit(true, true, false, true);
         emit WillFactory.WillCreated(tv.cid, tv.testator, predictedAddress);
 
-        vm.prank(executor);
+        vm.prank(tv.executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -166,8 +171,8 @@ contract WillFactoryIntegrationTest is Test {
         Will will = Will(willAddress);
         assertEq(address(will.permit2()), permit2);
         assertEq(will.testator(), tv.testator);
-        assertEq(will.executor(), executor);
-        assertFalse(will.executed());
+        assertEq(will.executor(), tv.executor);
+        assertFalse(will.validProofOfDeath());
 
         assertTrue(_compareEstateArraysHash(will.getAllEstates(), tv.estates));
     }
@@ -189,7 +194,7 @@ contract WillFactoryIntegrationTest is Test {
 
         // Try to create will without notarization - should fail
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
-        vm.prank(executor);
+        vm.prank(tv.executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -205,7 +210,7 @@ contract WillFactoryIntegrationTest is Test {
         willFactory.notarizeCid(tv.cid);
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
-        vm.prank(executor);
+        vm.prank(tv.executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -227,7 +232,7 @@ contract WillFactoryIntegrationTest is Test {
         willFactory.notarizeCid(tv.cid);
 
         // Create Will with "notarization time > upload time" - should success
-        vm.prank(executor);
+        vm.prank(tv.executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,
             tv.willCreationProof.pB,
@@ -378,12 +383,14 @@ contract WillFactoryIntegrationTest is Test {
 
     function _getTestDataFromEnv() internal view returns (
         address testator,
+        address executor,
         Will.Estate[] memory estates,
         uint256 salt,
         string memory cid
     ) {
         // Read values from environment variables
         testator = vm.envAddress("TESTATOR");
+        executor = vm.envAddress("EXECUTOR");
 
         estates = new Will.Estate[](maxEstates);
         estates[0] = Will.Estate({
