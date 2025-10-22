@@ -4,53 +4,71 @@ describe("Show UploadCid Input", function (): void {
   it("prints input for cid upload circuit (i.e., ciphertext, key, and iv in bytes)", async function (): Promise<void> {
     const inputs = [
       {
-        // This should pass
-        ciphertext:
-          "8MDaLCLS/WgDf4F313JTSSiWo/pnUbeXWPtr2v25lVvgKflkg84al2xYpTWaZFj67RgsJUBc//GSryWq647omm8Li2vzinx2UwAUNTE8rpSHUr7oNjvzVJWmChhhTHl1cOgpc1PK0JWfpuRNIkrSCf1MIYCGvT8L3OPeUn2gBFMKbFmrctS2daQbenRNi+S619T17OBkZRLNVOsHozZ5md9wEvznnrbkvkC7vPvGuUmu5vaefZzR7migKShphXE+EEINw0dzEDMRjmzDQnrhh9+vDsMO",
-        key: "5IlnCukhi59uvDirh9p1KaJ8k5qPIq1MRpvyRGxJvRo=",
-        iv: "B+chVOVUruHHcafplMBFSA==",
+        // 1 Estate - This should pass
+        ciphertext: [
+          219, 102, 151, 247, 119, 240, 108, 67, 222, 23, 228, 91, 124, 52, 78,
+          162, 97, 221, 23, 190, 142, 104, 89, 6, 46, 123, 113, 27, 143, 63, 21,
+          56, 50, 33, 48, 103, 52, 169, 162, 132, 223, 57, 125, 116, 141, 131,
+          73, 222, 23, 170, 40, 138, 209, 67, 133, 8, 160, 122, 85, 239, 239,
+          232, 89, 135, 174, 2, 65, 224, 178, 2, 52, 33, 108, 114, 251, 202, 8,
+          241, 219, 207, 114, 230, 28, 100, 46, 221, 53, 61, 97, 44, 100, 31,
+          181, 229, 91, 210, 167, 239, 103, 73, 183, 192, 249, 194, 56, 76, 62,
+          169, 123, 177, 137, 172, 147, 159, 123, 254, 80, 80, 160, 156, 115,
+          54, 246, 251, 172, 225, 247, 88, 169, 214, 128, 189, 29, 163, 95, 133,
+          107, 58, 189, 68, 86, 188, 176, 26, 75, 114, 251, 121, 53, 87, 123,
+          61, 199, 91, 160, 234, 152, 42, 240, 68, 249, 0, 71, 67, 180, 99, 12,
+          231, 118, 69, 63, 23, 117, 42, 18, 235, 119, 110, 184, 67, 108, 87,
+          64, 129, 27, 119, 111, 69, 223, 2, 194, 111, 59, 19, 86, 235, 171, 75,
+          195, 122, 35, 92, 138, 213, 54, 125, 146, 72, 110, 18, 27, 246, 248,
+          1, 30, 3, 81,
+        ],
+        key: "hTv2PDMzo/CpapW9j3Ghb1W0E7s62XSYVXR8OqjQsFI=",
+        iv: [
+          22, 28, 243, 164, 62, 27, 204, 32, 249, 135, 223, 54, 171, 149, 170,
+          137,
+        ],
       },
       {
-        // This should pass
-        ciphertext:
-          "wt8TqRBTJhTSOSN7evitCjUXnakYuxZP3ZSyoB+etoOAIyMyYfdjOKr45C77CTp83I08sItg4HXcete61Mh9l4h9UddeyJLLOXHH12oKCeIXffyrJ3hnxwW7UspMPlptu9GaAb35DkvNPRdds3KXJ650UEIFkvafcN3/tdVnxbE5F9fxcVH/DCNZRg83URD2kyHMqqxayTRJZxufqbDlbTRDmDpwvJCnWgxtGWSGhblQCwaMYFWHTtas+hJ97xUS8coh6XpMRKTgz8eiF/EMLXqM9xZpG2KqB2vJdoutYDhQFO015bdmvk661zGqT1ISuGPZ+zjouN7gASDEmXS4QV5Xqh4fIcBzcNGK5bo=",
-        key: "UIO+oDKTff4Yno2ZbgE2jjx9r+bh38JxdDxooXlMQco=",
-        iv: "yo8ODo2e8/VmUwQaPsewGA==",
-      },
-      {
-        // This should fail due to incorrect key
-        ciphertext:
-          "wt8TqRBTJhTSOSN7evitCjUXnakYuxZP3ZSyoB+etoOAIyMyYfdjOKr45C77CTp83I08sItg4HXcete61Mh9l4h9UddeyJLLOXHH12oKCeIXffyrJ3hnxwW7UspMPlptu9GaAb35DkvNPRdds3KXJ650UEIFkvafcN3/tdVnxbE5F9fxcVH/DCNZRg83URD2kyHMqqxayTRJZxufqbDlbTRDmDpwvJCnWgxtGWSGhblQCwaMYFWHTtas+hJ97xUS8coh6XpMRKTgz8eiF/EMLXqM9xZpG2KqB2vJdoutYDhQFO015bdmvk661zGqT1ISuGPZ+zjouN7gASDEmXS4QV5Xqh4fIcBzcNGK5bo=",
-        key: "KIO+oDKTff4Yno2ZbgE2jjx9r+bh38JxdDxooXlMQco=",
-        iv: "yo8ODo2e8/VmUwQaPsewGA==",
-      },
-      {
-        // This should fail due to incorrect IV
-        ciphertext:
-          "wt8TqRBTJhTSOSN7evitCjUXnakYuxZP3ZSyoB+etoOAIyMyYfdjOKr45C77CTp83I08sItg4HXcete61Mh9l4h9UddeyJLLOXHH12oKCeIXffyrJ3hnxwW7UspMPlptu9GaAb35DkvNPRdds3KXJ650UEIFkvafcN3/tdVnxbE5F9fxcVH/DCNZRg83URD2kyHMqqxayTRJZxufqbDlbTRDmDpwvJCnWgxtGWSGhblQCwaMYFWHTtas+hJ97xUS8coh6XpMRKTgz8eiF/EMLXqM9xZpG2KqB2vJdoutYDhQFO015bdmvk661zGqT1ISuGPZ+zjouN7gASDEmXS4QV5Xqh4fIcBzcNGK5bo=",
-        key: "UIO+oDKTff4Yno2ZbgE2jjx9r+bh38JxdDxooXlMQco=",
-        iv: "mo8ODo2e8/VmUwQaPsewGA==",
-      },
-      {
-        // This should fail due to invalid signature
-        ciphertext:
-          "RL2Lv5NTrbDZMyqCoTDaGUzNbeJsnOxghzD+7RKrXF7lnfiXDeRAIUvzq3stdVaayQKjPIPLNMez1yhR2N49jjCArumnlCENeMOXQot05k3z1gz01GINfB/vlAWEUcrhaN7TSVMiK8FMWtM4lUaTNUywSOt/5oJgOsqZV8YT+bNO0X5LJyVQSe7kXgb7UM2oy83wl5wVdU3WxH8eco7IbFlnCI7vBmgKr1hsTCwCCQqOi0lctjBtMaBOl6cnelnnnZiGXI9C4pxf9nE6/tdyNtt0MJdFQMUWzB9qlKZJ1rYVfBMhcyMu7oSt64ynNArg8dhkSN4g3h9qpinFWW/vW1mKGEob6mGCPolxUVY=",
-        key: "g/8JPmwATzTcor0bSVNEiawDynKZXyWEPDIgUFGKlkM=",
-        iv: "WOc1gfJGldp6c+3xk6M46Q==",
+        // 2 Estates - This should pass
+        ciphertext: [
+          249, 151, 108, 210, 70, 220, 38, 106, 131, 155, 185, 16, 175, 215, 48,
+          140, 220, 184, 137, 67, 56, 167, 165, 54, 145, 234, 24, 60, 58, 169,
+          252, 11, 183, 6, 244, 217, 52, 89, 75, 200, 154, 222, 165, 232, 126,
+          189, 24, 2, 116, 4, 87, 242, 163, 164, 24, 54, 65, 127, 145, 26, 190,
+          131, 205, 50, 225, 28, 113, 96, 148, 124, 85, 241, 32, 174, 185, 145,
+          104, 28, 110, 131, 9, 220, 175, 88, 189, 65, 18, 225, 154, 132, 91,
+          83, 44, 94, 2, 255, 228, 154, 152, 237, 192, 240, 61, 148, 170, 21,
+          225, 127, 64, 116, 251, 191, 83, 139, 45, 87, 98, 153, 214, 223, 92,
+          101, 100, 72, 127, 88, 37, 166, 197, 215, 11, 95, 132, 56, 183, 33,
+          54, 186, 166, 11, 1, 125, 43, 74, 31, 61, 238, 128, 85, 38, 60, 27,
+          49, 24, 247, 227, 1, 63, 245, 41, 27, 226, 91, 97, 50, 157, 51, 2, 28,
+          167, 180, 104, 88, 73, 99, 215, 72, 144, 107, 189, 40, 151, 253, 172,
+          148, 35, 230, 112, 206, 229, 219, 54, 245, 185, 240, 104, 70, 48, 196,
+          174, 49, 97, 228, 68, 68, 202, 70, 134, 162, 128, 12, 162, 5, 159, 71,
+          111, 22, 63, 76, 69, 150, 188, 50, 92, 237, 35, 108, 181, 119, 173,
+          219, 99, 72, 47, 8, 54, 61, 68, 54, 148, 70, 43, 198, 117, 253, 94,
+          245, 106, 116, 225, 189, 248, 206, 12, 37, 189, 47, 92, 239, 122, 233,
+          221, 196, 3, 214, 1, 119, 148, 16, 249, 30, 71, 195,
+        ],
+        key: "AIzIH3imIImoA1Ut24S8FnpGEovnNntZ/rh3yPJMtqE==",
+        iv: [
+          7, 34, 133, 209, 41, 34, 151, 61, 221, 154, 51, 203, 173, 210, 67, 72,
+        ],
       },
     ];
     console.log(`Circuit input (copy and paste to input file directly):`);
     for (const input of inputs) {
-      const bytesInput = Object.entries(input)
-        .map(
-          ([key, value]) =>
-            `  "${key}": ${JSON.stringify(base64ToBytes(value))}`,
-        )
+      const processedInput = {
+        ciphertext: input.ciphertext,
+        key: base64ToBytes(input.key),
+        iv: input.iv,
+      };
+
+      const bytesInput = Object.entries(processedInput)
+        .map(([key, value]) => `  "${key}": ${JSON.stringify(value)}`)
         .join(",\n");
 
-      console.log(
-        `\nUploadCid(256, ${base64ToBytes(input.ciphertext).length}):`,
-      );
+      console.log(`\nUploadCid(256, ${input.ciphertext.length}):`);
       console.log(`{\n${bytesInput}\n}`);
     }
   });

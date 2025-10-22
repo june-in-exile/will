@@ -153,18 +153,7 @@ make deserialize-will
 
 - **Output**: [`will/9_deserialized.json`](will/9_deserialized.json)
 
-### Step 4: Executor Signature
-
-The executor signs the CID to authorize will execution:
-
-```sh
-make sign-cid
-```
-
-- **Updates**: The following `.env` variables are automatically updated:
-  - `NOTARY_SIGNATURE`
-
-### Step 5: Notarize CID
+### Step 4: Notarize CID
 
 The exeutor notarize the CID on `willFactory.sol`:
 

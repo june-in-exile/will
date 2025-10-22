@@ -122,8 +122,8 @@
   },
   "cidUpload": {
     "UploadCid": {
-      "213-byte ciphertext": 3887244,
-      "269-byte ciphertext": 4364207
+      "217-byte ciphertext": 3887244,
+      "273-byte ciphertext": 4364207
     }
   },
   "counter": {
@@ -351,7 +351,9 @@
     "Secp256k1Double": {
       "point doubling on secp256k1 curve": 2955
     },
-    "Secp256k1ScalarMult": {}
+    "Secp256k1ScalarMult": {
+      "point multiplication by scalar on secp256k1 curve": 1399441
+    }
   },
   "sponge": {
     "Padding": {
@@ -392,8 +394,8 @@
   },
   "willCreation": {
     "createWill": {
-      "213-byte ciphertext": 1684645,
-      "269-byte ciphertext": 2045896
+      "217-byte ciphertext": 1684645,
+      "273-byte ciphertext": 2045896
     }
   }
 }

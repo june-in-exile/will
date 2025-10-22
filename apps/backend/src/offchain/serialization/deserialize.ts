@@ -166,7 +166,7 @@ async function processWillDeserialization(): Promise<ProcessResult> {
     };
   } catch (error) {
     console.error(
-      chalk.red("Error during will signing process:"),
+      chalk.red("Error during will deserializing process:"),
       error instanceof Error ? error.message : "Unknown error",
     );
     throw error;

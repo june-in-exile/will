@@ -37,7 +37,7 @@ const FIELD_HEX_LENGTH = {
   SALT: SALT_CONFIG.defaultSaltBytes * 2,
   WILL: 40,
   NONCE: PERMIT2_CONFIG.maxNonceBytes * 2,
-  DEADLINE: 8,
+  DEADLINE: 16,
   SIGNATURE: SIGNATURE_CONFIG.signatureLength,
 };
 

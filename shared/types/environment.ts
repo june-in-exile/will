@@ -28,17 +28,10 @@ interface IpfsDownload {
   CID: string;
 }
 
-interface CidSigning {
-  CID: string;
-  NOTARY_PRIVATE_KEY: string;
-  NOTARY: string;
-}
-
 interface NotarizeCid {
   WILL_FACTORY: string;
-  EXECUTOR_PRIVATE_KEY: string;
+  NOTARY_PRIVATE_KEY: string;
   CID: string;
-  NOTARY_SIGNATURE: string;
 }
 
 interface CreateWill {
@@ -58,7 +51,6 @@ export type {
   UploadCid,
   SubmitProof,
   IpfsDownload,
-  CidSigning,
   NotarizeCid,
   CreateWill,
   SignatureTransfer,

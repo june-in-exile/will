@@ -86,4 +86,4 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
     testator <== uploadcidComponent.testator;
 }
 
-component main {public [iv, ciphertext]} = UntaggedUploadCid(256, 269);
+component main {public [iv, ciphertext]} = UntaggedUploadCid(256, 273);

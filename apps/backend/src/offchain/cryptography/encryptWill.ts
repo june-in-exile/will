@@ -25,8 +25,15 @@ function getEncryptionArgs(): EncryptionArgs {
   const algorithm = CRYPTO_CONFIG.algorithm;
 
   const serializedWill: SerializedWill = readWill(WILL_TYPE.SERIALIZED);
+
+  let hexString = serializedWill.hex;
+  if (hexString.length % 2 === 1) {
+    hexString += '0';
+    console.log(chalk.yellow("Warning: Hex string had odd length, padded with '0'"));
+  }
+
   const plaintext = Buffer.from(
-    serializedWill.hex,
+    hexString,
     CRYPTO_CONFIG.plaintextEncoding,
   );
   const key = generateKey();

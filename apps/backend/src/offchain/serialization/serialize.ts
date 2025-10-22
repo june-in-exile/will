@@ -41,7 +41,7 @@ function serializeWill(signedWill: SignedWill): SerializedWill {
   hex += signedWill.permit2.nonce
     .toString(16)
     .padStart(FIELD_HEX_LENGTH.NONCE, "0");
-  hex += signedWill.permit2.deadline.toString(16).padStart(8, "0");
+  hex += signedWill.permit2.deadline.toString(16).padStart(16, "0");
   // Add signature (remove 0x prefix)
   hex += signedWill.permit2.signature
     .slice(2)
@@ -79,7 +79,7 @@ async function processWillSerialization(): Promise<ProcessResult> {
     };
   } catch (error) {
     console.error(
-      chalk.red("Error during will signing process:"),
+      chalk.red("Error during will serializing process:"),
       error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
