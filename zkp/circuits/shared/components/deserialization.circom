@@ -5,6 +5,7 @@ include "bus.circom";
 
 function calNumEstates(bytesLength) {
     var testatorBytesLength = 20;
+    var executorBytesLength = 20;
     var beneficiaryBytesLength = 20;
     var tokenBytesLength = 20;
     var amountBytesLength = 16;
@@ -13,7 +14,7 @@ function calNumEstates(bytesLength) {
     var nonceBytesLength = 16;
     var deadlineBytesLength = 8;
     var signatureBytesLength = 65;
-    var totalEstatesLength = bytesLength - (testatorBytesLength + saltBytesLength + willBytesLength + nonceBytesLength + deadlineBytesLength + signatureBytesLength);
+    var totalEstatesLength = bytesLength - (testatorBytesLength + executorBytesLength + saltBytesLength + willBytesLength + nonceBytesLength + deadlineBytesLength + signatureBytesLength);
     var perEstateLength = beneficiaryBytesLength + tokenBytesLength + amountBytesLength;
     assert (perEstateLength == 56 && totalEstatesLength % perEstateLength == 0);
 
@@ -34,6 +35,7 @@ template Deserialize(bytesLength) {
 
     signal input {byte} serializedBytes[bytesLength];
     signal output {address} testator;       // 20-byte unsigned integer
+    signal output {address} executor;       // 20-byte unsigned integer
     output Estate() estates[numEstates];
     signal output {uint256} salt[4];        // 32-byte unsigned integer composed of 4 8-byte registers, little-endian
     signal output {address} will;           // 20-byte unsigned integer
@@ -42,6 +44,7 @@ template Deserialize(bytesLength) {
     output EcdsaSignature() signature;
 
     var testatorBytesLength = 20;
+    var executorBytesLength = 20;
     var beneficiaryBytesLength = 20;
     var tokenBytesLength = 20;
     var amountBytesLength = 16;
@@ -52,6 +55,7 @@ template Deserialize(bytesLength) {
     var signatureBytesLength = 65;
 
     signal {byte} testatorBytes[testatorBytesLength];
+    signal {byte} executorBytes[executorBytesLength];
     signal {byte} beneficiaryBytes[numEstates][beneficiaryBytesLength];
     signal {byte} tokenBytes[numEstates][tokenBytesLength];
     signal {byte} amountBytes[numEstates][amountBytesLength];
@@ -70,6 +74,13 @@ template Deserialize(bytesLength) {
         byteIdx++;
     }    
     testator <== BytesToNum(testatorBytesLength, 0)(testatorBytes);
+
+    // process executor
+    for (var i = 0; i < executorBytesLength; i++) {
+        executorBytes[i] <== serializedBytes[byteIdx];
+        byteIdx++;
+    }    
+    executor <== BytesToNum(executorBytesLength, 0)(executorBytes);
 
     // process estates
     for (var estateIdx = 0; estateIdx < numEstates; estateIdx++) {

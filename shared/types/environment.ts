@@ -40,6 +40,10 @@ interface CreateWill {
   CID: string;
 }
 
+interface ProbateWill {
+  ORACLE_PRIVATE_KEY: string;
+}
+
 interface SignatureTransfer {
   EXECUTOR_PRIVATE_KEY: string;
 }
@@ -53,5 +57,6 @@ export type {
   IpfsDownload,
   NotarizeCid,
   CreateWill,
+  ProbateWill,
   SignatureTransfer,
 };

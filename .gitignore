@@ -107,11 +107,11 @@ typechain-types/
 # ZERO-KNOWLEDGE PROOFS
 # =============================================================================
 zkp/circuits/*/build
-zkp/circuits/*/inputs
-!zkp/circuits/*/inputs/example.json
+zkp/circuits/*/inputs/*
+!zkp/circuits/*/inputs/*.example.json
 zkp/circuits/shared/keys/*
 zkp/circuits/*/keys/*.zkey
-zkp/circuits/*/proofs
+zkp/circuits/*/proofs/*
 !zkp/circuits/*/proofs/*.example.json
 zkp/circuits/test
 

@@ -11,6 +11,7 @@ clean:
 		UPLOAD_TX_HASH UPLOAD_TIMESTAMP \
 		NOTARIZE_TX_HASH NOTARIZE_TIMESTAMP \
 		CREATE_WILL_TX_HASH CREATE_WILL_TIMESTAMP \
+		PROBATE_WILL_TX_HASH PROBATE_WILL_TIMESTAMP \
 		EXECUTE_WILL_TX_HASH EXECUTE_WILL_TIMESTAMP \
 		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
@@ -72,7 +73,7 @@ notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
-executorTransfersEstates: prove-for-will-creation create-will prove-death signature-transfer
+executorTransfersEstates: prove-for-will-creation create-will probate-will signature-transfer
 
 prove-for-will-creation:
 	@pnpm exec tsx src/offchain/zkp/willCreation.ts
@@ -80,8 +81,8 @@ prove-for-will-creation:
 create-will:
 	@pnpm exec tsx src/onchain/willFactory/createWill.ts
 
-prove-death:
-	@pnpm exec tsx src/onchain/will/submitProofOfDeath.ts
+probate-will:
+	@pnpm exec tsx src/onchain/will/probateWill.ts
 
 signature-transfer:
 	@pnpm exec tsx src/onchain/will/signatureTransfer.ts

@@ -20,14 +20,14 @@ contract WillFactoryFuzzTest is Test {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[290] pubSignals;
+        uint256[310] pubSignals;
     }
 
     struct WillCreationProofData {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[300] pubSignals;
+        uint256[321] pubSignals;
     }
 
     WillFactory factory;
@@ -196,6 +196,9 @@ contract WillFactoryFuzzTest is Test {
 
         vm.warp(block.timestamp + 1);
 
+        // Extract the executor from the proof's public signals
+        address proofExecutor = address(uint160(willCreationProof.pubSignals[1]));
+
         // Create a modified will JSON with wrong ciphertext
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
         require(modifiedWill.values[3].numberArray.length > 0, "Ciphertext array is empty");
@@ -205,7 +208,7 @@ contract WillFactoryFuzzTest is Test {
         modifiedWill.values[3].numberArray[0] = seed;
 
         vm.expectRevert(WillFactory.WrongCiphertext.selector);
-        vm.prank(executor);
+        vm.prank(proofExecutor);
         factory.createWill(
             willCreationProof.pA,
             willCreationProof.pB,
@@ -218,7 +221,7 @@ contract WillFactoryFuzzTest is Test {
 
     function test_CreateWill_RevertOnWrongInitializationVector(uint256 seed) public {
         vm.assume(seed < type(uint256).max - 1000); // Prevent overflow
-        
+
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockCidUploadVerifier.setShouldReturnTrue(true);
         mockWillCreationVerifier.setShouldReturnTrue(true);
@@ -244,6 +247,9 @@ contract WillFactoryFuzzTest is Test {
 
         vm.warp(block.timestamp + 1);
 
+        // Extract the executor from the proof's public signals
+        address proofExecutor = address(uint160(willCreationProof.pubSignals[1]));
+
         // Create a modified will JSON with wrong initialization vector
         JsonCidVerifier.TypedJsonObject memory modifiedWill = willJson;
         require(modifiedWill.values[1].numberArray.length > 0, "IV array is empty");
@@ -252,7 +258,7 @@ contract WillFactoryFuzzTest is Test {
         vm.assume(seed != originalValue);
         modifiedWill.values[1].numberArray[0] = seed;
 
-        vm.prank(executor);
+        vm.prank(proofExecutor);
         vm.expectRevert(WillFactory.WrongInitializationVector.selector);
         factory.createWill(
             willCreationProof.pA,
@@ -321,10 +327,10 @@ contract WillFactoryFuzzTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 290, "Public signals array must have exactly 290 elements");
+        require(pubStringArray.length == 310, "Public signals array must have exactly 310 elements");
 
-        uint256[290] memory pubSignals;
-        for (uint256 i = 0; i < 290; i++) {
+        uint256[310] memory pubSignals;
+        for (uint256 i = 0; i < 310; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 
@@ -357,10 +363,10 @@ contract WillFactoryFuzzTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 300, "Public signals array must have exactly 300 elements");
+        require(pubStringArray.length == 321, "Public signals array must have exactly 321 elements");
 
-        uint256[300] memory pubSignals;
-        for (uint256 i = 0; i < 300; i++) {
+        uint256[321] memory pubSignals;
+        for (uint256 i = 0; i < 321; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 

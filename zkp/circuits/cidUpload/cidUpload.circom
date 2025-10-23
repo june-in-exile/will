@@ -23,7 +23,7 @@ template UploadCid(keyBits, ciphertextBytes) {
 
     // decryption
     var plaintextBytes = ciphertextBytes;
-    signal {byte} plaintext[plaintextBytes] <== CtrDecrypt(256, ciphertextBytes)(ciphertext, key, iv);
+    signal {byte} plaintext[plaintextBytes] <== CtrDecrypt(keyBits, ciphertextBytes)(ciphertext, key, iv);
     
     // deserialization
     var numEstates = calNumEstates(plaintextBytes);
@@ -32,7 +32,7 @@ template UploadCid(keyBits, ciphertextBytes) {
     signal {uint128} nonce;
     signal {uint32} deadline;
     EcdsaSignature() signature;
-    (testator, estates, _, will, nonce, deadline, signature) <== Deserialize(plaintextBytes)(plaintext);
+    (testator, _, estates, _, will, nonce, deadline, signature) <== Deserialize(plaintextBytes)(plaintext);
 
     // verification
     var numPermission = numEstates;
@@ -46,7 +46,7 @@ template UploadCid(keyBits, ciphertextBytes) {
     VerifyPermit(numPermission)(testator, permit, will, signature);
 }
 
-// Auto updated: 2025-09-25T18:53:05.145Z
+// Auto updated: 2025-10-22T20:12:31.487Z
 bus UntaggedWord() {
     signal bytes[4];
 }
@@ -86,4 +86,4 @@ template UntaggedUploadCid(keyBits, ciphertextBytes) {
     testator <== uploadcidComponent.testator;
 }
 
-component main {public [iv, ciphertext]} = UntaggedUploadCid(256, 273);
+component main {public [iv, ciphertext]} = UntaggedUploadCid(256, 293);

@@ -119,10 +119,10 @@ contract WillUnitTest is Test {
     // Transfer Tests
     function test_SignatureTransferSuccess() public {
         vm.expectEmit(false, false, false, false);
-        emit Will.DeathProved();
+        emit Will.Probated();
 
         vm.prank(oracle);
-        will.submitProofOfDeath();
+        will.probateWill();
 
         vm.expectEmit(true, true, true, true);
         emit MockPermit2.MockTransfer(testator, beneficiary0, address(token0), 1000e18);
@@ -137,15 +137,15 @@ contract WillUnitTest is Test {
         will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature");
     }
 
-    function test_SignatureTransferFailsNotDead() public {
-        vm.expectRevert(Will.NotDead.selector);
+    function test_SignatureTransferFailsNotProbated() public {
+        vm.expectRevert(Will.NotProbated.selector);
         vm.prank(executor);
         will.signatureTransferToBeneficiaries(0, block.timestamp + 1000, "signature0");
     }
 
     function test_SignatureTransferFailsWithExpiredDeadline() public {
         vm.prank(oracle);
-        will.submitProofOfDeath();
+        will.probateWill();
         
         vm.expectRevert(abi.encodeWithSelector(MockPermit2.SignatureExpired.selector, block.timestamp - 1));
         vm.prank(executor);
@@ -154,7 +154,7 @@ contract WillUnitTest is Test {
 
     function test_SignatureTransferFailsInvalidSignature() public {
         vm.prank(oracle);
-        will.submitProofOfDeath();
+        will.probateWill();
 
         mockPermit2.setShouldRejectSignature(true);
 
@@ -165,7 +165,7 @@ contract WillUnitTest is Test {
 
     function test_SignatureTransferFailsWithTransferReverted() public {
         vm.prank(oracle);
-        will.submitProofOfDeath();
+        will.probateWill();
 
         mockPermit2.setShouldTransferRevert(true);
 

@@ -17,6 +17,7 @@ type Will =
 
 interface FormattedWill {
   testator: EthereumAddress;
+  executor: EthereumAddress;
   estates: Estate[];
 }
 

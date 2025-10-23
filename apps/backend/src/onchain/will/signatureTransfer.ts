@@ -231,7 +231,6 @@ function printSignatureTransferData(
  */
 async function executeSignatureTransfer(
   contract: Will,
-  willInfo: WillContractInfo,
   nonce: string,
   deadline: string,
   signature: string,
@@ -331,7 +330,6 @@ async function processSignatureTransfer(): Promise<ProcessResult> {
 
     const result = await executeSignatureTransfer(
       contract,
-      willInfo,
       fields.permit2.nonce.toString(),
       fields.permit2.deadline.toString(),
       fields.permit2.signature.toString(),

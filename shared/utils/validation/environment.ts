@@ -163,6 +163,13 @@ const presetValidations = {
     },
   }),
 
+  probateWill: (): EnvironmentValidationOptions => ({
+    required: ["ORACLE_PRIVATE_KEY"],
+    validators: {
+      ORACLE_PRIVATE_KEY: validators.privateKey,
+    },
+  }),
+
   signatureTransfer: (): EnvironmentValidationOptions => ({
     required: ["EXECUTOR_PRIVATE_KEY"],
     validators: {

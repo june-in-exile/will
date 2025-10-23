@@ -30,6 +30,7 @@ import chalk from "chalk";
 
 interface predictWillData {
   testator: EthereumAddress;
+  executor: EthereumAddress;
   estates: Estate[];
   salt: bigint;
 }
@@ -90,6 +91,7 @@ async function executePredictWill(
 
     const predictedAddress: EthereumAddress = await contract.predictWill(
       predictData.testator,
+      predictData.executor,
       predictData.estates,
       predictData.salt,
     );
@@ -132,6 +134,7 @@ async function processPredictWill(): Promise<ProcessResult> {
 
     const predictedAddress = await executePredictWill(contract, {
       testator: willData.testator,
+      executor: willData.executor,
       estates: willData.estates,
       salt,
     });

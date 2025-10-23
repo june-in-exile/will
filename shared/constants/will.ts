@@ -31,6 +31,7 @@ const WILL_FILE_PATH: Record<WillType, string> = {
 
 const FIELD_HEX_LENGTH = {
   TESTATOR: 40,
+  EXECUTOR: 40,
   BENEFICIARY: 40,
   TOKEN: 40,
   AMOUNT: SERIALIZATION_CONFIG.maxAmountBytes * 2,

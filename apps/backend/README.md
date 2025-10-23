@@ -177,7 +177,18 @@ make create-will
 - **Updates**: The following `.env` variables are automatically updated:
   - `CREATE_WILL_TX_HASH`, `CREATE_WILL_TIMESTAMP`
 
-### Step 2: Transfer Estates
+### Step 2: Probation
+
+The oracle probate the `Will.sol`:
+
+```sh
+make probate-will
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `PROBATE_WILL_TX_HASH`, `PROBATE_WILL_TIMESTAMP`
+
+### Step 3: Transfer Estates
 
 The exeutor executes the `Will.sol` and transfer the estates from the testator to the beneifciaries:
 

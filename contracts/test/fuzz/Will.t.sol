@@ -28,6 +28,7 @@ contract WillFuzzTest is Test {
         uint256 _amount
     ) public {
         vm.assume(_testator != address(0));
+        vm.assume(_oracle != address(0));
         vm.assume(_executor != address(0));
         vm.assume(_beneficiary != address(0));
         vm.assume(_beneficiary != _testator);
@@ -46,17 +47,17 @@ contract WillFuzzTest is Test {
         assertEq(newWill.getAllEstates().length, 1);
     }
 
-    function testFuzzSubmitProofOfDeath(address caller) public {
+    function testFuzzProbateWill(address caller) public {
         vm.assume(caller != oracle);
 
         vm.expectRevert(abi.encodeWithSelector(Will.NotOracle.selector, caller, oracle));
         vm.prank(caller);
-        will.submitProofOfDeath();
+        will.probateWill();
     }
 
     function testFuzzSignatureTransferAccessControl(address caller, uint256 nonce, uint256 deadline) public {
         vm.prank(oracle);
-        will.submitProofOfDeath();
+        will.probateWill();
 
         vm.assume(caller != executor);
         vm.assume(nonce != 0);

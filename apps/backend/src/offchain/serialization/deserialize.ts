@@ -23,6 +23,7 @@ function calculateEstateCount(hex: string): number {
   const totalEstatesLength =
     hex.length -
     (FIELD_HEX_LENGTH.TESTATOR +
+      FIELD_HEX_LENGTH.EXECUTOR +
       FIELD_HEX_LENGTH.SALT +
       FIELD_HEX_LENGTH.WILL +
       FIELD_HEX_LENGTH.NONCE +
@@ -68,9 +69,15 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
     testatorStart,
   );
 
+  const executorStart = testatorEnd;
+  const { address: executor, end: executorEnd } = readAddress(
+    serializedHex,
+    executorStart,
+  );
+
   const estateCount = calculateEstateCount(serializedHex);
 
-  let estateStart = testatorEnd;
+  let estateStart = executorEnd;
   const estates: Estate[] = [];
   for (let i = 0; i < estateCount; i++) {
     const beneficiaryStart = estateStart;
@@ -128,6 +135,7 @@ function deserializeWill(serializedWill: SerializedWill): DeserializedWill {
 
   const deserializedWill = {
     testator,
+    executor,
     estates,
     salt,
     will,

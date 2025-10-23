@@ -18,14 +18,14 @@ contract Will {
     address immutable public executor;
     Estate[] public estates;
 
-    bool public validProofOfDeath = false;
+    bool public probated = false;
 
-    event DeathProved();
+    event Probated();
     event WillExecuted();
 
     error NotOracle(address caller, address notary);
     error NotExecutor(address caller, address executor);
-    error NotDead();
+    error NotProbated();
 
     error Permit2AddressZero();
     error TestatorAddressZero();
@@ -72,14 +72,13 @@ contract Will {
         return estates;
     }
 
-    function submitProofOfDeath() external onlyOracle {
-        // TODO: proof of death verification
-        validProofOfDeath = true;
-        emit DeathProved();
+    function probateWill() external onlyOracle {
+        probated = true;
+        emit Probated();
     }
 
     function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external onlyExecutor {
-        if (!validProofOfDeath) revert NotDead();
+        if (!probated) revert NotProbated();
 
         ISignatureTransfer.TokenPermissions[] memory permitted =
             new ISignatureTransfer.TokenPermissions[](estates.length);

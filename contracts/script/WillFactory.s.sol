@@ -10,7 +10,7 @@ contract WillFactoryScript is Script {
     address private _willCreateVerifier;
     address private _jsonCidVerifier;
     address private _notary;
-    address private _executor;
+    address private _oracle;
     address private _permit2;
     uint8 private _maxEstates;
 
@@ -19,7 +19,7 @@ contract WillFactoryScript is Script {
         _willCreateVerifier = vm.envAddress("WILL_CREATION_VERIFIER");
         _jsonCidVerifier = vm.envAddress("JSON_CID_VERIFIER");
         _notary = vm.envAddress("NOTARY");
-        _executor = vm.envAddress("EXECUTOR");
+        _oracle = vm.envAddress("ORACLE");
         _permit2 = vm.envAddress("PERMIT2");
         _maxEstates = uint8(vm.envUint("MAX_ESTATES"));
     }
@@ -30,7 +30,7 @@ contract WillFactoryScript is Script {
         vm.startBroadcast();
 
         willFactory =
-            new WillFactory(_cidUploadVerifier, _willCreateVerifier, _jsonCidVerifier, _notary, _executor, _permit2, _maxEstates);
+            new WillFactory(_cidUploadVerifier, _willCreateVerifier, _jsonCidVerifier, _notary, _oracle, _permit2, _maxEstates);
 
         vm.stopBroadcast();
     }

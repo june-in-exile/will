@@ -22,14 +22,14 @@ contract WillFactoryIntegrationTest is Test {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[290] pubSignals;
+        uint256[310] pubSignals;
     }
 
     struct WillCreationProofData {
         uint256[2] pA;
         uint256[2][2] pB;
         uint256[2] pC;
-        uint256[300] pubSignals;
+        uint256[321] pubSignals;
     }
 
     WillFactory willFactory;
@@ -43,6 +43,7 @@ contract WillFactoryIntegrationTest is Test {
     uint256 oraclePrivateKey;
     address permit2;
     uint8 maxEstates;
+    address random = makeAddr("random");
 
     struct TestVector {
         string name;
@@ -136,6 +137,10 @@ contract WillFactoryIntegrationTest is Test {
         // Step 2: Notarize CID
         vm.warp(block.timestamp + 1);
 
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotNotary.selector, random, notary));
+        vm.prank(random);
+        willFactory.notarizeCid(tv.cid);
+
         vm.expectEmit(true, false, false, true);
         emit WillFactory.CidNotarized(tv.cid, block.timestamp);
 
@@ -149,6 +154,17 @@ contract WillFactoryIntegrationTest is Test {
 
         // Step 3: Create Will
         address predictedAddress = willFactory.predictWill(tv.testator, tv.executor, tv.estates, tv.salt);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotExecutor.selector, random, tv.executor));
+        vm.prank(random);
+        willFactory.createWill(
+            tv.willCreationProof.pA,
+            tv.willCreationProof.pB,
+            tv.willCreationProof.pC,
+            tv.willCreationProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
 
         vm.expectEmit(true, true, false, true);
         emit WillFactory.WillCreated(tv.cid, tv.testator, predictedAddress);
@@ -172,7 +188,7 @@ contract WillFactoryIntegrationTest is Test {
         assertEq(address(will.permit2()), permit2);
         assertEq(will.testator(), tv.testator);
         assertEq(will.executor(), tv.executor);
-        assertFalse(will.validProofOfDeath());
+        assertFalse(will.probated());
 
         assertTrue(_compareEstateArraysHash(will.getAllEstates(), tv.estates));
     }
@@ -466,10 +482,10 @@ contract WillFactoryIntegrationTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 290, "Public signals array must have exactly 290 elements");
+        require(pubStringArray.length == 310, "Public signals array must have exactly 310 elements");
 
-        uint256[290] memory pubSignals;
-        for (uint256 i = 0; i < 290; i++) {
+        uint256[310] memory pubSignals;
+        for (uint256 i = 0; i < 310; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 
@@ -502,10 +518,10 @@ contract WillFactoryIntegrationTest is Test {
 
         // Parse public.json
         string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 300, "Public signals array must have exactly 300 elements");
+        require(pubStringArray.length == 321, "Public signals array must have exactly 321 elements");
 
-        uint256[300] memory pubSignals;
-        for (uint256 i = 0; i < 300; i++) {
+        uint256[321] memory pubSignals;
+        for (uint256 i = 0; i < 321; i++) {
             pubSignals[i] = vm.parseUint(pubStringArray[i]);
         }
 

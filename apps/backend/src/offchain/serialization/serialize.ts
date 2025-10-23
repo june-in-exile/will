@@ -19,6 +19,9 @@ function serializeWill(signedWill: SignedWill): SerializedWill {
   // Add testator address (remove 0x prefix)
   hex += signedWill.testator.slice(2);
 
+  // Add executor address (remove 0x prefix)
+  hex += signedWill.executor.slice(2);
+
   // Add each estate
   for (let i = 0; i < signedWill.estates.length; i++) {
     const estate = signedWill.estates[i];

@@ -33,6 +33,7 @@ contract WillFactory {
 
     error NotTestator(address caller, address testator);
     error NotNotary(address caller, address notary);
+    error NotExecutor(address caller, address executor);
 
     error AlreadyUploaded(string cid);
     error AlreadyNotarized(string cid);
@@ -107,7 +108,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[290] calldata _pubSignals,
+        uint256[310] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external {
@@ -123,8 +124,8 @@ contract WillFactory {
         for (uint256 i = 0; i < 16; i++) {
             iv[i] = _pubSignals[pubSignalsIdx++];
         }
-        uint256[273] memory ciphertext;
-        for (uint256 i = 0; i < 273; i++) {
+        uint256[293] memory ciphertext;
+        for (uint256 i = 0; i < 293; i++) {
             ciphertext[i] = _pubSignals[pubSignalsIdx++];
         }
 
@@ -141,7 +142,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[290] calldata _pubSignals,
+        uint256[310] calldata _pubSignals,
         string calldata _cid
     ) external {
         address testator = address(uint160(_pubSignals[0]));
@@ -179,7 +180,7 @@ contract WillFactory {
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
-        uint256[300] calldata _pubSignals,
+        uint256[321] calldata _pubSignals,
         JsonCidVerifier.TypedJsonObject memory _will,
         string calldata _cid
     ) external returns (address) {
@@ -193,6 +194,9 @@ contract WillFactory {
 
         uint16 pubSignalsIdx = 0;
         address testator = address(uint160(_pubSignals[pubSignalsIdx++]));
+        address executor = address(uint160(_pubSignals[pubSignalsIdx++]));
+        if (msg.sender != executor) revert NotExecutor(msg.sender, executor);
+
         Will.Estate[] memory estates = new Will.Estate[](maxEstates);
         for (uint8 i = 0; i < maxEstates; i++) {
             estates[i].beneficiary = address(uint160(_pubSignals[pubSignalsIdx++]));
@@ -206,16 +210,16 @@ contract WillFactory {
         for (uint256 i = 0; i < 16; i++) {
             iv[i] = _pubSignals[pubSignalsIdx++];
         }
-        uint256[273] memory ciphertext;
-        for (uint256 i = 0; i < 273; i++) {
+        uint256[293] memory ciphertext;
+        for (uint256 i = 0; i < 293; i++) {
             ciphertext[i] = _pubSignals[pubSignalsIdx++];
         }
 
         if (keccak256(abi.encodePacked(iv)) != keccak256(abi.encodePacked(_will.values[1].numberArray))) revert WrongInitializationVector();
         if (keccak256(abi.encodePacked(ciphertext)) != keccak256(abi.encodePacked(_will.values[3].numberArray))) revert WrongCiphertext();
 
-        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, oracle, msg.sender, estates);
-        address predictedAddress = _predictWill(testator, msg.sender, estates, salt);
+        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, oracle, executor, estates);
+        address predictedAddress = _predictWill(testator, executor, estates, salt);
         if (address(will) != predictedAddress) revert WillAddressInconsistent(predictedAddress, address(will));
 
         wills[_cid] = address(will);

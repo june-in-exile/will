@@ -40,8 +40,8 @@ contract WillFactoryUnitTest is Test {
     uint256[2] pA = [1, 2];
     uint256[2][2] pB = [[3, 4], [5, 6]];
     uint256[2] pC = [7, 8];
-    uint256[290] cidUploadPubSignals;
-    uint256[300] willCreationPubSignals;
+    uint256[310] cidUploadPubSignals;
+    uint256[321] willCreationPubSignals;
 
     Will.Estate[] estates;
 
@@ -81,29 +81,37 @@ contract WillFactoryUnitTest is Test {
         values[0] = JsonCidVerifier.JsonValue("value0", new uint256[](0), JsonCidVerifier.JsonValueType.STRING);
         values[1] = JsonCidVerifier.JsonValue("", new uint256[](16), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
         values[2] = JsonCidVerifier.JsonValue("", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        values[3] = JsonCidVerifier.JsonValue("", new uint256[](273), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
+        values[3] = JsonCidVerifier.JsonValue("", new uint256[](293), JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
         values[4] = JsonCidVerifier.JsonValue("1234567890", new uint256[](0), JsonCidVerifier.JsonValueType.NUMBER);
 
         willJson = JsonCidVerifier.TypedJsonObject({ keys: keys, values: values });
 
-        cidUploadPubSignals[0] = uint160(testator);
-        for (uint256 i = 1; i < 290; i++) {
-            cidUploadPubSignals[i] = 0;
+        uint256 cidUploadPubSignalIdx = 0;
+        cidUploadPubSignals[cidUploadPubSignalIdx++] = uint160(testator);
+        for (uint256 i = 0; i < 16; i++) {
+            cidUploadPubSignals[cidUploadPubSignalIdx++] = willJson.values[1].numberArray[i];
+        }
+        for (uint256 i = 0; i < 293; i++) {
+            cidUploadPubSignals[cidUploadPubSignalIdx++] = willJson.values[3].numberArray[i];
         }
 
-        uint256 pubSignalIdx = 0;
-        willCreationPubSignals[pubSignalIdx++] = uint160(testator);
+        uint256 willCreationPubSignalIdx = 0;
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint160(testator);
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint160(executor);
         for (uint8 i = 0; i < maxEstates; i++) {
-            willCreationPubSignals[pubSignalIdx++] = uint160(estates[i].beneficiary);
-            willCreationPubSignals[pubSignalIdx++] = uint160(estates[i].token);
-            willCreationPubSignals[pubSignalIdx++] = estates[i].amount;
+            willCreationPubSignals[willCreationPubSignalIdx++] = uint160(estates[i].beneficiary);
+            willCreationPubSignals[willCreationPubSignalIdx++] = uint160(estates[i].token);
+            willCreationPubSignals[willCreationPubSignalIdx++] = estates[i].amount;
         }
-        willCreationPubSignals[pubSignalIdx++] = uint64(salt);
-        willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 64);
-        willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 128);
-        willCreationPubSignals[pubSignalIdx++] = uint64(salt >> 192);
-        while (pubSignalIdx < 300) {
-            willCreationPubSignals[pubSignalIdx++] = 0;
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint64(salt);
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint64(salt >> 64);
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint64(salt >> 128);
+        willCreationPubSignals[willCreationPubSignalIdx++] = uint64(salt >> 192);
+        for (uint256 i = 0; i < 16; i++) {
+            willCreationPubSignals[willCreationPubSignalIdx++] = willJson.values[1].numberArray[i];
+        }
+        for (uint256 i = 0; i < 293; i++) {
+            willCreationPubSignals[willCreationPubSignalIdx++] = willJson.values[3].numberArray[i];
         }
     }
 

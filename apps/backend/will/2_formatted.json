@@ -1,5 +1,6 @@
 {
   "testator": "0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc",
+  "executor": "0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a",
   "estates": [
     {
       "beneficiary": "0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c",
