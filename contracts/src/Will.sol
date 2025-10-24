@@ -14,37 +14,27 @@ contract Will {
     }
 
     address immutable public testator;
-    address immutable public oracle;
     address immutable public executor;
     Estate[] public estates;
 
-    bool public probated = false;
-
-    event Probated();
     event WillExecuted();
 
-    error NotOracle(address caller, address notary);
     error NotExecutor(address caller, address executor);
-    error NotProbated();
 
     error Permit2AddressZero();
     error TestatorAddressZero();
-    error OracleAddressZero();
     error ExecutorAddressZero();
     error BeneficiaryAddressZero();
     error BeneficiaryCannotBeTestator(address beneficiary);
     error InvalidTokenAddress();
     error AmountMustBeGreaterThanZero();
 
-    constructor(address _permit2, address _testator, address _oracle, address _executor, Estate[] memory _estates) {
+    constructor(address _permit2, address _testator, address _executor, Estate[] memory _estates) {
         if (_permit2 == address(0)) revert Permit2AddressZero();
         permit2 = IPermit2(_permit2);
 
         if (_testator == address(0)) revert TestatorAddressZero();
         testator = _testator;
-
-        if (_oracle == address(0)) revert OracleAddressZero();
-        oracle = _oracle;
 
         if (_executor == address(0)) revert ExecutorAddressZero();
         executor = _executor;
@@ -58,11 +48,6 @@ contract Will {
         estates = _estates;
     }
 
-    modifier onlyOracle() {
-        if (msg.sender != oracle) revert NotOracle(msg.sender, oracle);
-        _;
-    }
-
     modifier onlyExecutor() {
         if (msg.sender != executor) revert NotExecutor(msg.sender, executor);
         _;
@@ -72,13 +57,7 @@ contract Will {
         return estates;
     }
 
-    function probateWill() external onlyOracle {
-        probated = true;
-        emit Probated();
-    }
-
     function signatureTransferToBeneficiaries(uint256 nonce, uint256 deadline, bytes calldata signature) external onlyExecutor {
-        if (!probated) revert NotProbated();
 
         ISignatureTransfer.TokenPermissions[] memory permitted =
             new ISignatureTransfer.TokenPermissions[](estates.length);

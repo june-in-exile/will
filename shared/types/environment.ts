@@ -42,6 +42,8 @@ interface CreateWill {
 
 interface ProbateWill {
   ORACLE_PRIVATE_KEY: string;
+  WILL_FACTORY: string;
+  CID: string;
 }
 
 interface SignatureTransfer {

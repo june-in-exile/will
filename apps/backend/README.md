@@ -2,6 +2,15 @@
 
 This guide explains how to use the backend components of the Will system for encrypting, uploading, and managing will files.
 
+## Workflow Overview
+
+The system follows a four-phase workflow with distinct roles:
+
+1. **Phase 1 - Testator**: Encrypts and uploads the will to IPFS, then uploads the CID to WillFactory
+2. **Phase 2 - Notary**: Notarizes the CID in WillFactory to establish legal validity
+3. **Phase 3 - Oracle**: Probates the CID in WillFactory after confirming testator's death
+4. **Phase 4 - Executor**: Creates the Will contract and executes asset transfers
+
 ## Prerequisites
 
 1. **Environment Configuration**: Ensure the `.env` file is properly configured with all required variables.
@@ -15,7 +24,10 @@ Reset environment variables and remove old will files:
 make clean
 ```
 
-## Phase 1: Encrypt & Upload Will
+## Phase 1: Testator - Encrypt & Upload Will
+
+**Role**: Testator
+**Goal**: Create, encrypt, and upload the encrypted will to IPFS, then register the CID in WillFactory
 
 ### Step 1: Create Will Content
 
@@ -134,11 +146,14 @@ make upload-cid
 - **Updates**: The following `.env` variables are automatically updated:
   - `UPLOAD_TX_HASH`, `UPLOAD_TIMESTAMP`
 
-## Phase 2: Notarization
+## Phase 2: Notary - Notarization
+
+**Role**: Notary
+**Goal**: Verify and notarize the CID in WillFactory to establish legal validity
 
 ### Step 1: Notarize CID
 
-The notary notarizes the CID on `willFactory.sol`:
+The notary notarizes the uploaded CID in `WillFactory.sol`:
 
 ```sh
 make notarize-cid
@@ -147,11 +162,31 @@ make notarize-cid
 - **Updates**: The following `.env` variables are automatically updated:
   - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
 
-## Phase 3: Decrypt & Execute Will
+## Phase 3: Oracle - Probation
 
-### Step 1: Download
+**Role**: Oracle
+**Goal**: Authorize will execution by probating the CID in WillFactory after confirming testator's death
 
-Download the will from IPFS
+### Step 1: Probate CID
+
+After verifying death confirmation data from an authoritative source, the oracle probates the CID in `WillFactory.sol` to authorize will creation:
+
+```sh
+make probate-cid
+```
+
+- **Required `.env` fields**: `ORACLE_PRIVATE_KEY`, `WILL_FACTORY`, `CID`
+- **Updates**: The following `.env` variables are automatically updated:
+  - `PROBATE_WILL_TX_HASH`, `PROBATE_WILL_TIMESTAMP`
+
+## Phase 4: Executor - Create Will & Transfer Estates
+
+**Role**: Executor
+**Goal**: Download and decrypt the will, create the Will contract, and execute asset transfers to beneficiaries
+
+### Step 1: Download Will from IPFS
+
+Download the encrypted will from IPFS using the CID:
 
 ```sh
 make download-will
@@ -159,19 +194,20 @@ make download-will
 
 - **Output**: [`will/7_downloaded.json`](will/7_downloaded.json)
 
-### Step 2: Decrypt
+### Step 2: Decrypt Will
 
-Decrypt the will
+Decrypt the downloaded will using the secret key:
 
 ```sh
 make decrypt-will
 ```
 
+- **Required**: Secret key (provided by testator through secure channel)
 - **Output**: [`will/8_decrypted.json`](will/8_decrypted.json)
 
-### Step 3: Deserialize
+### Step 3: Deserialize Will
 
-Deserialize the will
+Deserialize the decrypted will to extract will data:
 
 ```sh
 make deserialize-will
@@ -190,38 +226,51 @@ make prove-for-will-creation
 - **Output**: ZKP proof files in the zkp directory
 - **Purpose**: Proves knowledge of the encryption key and will contents
 
-### Step 5: Create Will
+### Step 5: Create Will Contract
 
-The executor creates a new `Will.sol` through the `willFactory.sol`:
+Deploy a new `Will.sol` contract through `WillFactory.sol` using CREATE2:
 
 ```sh
 make create-will
 ```
 
+- **Note**: This step can only succeed after the CID has been probated by the oracle
 - **Updates**: The following `.env` variables are automatically updated:
   - `CREATE_WILL_TX_HASH`, `CREATE_WILL_TIMESTAMP`
 
-### Step 6: Probate Will
+### Step 6: Transfer Estates to Beneficiaries
 
-The oracle probates the `Will.sol`:
-
-```sh
-make probate-will
-```
-
-- **Updates**: The following `.env` variables are automatically updated:
-  - `PROBATE_WILL_TX_HASH`, `PROBATE_WILL_TIMESTAMP`
-
-### Step 7: Transfer Estates
-
-The executor executes the `Will.sol` and transfers the estates from the testator to the beneficiaries:
+Execute the Will contract to transfer assets from testator to beneficiaries using Permit2:
 
 ```sh
 make signature-transfer
 ```
 
+- **Action**: Calls `signatureTransferToBeneficiaries()` in `Will.sol`, which invokes Permit2 to transfer tokens
 - **Updates**: The following `.env` variables are automatically updated:
   - `EXECUTE_WILL_TX_HASH`, `EXECUTE_WILL_TIMESTAMP`
+
+## Complete Workflow Summary
+
+To run the entire workflow in sequence:
+
+```sh
+make all
+```
+
+This command executes all four phases in order:
+
+1. `testatorUploadsEncryptedWill` - Phase 1 (Testator)
+2. `notarySignsCid` - Phase 2 (Notary)
+3. `oracleProbateCid` - Phase 3 (Oracle)
+4. `executorTransfersEstates` - Phase 4 (Executor)
+
+**Important Dependencies**:
+
+- Notarization requires the CID to be uploaded first
+- Probation requires the CID to be notarized first (cannot happen in the same block)
+- Will creation requires the CID to be probated first (cannot happen in the same block)
+- Estate transfer requires the Will contract to be created first
 
 ## File Structure
 

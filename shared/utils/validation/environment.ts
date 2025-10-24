@@ -163,10 +163,12 @@ const presetValidations = {
     },
   }),
 
-  probateWill: (): EnvironmentValidationOptions => ({
-    required: ["ORACLE_PRIVATE_KEY"],
+  probateCid: (): EnvironmentValidationOptions => ({
+    required: ["ORACLE_PRIVATE_KEY", "WILL_FACTORY", "CID"],
     validators: {
       ORACLE_PRIVATE_KEY: validators.privateKey,
+      WILL_FACTORY: validators.ethereumAddress,
+      CID: validators.cidv1,
     },
   }),
 

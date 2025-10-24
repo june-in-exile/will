@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: clean testatorUploadsEncryptedWill notarySignsCid executorTransfersEstates
+all: clean testatorUploadsEncryptedWill notarySignsCid oracleProbateCid executorTransfersEstates
 
 clean:
 	@echo "Resetting environment variables..."
@@ -61,7 +61,13 @@ notarize-cid:
 	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
 
 
-executorTransfersEstates: download-will decrypt-will deserialize-will prove-for-will-creation create-will probate-will signature-transfer
+oracleProbateCid: probate-cid
+
+probate-cid:
+	@pnpm exec tsx src/onchain/will/probateCid.ts
+
+
+executorTransfersEstates: download-will decrypt-will deserialize-will prove-for-will-creation create-will signature-transfer
 
 download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
@@ -77,9 +83,6 @@ prove-for-will-creation:
 
 create-will:
 	@pnpm exec tsx src/onchain/willFactory/createWill.ts
-
-probate-will:
-	@pnpm exec tsx src/onchain/will/probateWill.ts
 
 signature-transfer:
 	@pnpm exec tsx src/onchain/will/signatureTransfer.ts

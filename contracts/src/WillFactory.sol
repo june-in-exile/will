@@ -22,24 +22,30 @@ contract WillFactory {
 
     mapping(string => uint256) private _cidUploadedTimes;
     mapping(string => uint256) private _cidNotarizedTimes;
+    mapping(string => uint256) private _cidProbatedTimes;
     mapping(string => address) public wills;
 
     event CidUploaded(string indexed cid, uint256 timestamp);
     event CidNotarized(string indexed cid, uint256 timestamp);
+    event CidProbated(string indexed cid, uint256 timestamp);
     event WillCreated(string indexed cid, address indexed testator, address will);
 
     event UploadedCidRevoked(string indexed cid, uint256 timestamp);
     event NotarizedCidRevoked(string indexed cid, uint256 timestamp);
+    event ProbatedCidRevoked(string indexed cid, uint256 timestamp);
 
     error NotTestator(address caller, address testator);
     error NotNotary(address caller, address notary);
+    error NotOracle(address caller, address oracle);
     error NotExecutor(address caller, address executor);
 
     error AlreadyUploaded(string cid);
     error AlreadyNotarized(string cid);
+    error AlreadyProbated(string cid);
 
     error CidNotUploaded(string cid);
     error CidNotNotarized(string cid);
+    error CidNotProbated(string cid);
 
     error WrongCiphertext();
     error WrongInitializationVector();
@@ -75,6 +81,11 @@ contract WillFactory {
         _;
     }
 
+    modifier onlyOracle() {
+        if (msg.sender != oracle) revert NotOracle(msg.sender, oracle);
+        _;
+    }
+
     function cidUploadedTimes(string calldata _cid) external view returns (uint256) {
         return _cidUploadedTimes[_cid];
     }
@@ -83,13 +94,17 @@ contract WillFactory {
         return _cidNotarizedTimes[_cid];
     }
 
+    function cidProbatedTimes(string calldata _cid) external view returns (uint256) {
+        return _cidProbatedTimes[_cid];
+    }
+
     function _predictWill(address _testator, address _executor, Will.Estate[] memory estates, uint256 _salt)
         internal
         view
         returns (address)
     {
         bytes memory bytecode =
-            abi.encodePacked(type(Will).creationCode, abi.encode(permit2, _testator, oracle, _executor, estates));
+            abi.encodePacked(type(Will).creationCode, abi.encode(permit2, _testator, _executor, estates));
 
         bytes32 hash = keccak256(abi.encodePacked(bytes1(0xff), address(this), _salt, keccak256(bytecode)));
 
@@ -138,7 +153,7 @@ contract WillFactory {
         emit CidUploaded(_cid, block.timestamp);
     }
 
-    function revokeUnnortarizedCid(
+    function revokeUploadedCid(
         uint256[2] calldata _pA,
         uint256[2][2] calldata _pB,
         uint256[2] calldata _pC,
@@ -149,7 +164,7 @@ contract WillFactory {
         if (msg.sender != testator) revert NotTestator(msg.sender, testator);
 
         if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
-        /* Notarized CID should be revoked by executor */
+        /* Notarized CID should be revoked by notary */
         if (_cidNotarizedTimes[_cid] > _cidUploadedTimes[_cid]) revert AlreadyNotarized(_cid);
 
         if (!cidUploadVerifier.verifyProof(_pA, _pB, _pC, _pubSignals)) revert CidUploadProofInvalid();
@@ -170,10 +185,30 @@ contract WillFactory {
 
     function revokeNortarizedCid(string calldata _cid) external onlyNotary {
         if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
+        /* Probated CID should be revoked by oracle */
+        if (_cidProbatedTimes[_cid] > _cidNotarizedTimes[_cid]) revert AlreadyProbated(_cid);
 
-        _cidUploadedTimes[_cid] = 0;
         _cidNotarizedTimes[_cid] = 0;
         emit NotarizedCidRevoked(_cid, block.timestamp);
+    }
+
+    function probateCid(string calldata _cid) external onlyOracle {
+        /* Notarization and probation of CID cannot be in the same block */
+        if (_cidNotarizedTimes[_cid] == 0 || _cidNotarizedTimes[_cid] >= block.timestamp) revert CidNotNotarized(_cid);
+
+        if (_cidProbatedTimes[_cid] > _cidNotarizedTimes[_cid]) revert AlreadyProbated(_cid);
+
+        _cidProbatedTimes[_cid] = block.timestamp;
+        emit CidProbated(_cid, block.timestamp);
+    }
+
+    function revokeProbatedCid(string calldata _cid) external onlyOracle {
+        if (_cidProbatedTimes[_cid] <= _cidNotarizedTimes[_cid]) revert CidNotProbated(_cid);
+
+        if (wills[_cid] != address(0)) revert WillAlreadyExists(_cid, wills[_cid]);
+
+        _cidProbatedTimes[_cid] = 0;
+        emit ProbatedCidRevoked(_cid, block.timestamp);
     }
 
     function createWill(
@@ -186,6 +221,7 @@ contract WillFactory {
     ) external returns (address) {
         if (_cidUploadedTimes[_cid] == 0) revert CidNotUploaded(_cid);
         if (_cidNotarizedTimes[_cid] <= _cidUploadedTimes[_cid]) revert CidNotNotarized(_cid);
+        if (_cidProbatedTimes[_cid] <= _cidNotarizedTimes[_cid]) revert CidNotProbated(_cid);
 
         if (!jsonCidVerifier.verifyCid(_will, _cid)) revert JsonCidInvalid(_cid);
 
@@ -218,7 +254,7 @@ contract WillFactory {
         if (keccak256(abi.encodePacked(iv)) != keccak256(abi.encodePacked(_will.values[1].numberArray))) revert WrongInitializationVector();
         if (keccak256(abi.encodePacked(ciphertext)) != keccak256(abi.encodePacked(_will.values[3].numberArray))) revert WrongCiphertext();
 
-        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, oracle, executor, estates);
+        Will will = new Will{ salt: bytes32(salt) }(permit2, testator, executor, estates);
         address predictedAddress = _predictWill(testator, executor, estates, salt);
         if (address(will) != predictedAddress) revert WillAddressInconsistent(predictedAddress, address(will));
 

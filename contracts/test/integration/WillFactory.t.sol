@@ -9,6 +9,7 @@ import "src/Will.sol";
 import "src/CidUploadVerifier.sol";
 import "src/WillCreationVerifier.sol";
 import "src/JsonCidVerifier.sol";
+import "helpers/TestHelpers.sol";
 
 
 /*
@@ -17,20 +18,7 @@ import "src/JsonCidVerifier.sol";
  *  2. `make deploy` necessary contracts
  *  3. `make all` in apps/backend to generate test data (e.g., encrypted will, ZKP).
  */
-contract WillFactoryIntegrationTest is Test {
-    struct CidUploadProofData {
-        uint256[2] pA;
-        uint256[2][2] pB;
-        uint256[2] pC;
-        uint256[310] pubSignals;
-    }
-
-    struct WillCreationProofData {
-        uint256[2] pA;
-        uint256[2][2] pB;
-        uint256[2] pC;
-        uint256[321] pubSignals;
-    }
+contract WillFactoryIntegrationTest is TestHelpers {
 
     WillFactory willFactory;
     CidUploadVerifier cidUploadVerifier;
@@ -108,7 +96,7 @@ contract WillFactoryIntegrationTest is Test {
         }
     }
 
-    function test_FullWorkflow_UploadNotarizeCreate() public {
+    function test_FullWorkflow_UploadNotarizeProbateCreate() public {
         TestVector memory tv = testVectors[0];
 
         // Step 1: Upload CID
@@ -147,7 +135,25 @@ contract WillFactoryIntegrationTest is Test {
         assertEq(notarizeTime, block.timestamp);
         assertTrue(notarizeTime > uploadTime);
 
-        // Step 3: Create Will
+        // Step 3: Probate Will
+        vm.warp(block.timestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotOracle.selector, random, oracle));
+        vm.prank(random);
+        willFactory.probateCid(tv.cid);
+
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.CidProbated(tv.cid, block.timestamp);
+
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+
+        // Verify probation
+        uint256 probateTime = willFactory.cidProbatedTimes(tv.cid);
+        assertEq(probateTime, block.timestamp);
+        assertTrue(probateTime > notarizeTime);
+
+        // Step 4: Create Will
         address predictedAddress = willFactory.predictWill(tv.testator, tv.executor, tv.estates, tv.salt);
 
         vm.expectRevert(abi.encodeWithSelector(WillFactory.NotExecutor.selector, random, tv.executor));
@@ -183,7 +189,6 @@ contract WillFactoryIntegrationTest is Test {
         assertEq(address(will.permit2()), permit2);
         assertEq(will.testator(), tv.testator);
         assertEq(will.executor(), tv.executor);
-        assertFalse(will.probated());
 
         assertTrue(_compareEstateArraysHash(will.getAllEstates(), tv.estates));
     }
@@ -192,7 +197,6 @@ contract WillFactoryIntegrationTest is Test {
         TestVector memory tv = testVectors[0];
 
         // Upload at time T
-        uint256 startTime = block.timestamp;
         vm.prank(tv.testator);
         willFactory.uploadCid(
             tv.cidUploadProof.pA,
@@ -203,24 +207,35 @@ contract WillFactoryIntegrationTest is Test {
             tv.cid
         );
 
-        // Try to create will without notarization - should fail
+        // Try to probate will without notarization - should fail
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
-        vm.prank(tv.executor);
-        willFactory.createWill(
-            tv.willCreationProof.pA,
-            tv.willCreationProof.pB,
-            tv.willCreationProof.pC,
-            tv.willCreationProof.pubSignals,
-            tv.willTypedJsonObj,
-            tv.cid
-        );
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
 
         // Notarize at time T (same as upload) - should fail
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, tv.cid));
         vm.prank(notary);
         willFactory.notarizeCid(tv.cid);
 
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
+        // Fast forward time and re-upload - should fail
+        vm.warp(block.timestamp + 1);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyUploaded.selector, tv.cid));
+        vm.prank(tv.testator);
+        willFactory.uploadCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.willTypedJsonObj,
+            tv.cid
+        );
+        
+        // Notarize after upload - should success
+        vm.prank(notary);
+        willFactory.notarizeCid(tv.cid);
+
+        // Try to create will without probation - should fail
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotProbated.selector, tv.cid));
         vm.prank(tv.executor);
         willFactory.createWill(
             tv.willCreationProof.pA,
@@ -231,18 +246,28 @@ contract WillFactoryIntegrationTest is Test {
             tv.cid
         );
 
-        // Fast forward time and notarize - should success
-        vm.warp(startTime + 1);
-        vm.prank(notary);
-        willFactory.notarizeCid(tv.cid);
+        // Probate at time T (same as notarize) - should fail
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, tv.cid));
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
 
         // Fast forward time and re-notarize - should fail
-        vm.warp(startTime + 1);
+        vm.warp(block.timestamp + 1);
         vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, tv.cid));
         vm.prank(notary);
         willFactory.notarizeCid(tv.cid);
 
-        // Create Will with "notarization time > upload time" - should success
+        // Probate after notarization - should success
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+
+        // Fast forward time and re-notarize - should fail
+        vm.warp(block.timestamp + 1);
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyProbated.selector, tv.cid));
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+
+        // Create Will with "probation time > notarization time > upload time" - should success
         vm.prank(tv.executor);
         address willAddress = willFactory.createWill(
             tv.willCreationProof.pA,
@@ -256,7 +281,7 @@ contract WillFactoryIntegrationTest is Test {
         assertEq(willFactory.wills(tv.cid), willAddress);
     }
 
-    function test_RevokeUnnortarizedCid_Integration() public {
+    function test_RevokeUploadedCid() public {
         TestVector memory tv = testVectors[0];
 
         // Step 1: Upload CID
@@ -274,12 +299,12 @@ contract WillFactoryIntegrationTest is Test {
         uint256 uploadTime = willFactory.cidUploadedTimes(tv.cid);
         assertEq(uploadTime, block.timestamp);
 
-        // Step 2: Revoke the unnotarized CID
+        // Step 2: Revoke the uploaded CID
         vm.expectEmit(true, false, false, true);
         emit WillFactory.UploadedCidRevoked(tv.cid, block.timestamp);
 
         vm.prank(tv.testator);
-        willFactory.revokeUnnortarizedCid(
+        willFactory.revokeUploadedCid(
             tv.cidUploadProof.pA,
             tv.cidUploadProof.pB,
             tv.cidUploadProof.pC,
@@ -305,9 +330,24 @@ contract WillFactoryIntegrationTest is Test {
         uint256 newUploadTime = willFactory.cidUploadedTimes(tv.cid);
         assertEq(newUploadTime, block.timestamp);
         assertTrue(newUploadTime > uploadTime);
+
+        // Try to revoke notarized CID with revokeUploadedCid - should fail
+        vm.warp(block.timestamp + 1);
+        vm.prank(notary);
+        willFactory.notarizeCid(tv.cid);
+        
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, tv.cid));
+        vm.prank(tv.testator);
+        willFactory.revokeUploadedCid(
+            tv.cidUploadProof.pA,
+            tv.cidUploadProof.pB,
+            tv.cidUploadProof.pC,
+            tv.cidUploadProof.pubSignals,
+            tv.cid
+        );
     }
 
-    function test_RevokeNortarizedCid_Integration() public {
+    function test_RevokeNortarizedCid() public {
         TestVector memory tv = testVectors[0];
 
         // Step 1: Upload CID
@@ -337,35 +377,36 @@ contract WillFactoryIntegrationTest is Test {
         vm.prank(notary);
         willFactory.revokeNortarizedCid(tv.cid);
 
-        // Verify revocation - both times should be reset to 0
-        assertEq(willFactory.cidUploadedTimes(tv.cid), 0);
+        // Verify revocation - notarize time should be reset to 0
+        assertTrue(willFactory.cidUploadedTimes(tv.cid) > 0);
         assertEq(willFactory.cidNotarizedTimes(tv.cid), 0);
 
-        // Step 4: Verify that after revocation, we can upload and notarize the same CID again
-        vm.warp(block.timestamp + 1);
-        vm.prank(tv.testator);
-        willFactory.uploadCid(
-            tv.cidUploadProof.pA,
-            tv.cidUploadProof.pB,
-            tv.cidUploadProof.pC,
-            tv.cidUploadProof.pubSignals,
-            tv.willTypedJsonObj,
-            tv.cid
-        );
-
+        // Step 4: Verify that after revocation, we can notarize the same CID again
         vm.warp(block.timestamp + 1);
         vm.prank(notary);
         willFactory.notarizeCid(tv.cid);
 
-        // Verify re-upload and re-notarization worked
+        // Verify re-notarization worked
+        uint256 newNotarizeTime = willFactory.cidNotarizedTimes(tv.cid);
+        assertEq(newNotarizeTime, block.timestamp);
         assertTrue(willFactory.cidUploadedTimes(tv.cid) > 0);
-        assertTrue(willFactory.cidNotarizedTimes(tv.cid) > 0);
+        assertTrue(willFactory.cidNotarizedTimes(tv.cid) > willFactory.cidUploadedTimes(tv.cid));
+        assertTrue(newNotarizeTime > notarizeTime);
+
+        // Try to revoke probated CID with revokeNotarizedCid - should fail
+        vm.warp(block.timestamp + 1);
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+        
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyProbated.selector, tv.cid));
+        vm.prank(notary);
+        willFactory.revokeNortarizedCid(tv.cid);
     }
 
-    function test_RevokeWorkflow_CannotRevokeNotarizedWithUnnortarizedFunction() public {
+    function test_RevokeProbatedCid() public {
         TestVector memory tv = testVectors[0];
 
-        // Upload and notarize CID
+        // Step 1: Upload CID
         vm.prank(tv.testator);
         willFactory.uploadCid(
             tv.cidUploadProof.pA,
@@ -376,20 +417,43 @@ contract WillFactoryIntegrationTest is Test {
             tv.cid
         );
 
+        // Step 2: Notarize CID
         vm.warp(block.timestamp + 1);
         vm.prank(notary);
         willFactory.notarizeCid(tv.cid);
 
-        // Try to revoke notarized CID with revokeUnnortarizedCid - should fail
-        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, tv.cid));
-        vm.prank(tv.testator);
-        willFactory.revokeUnnortarizedCid(
-            tv.cidUploadProof.pA,
-            tv.cidUploadProof.pB,
-            tv.cidUploadProof.pC,
-            tv.cidUploadProof.pubSignals,
-            tv.cid
-        );
+        // Step 3: Probate CID
+        vm.warp(block.timestamp + 1);
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+
+        // Verify probation
+        uint256 probateTime = willFactory.cidProbatedTimes(tv.cid);
+        assertTrue(probateTime > 0);
+
+        // Step 4: Revoke the probated CID
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.ProbatedCidRevoked(tv.cid, block.timestamp);
+
+        vm.prank(oracle);
+        willFactory.revokeProbatedCid(tv.cid);
+
+        // Verify revocation - all times should be reset to 0
+        assertTrue(willFactory.cidUploadedTimes(tv.cid) > 0);
+        assertTrue(willFactory.cidNotarizedTimes(tv.cid) > 0);
+        assertEq(willFactory.cidProbatedTimes(tv.cid), 0);
+
+        // Step 5: Verify that after revocation, we can probate the same CID again
+        vm.warp(block.timestamp + 1);
+        vm.prank(oracle);
+        willFactory.probateCid(tv.cid);
+
+        // Verify re-probation worked
+        uint256 newProbateTime = willFactory.cidProbatedTimes(tv.cid);
+        assertTrue(willFactory.cidUploadedTimes(tv.cid) > 0);
+        assertTrue(willFactory.cidNotarizedTimes(tv.cid) > willFactory.cidUploadedTimes(tv.cid));
+        assertTrue(willFactory.cidProbatedTimes(tv.cid) > willFactory.cidNotarizedTimes(tv.cid));
+        assertTrue(newProbateTime > probateTime);
     }
 
     function _getTestDataFromEnv() internal view returns (
@@ -418,109 +482,6 @@ contract WillFactoryIntegrationTest is Test {
 
         salt = vm.envUint("SALT");
         cid = vm.envString("CID");
-    }
-
-    function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
-        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.example.json";
-        string memory encryptedJson = vm.readFile(encryptedJsonPath);
-
-        JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
-        willTypedJsonObj.keys = new string[](5);
-        willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
-
-        willTypedJsonObj.keys[0] = "algorithm";
-        willTypedJsonObj.keys[1] = "iv";
-        willTypedJsonObj.keys[2] = "authTag";
-        willTypedJsonObj.keys[3] = "ciphertext";
-        willTypedJsonObj.keys[4] = "timestamp";
-
-        string memory algorithm = abi.decode(vm.parseJson(encryptedJson, ".algorithm"), (string));
-        uint256[] memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (uint256[]));
-        uint256[] memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (uint256[]));
-        uint256[] memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (uint256[]));
-        uint256 timestamp = abi.decode(vm.parseJson(encryptedJson, ".timestamp"), (uint256));
-
-        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, new uint[](0), JsonCidVerifier.JsonValueType.STRING);
-        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("", iv, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue("", authTag, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue("", ciphertext, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), new uint[](0), JsonCidVerifier.JsonValueType.NUMBER);
-
-        return willTypedJsonObj;
-    }
-
-    function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
-        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.example.json";
-        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.example.json";
-
-        string memory proofJson = vm.readFile(proofPath);
-        string memory publicJson = vm.readFile(publicPath);
-
-        // Parse proof.json
-        uint256[2] memory pA;
-        uint256[2][2] memory pB;
-        uint256[2] memory pC;
-
-        string memory pA0Str = abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string));
-        string memory pA1Str = abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string));
-        pA[0] = vm.parseUint(pA0Str);
-        pA[1] = vm.parseUint(pA1Str);
-
-        // @note G2 point (pB) needs to swap the order
-        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
-        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
-        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
-        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
-
-        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
-        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
-
-        // Parse public.json
-        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 310, "Public signals array must have exactly 310 elements");
-
-        uint256[310] memory pubSignals;
-        for (uint256 i = 0; i < 310; i++) {
-            pubSignals[i] = vm.parseUint(pubStringArray[i]);
-        }
-
-        return CidUploadProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
-    }
-
-    function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
-        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.example.json";
-        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.example.json";
-
-        string memory proofJson = vm.readFile(proofPath);
-        string memory publicJson = vm.readFile(publicPath);
-
-        // Parse proof.json
-        uint256[2] memory pA;
-        uint256[2][2] memory pB;
-        uint256[2] memory pC;
-
-        pA[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string)));
-        pA[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string)));
-
-        // @note G2 point (pB) needs to swap the order
-        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
-        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
-        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
-        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
-
-        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
-        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
-
-        // Parse public.json
-        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 321, "Public signals array must have exactly 321 elements");
-
-        uint256[321] memory pubSignals;
-        for (uint256 i = 0; i < 321; i++) {
-            pubSignals[i] = vm.parseUint(pubStringArray[i]);
-        }
-
-        return WillCreationProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
     }
 
     function _compareEstateArraysHash(Will.Estate[] memory estates0, Will.Estate[] memory estates1)

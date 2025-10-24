@@ -200,7 +200,7 @@ contract WillFactoryUnitTest is Test {
         factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
     }
 
-    function test_RevokeUnnortarizedCid_Success() public {
+    function test_RevokeUploadedCid_Success() public {
         // Setup: Upload CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -210,15 +210,15 @@ contract WillFactoryUnitTest is Test {
         vm.expectEmit(true, false, false, true);
         emit WillFactory.UploadedCidRevoked(cid, block.timestamp);
 
-        // Test: Revoke the unnotarized CID
+        // Test: Revoke the uploaded CID
         vm.prank(testator);
-        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+        factory.revokeUploadedCid(pA, pB, pC, cidUploadPubSignals, cid);
 
         // Verify: CID is revoked (upload time reset to 0)
         assertEq(factory.cidUploadedTimes(cid), 0);
     }
 
-    function test_RevokeUnnortarizedCid_NotTestator() public {
+    function test_RevokeUploadedCid_NotTestator() public {
         // Setup: Upload CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -228,17 +228,17 @@ contract WillFactoryUnitTest is Test {
         // Test: Wrong caller should revert
         vm.expectRevert(abi.encodeWithSelector(WillFactory.NotTestator.selector, random, testator));
         vm.prank(random);
-        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+        factory.revokeUploadedCid(pA, pB, pC, cidUploadPubSignals, cid);
     }
 
-    function test_RevokeUnnortarizedCid_CidNotUploaded() public {
+    function test_RevokeUploadedCid_CidNotUploaded() public {
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotUploaded.selector, cid));
 
         vm.prank(testator);
-        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+        factory.revokeUploadedCid(pA, pB, pC, cidUploadPubSignals, cid);
     }
 
-    function test_RevokeUnnortarizedCid_AlreadyNotarized() public {
+    function test_RevokeUploadedCid_AlreadyNotarized() public {
         // Setup: Upload and notarize CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -252,10 +252,10 @@ contract WillFactoryUnitTest is Test {
         // Test: Should revert because CID is already notarized
         vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyNotarized.selector, cid));
         vm.prank(testator);
-        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+        factory.revokeUploadedCid(pA, pB, pC, cidUploadPubSignals, cid);
     }
 
-    function test_RevokeUnnortarizedCid_CidUploadProofInvalid() public {
+    function test_RevokeUploadedCid_CidUploadProofInvalid() public {
         // Setup: Upload CID
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
@@ -266,7 +266,7 @@ contract WillFactoryUnitTest is Test {
         mockcidUploadVerifier.setShouldReturnTrue(false);
         vm.expectRevert(WillFactory.CidUploadProofInvalid.selector);
         vm.prank(testator);
-        factory.revokeUnnortarizedCid(pA, pB, pC, cidUploadPubSignals, cid);
+        factory.revokeUploadedCid(pA, pB, pC, cidUploadPubSignals, cid);
     }
 
     function test_NotarizeCid_Success() public {
@@ -317,6 +317,73 @@ contract WillFactoryUnitTest is Test {
         factory.notarizeCid(cid);
     }
 
+    function test_ProbateCid_Success() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.CidProbated(cid, block.timestamp);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
+    }
+
+    function test_ProbateCid_NotOracle() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotOracle.selector, address(this), oracle));
+        factory.probateCid(cid);
+    }
+
+    function test_ProbateCid_AlreadyProbated() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyProbated.selector, cid));
+        vm.prank(oracle);
+        factory.probateCid(cid);
+    }
+
+    function test_ProbateCid_CidNotNotarized() public {
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
+        vm.prank(oracle);
+        factory.probateCid(cid);
+    }
+
 
     function test_CreateWill_Success() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
@@ -328,6 +395,11 @@ contract WillFactoryUnitTest is Test {
 
         vm.prank(notary);
         factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
@@ -361,8 +433,7 @@ contract WillFactoryUnitTest is Test {
         factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
     }
 
-    function test_CreateWill_WrongCiphertext() public {
-        // Setup: Upload and notarize the CID first
+    function test_CreateWill_CidNotProbated() public {
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         vm.prank(testator);
@@ -372,6 +443,28 @@ contract WillFactoryUnitTest is Test {
 
         vm.prank(notary);
         factory.notarizeCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotProbated.selector, cid));
+        vm.prank(executor);
+        factory.createWill(pA, pB, pC, willCreationPubSignals, willJson, cid);
+    }
+
+    function test_CreateWill_WrongCiphertext() public {
+        // Setup: Upload, notarize, and probate the CID first
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
@@ -384,7 +477,7 @@ contract WillFactoryUnitTest is Test {
     }
 
     function test_CreateWill_WrongInitializationVector() public {
-        // Setup: Upload and notarize the CID first
+        // Setup: Upload, notarize, and probate the CID first
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         vm.prank(testator);
@@ -394,6 +487,11 @@ contract WillFactoryUnitTest is Test {
 
         vm.prank(notary);
         factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         mockWillCreationVerifier.setShouldReturnTrue(true);
 
@@ -416,6 +514,11 @@ contract WillFactoryUnitTest is Test {
         vm.prank(notary);
         factory.notarizeCid(cid);
 
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
+
         mockWillCreationVerifier.setShouldReturnTrue(false);
 
         vm.expectRevert(WillFactory.WillCreationProofInvalid.selector);
@@ -424,7 +527,7 @@ contract WillFactoryUnitTest is Test {
     }
 
     function test_CreateWill_WillAlreadyExists() public {
-        // Upload and notarize Cid
+        // Upload, notarize, and probate Cid
         mockJsonCidVerifier.setShouldReturnTrue(true);
         mockcidUploadVerifier.setShouldReturnTrue(true);
         mockWillCreationVerifier.setShouldReturnTrue(true);
@@ -435,6 +538,11 @@ contract WillFactoryUnitTest is Test {
 
         vm.prank(notary);
         factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         // Create first will
         vm.prank(executor);
@@ -465,8 +573,8 @@ contract WillFactoryUnitTest is Test {
         vm.prank(notary);
         factory.revokeNortarizedCid(cid);
 
-        // Verify: Both upload and notarization times are reset to 0
-        assertEq(factory.cidUploadedTimes(cid), 0);
+        // Verify: Only notarization times is reset to 0
+        assertTrue(factory.cidUploadedTimes(cid) > 0);
         assertEq(factory.cidNotarizedTimes(cid), 0);
     }
 
@@ -496,5 +604,89 @@ contract WillFactoryUnitTest is Test {
         vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotNotarized.selector, cid));
         vm.prank(notary);
         factory.revokeNortarizedCid(cid);
+    }
+
+    function test_RevokeNortarizedCid_AlreadyProbated() public {
+        // Setup: Upload, notarize, and probate CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+        vm.prank(oracle);
+        factory.probateCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.AlreadyProbated.selector, cid));
+        vm.prank(notary);
+        factory.revokeNortarizedCid(cid);
+    }
+
+    function test_RevokeProbatedCid_Success() public {
+        // Setup: Upload, notarize, and probate CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+        vm.prank(oracle);
+        factory.probateCid(cid);
+
+        vm.expectEmit(true, false, false, true);
+        emit WillFactory.ProbatedCidRevoked(cid, block.timestamp);
+
+        // Test: Revoke the probated CID
+        vm.prank(oracle);
+        factory.revokeProbatedCid(cid);
+
+        // Verify: Only probation times are reset to 0
+        assertTrue(factory.cidUploadedTimes(cid) > 0);
+        assertTrue(factory.cidNotarizedTimes(cid) > factory.cidUploadedTimes(cid));
+        assertEq(factory.cidProbatedTimes(cid), 0);
+    }
+
+    function test_RevokeProbatedCid_NotOracle() public {
+        // Setup: Upload, notarize, and probate CID
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.warp(block.timestamp + 2);
+        vm.prank(oracle);
+        factory.probateCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.NotOracle.selector, testator, oracle));
+        vm.prank(testator);
+        factory.revokeProbatedCid(cid);
+    }
+
+    function test_RevokeProbatedCid_CidNotProbated() public {
+        // Setup: Upload and notarize CID but don't probate
+        mockJsonCidVerifier.setShouldReturnTrue(true);
+        mockcidUploadVerifier.setShouldReturnTrue(true);
+        vm.prank(testator);
+        factory.uploadCid(pA, pB, pC, cidUploadPubSignals, willJson, cid);
+
+        vm.warp(block.timestamp + 1);
+        vm.prank(notary);
+        factory.notarizeCid(cid);
+
+        vm.expectRevert(abi.encodeWithSelector(WillFactory.CidNotProbated.selector, cid));
+        vm.prank(oracle);
+        factory.revokeProbatedCid(cid);
     }
 }

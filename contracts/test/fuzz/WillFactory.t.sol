@@ -8,6 +8,7 @@ import "src/Will.sol";
 import "src/CidUploadVerifier.sol";
 import "src/WillCreationVerifier.sol";
 import "mock/MockContracts.sol";
+import "helpers/TestHelpers.sol";
 
 /*
  * @note Prerequisite for this test:
@@ -15,28 +16,17 @@ import "mock/MockContracts.sol";
  *  2. `make deploy` necessary contracts
  *  3. `make all` in apps/backend to generate test data (e.g., encrypted will, ZKP).
  */
-contract WillFactoryFuzzTest is Test {
-    struct CidUploadProofData {
-        uint256[2] pA;
-        uint256[2][2] pB;
-        uint256[2] pC;
-        uint256[310] pubSignals;
-    }
-
-    struct WillCreationProofData {
-        uint256[2] pA;
-        uint256[2][2] pB;
-        uint256[2] pC;
-        uint256[321] pubSignals;
-    }
+contract WillFactoryFuzzTest is TestHelpers {
 
     WillFactory factory;
     MockCidUploadVerifier mockCidUploadVerifier;
     MockWillCreationVerifier mockWillCreationVerifier;
     MockJsonCidVerifier mockJsonCidVerifier;
 
-    uint256 notaryPrivateKey = 0x1111111111111111111111111111111111111111111111111111111111111111;
-    address notary;
+    // uint256 notaryPrivateKey = 0x1111111111111111111111111111111111111111111111111111111111111111;
+    // uint256 oraclePrivateKey = 0x2222222222222222222222222222222222222222222222222222222222222222;
+    address notary = makeAddr("notary");
+    address oracle = makeAddr("oracle");
     address executor = makeAddr("executor");
     address permit2 = makeAddr("permit2");
     uint8 maxEstates = 2;
@@ -46,7 +36,8 @@ contract WillFactoryFuzzTest is Test {
     WillCreationProofData willCreationProof = _getWillCreationProofFromFiles();
 
     function setUp() public {
-        notary = vm.addr(notaryPrivateKey);
+        // notary = vm.addr(notaryPrivateKey);
+        // oracle = vm.addr(oraclePrivateKey);
 
         mockCidUploadVerifier = new MockCidUploadVerifier();
         mockWillCreationVerifier = new MockWillCreationVerifier();
@@ -57,7 +48,7 @@ contract WillFactoryFuzzTest is Test {
             address(mockWillCreationVerifier),
             address(mockJsonCidVerifier),
             notary,
-            executor,
+            oracle,
             permit2,
             maxEstates
         );
@@ -194,7 +185,10 @@ contract WillFactoryFuzzTest is Test {
         vm.prank(notary);
         factory.notarizeCid(cid);
 
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         // Extract the executor from the proof's public signals
         address proofExecutor = address(uint160(willCreationProof.pubSignals[1]));
@@ -245,7 +239,10 @@ contract WillFactoryFuzzTest is Test {
         vm.prank(notary);
         factory.notarizeCid(cid);
 
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 2);
+
+        vm.prank(oracle);
+        factory.probateCid(cid);
 
         // Extract the executor from the proof's public signals
         address proofExecutor = address(uint160(willCreationProof.pubSignals[1]));
@@ -268,108 +265,5 @@ contract WillFactoryFuzzTest is Test {
             modifiedWill,
             cid
         );
-    }
-
-    function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
-        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.example.json";
-        string memory encryptedJson = vm.readFile(encryptedJsonPath);
-
-        JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
-        willTypedJsonObj.keys = new string[](5);
-        willTypedJsonObj.values = new JsonCidVerifier.JsonValue[](5);
-
-        willTypedJsonObj.keys[0] = "algorithm";
-        willTypedJsonObj.keys[1] = "iv";
-        willTypedJsonObj.keys[2] = "authTag";
-        willTypedJsonObj.keys[3] = "ciphertext";
-        willTypedJsonObj.keys[4] = "timestamp";
-
-        string memory algorithm = abi.decode(vm.parseJson(encryptedJson, ".algorithm"), (string));
-        uint256[] memory iv = abi.decode(vm.parseJson(encryptedJson, ".iv"), (uint256[]));
-        uint256[] memory authTag = abi.decode(vm.parseJson(encryptedJson, ".authTag"), (uint256[]));
-        uint256[] memory ciphertext = abi.decode(vm.parseJson(encryptedJson, ".ciphertext"), (uint256[]));
-        uint256 timestamp = abi.decode(vm.parseJson(encryptedJson, ".timestamp"), (uint256));
-
-        willTypedJsonObj.values[0] = JsonCidVerifier.JsonValue(algorithm, new uint[](0), JsonCidVerifier.JsonValueType.STRING);
-        willTypedJsonObj.values[1] = JsonCidVerifier.JsonValue("", iv, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[2] = JsonCidVerifier.JsonValue("", authTag, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[3] = JsonCidVerifier.JsonValue("", ciphertext, JsonCidVerifier.JsonValueType.NUMBER_ARRAY);
-        willTypedJsonObj.values[4] = JsonCidVerifier.JsonValue(vm.toString(timestamp), new uint[](0), JsonCidVerifier.JsonValueType.NUMBER);
-
-        return willTypedJsonObj;
-    }
-
-    function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
-        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.example.json";
-        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.example.json";
-
-        string memory proofJson = vm.readFile(proofPath);
-        string memory publicJson = vm.readFile(publicPath);
-
-        // Parse proof.json
-        uint256[2] memory pA;
-        uint256[2][2] memory pB;
-        uint256[2] memory pC;
-
-        string memory pA0Str = abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string));
-        string memory pA1Str = abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string));
-        pA[0] = vm.parseUint(pA0Str);
-        pA[1] = vm.parseUint(pA1Str);
-
-        // @note G2 point (pB) needs to swap the order
-        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
-        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
-        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
-        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
-
-        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
-        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
-
-        // Parse public.json
-        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 310, "Public signals array must have exactly 310 elements");
-
-        uint256[310] memory pubSignals;
-        for (uint256 i = 0; i < 310; i++) {
-            pubSignals[i] = vm.parseUint(pubStringArray[i]);
-        }
-
-        return CidUploadProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
-    }
-
-    function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
-        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.example.json";
-        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.example.json";
-
-        string memory proofJson = vm.readFile(proofPath);
-        string memory publicJson = vm.readFile(publicPath);
-
-        // Parse proof.json
-        uint256[2] memory pA;
-        uint256[2][2] memory pB;
-        uint256[2] memory pC;
-
-        pA[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[0]"), (string)));
-        pA[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_a[1]"), (string)));
-
-        // @note G2 point (pB) needs to swap the order
-        pB[0][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][1]"), (string)));
-        pB[0][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[0][0]"), (string)));
-        pB[1][0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][1]"), (string)));
-        pB[1][1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_b[1][0]"), (string)));
-
-        pC[0] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[0]"), (string)));
-        pC[1] = vm.parseUint(abi.decode(vm.parseJson(proofJson, ".pi_c[1]"), (string)));
-
-        // Parse public.json
-        string[] memory pubStringArray = abi.decode(vm.parseJson(publicJson), (string[]));
-        require(pubStringArray.length == 321, "Public signals array must have exactly 321 elements");
-
-        uint256[321] memory pubSignals;
-        for (uint256 i = 0; i < 321; i++) {
-            pubSignals[i] = vm.parseUint(pubStringArray[i]);
-        }
-
-        return WillCreationProofData({ pA: pA, pB: pB, pC: pC, pubSignals: pubSignals });
     }
 }

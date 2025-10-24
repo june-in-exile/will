@@ -1,12 +1,10 @@
 import { NETWORK_CONFIG } from "@config";
-import { WILL_TYPE } from "@shared/constants/index.js";
-import { Will, Will__factory } from "@shared/types/typechain-types/index.js";
+import { WillFactory, WillFactory__factory } from "@shared/types/typechain-types/index.js";
 import type {
     ProbateWill,
 } from "@shared/types/index.js";
 import {
     updateEnvironmentVariables,
-    readWillFields,
 } from "@shared/utils/file/index.js";
 import {
     validateNetwork,
@@ -32,7 +30,7 @@ interface ProcessResult {
  */
 function validateEnvironmentVariables(): ProbateWill {
     const result = validateEnvironment<ProbateWill>(
-        presetValidations.probateWill(),
+        presetValidations.probateCid(),
     );
 
     if (!result.isValid) {
@@ -46,18 +44,19 @@ function validateEnvironmentVariables(): ProbateWill {
 
 
 /**
- * Execute signatureTransferToBeneficiaries transaction
+ * Execute probateCid transaction
  */
 async function executeProbation(
-    contract: Will,
+    contract: WillFactory,
+    cid: string,
 ): Promise<ProcessResult> {
     try {
         console.log(
-            chalk.blue("Executing probateWill transaction..."),
+            chalk.blue("Executing probateCid transaction..."),
         );
 
         // Execute transaction
-        const tx = await contract.probateWill();
+        const tx = await contract.probateCid(cid);
 
         const receipt = await tx.wait();
 
@@ -73,21 +72,21 @@ async function executeProbation(
         console.log(chalk.gray("Block number:"), receipt.blockNumber);
         console.log(chalk.gray("Gas used:"), receipt.gasUsed.toString());
 
-        // Check for DeathProved event
-        const ProbatedEvent = receipt.logs.find((log: ethers.Log) => {
+        // Check for CidProbated event
+        const CidProbatedEvent = receipt.logs.find((log: ethers.Log) => {
             try {
                 const parsed = contract.interface.parseLog(log);
-                return parsed?.name === "Probated";
+                return parsed?.name === "CidProbated";
             } catch {
                 return false;
             }
         });
 
-        if (ProbatedEvent) {
-            console.log(chalk.green("🎉 Will probated successfully!"));
+        if (CidProbatedEvent) {
+            console.log(chalk.green("🎉 CID probated successfully!"));
         } else {
             console.warn(
-                chalk.yellow("⚠️  Warning: Probated event not found in logs"),
+                chalk.yellow("⚠️  Warning: CidProbated event not found in logs"),
             );
         }
 
@@ -98,33 +97,32 @@ async function executeProbation(
         };
     } catch (error) {
         throw new Error(
-            `Failed to execute probateWill: ${error instanceof Error ? error.message : "Unknown error"}`,
+            `Failed to execute probateCid: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
     }
 }
 
 /**
- * Process signature transfer workflow
+ * Process probation workflow
  */
 async function processProbation(): Promise<ProcessResult> {
     try {
-        const { ORACLE_PRIVATE_KEY } = validateEnvironmentVariables();
-
-        const fields = readWillFields(WILL_TYPE.DESERIALIZED, ["will"]);
+        const { ORACLE_PRIVATE_KEY, WILL_FACTORY, CID } = validateEnvironmentVariables();
 
         const provider = new JsonRpcProvider(NETWORK_CONFIG.rpc.current);
         await validateNetwork(provider);
 
         const wallet = createWallet(ORACLE_PRIVATE_KEY, provider);
 
-        const contract = await createContract<Will>(
-            fields.will,
-            Will__factory,
+        const contract = await createContract<WillFactory>(
+            WILL_FACTORY,
+            WillFactory__factory,
             wallet,
         );
 
         const result = await executeProbation(
             contract,
+            CID,
         );
 
         await updateEnvironmentVariables([
@@ -133,13 +131,13 @@ async function processProbation(): Promise<ProcessResult> {
         ]);
 
         console.log(
-            chalk.green.bold("\n🎉 Will probation process completed successfully!"),
+            chalk.green.bold("\n🎉 CID probation process completed successfully!"),
         );
 
         return result;
     } catch (error) {
         console.error(
-            chalk.red("Error during will execution process:"),
+            chalk.red("Error during probation process:"),
             error instanceof Error ? error.message : "Unknown error",
         );
         throw error;
