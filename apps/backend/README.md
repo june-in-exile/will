@@ -24,18 +24,20 @@ Store the will in [`will/1_plaintext.txt`](will/1_plaintext.txt).
 The will should contain:
 
 - [ ] The testator's wallet address
+- [ ] The executor's wallet address
 - [ ] The beneficiary's wallet address (multiple beneficiaries support planned)
 - [ ] ERC20 tokens and corresponding amounts to be transferred
 
 **Example will:**
 
 ```
-After my death, I would like to transfer 5 USDC and 10 LINK to my son.
+After my death, I would like to transfer 1000 USDC and 5000000 LINK to my son.
 My wallet is 0x041F57c4492760aaE44ECed29b49a30DaAD3D4Cc.
 My son's wallet 0x3fF1F826E1180d151200A4d5431a3Aa3142C4A8c.
+I would like to assign 0xF85d255D10EbA7Ec5a12724D134420A3C2b8EA3a as the executor.
 ```
 
-### Step 2: Format Will (In Development)
+### Step 2: Format Will
 
 Format the plaintext will into a JSON file:
 
@@ -72,7 +74,7 @@ make predict-address
 Create the signature for [Permit2 SignatureTransfer function](https://docs.uniswap.org/contracts/permit2/reference/signature-transfer):
 
 ```sh
-make sign-permit2
+make sign-permit
 ```
 
 - **Output**: [`will/4_signed.json`](will/4_signed.json)
@@ -99,7 +101,18 @@ make encrypt-will
 
 - **Output**: [`will/6_encrypted.json`](will/6_encrypted.json) (base64 encoded)
 
-### Step 8: Upload to IPFS
+### Step 8: Generate CID Upload Proof
+
+Generate the zero-knowledge proof for CID upload verification:
+
+```sh
+make prove-for-cid-upload
+```
+
+- **Output**: ZKP proof files in the zkp directory
+- **Purpose**: Proves knowledge of the encryption key without revealing it
+
+### Step 9: Upload to IPFS
 
 Upload the encrypted will to IPFS:
 
@@ -110,7 +123,7 @@ make upload-will
 - **Updates**: The following `.env` variables are automatically updated:
   - `CID` (IPFS Content Identifier)
 
-### Step 9: Upload CID
+### Step 10: Upload CID
 
 Upload the CID to `willFactory.sol`:
 
@@ -121,7 +134,20 @@ make upload-cid
 - **Updates**: The following `.env` variables are automatically updated:
   - `UPLOAD_TX_HASH`, `UPLOAD_TIMESTAMP`
 
-## Phase 2: Probation
+## Phase 2: Notarization
+
+### Step 1: Notarize CID
+
+The notary notarizes the CID on `willFactory.sol`:
+
+```sh
+make notarize-cid
+```
+
+- **Updates**: The following `.env` variables are automatically updated:
+  - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
+
+## Phase 3: Decrypt & Execute Will
 
 ### Step 1: Download
 
@@ -153,22 +179,20 @@ make deserialize-will
 
 - **Output**: [`will/9_deserialized.json`](will/9_deserialized.json)
 
-### Step 4: Notarize CID
+### Step 4: Generate Will Creation Proof
 
-The exeutor notarize the CID on `willFactory.sol`:
+Generate the zero-knowledge proof for will creation verification:
 
 ```sh
-make notarize-cid
+make prove-for-will-creation
 ```
 
-- **Updates**: The following `.env` variables are automatically updated:
-  - `NOTARIZE_TX_HASH`, `NOTARIZE_TIMESTAMP`
+- **Output**: ZKP proof files in the zkp directory
+- **Purpose**: Proves knowledge of the encryption key and will contents
 
-## Phase 3: Decrypt & Execute Will
+### Step 5: Create Will
 
-### Step 1: Create Will
-
-The exeutor create a new `Will.sol` through the `willFactory.sol`:
+The executor creates a new `Will.sol` through the `willFactory.sol`:
 
 ```sh
 make create-will
@@ -177,9 +201,9 @@ make create-will
 - **Updates**: The following `.env` variables are automatically updated:
   - `CREATE_WILL_TX_HASH`, `CREATE_WILL_TIMESTAMP`
 
-### Step 2: Probation
+### Step 6: Probate Will
 
-The oracle probate the `Will.sol`:
+The oracle probates the `Will.sol`:
 
 ```sh
 make probate-will
@@ -188,9 +212,9 @@ make probate-will
 - **Updates**: The following `.env` variables are automatically updated:
   - `PROBATE_WILL_TX_HASH`, `PROBATE_WILL_TIMESTAMP`
 
-### Step 3: Transfer Estates
+### Step 7: Transfer Estates
 
-The exeutor executes the `Will.sol` and transfer the estates from the testator to the beneifciaries:
+The executor executes the `Will.sol` and transfers the estates from the testator to the beneficiaries:
 
 ```sh
 make signature-transfer
@@ -209,7 +233,9 @@ will/
 ├── 2_formatted.json     # Structured JSON format
 ├── 3_addressed.json     # Will with contract address
 ├── 4_signed.json        # Will with Permit2 signature
-├── 5_encrypted.json     # Encrypted will (base64)
-├── 6_downloaded.json    # Downloaded will from IPFS
-└── 7_decrypted.json     # Will from decrypted content
+├── 5_serialized.json    # Serialized will
+├── 6_encrypted.json     # Encrypted will (base64)
+├── 7_downloaded.json    # Downloaded will from IPFS
+├── 8_decrypted.json     # Decrypted will
+└── 9_deserialized.json  # Deserialized will
 ```

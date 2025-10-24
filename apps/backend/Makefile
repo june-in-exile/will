@@ -55,7 +55,13 @@ upload-cid:
 	@pnpm exec tsx src/onchain/willFactory/uploadCid.ts
 
 
-notarySignsCid: download-will decrypt-will deserialize-will notarize-cid
+notarySignsCid: notarize-cid
+
+notarize-cid:
+	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
+
+
+executorTransfersEstates: download-will decrypt-will deserialize-will prove-for-will-creation create-will probate-will signature-transfer
 
 download-will:
 	@pnpm exec tsx src/offchain/ipfs/download.ts
@@ -63,17 +69,8 @@ download-will:
 decrypt-will:
 	@pnpm exec tsx src/offchain/cryptography/decryptWill.ts
 
-decrypt-will-local:
-	@pnpm exec tsx src/offchain/cryptography/decryptWill.ts --local
-
 deserialize-will:
 	@pnpm exec tsx src/offchain/serialization/deserialize.ts
-
-notarize-cid:
-	@pnpm exec tsx src/onchain/willFactory/notarizeCid.ts
-
-
-executorTransfersEstates: prove-for-will-creation create-will probate-will signature-transfer
 
 prove-for-will-creation:
 	@pnpm exec tsx src/offchain/zkp/willCreation.ts
@@ -88,7 +85,7 @@ signature-transfer:
 	@pnpm exec tsx src/onchain/will/signatureTransfer.ts
 
 
-utils: keccak256 encrypt-data decrypt-data cid-data cid-path submit-proof
+utils: keccak256 encrypt-data decrypt-data decrypt-will-local cid-data cid-path submit-proof
 
 keccak256:
 	@pnpm exec tsx ../../shared/utils/cryptography/keccak256.ts \
@@ -137,6 +134,9 @@ decrypt-data:
 		--key "NPu551h+p/8ZCJxFOE0ZMHQ9GKgONWTUWfFqbIj6vZ0=" \
 		--iv "wqoEnM5H2VDxfIcR7NsdAQ=="
 # AES-256-CTR algorithm
+
+decrypt-will-local:
+	@pnpm exec tsx src/offchain/cryptography/decryptWill.ts --local
 
 cid-data:
 	@pnpm exec tsx src/offchain/ipfs/cid.ts \
