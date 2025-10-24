@@ -87,10 +87,9 @@ async function getWillInfo(contract: Will): Promise<WillContractInfo> {
   try {
     console.log(chalk.blue("Fetching will information..."));
 
-    const [testator, executor, probated, estates] = await Promise.all([
+    const [testator, executor, estates] = await Promise.all([
       contract.testator(),
       contract.executor(),
-      contract.probated(),
       contract.getAllEstates(),
     ]);
 
@@ -105,7 +104,6 @@ async function getWillInfo(contract: Will): Promise<WillContractInfo> {
     return {
       testator,
       executor,
-      probated,
       estates: formattedEstates,
     };
   } catch (error) {

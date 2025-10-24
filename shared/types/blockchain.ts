@@ -14,7 +14,6 @@ interface EstateToken {
 interface WillContractInfo {
   testator: string;
   executor: string;
-  probated: boolean;
   estates: Estate[];
 }
 
