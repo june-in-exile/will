@@ -38,9 +38,7 @@ contract WillFactoryIntegrationTest is Test {
     JsonCidVerifier jsonCidVerifier;
 
     address notary;
-    uint256 notaryPrivateKey;
     address oracle;
-    uint256 oraclePrivateKey;
     address permit2;
     uint8 maxEstates;
     address random = makeAddr("random");
@@ -68,11 +66,8 @@ contract WillFactoryIntegrationTest is Test {
         willCreateVerifier = new WillCreationVerifier(address(willCreationConstants1), address(willCreationConstants2));
         jsonCidVerifier = new JsonCidVerifier();
 
-        // Read addresses from environment variables
-        notaryPrivateKey = uint256(vm.envBytes32("NOTARY_PRIVATE_KEY"));
-        notary = vm.addr(notaryPrivateKey);
-        oraclePrivateKey = uint256(vm.envBytes32("ORACLE_PRIVATE_KEY"));
-        oracle = vm.addr(oraclePrivateKey);
+        notary = vm.envAddress("NOTARY");
+        oracle = vm.envAddress("ORACLE");
         permit2 = vm.envAddress("PERMIT2");
         maxEstates = uint8(vm.envUint("MAX_ESTATES"));
 
@@ -426,7 +421,7 @@ contract WillFactoryIntegrationTest is Test {
     }
 
     function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
-        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.json";
+        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.example.json";
         string memory encryptedJson = vm.readFile(encryptedJsonPath);
 
         JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
@@ -455,8 +450,8 @@ contract WillFactoryIntegrationTest is Test {
     }
 
     function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
-        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.json";
-        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.json";
+        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.example.json";
+        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.example.json";
 
         string memory proofJson = vm.readFile(proofPath);
         string memory publicJson = vm.readFile(publicPath);
@@ -493,8 +488,8 @@ contract WillFactoryIntegrationTest is Test {
     }
 
     function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
-        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.json";
-        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.json";
+        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.example.json";
+        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.example.json";
 
         string memory proofJson = vm.readFile(proofPath);
         string memory publicJson = vm.readFile(publicPath);

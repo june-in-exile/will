@@ -15,7 +15,7 @@
     "fork:clean": "make fork-clean",
     "build": "make build",
     "deploy": "make deploy",
-    "test": "export $(cat ../.env | sed 's/#.*//g' | xargs) && forge test -vv",
+    "test": "export $(cat test/mock/.env.example | sed 's/#.*//g' | xargs) && forge test -vv",
     "test:all": "make test",
     "test:fuzz": "make test-fuzz",
     "test:integration": "make test-integration",

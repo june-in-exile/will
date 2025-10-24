@@ -271,7 +271,7 @@ contract WillFactoryFuzzTest is Test {
     }
 
     function _getEncryptedWillFromFile() public view returns (JsonCidVerifier.TypedJsonObject memory) {
-        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.json";
+        string memory encryptedJsonPath = "../apps/backend/will/6_encrypted.example.json";
         string memory encryptedJson = vm.readFile(encryptedJsonPath);
 
         JsonCidVerifier.TypedJsonObject memory willTypedJsonObj;
@@ -300,8 +300,8 @@ contract WillFactoryFuzzTest is Test {
     }
 
     function _getCidUploadProofFromFiles() public view returns (CidUploadProofData memory) {
-        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.json";
-        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.json";
+        string memory proofPath = "../zkp/circuits/cidUpload/proofs/proof.example.json";
+        string memory publicPath = "../zkp/circuits/cidUpload/proofs/public.example.json";
 
         string memory proofJson = vm.readFile(proofPath);
         string memory publicJson = vm.readFile(publicPath);
@@ -338,8 +338,8 @@ contract WillFactoryFuzzTest is Test {
     }
 
     function _getWillCreationProofFromFiles() public view returns (WillCreationProofData memory) {
-        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.json";
-        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.json";
+        string memory proofPath = "../zkp/circuits/willCreation/proofs/proof.example.json";
+        string memory publicPath = "../zkp/circuits/willCreation/proofs/public.example.json";
 
         string memory proofJson = vm.readFile(proofPath);
         string memory publicJson = vm.readFile(publicPath);

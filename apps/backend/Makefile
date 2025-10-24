@@ -15,13 +15,13 @@ clean:
 		EXECUTE_WILL_TX_HASH EXECUTE_WILL_TIMESTAMP \
 		|| echo "Warning: Failed to reset env variables"
 	@echo "Removing generated files..."
-	@-rm -f will/3_addressed*.json
-	@-rm -f will/4_signed*.json
-	@-rm -f will/5_serialized*.json
-	@-rm -f will/6_encrypted*.json
-	@-rm -f will/7_downloaded*.json
+	@-rm -f will/3_addressed.json
+	@-rm -f will/4_signed.json
+	@-rm -f will/5_serialized.json
+	@-rm -f will/6_encrypted.json
+	@-rm -f will/7_downloaded.json
 	@-rm -f will/8_decrypted*.json
-	@-rm -f will/9_deserialized*.json
+	@-rm -f will/9_deserialized.json
 	@echo "Removing secret key..."
 	@-rm -f ../../shared/utils/cryptography/key.txt
 
